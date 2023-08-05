@@ -1,0 +1,46 @@
+version: '3'
+services:
+  mqtt:
+    image: emqx/emqx:5.1.4
+    ports:
+      - 1983:1883
+      - 9083:8083
+      - 19083:18083
+    environment:
+      TZ: Asia/Tokyo
+    volumes:
+      - ./:/ws
+      - ./emqx5.node0/etc-5.0.3:/opt/emqx/etc
+      - ./emqx5.node0/data/configs/cluster-override.conf:/opt/emqx/data/configs/cluster-override.conf
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 32M
+  nginx:
+    image: nginx:stable
+    networks:
+      - outside
+    environment:
+      TZ: Asia/Tokyo
+    volumes:
+      - ./nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/tcp.conf.d:/etc/nginx/tcp.conf.d
+      - /watorvapor/cert:/etc/cert
+      - /dev/shm:/dev/shm
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 32M
+        reservations:
+          cpus: '0.1'
+          memory: 16M
+networks:
+  outside:
+    external:
+      name: "host"

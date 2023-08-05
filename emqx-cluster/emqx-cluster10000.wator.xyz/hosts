@@ -8,5 +8,6 @@ ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
 ff02::3 ip6-allhosts
 
-2400:2412:13e0:9d00:bb51:3f91:4974:e84f        emqx-cluster10000.wator.xy
-2400:2412:13e0:9d00:8639:beff:fe67:dcc9        emqx-cluster10001.wator.xy
+2400:2412:13e0:9d00:bb51:3f91:4974:e84f        emqx-cluster10000.wator.xyz
+2400:2412:13e0:9d00:8639:beff:fe67:dcc9        emqx-cluster10001.wator.xyz
+

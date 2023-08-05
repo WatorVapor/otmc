@@ -2,18 +2,19 @@ version: '3'
 services:
   emqx:
     image: emqx/emqx:5.1.4
-#    ports:
-#      - "[::]:8883:8883"
-#      - "[::]:1883:1883"
-#      - "[::]:8083:8083"
-#      - "[::]:8084:8084"
-#      - "[::]:18083:18083"
-#      - "[::]:4370:4370"
-#      - "[::]:5369:5369"
-    network_mode : "host"
+    ports:
+      - "[::]:8883:8883"
+      - "[::]:1883:1883"
+      - "[::]:8083:8083"
+      - "[::]:8084:8084"
+      - "[::]:18083:18083"
+      - "[::]:4370:4370"
+      - "[::]:5369:5369"
+    #network_mode : "host"
     environment:
-      TZ: Asia/Tokyo
-      EMQX_NODE__NAME : "emqx@192.168.0.29"
+      - "TZ=Asia/Tokyo"
+      - "EMQX_NAME=emqx"
+      - "EMQX_HOST=emqx-cluster10000.wator.xyz"
     volumes:
       - ./:/ws
       - ./emqx/etc-5.1:/opt/emqx/etc

@@ -1,0 +1,28 @@
+version: '3'
+services:
+  emqx:
+    image: emqx/emqx:5.1.4
+    ports:
+      - "[::]:8883:8883"
+      - "[::]:1883:1883"
+      - "[::]:8083:8083"
+      - "[::]:8084:8084"
+      - "[::]:18083:18083"
+    environment:
+      TZ: Asia/Tokyo
+    volumes:
+      - ./:/ws
+      - ./emqx/etc-5.1:/opt/emqx/etc
+      - ./emqx/data-5.1:/opt/emqx/data
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '0.1'
+          memory: 32M
+networks:
+  outside:
+    external:
+      name: "host"

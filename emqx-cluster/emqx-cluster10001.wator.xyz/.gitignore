@@ -1,0 +1,5 @@
+emqx/data-5.1/configs/*.config
+emqx/data-5.1/configs/*.args
+emqx/data-5.1/mnesia/emqx*
+emqx/data-5.1/mnesia/emqx*
+emqx/data-5.1/*.uuid

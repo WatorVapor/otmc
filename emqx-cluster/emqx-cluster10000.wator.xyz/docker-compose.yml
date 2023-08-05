@@ -12,8 +12,8 @@ services:
       TZ: Asia/Tokyo
     volumes:
       - ./:/ws
-      - ./emqx-cluster0.wator.xyz/etc-5.1:/opt/emqx/etc
-      - ./emqx-cluster0.wator.xyz/data-5.1:/opt/emqx/data
+      - ./emqx/etc-5.1:/opt/emqx/etc
+      - ./emqx/data-5.1:/opt/emqx/data
     deploy:
       resources:
         limits:

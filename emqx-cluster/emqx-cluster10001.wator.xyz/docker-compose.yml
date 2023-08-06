@@ -10,15 +10,18 @@ services:
       - "[::]:18083:18083"
       - "[::]:4370:4370"
       - "[::]:5369:5369"
+      - "[::]:5370:5370"
     #network_mode : "host"
     environment:
       - "TZ=Asia/Tokyo"
       - "EMQX_NAME=emqx"
-      - "EMQX_HOST=emqx-cluster10001.wator.xyz"
+      #- "EMQX_HOST=2400:2412:13e0:9d00:8639:beff:fe67:dcc9"
+      - "EMQX_HOST=emqx-cluster10000.wator.xyz"
     volumes:
       - ./:/ws
       - ./emqx/etc-5.1:/opt/emqx/etc
       - ./hosts:/etc/hosts
+      - ./sysctl.conf:/etc/sysctl.conf
       #- ./emqx/data-5.1:/opt/emqx/data
     deploy:
       resources:

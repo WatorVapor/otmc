@@ -1,6 +1,6 @@
 ```bash
 
-wget -qO - https://github.com/WatorVapor/otmc/blob/main/otmc-gateway/autostart/setup.sh | bash
+wget -qO - https://raw.githubusercontent.com/WatorVapor/otmc/main/otmc-gateway/autostart/setup.sh | bash
 ```
 
 

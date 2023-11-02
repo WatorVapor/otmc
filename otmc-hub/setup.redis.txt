@@ -1,0 +1,4 @@
+setup manual
+docker exec -it otmc-hub_redis_1 /bin/bash
+
+

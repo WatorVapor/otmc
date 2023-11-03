@@ -1,3 +1,4 @@
+/*
 const base32  = require('base32.js');
 const { subtle } = require('crypto').webcrypto;
 class EDDSAKey {
@@ -67,8 +68,9 @@ class EDDSAKey {
   }
 }
 module.exports = EDDSAKey;
+*/
 
-/*
+
 const { subtle } = require('crypto').webcrypto;
 const nacl = require('tweetnacl');
 nacl.util = require('tweetnacl-util');
@@ -76,17 +78,25 @@ const base32  = require('base32.js');
 
 class EDDSAKey {
   constructor() {
+    this.trace = false;
+    this.debug = true;
   }
   id() {
     return this.keyJson.idOfKey;
   }
   async createKey() {
     const keyPair = nacl.sign.keyPair();
-    //console.log('EDDSAKey::createKeys:keyPair=<',keyPair,'>');
+    if(this.trace) {
+      console.log('EDDSAKey::createKeys:keyPair=<',keyPair,'>');
+    }
     const pubKeyB64 = nacl.util.encodeBase64(keyPair.publicKey);
-    //console.log('EDDSAKey::createKeys:pubKeyB64=<',pubKeyB64,'>');
+    if(this.trace) {
+      console.log('EDDSAKey::createKeys:pubKeyB64=<',pubKeyB64,'>');
+    }
     const scrKeyB64 = nacl.util.encodeBase64(keyPair.secretKey);
-    //console.log('EDDSAKey::createKeys:scrKeyB64=<',scrKeyB64,'>');
+    if(this.trace) {
+      console.log('EDDSAKey::createKeys:scrKeyB64=<',scrKeyB64,'>');
+    }
     const keyid = await this.calcKeyId(pubKeyB64);
     const keyObject = {
       idOfKey:keyid,
@@ -101,25 +111,33 @@ class EDDSAKey {
   async calcKeyId(pubKeyB64) {
     const binPub = nacl.util.decodeBase64(pubKeyB64);
     const hash512 = nacl.hash(binPub);
-    //console.log('EDDSAKey::calcAddressBin_:hash512=<',Buffer.from(hash512).toString('hex'),'>');
+    if(this.trace) {
+      console.log('EDDSAKey::calcKeyId:hash512=<',Buffer.from(hash512).toString('hex'),'>');
+    }
     const hash512B64 = Buffer.from(hash512).toString('base64');
-    //console.log('EDDSAKey::calcAddressBin_:hash512B64=<',hash512B64,'>');
+    if(this.trace) {
+      console.log('EDDSAKey::calcKeyId:hash512B64=<',hash512B64,'>');
+    }
     const encoder = new TextEncoder();
     const dataSha1 = encoder.encode(hash512B64);
     const hashsha1 = await subtle.digest('SHA-1', dataSha1);
     if(this.trace) {
       console.log('EDDSAKey::calcKeyId:hashsha1=<',hashsha1,'>');
     }
-    const hash1Pub = Array.from(new Uint8Array(hashsha1)); 
-    //console.log('EDDSAKey::calcAddressBin_:hash1Pub=<',hash1Pub,'>');
-    const hash1pubBuffer = nacl.util.decodeBase64(hash1Pub);
-    //console.log('EDDSAKey::calcAddressBin_:hash1pubBuffer=<',hash1pubBuffer,'>');
+    const hash1pubBuffer = Array.from(new Uint8Array(hashsha1)); 
+    if(this.trace) {
+      console.log('EDDSAKey::calcKeyId:hash1pubBuffer=<',hash1pubBuffer,'>');
+    }
     const sha1Buffer = Buffer.from(hash1pubBuffer);
-    //console.log('EDDSAKey::calcAddressBin_:sha1Buffer=<',sha1Buffer.toString('hex'),'>');
+    if(this.trace) {
+      console.log('EDDSAKey::calcKeyId:sha1Buffer=<',sha1Buffer.toString('hex'),'>');
+    }
     const address = base32.encode(sha1Buffer);
-    console.log('EDDSAKey::calcAddressBin_:address=<',address,'>');
+    if(this.trace) {
+      console.log('EDDSAKey::calcKeyId:address=<',address,'>');
+    }
     return address.toLowerCase();
   }
 }
 module.exports = EDDSAKey;
-*/
+

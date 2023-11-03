@@ -1,9 +1,9 @@
-const EDDSAKey = require('./edcrypto/edkey.js');
+const EDDSAKey = require('../edcrypto/edkey.js');
 const fs = require('fs');
 const edkey = new EDDSAKey();
 const addressPrefix = 'otm';
-fs.mkdirSync('./.store', { recursive: true },);
-const secretKeyPaht = './.store/secretKey.json';
+fs.mkdirSync('../.store', { recursive: true },);
+const secretKeyPaht = '../.store/secretKey.json';
 console.log('::::edkey=<',edkey,'>');
 const iConstMinInSec = 60 * 1000;
 (async ()=> {

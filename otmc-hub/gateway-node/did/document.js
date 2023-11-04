@@ -69,7 +69,7 @@ class DIDSeedDocument {
     const signedMsg = this.auth_.signWithoutTS(didDoc);
     const proof = {
       type:'ed25519',
-      creator:`${didCode}#${this.auth_.address_}`,
+      creator:`${didCode}#${this.auth_.address()}`,
       signatureValue:signedMsg.auth.sign,
     };
     proofs.push(proof);

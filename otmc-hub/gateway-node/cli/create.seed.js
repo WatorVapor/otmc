@@ -1,10 +1,7 @@
 const fs = require('fs');
-const EDAuth = require('../edcrypto/edauth.js');
-const auth = new EDAuth();
-console.log('::::auth=<',auth,'>');
-const DidCrypto = require('../did/cryptography.js');
-console.log('::::DidCrypto=<',DidCrypto,'>');
+const EdAuth = require('../edcrypto/edauth.js');
 const DidDoc = require('../did/document.js');
+
 console.log('::::DidDoc=<',DidDoc,'>');
 const secretKeyPath = '../.store//secretKey/auth.json';
 const secretText = fs.readFileSync(secretKeyPath);
@@ -15,8 +12,12 @@ const secretRecoveryText = fs.readFileSync(secretRecoveryKeyPath);
 const secretRecoveryKey = JSON.parse(secretRecoveryText);
 console.log('::::secretRecoveryKey=<',secretRecoveryKey,'>');
 
+
+const primaryAuth = new EdAuth(secretKey);
+const recoveryAuth = new EdAuth(secretRecoveryKey);
+
 (async ()=> {
-  const seed = new DidDoc.SeedDocument();
+  const seed = new DidDoc.SeedDocument(primaryAuth,recoveryAuth);
   console.log('::::seed=<',seed,'>');
   const seedDoc = seed.document();
   console.log('::::seedDoc=<',seedDoc,'>');

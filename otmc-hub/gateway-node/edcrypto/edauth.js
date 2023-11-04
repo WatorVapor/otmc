@@ -1,6 +1,5 @@
 const nacl = require('tweetnacl');
 nacl.util = require('tweetnacl-util');
-const CryptoJS = require('crypto-js');
 const base32  = require('base32.js');
 class EDAuth {
   constructor() {

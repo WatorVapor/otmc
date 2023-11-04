@@ -11,6 +11,8 @@ console.log('::::secretKey=<',secretKey,'>');
 (async ()=> {
   const seed = new DidDoc.SeedDocument();
   console.log('::::seed=<',seed,'>');
+  const seedDoc = seed.document();
+  console.log('::::seedDoc=<',seedDoc,'>');
 })();
 
 

@@ -1,6 +1,9 @@
 const nacl = require('tweetnacl');
 nacl.util = require('tweetnacl-util');
 const base32  = require('base32.js');
+const EdUtils = require('./edutils.js');
+
+
 class EDAuth {
   constructor() {
     this.trace = false;

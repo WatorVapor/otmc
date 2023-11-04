@@ -1,6 +1,7 @@
 /*
 const base32  = require('base32.js');
 const { subtle } = require('crypto').webcrypto;
+const EdUtils = require('./edutils.js');
 class EDDSAKey {
   constructor() {
     this.trace = false;
@@ -51,7 +52,6 @@ const { subtle } = require('crypto').webcrypto;
 const nacl = require('tweetnacl');
 nacl.util = require('tweetnacl-util');
 const base32  = require('base32.js');
-
 const EdUtils = require('./edutils.js');
 
 class EDDSAKey {

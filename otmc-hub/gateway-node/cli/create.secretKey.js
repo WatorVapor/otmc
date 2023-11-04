@@ -19,7 +19,7 @@ const iConstReprotInMilliSec = 10 * 1000;
     const keyPath = secretKeyPaths[pathIndex];
     console.log('::::keyPath=<',keyPath,'>');
     while(true) {
-      const secretKey = await edkey.createKey();
+      const secretKey = edkey.createKey();
       if(secretKey.idOfKey.startsWith(addressPrefix)) {
         console.log('::mining::secretKey=<',secretKey,'>');
         fs.writeFileSync(keyPath, JSON.stringify(secretKey,undefined,2));

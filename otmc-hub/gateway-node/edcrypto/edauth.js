@@ -6,7 +6,7 @@ const EdUtils = require('./edutils.js');
 
 class EdAuth {
   constructor(edKey) {
-    this.trace = true;
+    this.trace = false;
     this.debug = true;
     this.edKey_ = edKey;
     this.util_ = new EdUtils();
@@ -70,33 +70,42 @@ class EdAuth {
 
 
   verify(msg) {
-    console.log('EdAuth::verify::msg=<',msg,'>');
+    if(this.trace) {
+      console.log('EdAuth::verify::msg=<',msg,'>');
+    }
     const created_at = new Date(msg.ts);
     const now = new Date();
     const escape_ms = now - created_at;
-    //console.log('EdAuth::verify::escape_ms=<',escape_ms,'>');
+    if(this.trace) {
+      console.log('EdAuth::verify::escape_ms=<',escape_ms,'>');
+    }
     if(escape_ms > 1000*5) {
       console.log('EdAuth::verify::escape_ms=<',escape_ms,'>');
       return false;
     } 
     const calcAddress = this.util_.calcAddress(msg.auth.pub);
-    //console.log('EdAuth::verify::calcAddress=<',calcAddress,'>');
+    if(this.trace) {
+      console.log('EdAuth::verify::calcAddress=<',calcAddress,'>');
+    }
     if(!calcAddress.startsWith('mp')) {
       console.log('EdAuth::verify::calcAddress=<',calcAddress,'>');
       return false;
     }
     const publicKey = nacl.util.decodeBase64(msg.auth.pub);
     const signMsg = nacl.util.decodeBase64(msg.auth.sign);
-    //console.log('EdAuth::verify::publicKey=<',publicKey,'>');
-    //console.log('EdAuth::verify::signMsg=<',signMsg,'>');
+    if(this.trace) {
+      console.log('EdAuth::verify::publicKey=<',publicKey,'>');
+      console.log('EdAuth::verify::signMsg=<',signMsg,'>');
+    }
     const signedHash = nacl.sign.open(signMsg,publicKey);
     if(!signedHash) {
       console.log('EdAuth::verify::signedHash=<',signedHash,'>');
       return false;
     }
     const signedHashB64 = nacl.util.encodeBase64(signedHash);
-    //console.log('EdAuth::verify::signedHashB64=<',signedHashB64,'>');
-    
+    if(this.trace) {
+      console.log('EdAuth::verify::signedHashB64=<',signedHashB64,'>');
+    }
     const msgCal = JSON.parse(JSON.stringifymsg());
     delete msgCal.auth;
     const msgCalcStr = JSON.stringify(msgCal);
@@ -115,14 +124,14 @@ class EdAuth {
     if(this.trace) {
       console.log('EdAuth::randomAddress:randomHex=<',randomHex,'>');
     }
-    return this.calcAddressBin_(randomHex);
+    return this.util_.calcAddress(randomHex);
   }
   randomPassword() {
     const randomHex = nacl.randomBytes(1024);
     if(this.trace) {
       console.log('EdAuth::randomAddress:randomHex=<',randomHex,'>');
     }
-    const address = this.calcAddressBin_(randomHex);
+    const address = this.util_.calcAddress(randomHex);
     return address.slice(0,6);
   }
 }

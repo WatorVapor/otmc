@@ -12,30 +12,30 @@ class MqttJWTAgent {
     this.didDoc_ = didDoc;
     this.edkey_ = edkey;
     this.readyCB_ = cb;
-    this.createJwt_();
+    this.requestJwt_();
   }
   
-  async createJwt_() {
+  async requestJwt_() {
     const self = this;
     const jwtUrl = `${this.didDoc_.service[0].serviceEndpoint}`;
     if(this.trace) {
-      console.log('MqttJWTAgent::createJwt_::jwtUrl=<',jwtUrl,'>');
+      console.log('MqttJWTAgent::requestJwt_::jwtUrl=<',jwtUrl,'>');
     }
     const wss = new WebSocket(jwtUrl);
     wss.on('error', (err)=>{
-      console.log('MqttJWTAgent::createJwt_::jwtUrl=<',jwtUrl,'>');
-      console.log('MqttJWTAgent::createJwt_::err=<',err,'>');
+      console.log('MqttJWTAgent::requestJwt_::jwtUrl=<',jwtUrl,'>');
+      console.log('MqttJWTAgent::requestJwt_::err=<',err,'>');
       process.exit(0);
     });
     wss.on('open', (evt) => {
       if(this.trace) {
-        console.log('MqttJWTAgent::createJwt_::evt=<',evt,'>');
+        console.log('MqttJWTAgent::requestJwt_::evt=<',evt,'>');
       }
       self.onWSOpened_(wss);
     });
     wss.on('message', (data) => {
       if(this.trace) {
-        console.log('MqttJWTAgent::createJwt_::data=<',data,'>');
+        console.log('MqttJWTAgent::requestJwt_::data=<',data,'>');
       }
       self.onMessage_(data);
     });
@@ -46,7 +46,7 @@ class MqttJWTAgent {
         node:true,
         username:this.edkey_.idOfKey,
         clientid:`${auth.randomAddress()}@${this.edkey_.idOfKey}`,
-        secret:this.secret_,
+        did:this.didDoc_,
       },
     }    
     if(this.trace) {

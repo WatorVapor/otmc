@@ -1,11 +1,8 @@
-class DIDDocument {
-  static trace = false;
-  static debug = true;
-  static did_method = 'otmc';
-  static did_context = 'https://www.wator.xyz/otmc/';
-  static did_mqtt_jwt_end_point = 'wss://mqtt.wator.xyz:8084/jwt/mqtt/otmc/public/ws';
-  static did_mqtt_wss = 'wss://mqtt.wator.xyz:8084/mqtt';
-  static did_mqtts = 'mqtts://mqtt.wator.xyz:8883';
+class DIDConfig {
+  static method = 'otmc';
+  static context = 'https://www.wator.xyz/otmc/';
+  static end_point = 'wss://mqtt.wator.xyz:8084/jwt/mqtt/otmc/public/ws';
+  static version = '1.0';
   constructor() {
   }
 }
@@ -14,20 +11,18 @@ class DIDSeedDocument {
   static trace = false;
   static debug = true;
   constructor(auth,recovery) {
-    this.ready1_ = false;
-    this.ready2_ = false;
     this.auth_ = auth;
     this.recovery_ = recovery;
   }
   address() {
-    return `did:${DIDDocument.did_method}:${this.auth_.address()}`;
+    return `did:${DIDConfig.method}:${this.auth_.address()}`;
   }
   document() {
-    const didCode = `did:${DIDDocument.did_method}:${this.auth_.address()}`;
+    const didCode = `did:${DIDConfig.method}:${this.auth_.address()}`;
     const didDoc = {
-      '@context':`${DIDDocument.did_context}`,
+      '@context':`${DIDConfig.context}`,
       id:didCode,
-      version:1.0,
+      version:`${DIDConfig.version}`,
       created:(new Date()).toISOString(),
       updated:(new Date()).toISOString(),
       verificationMethod:[
@@ -54,11 +49,7 @@ class DIDSeedDocument {
         {
           id:`${didCode}#${this.auth_.address()}`,
           type: 'mqtt',
-          serviceEndpoint: `${DIDDocument.did_mqtt_jwt_end_point}`,
-          mqtt:{
-            wss:`${DIDDocument.did_mqtt_wss}`,
-            mqtts:`${DIDDocument.did_mqtts}`,
-          }
+          serviceEndpoint: `${DIDConfig.end_point}`
         },
       ],
     };

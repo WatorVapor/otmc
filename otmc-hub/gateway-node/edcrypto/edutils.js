@@ -15,7 +15,7 @@ class EdUtil {
     if(this.trace) {
       console.log('EdUtil::calcAddress:shaS2=<',shaS2,'>');
     }
-    const address = shaS2.substring(0,iConstLengAddress);
+    const address = shaS2.slice(0,iConstLengAddress);
     if(this.trace) {
       console.log('EdUtil::calcAddress:address=<',address,'>');
     }
@@ -39,13 +39,12 @@ class EdUtil {
     if(this.trace) {
       console.log('EdUtil::calcMessage:shaS2=<',shaS2,'>');
     }
-    const address = shaS2.substring(0,iConstLengMessage);
+    const address = shaS2.slice(0,iConstLengMessage);
     if(this.trace) {
       console.log('EdUtil::calcMessage:address=<',address,'>');
     }
     return address;
   }
-
   sha2b64_(textMsg,typeFn) {
     const encoder = new TextEncoder();
     const data = encoder.encode(textMsg);

@@ -3,14 +3,15 @@ nacl.util = require('tweetnacl-util');
 const base32  = require('base32.js');
 const EdUtils = require('./edutils.js');
 
-
 class EdAuth {
   constructor(edKey) {
-    this.trace = false;
+    this.trace = true;
     this.debug = true;
     this.edKey_ = edKey;
     this.util_ = new EdUtils();
   }
+  
+  
   address() {
     if(this.trace) {
       console.log('EdAuth::address::this.edKey_=<',this.edKey_,'>');
@@ -31,6 +32,8 @@ class EdAuth {
       return null;
     }    
   }
+  
+  
   sign(msgOrig,edKey) {
     msgOrig.ts = new Date().toISOString();
     return this.signWithoutTS(msgOrig,edKey);
@@ -87,7 +90,7 @@ class EdAuth {
     if(this.trace) {
       console.log('EdAuth::verify::calcAddress=<',calcAddress,'>');
     }
-    if(!calcAddress.startsWith('mp')) {
+    if(!calcAddress.startsWith('otm')) {
       console.log('EdAuth::verify::calcAddress=<',calcAddress,'>');
       return false;
     }
@@ -106,7 +109,7 @@ class EdAuth {
     if(this.trace) {
       console.log('EdAuth::verify::signedHashB64=<',signedHashB64,'>');
     }
-    const msgCal = JSON.parse(JSON.stringifymsg());
+    const msgCal = JSON.parse(JSON.stringify(msg));
     delete msgCal.auth;
     const msgCalcStr = JSON.stringify(msgCal);
     const hashCalclB64 = this.util_.calcMessage(msgCalcStr);
@@ -118,7 +121,9 @@ class EdAuth {
       console.log('EdAuth::verify::hashCalclB64=<',hashCalclB64,'>');
     }
     return false;
-  } 
+  }
+  
+  
   randomAddress() {
     const randomHex = nacl.randomBytes(1024);
     if(this.trace) {
@@ -134,6 +139,25 @@ class EdAuth {
     const address = this.util_.calcAddress(randomHex);
     return address.slice(0,6);
   }
+  cacKeyIdOfPem (pem) {
+    const crypto = require('node:crypto');
+    const encoder = new TextEncoder();
+    const dataPem = encoder.encode(pem.trim());
+    if(this.trace) {
+      console.log('EdAuth::cacKeyIdOfPem::dataPem:=<',dataPem,'>');  
+    }
+    const hashsha512 = crypto.createHash('sha512').update(dataPem).digest('base64')
+    if(this.trace) {
+      console.log('EdAuth::cacKeyIdOfPem::hashsha512:=<',hashsha512,'>');
+    }
+    const kid = crypto.createHash('rmd160').update(hashsha512).digest('base64');
+    if(this.trace) {
+      console.log('EdAuth::cacKeyIdOfPem::kid:=<',kid,'>');
+    }
+    return kid;
+  }
+  
+  
 }
 
 module.exports = EdAuth;

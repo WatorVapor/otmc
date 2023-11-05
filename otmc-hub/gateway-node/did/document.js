@@ -30,15 +30,17 @@ class DIDSeedDocument {
       version:1.0,
       created:(new Date()).toISOString(),
       updated:(new Date()).toISOString(),
-      publicKey:[
+      verificationMethod:[
         {
           id:`${didCode}#${this.auth_.address()}`,
           type: 'ed25519',
+          controller:didCode,
           publicKeyBase64: this.auth_.pub(),
         },
         {
           id:`${didCode}#${this.recovery_.address()}`,
           type: 'ed25519',
+          controller:didCode,
           publicKeyBase64: this.recovery_.pub(),
         },
       ],
@@ -51,16 +53,11 @@ class DIDSeedDocument {
       service: [
         {
           id:`${didCode}#${this.auth_.address()}`,
-          type: 'mqtturi',
+          type: 'mqtt',
           serviceEndpoint: `${DIDDocument.did_mqtt_jwt_end_point}`,
-          serviceMqtt:{
+          mqtt:{
             wss:`${DIDDocument.did_mqtt_wss}`,
             mqtts:`${DIDDocument.did_mqtts}`,
-            acl:{
-              all:[
-              `${didCode}/#`,
-              ]
-            }
           }
         },
       ],

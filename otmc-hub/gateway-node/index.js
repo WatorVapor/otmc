@@ -1,0 +1,12 @@
+const fs = require('fs');
+const strConstTopDidDocPath = './.store/didteam/TopDidDoc.json';
+const topDidDocText = fs.readFileSync(strConstTopDidDocPath);
+const topDidDoc = JSON.parse(topDidDocText);
+//console.log('::::topDidDoc=<',topDidDoc,'>');
+const secretKeyPath = './.store//secretKey/auth.json';
+const secretText = fs.readFileSync(secretKeyPath);
+const secretKey = JSON.parse(secretText);
+//console.log('::::secretKey=<',secretKey,'>');
+const MqttJWTDidTeam = require('./mqtt/did_team.js');
+const team = new MqttJWTDidTeam(topDidDoc,secretKey);
+//console.log('::::team=<',team,'>');

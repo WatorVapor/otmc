@@ -7,7 +7,7 @@ const EdUtils = require('./edutils.js');
 const strConstAddressPrefix = 'otm';
 class EdAuth {
   constructor(edKey) {
-    this.trace = true;
+    this.trace = false;
     this.debug = true;
     this.edKey_ = edKey;
     this.util_ = new EdUtils();
@@ -130,7 +130,7 @@ class EdAuth {
       console.log('EdAuth::verifyDid::didDoc=<',didDoc,'>');
     }
     for(const method of didDoc.verificationMethod) {
-      const goodMethod = this.verificationMethod_(method);
+      const goodMethod = this.verificationMethod_(method,didDoc.id);
       if(this.trace) {
         console.log('EdAuth::verifyDid::goodMethod=<',goodMethod,'>');
       }
@@ -141,7 +141,6 @@ class EdAuth {
         return false;
       }
     }
-
     const didDocCal = JSON.parse(JSON.stringify(didDoc));
     delete didDocCal.proof;
     const didDocCalcStr = JSON.stringify(didDocCal);
@@ -149,34 +148,35 @@ class EdAuth {
     if(this.trace) {
       console.log('EdAuth::verifyDid::hashCalcledB64=<',hashCalcledB64,'>');
     }
+    const results = {
+      hashCalcledB64:hashCalcledB64
+    }
     for(const proof of didDoc.proof) {
       if(this.trace) {
         console.log('EdAuth::verifyDid::proof=<',proof,'>');
       }
-      const hashSignedB64 = this.verificationProof_(proof,didDoc.verificationMethod);
-      if(!hashSignedB64) {
+      const verifyResult = this.verificationProof_(proof,didDoc.verificationMethod);
+      if(!verifyResult) {
         console.log('EdAuth::verifyDid::proof=<',proof,'>');
-        console.log('EdAuth::verifyDid::hashSignedB64=<',hashSignedB64,'>');
+        console.log('EdAuth::verifyDid::verifyResult=<',verifyResult,'>');
         return false;
       }
       if(this.trace) {
         console.log('EdAuth::verifyDid::hashCalcledB64=<',hashCalcledB64,'>');
-        console.log('EdAuth::verifyDid::hashSignedB64=<',hashSignedB64,'>');
+        console.log('EdAuth::verifyDid::verifyResult=<',verifyResult,'>');
+      }
+      if(hashCalcledB64 !== verifyResult.signedHashB64) {
+        console.log('EdAuth::verifyDid::hashCalcledB64=<',hashCalcledB64,'>');
+        console.log('EdAuth::verifyDid::verifyResult=<',verifyResult,'>');
+        return false;        
+      }
+      if(verifyResult.isSeedProof) {
+        results.isSeedProof = true;
       }
     }
-
-/*
-    if(signedHashB64 === hashCalcledB64) {
-      msg.auth_address = calcAddress;
-      return true;
-    } else {
-      console.log('EdAuth::verifyDid::signedHashB64=<',signedHashB64,'>');
-      console.log('EdAuth::verifyDid::hashCalcledB64=<',hashCalcledB64,'>');
-    }
-*/
-    return false;
+    return results;
   }
-  verificationMethod_(verificationMethod) {
+  verificationMethod_(verificationMethod,docId) {
     if(this.trace) {
       console.log('EdAuth::verificationMethod_::verificationMethod=<',verificationMethod,'>');
     }
@@ -188,7 +188,11 @@ class EdAuth {
       console.log('EdAuth::verificationMethod_::calcAddress=<',calcAddress,'>');
       return false;
     }
-    if(!verificationMethod.id.endsWith(`#${calcAddress}`)) {
+    const fullId = `${docId}#${calcAddress}`;
+    if(this.trace) {
+      console.log('EdAuth::verificationMethod_::fullId=<',fullId,'>');
+    }
+    if(verificationMethod.id !== fullId) {
       console.log('EdAuth::verificationMethod_::verificationMethod.id=<',verificationMethod.id,'>');
       console.log('EdAuth::verificationMethod_::calcAddress=<',calcAddress,'>');
       return false;
@@ -229,7 +233,19 @@ class EdAuth {
     if(this.trace) {
       console.log('EdAuth::verificationProof_::signedHashB64=<',signedHashB64,'>');
     }
-    return signedHashB64;
+    const idParts = verificationMethod.id.split('#');
+    if(this.trace) {
+      console.log('EdAuth::verificationProof_::idParts=<',idParts,'>');
+    }
+    const results = {
+      signedHashB64:signedHashB64
+    };
+    if(idParts.length > 1) {
+      if(idParts[0].endsWith(idParts[1])) {
+        results.isSeedProof = true;
+      }
+    }
+    return results;
   }
 
   

@@ -3,6 +3,8 @@ nacl.util = require('tweetnacl-util');
 const base32  = require('base32.js');
 const EdUtils = require('./edutils.js');
 
+
+const strConstAddressPrefix = 'otm';
 class EdAuth {
   constructor(edKey) {
     this.trace = true;
@@ -90,7 +92,7 @@ class EdAuth {
     if(this.trace) {
       console.log('EdAuth::verify::calcAddress=<',calcAddress,'>');
     }
-    if(!calcAddress.startsWith('otm')) {
+    if(!calcAddress.startsWith(strConstAddressPrefix)) {
       console.log('EdAuth::verify::calcAddress=<',calcAddress,'>');
       return false;
     }
@@ -122,7 +124,113 @@ class EdAuth {
     }
     return false;
   }
-  
+  verifyDid(didDoc) {
+    if(this.trace) {
+      console.log('EdAuth::verifyDid::didDoc=<',didDoc,'>');
+    }
+    for(const method of didDoc.verificationMethod) {
+      const goodMethod = this.verificationMethod_(method);
+      if(this.trace) {
+        console.log('EdAuth::verifyDid::goodMethod=<',goodMethod,'>');
+      }
+      if(!goodMethod) {
+        if(this.debug) {
+          console.log('EdAuth::verifyDid::method=<',method,'>');
+        }
+        return false;
+      }
+    }
+
+    const didDocCal = JSON.parse(JSON.stringify(didDoc));
+    delete didDocCal.auth;
+    const didDocCalcStr = JSON.stringify(didDocCal);
+    const hashCalcledB64 = this.util_.calcMessage(didDocCalcStr);
+    if(this.trace) {
+      console.log('EdAuth::verifyDid::hashCalcledB64=<',hashCalcledB64,'>');
+    }
+    for(const proof of didDoc.proof) {
+      if(this.trace) {
+        console.log('EdAuth::verifyDid::proof=<',proof,'>');
+      }
+      const hashSignedB64 = this.verificationProof_(proof,didDoc.verificationMethod);
+      if(!hashSignedB64) {
+        console.log('EdAuth::verifyDid::proof=<',proof,'>');
+        console.log('EdAuth::verifyDid::hashSignedB64=<',hashSignedB64,'>');
+        return false;
+      }
+      if(this.trace) {
+        console.log('EdAuth::verifyDid::hashCalcledB64=<',hashCalcledB64,'>');
+        console.log('EdAuth::verifyDid::hashSignedB64=<',hashSignedB64,'>');
+      }
+    }
+
+/*
+    if(signedHashB64 === hashCalcledB64) {
+      msg.auth_address = calcAddress;
+      return true;
+    } else {
+      console.log('EdAuth::verifyDid::signedHashB64=<',signedHashB64,'>');
+      console.log('EdAuth::verifyDid::hashCalcledB64=<',hashCalcledB64,'>');
+    }
+*/
+    return false;
+  }
+  verificationMethod_(verificationMethod) {
+    if(this.trace) {
+      console.log('EdAuth::verificationMethod_::verificationMethod=<',verificationMethod,'>');
+    }
+    const calcAddress = this.util_.calcAddress(verificationMethod.publicKeyBase64);
+    if(this.trace) {
+      console.log('EdAuth::verificationMethod_::calcAddress=<',calcAddress,'>');
+    }
+    if(!calcAddress.startsWith(strConstAddressPrefix)) {
+      console.log('EdAuth::verificationMethod_::calcAddress=<',calcAddress,'>');
+      return false;
+    }
+    if(!verificationMethod.id.endsWith(`#${calcAddress}`)) {
+      console.log('EdAuth::verificationMethod_::verificationMethod.id=<',verificationMethod.id,'>');
+      console.log('EdAuth::verificationMethod_::calcAddress=<',calcAddress,'>');
+      return false;
+    }
+    return true;
+  }
+  verificationProof_(proof,verificationMethods) {
+    if(this.trace) {
+      console.log('EdAuth::verificationProof_::proof=<',proof,'>');
+      console.log('EdAuth::verificationProof_::verificationMethods=<',verificationMethods,'>');
+    }
+    let verificationMethod = false;
+    for(const method of verificationMethods) {
+      if(method.id === proof.creator) {
+        verificationMethod = method;
+      }
+    }
+    if(this.trace) {
+      console.log('EdAuth::verificationProof_::verificationMethod=<',verificationMethod,'>');
+    }
+    if(verificationMethod === false) {
+      console.log('EdAuth::verificationProof_:: dismatch proof=<',proof,'>');
+      console.log('EdAuth::verificationProof_:: dismatch verificationMethods=<',verificationMethods,'>');
+      return false;
+    }
+    const publicKey = nacl.util.decodeBase64(verificationMethod.publicKeyBase64);
+    const signMsg = nacl.util.decodeBase64(proof.signatureValue);
+    if(this.trace) {
+      console.log('EdAuth::verificationProof_::publicKey=<',publicKey,'>');
+      console.log('EdAuth::verificationProof_::signMsg=<',signMsg,'>');
+    }
+    const signedHash = nacl.sign.open(signMsg,publicKey);
+    if(!signedHash) {
+      console.log('EdAuth::verificationProof_::signedHash=<',signedHash,'>');
+      return false;
+    }
+    const signedHashB64 = nacl.util.encodeBase64(signedHash);
+    if(this.trace) {
+      console.log('EdAuth::verificationProof_::signedHashB64=<',signedHashB64,'>');
+    }
+    return signedHashB64;
+  }
+
   
   randomAddress() {
     const randomHex = nacl.randomBytes(1024);

@@ -159,7 +159,8 @@ class MqttJWTDidTeam {
       console.log('MqttJWTDidTeam::exchangeDidTeamInfo_::this.didDoc_=<',this.didDoc_,'>');
       console.log('MqttJWTDidTeam::exchangeDidTeamInfo_::this.edKey_=<',this.edKey_,'>');
     }
-    const topic = `${this.didDoc_.id}/${this.edKey_.idOfKey}/did/exchange`;
+    const topicRoot = this.didDoc_.id.replaceAll(':','/');
+    const topic = `${topicRoot}/${this.edKey_.idOfKey}/did/exchange`;
     if(this.trace) {
       console.log('MqttJWTDidTeam::exchangeDidTeamInfo_::topic=<',topic,'>');
     }

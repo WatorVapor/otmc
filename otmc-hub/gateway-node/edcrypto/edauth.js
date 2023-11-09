@@ -176,6 +176,88 @@ class EdAuth {
     }
     return results;
   }
+  verifyWeak(msg) {
+    if(this.trace) {
+      console.log('EdAuth::verifyWeak::msg=<',msg,'>');
+    }
+    const created_at = new Date(msg.ts);
+    const now = new Date();
+    const escape_ms = now - created_at;
+    if(this.trace) {
+      console.log('EdAuth::verifyWeak::escape_ms=<',escape_ms,'>');
+    }
+    if(escape_ms > 1000*5) {
+      console.log('EdAuth::verifyWeak::escape_ms=<',escape_ms,'>');
+      return false;
+    } 
+    const calcAddress = this.util_.calcAddress(msg.auth.pub);
+    if(this.trace) {
+      console.log('EdAuth::verifyWeak::calcAddress=<',calcAddress,'>');
+    }
+    const publicKey = nacl.util.decodeBase64(msg.auth.pub);
+    const signMsg = nacl.util.decodeBase64(msg.auth.sign);
+    if(this.trace) {
+      console.log('EdAuth::verifyWeak::publicKey=<',publicKey,'>');
+      console.log('EdAuth::verifyWeak::signMsg=<',signMsg,'>');
+    }
+    const signedHash = nacl.sign.open(signMsg,publicKey);
+    if(!signedHash) {
+      console.log('EdAuth::verifyWeak::signedHash=<',signedHash,'>');
+      return false;
+    }
+    const signedHashB64 = nacl.util.encodeBase64(signedHash);
+    if(this.trace) {
+      console.log('EdAuth::verifyWeak::signedHashB64=<',signedHashB64,'>');
+    }
+    const msgCal = JSON.parse(JSON.stringify(msg));
+    delete msgCal.auth;
+    const msgCalcStr = JSON.stringify(msgCal);
+    const hashCalclB64 = this.util_.calcMessage(msgCalcStr);
+    if(signedHashB64 === hashCalclB64) {
+      msg.auth_address = calcAddress;
+      return true;
+    } else {
+      console.log('EdAuth::verifyWeak::signedHashB64=<',signedHashB64,'>');
+      console.log('EdAuth::verifyWeak::hashCalclB64=<',hashCalclB64,'>');
+    }
+    return false;
+  }
+  
+  randomAddress() {
+    const randomHex = nacl.randomBytes(1024);
+    if(this.trace) {
+      console.log('EdAuth::randomAddress:randomHex=<',randomHex,'>');
+    }
+    return this.util_.calcAddress(randomHex);
+  }
+  randomPassword() {
+    const randomHex = nacl.randomBytes(1024);
+    if(this.trace) {
+      console.log('EdAuth::randomAddress:randomHex=<',randomHex,'>');
+    }
+    const address = this.util_.calcAddress(randomHex);
+    return address.slice(0,6);
+  }
+  cacKeyIdOfPem (pem) {
+    const crypto = require('node:crypto');
+    const encoder = new TextEncoder();
+    const dataPem = encoder.encode(pem.trim());
+    if(this.trace) {
+      console.log('EdAuth::cacKeyIdOfPem::dataPem:=<',dataPem,'>');  
+    }
+    const hashsha512 = crypto.createHash('sha512').update(dataPem).digest('base64')
+    if(this.trace) {
+      console.log('EdAuth::cacKeyIdOfPem::hashsha512:=<',hashsha512,'>');
+    }
+    const kid = crypto.createHash('rmd160').update(hashsha512).digest('base64');
+    if(this.trace) {
+      console.log('EdAuth::cacKeyIdOfPem::kid:=<',kid,'>');
+    }
+    return kid;
+  }
+
+
+
   verificationMethod_(verificationMethod,docId) {
     if(this.trace) {
       console.log('EdAuth::verificationMethod_::verificationMethod=<',verificationMethod,'>');
@@ -246,40 +328,6 @@ class EdAuth {
       }
     }
     return results;
-  }
-
-  
-  randomAddress() {
-    const randomHex = nacl.randomBytes(1024);
-    if(this.trace) {
-      console.log('EdAuth::randomAddress:randomHex=<',randomHex,'>');
-    }
-    return this.util_.calcAddress(randomHex);
-  }
-  randomPassword() {
-    const randomHex = nacl.randomBytes(1024);
-    if(this.trace) {
-      console.log('EdAuth::randomAddress:randomHex=<',randomHex,'>');
-    }
-    const address = this.util_.calcAddress(randomHex);
-    return address.slice(0,6);
-  }
-  cacKeyIdOfPem (pem) {
-    const crypto = require('node:crypto');
-    const encoder = new TextEncoder();
-    const dataPem = encoder.encode(pem.trim());
-    if(this.trace) {
-      console.log('EdAuth::cacKeyIdOfPem::dataPem:=<',dataPem,'>');  
-    }
-    const hashsha512 = crypto.createHash('sha512').update(dataPem).digest('base64')
-    if(this.trace) {
-      console.log('EdAuth::cacKeyIdOfPem::hashsha512:=<',hashsha512,'>');
-    }
-    const kid = crypto.createHash('rmd160').update(hashsha512).digest('base64');
-    if(this.trace) {
-      console.log('EdAuth::cacKeyIdOfPem::kid:=<',kid,'>');
-    }
-    return kid;
   }
   
   

@@ -30,13 +30,13 @@ class DIDSeedDocument {
           id:`${didCode}#${this.auth_.address()}`,
           type: 'ed25519',
           controller:didCode,
-          publicKeyBase64: this.auth_.pub(),
+          publicKeyMultibase: this.auth_.pub(),
         },
         {
           id:`${didCode}#${this.recovery_.address()}`,
           type: 'ed25519',
           controller:didCode,
-          publicKeyBase64: this.recovery_.pub(),
+          publicKeyMultibase: this.recovery_.pub(),
         },
       ],
       authentication:[
@@ -44,6 +44,8 @@ class DIDSeedDocument {
       ],
       recovery:[
        `${didCode}#${this.recovery_.address()}`,
+     ],
+     capabilityInvocation:[
      ],
       service: [
         {

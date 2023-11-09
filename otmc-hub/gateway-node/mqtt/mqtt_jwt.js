@@ -3,13 +3,14 @@ const EdAuth = require('../edcrypto/edauth.js');
 const auth = new EdAuth();
 
 class MqttJWTAgent {
-  constructor(didDoc,edkey,cb) {
+  constructor(didDoc,manifest,edkey,cb) {
     this.trace = true;
     this.debug = true;    
     if(this.trace) {
       console.log('MqttJWTAgent::constructor::didDoc=<',didDoc,'>');
     }
     this.didDoc_ = didDoc;
+    this.didManifest_ = manifest;
     this.edkey_ = edkey;
     this.readyCB_ = cb;
     this.requestJwt_();
@@ -47,6 +48,7 @@ class MqttJWTAgent {
         username:this.edkey_.idOfKey,
         clientid:`${auth.randomAddress()}@${this.edkey_.idOfKey}`,
         did:this.didDoc_,
+        manifest:this.didManifest_,
       },
     }    
     if(this.trace) {

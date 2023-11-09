@@ -5,7 +5,7 @@ const MqttJWTAgent = require('./mqtt_jwt.js');
 const EdAuth = require('../edcrypto/edauth.js');
 
 class MqttJWTDidTeam {
-  constructor(jwtCached,didDoc,edKey,jwtCB) {
+  constructor(jwtCached,didDoc,manifest,edKey,jwtCB) {
     this.trace = true;
     this.debug = true;
     if(this.trace) {
@@ -13,6 +13,7 @@ class MqttJWTDidTeam {
       console.log('MqttJWTDidTeam::constructor:edKey=<',edKey,'>');
     }
     this.didDoc_ = didDoc;
+    this.didManifest_ = manifest;
     this.edKey_ = edKey;
     this.jwtCB_ = jwtCB;
     this.isRequestingJwt = false;
@@ -26,7 +27,7 @@ class MqttJWTDidTeam {
   }
   requestMqttAgent_() {
     const self = this;
-    const jwtAgent = new MqttJWTAgent(this.didDoc_,this.edKey_,(jwtReply) => {
+    const jwtAgent = new MqttJWTAgent(this.didDoc_,this.didManifest_,this.edKey_,(jwtReply) => {
       if(this.trace) {
         console.log('MqttJWTDidTeam::requestMqttAgent_:jwtReply=<',jwtReply,'>');
       }
@@ -160,12 +161,13 @@ class MqttJWTDidTeam {
       console.log('MqttJWTDidTeam::exchangeDidTeamInfo_::this.edKey_=<',this.edKey_,'>');
     }
     const topicRoot = this.didDoc_.id.replaceAll(':','/');
-    const topic = `${topicRoot}/${this.edKey_.idOfKey}/did/exchange`;
+    const topic = `${topicRoot}/${this.edKey_.idOfKey}/sys/did/document/cloud/store`;
     if(this.trace) {
       console.log('MqttJWTDidTeam::exchangeDidTeamInfo_::topic=<',topic,'>');
     }
     const syncMsg = {
-      did:this.didDoc_
+      did:this.didDoc_,
+      manifest:this.didManifest_
     };
     const signedSyncMsg = this.auth_.sign(syncMsg);
     if(this.trace) {

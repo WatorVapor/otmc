@@ -180,7 +180,7 @@ class EdAuth {
     if(this.trace) {
       console.log('EdAuth::verificationMethod_::verificationMethod=<',verificationMethod,'>');
     }
-    const calcAddress = this.util_.calcAddress(verificationMethod.publicKeyBase64);
+    const calcAddress = this.util_.calcAddress(verificationMethod.publicKeyMultibase);
     if(this.trace) {
       console.log('EdAuth::verificationMethod_::calcAddress=<',calcAddress,'>');
     }
@@ -218,7 +218,7 @@ class EdAuth {
       console.log('EdAuth::verificationProof_:: dismatch verificationMethods=<',verificationMethods,'>');
       return false;
     }
-    const publicKey = nacl.util.decodeBase64(verificationMethod.publicKeyBase64);
+    const publicKey = nacl.util.decodeBase64(verificationMethod.publicKeyMultibase);
     const signMsg = nacl.util.decodeBase64(proof.signatureValue);
     if(this.trace) {
       console.log('EdAuth::verificationProof_::publicKey=<',publicKey,'>');

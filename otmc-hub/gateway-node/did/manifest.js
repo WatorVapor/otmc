@@ -26,14 +26,16 @@ class DIDManifest {
       },
       capability: {
         all: [
-          '${did.id}/${key.id}/sys/did/document/#'
+          '${did.id}/${key.id}/sys/did/#'
         ],
         pub: [
           '${did.id}/broadcast/${key.id}/#'
         ],
       },
       guest:{
-        pub: [],
+        all: [
+          '${did.id}/${key.id}/sys/did/#'
+        ],
         sub:[
           '${did.id}/broadcast/#'
         ]

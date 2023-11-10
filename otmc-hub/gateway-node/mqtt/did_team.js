@@ -161,7 +161,7 @@ class MqttJWTDidTeam {
       console.log('MqttJWTDidTeam::exchangeDidTeamInfo_::this.edKey_=<',this.edKey_,'>');
     }
     const topicRoot = this.didDoc_.id.replaceAll(':','/');
-    const topic = `${topicRoot}/${this.edKey_.idOfKey}/sys/did/document/cloud/store`;
+    const topic = `${topicRoot}/${this.edKey_.idOfKey}/sys/did/doc/cloud/store`;
     if(this.trace) {
       console.log('MqttJWTDidTeam::exchangeDidTeamInfo_::topic=<',topic,'>');
     }

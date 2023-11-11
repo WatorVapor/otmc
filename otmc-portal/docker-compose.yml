@@ -1,0 +1,16 @@
+version: '3'
+services:
+  redis:
+    image: redis:7.2
+    network_mode : 'none'
+    environment:
+      TZ: Asia/Tokyo
+    volumes:
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - /dev/shm:/dev/shm
+    command: redis-server /usr/local/etc/redis/redis.conf
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 64M

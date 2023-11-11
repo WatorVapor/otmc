@@ -5,7 +5,7 @@ class DIDManifest {
     id:'',
     diddoc: {
       authentication:{
-        type:'chain'
+        policy:'chain'
       },
       capabilityInvocation: {
         join:{
@@ -46,7 +46,7 @@ class DIDManifest {
     id:'',
     did: {
       authentication:{
-        type:'seed'
+        policy:'seed'
       },
       capabilityInvocation: {
         join:{

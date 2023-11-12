@@ -1,0 +1,70 @@
+    <nav class="navbar sticky-top navbar-expand-lg navbar-dark bg-dark" id="vue-navbar-top">
+      <w-navbar></w-navbar>
+    </nav>
+    <div class="container-fluid mt-2">
+      <div class="row justify-content-center">
+        <div class="col-8">
+          <div class="d-grid gap-2">
+            <a class="btn btn-primary" data-bs-toggle="collapse" href="#collapse-uwb-board-test" role="button" aria-expanded="false" aria-controls="collapse-uwb-board-test">
+              测试UWB开发板
+            </a>
+          </div>         
+        </div>
+      </div>
+      <div class="row mt-2 justify-content-center collapse" id="collapse-uwb-board-test">
+        <div class="col-2">
+          <div class="d-grid gap-2">
+            <a class="btn btn-success" href="/maap/board/bu01/">NodeMCU-BU01</a>
+          </div>         
+        </div>
+        <div class="col-2">
+          <div class="d-grid gap-2">
+            <a class="btn btn-success" href="/maap/anchor/">Maap-Anchor</a>
+          </div>         
+        </div>
+      </div>
+    </div>
+    <hr/>
+    <div class="container-fluid mt-2" id="vue-ui-starry-dashboard">
+      <div class="row justify-content-center mt-1" v-for="mansionRow in mansionMatrix">
+        <div class="col-5" v-for="mansion in mansionRow">
+          <div class="card text-center">
+            <div class="card-header">
+              {{ mansion }}
+            </div>
+            <div class="card-body">
+              <div class="row justify-content-center mt-1">
+                <div class="col-5">
+                  <div class="d-grid gap-2">
+                    <button href="/maap/mansion/view/" :mansion="mansion" class="btn btn-primary" @click="onClickGotoBtn($event)">Enter</button>
+                  </div>
+                </div>
+                <div class="col-5">
+                  <div class="d-grid gap-2">
+                    <button href="/maap/mansion/remove/" :mansion="mansion" class="btn btn-danger" @click="onClickGotoBtn($event)">Destory</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer text-muted">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/gps@0.6.1/gps.min.js" integrity="sha256-aP5ZLTc1l1e/GuhJwYW63UokuP2gHI7L9UB+utU8aA4=" crossorigin="anonymous"></script>
+    <script src="./starry.js" type="module"></script>
+
+<!--
+    <script type="module">
+      import tweetnacl from 'https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/+esm';
+      console.log(':::tweetnacl=<',tweetnacl,'>');
+      import tweetnaclUtil from 'https://cdn.jsdelivr.net/npm/tweetnacl-util@0.15.1/+esm';
+      console.log(':::tweetnaclUtil=<',tweetnaclUtil,'>');
+      import cryptoJs from 'https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/+esm';
+      console.log(':::cryptoJs=<',cryptoJs,'>');
+      import base32Js from 'https://cdn.jsdelivr.net/npm/base32.js@0.1.0/+esm';
+      console.log(':::base32Js=<',base32Js,'>');
+    </script>
+-->
+    

@@ -1,47 +1,47 @@
-const constGravitonPriKey = 'maap/Graviton/priKey';
-const constGravitonPubKey = 'maap/Graviton/pubKey';
-const constGravitonMassAddress = 'maap/Graviton/mass/address';
+const constGravitonPriKey = 'otmc/Graviton/priKey';
+const constGravitonPubKey = 'otmc/Graviton/pubKey';
+const constGravitonMassAddress = 'otmc/Graviton/mass/address';
 
-const constEdAuthPrefix = 'maap/edauth/mass';
-const constEdAuthName = 'maap/edauth/name';
+const constEdAuthPrefix = 'otmc/edauth/mass';
+const constEdAuthName = 'otmc/edauth/name';
 
-const constCreateMansionPrefix = 'maap/mansion/create/mass'
-const constMasnsionName = 'maap/mansion/create/name';
+const constCreateMansionPrefix = 'otmc/mansion/create/mass'
+const constMasnsionName = 'otmc/mansion/create/name';
 
-const constMansionList = 'maap/mansion/list';
-const constMansionPrefix = 'maap/mansion/store';
-const constMansionMqttJwtPrefix = 'maap/mansion/mqtt/jwt';
+const constMansionList = 'otmc/mansion/list';
+const constMansionPrefix = 'otmc/mansion/store';
+const constMansionMqttJwtPrefix = 'otmc/mansion/mqtt/jwt';
 
-const constMansionTargetAddress = 'maap/mansion/target/address';
-
-
-const constAnchorGpsHistoryPrefix = 'maap/anchor/gps/history';
-const constAnchorGpsBest = 'maap/anchor/gps/best';
-
-const constAnchorGpsManualFix = 'maap/anchor/gps/manual/fix';
-
-const constAppPrefix = '/maap';
-const constKeyLanguangeCode = 'maap/lang_code';
+const constMansionTargetAddress = 'otmc/mansion/target/address';
 
 
-const constDIDAuthName = 'maap/didauth/name';
-const constDIDAuthMassPrefix = 'maap/didauth/mass';
-const constDIDAuthCurrentDid = 'maap/didauth/current/did';
-const constDIDAuthCurrentDoc = 'maap/didauth/current/document';
-const constDIDAuthEvidenceTop = 'maap/didauth/evidence/top';
+const constAnchorGpsHistoryPrefix = 'otmc/anchor/gps/history';
+const constAnchorGpsBest = 'otmc/anchor/gps/best';
 
-const constDIDAuthMassStore = 'maap/didauth/mass/store';
+const constAnchorGpsManualFix = 'otmc/anchor/gps/manual/fix';
+
+const constAppPrefix = '/otmc';
+const constKeyLanguangeCode = 'otmc/lang_code';
+
+
+const constDIDAuthName = 'otmc/didauth/name';
+const constDIDAuthMassPrefix = 'otmc/didauth/mass';
+const constDIDAuthCurrentDid = 'otmc/didauth/current/did';
+const constDIDAuthCurrentDoc = 'otmc/didauth/current/document';
+const constDIDAuthEvidenceTop = 'otmc/didauth/evidence/top';
+
+const constDIDAuthMassStore = 'otmc/didauth/mass/store';
 
 
 
-const constDIDTeamAuthName = 'maap/didteam/auth/name';
-const constDIDTeamAuthMassPrefix = 'maap/didteam/auth/mass';
-const constDIDTeamAuthCurrentDid = 'maap/didteam/auth/current/did';
-const constDIDTeamAuthCurrentDoc = 'maap/didteam/auth/current/document';
-const constDIDTeamAuthEvidenceTop = 'maap/didteam/auth/evidence/top';
+const constDIDTeamAuthName = 'otmc/didteam/auth/name';
+const constDIDTeamAuthMassPrefix = 'otmc/didteam/auth/mass';
+const constDIDTeamAuthCurrentDid = 'otmc/didteam/auth/current/did';
+const constDIDTeamAuthCurrentDoc = 'otmc/didteam/auth/current/document';
+const constDIDTeamAuthEvidenceTop = 'otmc/didteam/auth/evidence/top';
 
-const constDIDTeamAuthMassStore = 'maap/didteam/auth/mass/store';
-const constDIDTeamAuthGravitonJwtPrefix = 'maap/didteam/auth/graviton/jwt';
+const constDIDTeamAuthMassStore = 'otmc/didteam/auth/mass/store';
+const constDIDTeamAuthGravitonJwtPrefix = 'otmc/didteam/auth/graviton/jwt';
 
-const constDIDTeamAuthEvidenceChainPrefix = 'maap/didteam/auth/evidence/chain';
+const constDIDTeamAuthEvidenceChainPrefix = 'otmc/didteam/auth/evidence/chain';
 

@@ -17,7 +17,7 @@ docker run -it
   -u $(id -u $USER):$(id -g $USER) 
   -w ${SCRIPT_DIR} 
   --net host 
-  --memory=256M 
+  --memory=1G 
   --cpu-shares=128 
   --name ${DOCKER_MAME} 
   node:lts

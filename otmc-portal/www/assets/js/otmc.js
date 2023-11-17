@@ -60,6 +60,13 @@ class EdcryptWorker {
     if(msg.auth && msg.recovery) {
       localStorage.setItem(constAuthKey,JSON.stringify(msg.auth));
       localStorage.setItem(constRecoveryKey,JSON.stringify(msg.recovery));
+      this.authKey = msg.auth;
+      this.recovery = msg.recovery;
+      const addressMsg = {
+        auth:msg.authKey.idOfKey,
+        recovery:msg.recoveryKey.idOfKey,
+      };
+      this.evtEmitter.emit('address',addressMsg);
     }
     if(msg.mining) {
       this.evtEmitter.emit('mining',msg.mining);

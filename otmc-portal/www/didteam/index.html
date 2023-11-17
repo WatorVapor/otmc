@@ -1,13 +1,36 @@
-<!--
-    <script type="module">
-      import tweetnacl from 'https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/+esm';
-      console.log(':::tweetnacl=<',tweetnacl,'>');
-      import tweetnaclUtil from 'https://cdn.jsdelivr.net/npm/tweetnacl-util@0.15.1/+esm';
-      console.log(':::tweetnaclUtil=<',tweetnaclUtil,'>');
-      import cryptoJs from 'https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/+esm';
-      console.log(':::cryptoJs=<',cryptoJs,'>');
-      import base32Js from 'https://cdn.jsdelivr.net/npm/base32.js@0.1.0/+esm';
-      console.log(':::base32Js=<',base32Js,'>');
-    </script>
--->
-    
+
+<div class="container text-center mt-3">
+  <!-- Content here -->
+  <div class="row justify-content-center">
+    <div class="col-8">
+      <p class="d-inline-flex gap-1">
+        <a class="btn btn-primary" data-bs-toggle="collapse" href="#edcrypt-key" role="button" aria-expanded="true" aria-controls="edcrypt-key">
+          edcrypt authentication key
+        </a>
+      </p>
+    </div>
+  </div>
+  <div class="row justify-content-center">
+    <div class="col-8" id="vue-ui-app-edcrypt-key">
+      <div class="collapse multi-collapse" id="edcrypt-key">
+        <div class="input-group mb-3">
+          <div class="form-floating">
+            <input type="text" class="form-control" id="edcrypt-key-address" placeholder="otm" readonly>
+            <label for="edcrypt-key-address">Key Address</label>
+          </div>
+          <span class="input-group-text" v-if="hasAddress === false">
+            <button class="btn btn-primary" type="button" @click="clickStartMining()">
+              <i class="material-icons">add_circle</i>
+            </button>
+          </span>
+          <span class="input-group-text" v-if="isMining">
+            <div class="spinner-border text-primary"  role="status">
+              <span class="visually-hidden"><i class="material-icons">refresh</i></span>
+            </div>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="./didteam.js" type="module"></script>

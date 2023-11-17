@@ -61,61 +61,35 @@ const onMiningCmd = async (msg) => {
     recovery:false
   };
   let authKey = null;
+  self.counter = 0;
   setTimeout(()=>{
-    mineEdKey(result,edKey);
+    mineEdKeyWithTimer(result,edKey);
   },0);
-  /*
-  while(true) {
-    let keyObject = edKey.createKey();
-    if(self.trace) {
-      console.log('otmc.worker.edcrypt::onMiningCmd::keyObject.idOfKey=:<',keyObject.idOfKey,'>');
-    }
-    if(keyObject.idOfKey.startsWith(addressPrefix)) {
-      authKey = keyObject;
-      break;
-    }
-    keyObject = null;
-  }
-  if(self.debug) {
-    console.log('otmc.worker.edcrypt::onMiningCmd::authKey=:<',authKey,'>');
-  }
-  
-  let recoveryKey = null;
-  while(true) {
-    let keyObject = edKey.createKey();
-    if(self.trace) {
-      console.log('otmc.worker.edcrypt::onMiningCmd::keyObject.idOfKey=:<',keyObject.idOfKey,'>');
-    }
-    if(keyObject.idOfKey.startsWith(addressPrefix)) {
-      recoveryKey = keyObject;
-      break;
-    }
-    keyObject = null;
-  }
-  if(self.debug) {
-    console.log('otmc.worker.edcrypt::onMiningCmd::recoveryKey=:<',recoveryKey,'>');
-  }
-  */
 }
 
-const mineEdKey = (result,edKey) => {
-    let keyObject = edKey.createKey();
-    if(self.trace) {
+const mineEdKeyWithTimer = (result,edKey) => {
+  let keyObject = edKey.createKey();
+  if((self.counter++ % 1000 ) === 0 ) {
+    if(self.debug ) {
       console.log('otmc.worker.edcrypt::onMiningCmd::keyObject.idOfKey=:<',keyObject.idOfKey,'>');
+      console.log('otmc.worker.edcrypt::onMiningCmd::self.counter=:<',self.counter,'>');
     }
-    if(keyObject.idOfKey.startsWith(addressPrefix)) {
-      if(!result.auth) {
-        result.auth = keyObject;
-      }
-      if(!result.recovery) {
-        result.recovery = keyObject;
-      }
-      if(result.auth && result.recovery) {
-        self.postMessage(result,edKey);
-      }
-    } else {
-      setTimeout(()=>{
-        mineEdKey(result,edKey);
-      },0);
+    self.postMessage({mining:{counter:self.counter++}});
+  }
+  if(keyObject.idOfKey.startsWith(addressPrefix)) {
+    if(!result.auth) {
+      result.auth = keyObject;
+      return;
     }
+    if(!result.recovery) {
+      result.recovery = keyObject;
+    }
+    if(result.auth && result.recovery) {
+      self.postMessage(result);
+    }
+  } else {
+    setTimeout(()=>{
+      mineEdKeyWithTimer(result,edKey);
+    },0);
+  }
 }

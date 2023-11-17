@@ -9,7 +9,14 @@ const edcryptKeyOption = {
   data() {
     return {
       hasAddress: false,
+      address:{
+        auth:'',
+        recovery:'',
+      },
       isMining: false,
+      mining:{
+        counter: 0,
+      }
     };
   },
   methods: {
@@ -34,6 +41,10 @@ const loadDidTeamApps = (evt) => {
   otmc.on('address',(address)=>{
     onAddressRefresh(address,edcryptKeyVM);
   });
+  otmc.on('mining',(mining)=>{
+    console.log('loadDidTeamApps::mining=:<',mining,'>');
+    edcryptKeyVM.mining = mining;
+  });
   edcryptKeyVM.otmc = otmc;
 }
 
@@ -42,4 +53,5 @@ const onAddressRefresh = (address,app) => {
   console.log('onAddressRefresh::app=:<',app,'>');
   app.hasAddress = true;
   app.isMining = false;
+  app.address = address;
 };

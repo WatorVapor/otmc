@@ -7,6 +7,10 @@ export class Otmc extends EventEmitter {
     this.trace = true;
     this.debug = true;
     this.edcrypt = new EdcryptWorker(this);
+    const self = this;
+    setTimeout(()=>{
+      self.edcrypt.loadKey();
+    },1);
   }
   startMining() {
     const data = {
@@ -34,6 +38,21 @@ class EdcryptWorker {
   postMessage(data) {
     this.edcrypt.postMessage(data);
   }
+  loadKey() {
+    try {
+      const authKeyStr = localStorage.getItem(constAuthKey);
+      this.authKey = JSON.parse(authKeyStr);
+      const recoveryKeyStr = localStorage.getItem(constRecoveryKey);
+      this.recoveryKey = JSON.parse(recoveryKeyStr);
+      const addressMsg = {
+        auth:this.authKey.idOfKey,
+        recovery:this.recoveryKey.idOfKey,
+      };
+      this.evtEmitter.emit('address',addressMsg);
+    } catch(err) {
+      console.log('EdcryptWorker::loadKey::err=:<',err,'>');
+    }
+  }
   onEdCryptMessage_(msg) {
     if(this.trace) {
       console.log('EdcryptWorker::onEdCryptMessage_::msg=:<',msg,'>');
@@ -41,6 +60,9 @@ class EdcryptWorker {
     if(msg.auth && msg.recovery) {
       localStorage.setItem(constAuthKey,JSON.stringify(msg.auth));
       localStorage.setItem(constRecoveryKey,JSON.stringify(msg.recovery));
+    }
+    if(msg.mining) {
+      this.evtEmitter.emit('mining',msg.mining);
     }
   }
 }

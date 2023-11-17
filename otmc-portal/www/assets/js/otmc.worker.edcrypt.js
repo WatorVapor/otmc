@@ -69,16 +69,22 @@ const onMiningCmd = async (msg) => {
 
 const mineEdKeyWithTimer = (result,edKey) => {
   let keyObject = edKey.createKey();
-  if((self.counter++ % 1000 ) === 0 ) {
+  if((self.counter++ % 100 ) === 0 ) {
     if(self.debug ) {
-      console.log('otmc.worker.edcrypt::onMiningCmd::keyObject.idOfKey=:<',keyObject.idOfKey,'>');
-      console.log('otmc.worker.edcrypt::onMiningCmd::self.counter=:<',self.counter,'>');
+      console.log('otmc.worker.edcrypt::mineEdKeyWithTimer::keyObject.idOfKey=:<',keyObject.idOfKey,'>');
+      console.log('otmc.worker.edcrypt::mineEdKeyWithTimer::self.counter=:<',self.counter,'>');
     }
     self.postMessage({mining:{counter:self.counter++}});
   }
   if(keyObject.idOfKey.startsWith(addressPrefix)) {
+    if(self.debug ) {
+      console.log('otmc.worker.edcrypt::mineEdKeyWithTimer::keyObject.idOfKey=:<',keyObject.idOfKey,'>');
+    }
     if(!result.auth) {
       result.auth = keyObject;
+      setTimeout(()=>{
+        mineEdKeyWithTimer(result,edKey);
+      },0);
       return;
     }
     if(!result.recovery) {

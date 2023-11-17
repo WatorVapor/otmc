@@ -61,10 +61,10 @@ class EdcryptWorker {
       localStorage.setItem(constAuthKey,JSON.stringify(msg.auth));
       localStorage.setItem(constRecoveryKey,JSON.stringify(msg.recovery));
       this.authKey = msg.auth;
-      this.recovery = msg.recovery;
+      this.recoveryKey = msg.recovery;
       const addressMsg = {
-        auth:msg.authKey.idOfKey,
-        recovery:msg.recoveryKey.idOfKey,
+        auth:this.authKey.idOfKey,
+        recovery:this.recoveryKey.idOfKey,
       };
       this.evtEmitter.emit('address',addressMsg);
     }

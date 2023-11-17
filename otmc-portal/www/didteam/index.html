@@ -1,6 +1,5 @@
 
 <div class="container text-center mt-3">
-  <!-- Content here -->
   <div class="row justify-content-center">
     <div class="col-8">
       <p class="d-inline-flex gap-1">
@@ -19,7 +18,7 @@
             <label for="edcrypt-key-address">Key Address</label>
           </div>
           <span class="input-group-text" v-if="hasAddress === false">
-            <button class="btn btn-primary" type="button" @click="clickStartMining()">
+            <button class="btn btn-primary" type="button" @click="clickStartMining()" :disabled="isMining == true">
               <i class="material-icons">add_circle</i>
             </button>
           </span>

@@ -12,7 +12,7 @@ export class EdDsaKey {
     if(this.trace) {
       console.log('EdDsaKey::createKeys:nacl=<',nacl,'>');
     }
-    const keyPair = nacl.sign.keyPair();
+    let keyPair = nacl.sign.keyPair();
     if(this.trace) {
       console.log('EdDsaKey::createKeys:keyPair=<',keyPair,'>');
     }
@@ -32,6 +32,7 @@ export class EdDsaKey {
       created:(new Date()).toISOString(),
     };
     this.keyJson = keyObject;
+    keyPair = null;
     return keyObject;
   }
 }

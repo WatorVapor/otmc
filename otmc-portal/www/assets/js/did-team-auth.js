@@ -29,7 +29,7 @@ export class DIDTeamAuth {
     return this.cov_.address();
   }
   static name() {
-    DIDTeamAuth.name_ = localStorage.getItem(constDIDAuthName);
+    DIDTeamAuth.name_ = localStorage.getItem(constDIDTeamAuthName);
     return DIDTeamAuth.name_;
   }
   document() {
@@ -37,7 +37,7 @@ export class DIDTeamAuth {
   }
   static storeName(name) {
     DIDTeamAuth.name_ = name;
-    localStorage.setItem(constDIDAuthName,name);
+    localStorage.setItem(constDIDTeamAuthName,name);
   }
   createDid(cb) {
     this.cov_.createSeed(cb);

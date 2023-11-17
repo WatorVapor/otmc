@@ -17,6 +17,10 @@ const onMessage = async (msg) => {
 }
 
 
+const addressPrefix = 'otm';
+//const addressPrefix = 'ot';
+//const addressPrefix = 'o';
+
 const onMiningCmd = async (msg) => {
 
   const pathBase32 = `${msg.path}/edcrypto/base32.js`;
@@ -52,19 +56,66 @@ const onMiningCmd = async (msg) => {
   if(self.trace) {
   console.log('otmc.worker.edcrypt::onMiningCmd::edKey=:<',edKey,'>');
   }
-  
-  let hintKey = null;
+  const result = {
+    auth:false,
+    recovery:false
+  };
+  let authKey = null;
+  setTimeout(()=>{
+    mineEdKey(result,edKey);
+  },0);
+  /*
   while(true) {
-    const keyObject = edKey.createKey();
+    let keyObject = edKey.createKey();
     if(self.trace) {
       console.log('otmc.worker.edcrypt::onMiningCmd::keyObject.idOfKey=:<',keyObject.idOfKey,'>');
     }
-    if(keyObject.idOfKey.startsWith('otm')) {
-      hintKey = keyObject;
+    if(keyObject.idOfKey.startsWith(addressPrefix)) {
+      authKey = keyObject;
       break;
     }
+    keyObject = null;
   }
   if(self.debug) {
-    console.log('otmc.worker.edcrypt::onMiningCmd::hintKey=:<',hintKey,'>');
+    console.log('otmc.worker.edcrypt::onMiningCmd::authKey=:<',authKey,'>');
   }
+  
+  let recoveryKey = null;
+  while(true) {
+    let keyObject = edKey.createKey();
+    if(self.trace) {
+      console.log('otmc.worker.edcrypt::onMiningCmd::keyObject.idOfKey=:<',keyObject.idOfKey,'>');
+    }
+    if(keyObject.idOfKey.startsWith(addressPrefix)) {
+      recoveryKey = keyObject;
+      break;
+    }
+    keyObject = null;
+  }
+  if(self.debug) {
+    console.log('otmc.worker.edcrypt::onMiningCmd::recoveryKey=:<',recoveryKey,'>');
+  }
+  */
+}
+
+const mineEdKey = (result,edKey) => {
+    let keyObject = edKey.createKey();
+    if(self.trace) {
+      console.log('otmc.worker.edcrypt::onMiningCmd::keyObject.idOfKey=:<',keyObject.idOfKey,'>');
+    }
+    if(keyObject.idOfKey.startsWith(addressPrefix)) {
+      if(!result.auth) {
+        result.auth = keyObject;
+      }
+      if(!result.recovery) {
+        result.recovery = keyObject;
+      }
+      if(result.auth && result.recovery) {
+        self.postMessage(result,edKey);
+      }
+    } else {
+      setTimeout(()=>{
+        mineEdKey(result,edKey);
+      },0);
+    }
 }

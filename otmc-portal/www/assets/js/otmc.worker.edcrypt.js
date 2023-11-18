@@ -1,4 +1,4 @@
-self.trace = false;
+self.trace = true;
 self.debug = true;
 
 self.addEventListener('message', (evt) =>{
@@ -11,11 +11,18 @@ const onMessage = async (msg) => {
   if(self.trace) {
     console.log('otmc.worker.edcrypt::onMessage::msg=:<',msg,'>');
   }
-  if(msg.cmd === 'mine') {
+  if(msg.init) {
+    onInitCmd(msg.init);
+  }
+  if(msg.init === 'mine') {
     onMiningCmd(msg);
   }
 }
-
+const onInitCmd = async (initMsg) => {
+  if(self.trace) {
+    console.log('otmc.worker.edcrypt::onInitCmd::initMsg=:<',initMsg,'>');
+  }
+}
 
 const addressPrefix = 'otm';
 //const addressPrefix = 'ot';

@@ -38,10 +38,10 @@ const loadDidTeamApps = (evt) => {
   
   const otmc = new Otmc();
   console.log('loadDidTeamApps::otmc=:<',otmc,'>');
-  otmc.on('address',(address)=>{
+  otmc.on('edcrypt:address',(address)=>{
     onAddressRefresh(address,edcryptKeyVM);
   });
-  otmc.on('mining',(mining)=>{
+  otmc.on('edcrypt:mining',(mining)=>{
     console.log('loadDidTeamApps::mining=:<',mining,'>');
     edcryptKeyVM.mining = mining;
   });

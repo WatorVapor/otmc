@@ -48,7 +48,7 @@ export class EdUtil {
     const data = encoder.encode(textMsg);
     const hash = nacl.hash(data);
     const hashArray = Array.from(new Uint8Array(hash)); 
-    const b64Hash = nacl.util.encodeBase64(hashArray);
+    const b64Hash = this.base32.encode(hashArray);
     if(this.trace) {
       console.log('EdUtil::sha2b64_:b64Hash=<',b64Hash,'>');
     }

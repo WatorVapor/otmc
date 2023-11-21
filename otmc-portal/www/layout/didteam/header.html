@@ -36,6 +36,8 @@
       import * as bootstrap from 'bootstrap'
       const collapseElementList = document.querySelectorAll('.collapse')
       const collapseList = [...collapseElementList].map(collapseEl => new bootstrap.Collapse(collapseEl))            
+      const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+      const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
     </script>
     
     <script type="text/javascript" src="/otmc/assets/js/const.js"></script>

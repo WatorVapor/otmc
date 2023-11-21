@@ -38,5 +38,47 @@
       </div>
     </div>
   </div>
+  
+  <div class="row justify-content-center">
+    <div class="col-8">
+      <p class="d-inline-flex gap-1">
+        <a class="btn btn-primary" data-bs-toggle="collapse" href="#did-team" role="button" aria-expanded="true" aria-controls="did-team">
+          Did Team
+        </a>
+      </p>
+    </div>
+  </div>
+  <div class="row justify-content-center">
+    <div class="col-8" id="vue-ui-app-did-team">
+      <div class="collapse multi-collapse" id="did-team">
+        <div class="input-group mb-3">
+          <div class="form-floating">
+            <input type="text" class="form-control" id="did-team-address" placeholder="did:otmc:" v-model="did.id">
+            <label for="did-team-address">Team Address</label>
+          </div>
+          <span class="input-group-text" v-if="hasAddress === false">
+            <button class="btn btn-primary" type="button" @click="clickCreateDidTeamSeed()" :disabled="edKeyReady == false" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create A New DidTeam">
+              <i class="fa-solid fa-seedling"></i>
+              <i class="fa-solid fa-user-gear"></i>
+            </button>
+          </span>
+          <span class="input-group-text" v-if="hasAddress === false">
+            <button class="btn btn-primary" type="button" @click="clickJoinDidTeam()" :disabled="edKeyReady == false" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Join An Exist DidTeam">
+              <i class="fa-solid fa-link"></i>
+              <i class="fa-solid fa-people-group"></i>
+            </button>
+          </span>
+        </div>
+        <div class="input-group mb-3">
+          <div class="form-floating">
+             <textarea class="form-control" id="did-team-document" style="height: 200px" readonly v-model="did.doc">
+             </textarea>
+            <label for="did-team-document">Did Document</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
 </div>
 <script src="./didteam.js" type="module"></script>

@@ -14,13 +14,23 @@ const onMessage = async (msg) => {
   if(msg.init) {
     onInitCmd(msg.init);
   }
-  if(msg.init === 'mine') {
+  if(msg.mine && msg.mine.start) {
     onMiningCmd(msg);
   }
+}
+
+const modulePath = {
+  
 }
 const onInitCmd = async (initMsg) => {
   if(self.trace) {
     console.log('otmc.worker.edcrypt::onInitCmd::initMsg=:<',initMsg,'>');
+  }
+  modulePath.base32 = `${initMsg.path}/edcrypto/base32.js`;
+  modulePath.edkey = `${initMsg.path}/edcrypto/edkey.js`;
+  modulePath.edutils = `${initMsg.path}/edcrypto/edutils.js`;
+  if(self.trace) {
+    console.log('otmc.worker.edcrypt::onInitCmd::modulePath=:<',modulePath,'>');
   }
 }
 
@@ -30,30 +40,15 @@ const addressPrefix = 'otm';
 
 const onMiningCmd = async (msg) => {
 
-  const pathBase32 = `${msg.path}/edcrypto/base32.js`;
-  if(self.trace) {
-    console.log('otmc.worker.edcrypt::onMiningCmd::pathBase32=:<',pathBase32,'>');
-  }
-  const { Base32 } = await import(pathBase32)
+  const { Base32 } = await import(modulePath.base32)
   if(self.trace) {
     console.log('otmc.worker.edcrypt::onMiningCmd::Base32=:<',Base32,'>');
   }
-
-
-  const pathEdkey = `${msg.path}/edcrypto/edkey.js`;
-  if(self.trace) {
-  console.log('otmc.worker.edcrypt::onMiningCmd::pathEdkey=:<',pathEdkey,'>');
-  }
-  const { EdDsaKey } = await import(pathEdkey)
+  const { EdDsaKey } = await import(modulePath.edkey)
   if(self.trace) {
   console.log('otmc.worker.edcrypt::onMiningCmd::EdDsaKey=:<',EdDsaKey,'>');
   }
-
-  const pathEdUtils = `${msg.path}/edcrypto/edutils.js`;
-  if(self.trace) {
-  console.log('otmc.worker.edcrypt::onMiningCmd::pathEdUtils=:<',pathEdUtils,'>');
-  }
-  const { EdUtil } = await import(pathEdUtils)
+  const { EdUtil } = await import(modulePath.edutils)
   if(self.trace) {
   console.log('otmc.worker.edcrypt::onMiningCmd::EdUtil=:<',EdUtil,'>');
   }

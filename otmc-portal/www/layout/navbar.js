@@ -16,15 +16,9 @@ const createTopNavBar_ = async ()=> {
   if(NAVBAR.trace) {
     console.log('w-navbar::createTopNavBar_::vm=<',vm,'>');
   }
-  
-  const { DIDTeamAuth } = await import(`${constAppPrefix}/assets/js/did-team-auth.js`);
-  if(NAVBAR.trace) {
-    console.log('w-navbar::createTopNavBar_::DIDTeamAuth=<',DIDTeamAuth,'>');
-  }
   window.vueVm = window.vueVm || {};
   window.vueVm.navbar = vm;
 
-  vm.accout.name = DIDTeamAuth.name();
   const evt = document.createEvent('Event');
   evt.initEvent('TopMenuBarLoaded', true, true);
   document.dispatchEvent(evt);

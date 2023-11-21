@@ -1,86 +1,65 @@
-import {MassStore} from './mass-store.js';
-
-export class DIDDocument {
-  static debug = true;
-  static did_method = 'maap';
-  static did_context = 'https://www.wator.xyz/maap/';
-  static did_mqtt_end_point = 'wss://wator.xyz:8084/jwt/did';
-  static did_mqtt_uri = 'wss://wator.xyz:8084/mqtt';
+class DIDConfig {
+  static method = 'otmc';
+  static context = 'https://www.wator.xyz/otmc/';
+  static end_point = 'wss://mqtt.wator.xyz:8084/jwt/mqtt/otmc/public/ws';
+  static version = '1.0';
   constructor() {
   }
 }
 
 export class DIDSeedDocument {
+  static trace = false;
   static debug = true;
-  constructor(cb) {
-    this.ready1_ = false;
-    this.ready2_ = false;
-    const self = this;
-    const massAuth = new MassStore(null,(good)=>{
-      if(good === true) {
-        self.massAuth_ = massAuth;
-      }
-      self.ready1_ = true;
-      self.tryCallReady_(cb);
-    });
-    const massRecovery = new MassStore(null,(good) => {
-      if(good === true) {
-        self.massRecovery_ = massRecovery;
-      }
-      self.ready2_ = true;
-      self.tryCallReady_(cb);
-    });
+  constructor(auth,recovery) {
+    this.auth_ = auth;
+    this.recovery_ = recovery;
   }
   address() {
-    return `did:${DIDDocument.did_method}:${this.massAuth_.address()}`;
+    return `did:${DIDConfig.method}:${this.auth_.address()}`;
   }
   document() {
-    const didCode = `did:${DIDDocument.did_method}:${this.massAuth_.address()}`;
+    const didCode = `did:${DIDConfig.method}:${this.auth_.address()}`;
     const didDoc = {
-      '@context':`${DIDDocument.did_context}`,
+      '@context':`${DIDConfig.context}`,
       id:didCode,
-      version:1.0,
+      version:`${DIDConfig.version}`,
       created:(new Date()).toISOString(),
       updated:(new Date()).toISOString(),
-      publicKey:[
+      verificationMethod:[
         {
-          id:`${didCode}#${this.massAuth_.address()}`,
+          id:`${didCode}#${this.auth_.address()}`,
           type: 'ed25519',
-          publicKeyBase64: this.massAuth_.pub(),
+          controller:didCode,
+          publicKeyMultibase: this.auth_.pub(),
         },
         {
-          id:`${didCode}#${this.massRecovery_.address()}`,
+          id:`${didCode}#${this.recovery_.address()}`,
           type: 'ed25519',
-          publicKeyBase64: this.massRecovery_.pub(),
+          controller:didCode,
+          publicKeyMultibase: this.recovery_.pub(),
         },
       ],
       authentication:[
-        `${didCode}#${this.massAuth_.address()}`,
+        `${didCode}#${this.auth_.address()}`,
       ],
       recovery:[
-       `${didCode}#${this.massRecovery_.address()}`,
+       `${didCode}#${this.recovery_.address()}`,
+     ],
+     capabilityInvocation:[
      ],
       service: [
         {
-          id:`${didCode}#${this.massAuth_.address()}`,
-          type: 'mqtturi',
-          serviceEndpoint: `${DIDDocument.did_mqtt_end_point}`,
-          serviceMqtt:{
-            uri:`${DIDDocument.did_mqtt_uri}`,
-            acl:{
-              all:[
-              `${didCode}/#`,
-              ]
-            }
-          }
+          id:`${didCode}#${this.auth_.address()}`,
+          type: 'mqtt',
+          serviceEndpoint: `${DIDConfig.end_point}`
         },
       ],
     };
     const proofs = [];
-    const signedMsg = this.massAuth_.signWithoutTS(didDoc);
+    const signedMsg = this.auth_.signWithoutTS(didDoc);
     const proof = {
       type:'ed25519',
-      creator:`${didCode}#${this.massAuth_.address_}`,
+      creator:`${didCode}#${this.auth_.address()}`,
       signatureValue:signedMsg.auth.sign,
     };
     proofs.push(proof);
@@ -89,47 +68,39 @@ export class DIDSeedDocument {
     this.didDoc_ = didDoc;
     return didDoc;
   }
-  joinDocument(keyid) {
+  appendDocument(keyid) {
     return didDoc;
-  }
-  tryCallReady_(cb) {
-    if(this.ready1_ && this.ready2_) {
-      if(self.massAuth_) {
-        this.document();
-        cb(true);
-      } else {
-        cb(false);        
-      }
-    }
   }
 }
 
 export class DIDLinkedDocument {
   static trace = false;
   static debug = true;
-  constructor(evidence,cb) {
+  constructor(evidence) {
     if(DIDLinkedDocument.trace) {
       console.log('DIDLinkedDocument::constructor:evidence=<',evidence,'>');
     }
-    this.cb_ = cb;
     this.address_ = evidence.id;
-    this.didDoc_ = evidence;
-    this.loadAuthMass_();
+    this.didDoc_ = JSON.parse(JSON.stringify(evidence));
+    this.didDocWork_ = JSON.parse(JSON.stringify(evidence));
+  }
+  async load() {
+    await this.loadAuthMass_();
   }
   address() {
     return this.address_;
   }
   document() {
     if(DIDLinkedDocument.trace) {
-      console.log('DIDLinkedDocument::document:this.didDoc_=<',this.didDoc_,'>');
+      console.log('DIDLinkedDocument::document:this.didDoc_=<',JSON.stringify(this.didDoc_,undefined,2),'>');
     }
     return this.didDoc_;
   }
-  joinDocument(keyid,keyB64) {
+  appendDocument(keyid,keyB64) {
     if(DIDLinkedDocument.trace) {
-      console.log('DIDLinkedDocument::joinDocument:keyid=<',keyid,'>');
-      console.log('DIDLinkedDocument::joinDocument:keyB64=<',keyB64,'>');
-      console.log('DIDLinkedDocument::joinDocument:this.didDoc_=<',this.didDoc_,'>');
+      console.log('DIDLinkedDocument::appendDocument:keyid=<',keyid,'>');
+      console.log('DIDLinkedDocument::appendDocument:keyB64=<',keyB64,'>');
+      console.log('DIDLinkedDocument::appendDocument:this.didDoc_=<',this.didDoc_,'>');
     }
     const didCode = this.didDoc_.id;
     const newDidDoc = JSON.parse(JSON.stringify(this.didDoc_));
@@ -153,31 +124,7 @@ export class DIDLinkedDocument {
     if(newDidDoc.authentication.indexOf(keyIdFull) === -1){
       newDidDoc.authentication.push(keyIdFull);
     }
-    const newService = {
-      id:`${didCode}#${keyid}`,
-      type: 'mqtturi',
-      serviceEndpoint: `${DIDDocument.did_mqtt_end_point}`,
-      serviceMqtt:{
-        uri:`${DIDDocument.did_mqtt_uri}`,
-        acl:{
-          all:[
-          `${didCode}/#`,
-          ]
-        }
-      }      
-    };
-    let isNewService = true;
-    for( const service of newDidDoc.service) {
-      if(service.id === newService.id) {
-        isNewService = false;
-      }
-    }
-    if(isNewService) {
-      newDidDoc.service.push(newService);
-    }
-    if(DIDLinkedDocument.trace) {
-      console.log('DIDLinkedDocument::joinDocument:newDidDoc.service=<',newDidDoc.service,'>');
-    }
+    
     delete newDidDoc.proof;
     const creator = `${didCode}#${this.massAuth_.address_}`;
     const proofs = this.didDoc_.proof.filter(( proof ) => {
@@ -193,218 +140,91 @@ export class DIDLinkedDocument {
     newDidDoc.proof = proofs;
     return newDidDoc;
   }
-
-  growDocument(incomeCoc) {
+  isComplete() {
     if(DIDLinkedDocument.debug) {
-      console.log('DIDLinkedDocument::growDocument:incomeCoc.didDoc=<',incomeCoc.didDoc,'>');
-      console.log('DIDLinkedDocument::growDocument:this.didDoc_=<',this.didDoc_,'>');
+      console.log('DIDLinkedDocument::isComplete:this.didDocWork_=<',this.didDocWork_,'>');
     }
-    const goodIncome = this.massAuth_.verifyDidDoc(incomeCoc.didDoc);
+    const isGood = this.massAuth_.verifyDidDoc(this.didDocWork_);
     if(DIDLinkedDocument.debug) {
-      console.log('DIDLinkedDocument::growDocument:goodIncome=<',goodIncome,'>');
+      console.log('DIDLinkedDocument::isComplete:isGood=<',isGood,'>');
     }
-    if(!goodIncome) {
-      console.log('DIDLinkedDocument::growDocument:goodIncome=<',goodIncome,'>');
+    if(isGood === false) {
+      console.log('DIDLinkedDocument::isComplete:isGood=<',isGood,'>');
       return false;
     }
-    if(this.didDoc_.id !== incomeCoc.didDoc.id) {
-      return false;
-    }
-    if(this.didDoc_.created !== incomeCoc.didDoc.created) {
-      return false;
-    }
-
-    const didCode = this.didDoc_.id;
-    const newDidDoc = JSON.parse(JSON.stringify(incomeCoc.didDoc));
-    if(DIDLinkedDocument.debug) {
-      console.log('DIDLinkedDocument::growDocument:newDidDoc=<',newDidDoc,'>');
-    }
-    let isModified = false;
-
-
-    // authentication 
-    for( const origAuth of this.didDoc_.authentication) {
-      if(DIDLinkedDocument.trace) {
-        console.log('DIDLinkedDocument::growDocument:origAuth=<',origAuth,'>');
-      }
-      const isIncluded = newDidDoc.authentication.includes(origAuth);
+    for(const proof of this.didDocWork_.proof) {
       if(DIDLinkedDocument.debug) {
-        console.log('DIDLinkedDocument::growDocument:isIncluded=<',isIncluded,'>');
+        console.log('DIDLinkedDocument::isComplete:proof=<',proof,'>');
       }
-      if(isIncluded === false) {
-        newDidDoc.authentication.push(origAuth);
-        isModified = true;
-      }
-    }
-    // recovery 
-    for( const origRecovery of this.didDoc_.recovery) {
-      if(DIDLinkedDocument.trace) {
-        console.log('DIDLinkedDocument::growDocument:origRecovery=<',origRecovery,'>');
-      }
-      const isIncluded = newDidDoc.recovery.includes(origRecovery);
+      const isHintProof = proof.creator.endsWith(`#${this.massAuth_.address_}`);
       if(DIDLinkedDocument.debug) {
-        console.log('DIDLinkedDocument::growDocument:isIncluded=<',isIncluded,'>');
+        console.log('DIDLinkedDocument::isComplete:proof.creator=<',proof.creator,'>');
+        console.log('DIDLinkedDocument::isComplete:this.massAuth_.address_=<',this.massAuth_.address_,'>');
+        console.log('DIDLinkedDocument::isComplete:isHintProof=<',isHintProof,'>');
       }
-      if(isIncluded === false) {
-        newDidDoc.recovery.push(origRecovery);
-        isModified = true;
-      }
-    }
-    // public key 
-    for( const origPublicKey of this.didDoc_.publicKey) {
-      if(DIDLinkedDocument.trace) {
-        console.log('DIDLinkedDocument::growDocument:origPublicKey=<',origPublicKey,'>');
-      }
-      let isIncluded = false;
-      for( const newPublicKey of newDidDoc.publicKey) {
-        if(DIDLinkedDocument.trace) {
-          console.log('DIDLinkedDocument::growDocument:newPublicKey=<',newPublicKey,'>');
-        }
-        if(newPublicKey.id === origPublicKey.id) {
-          isIncluded = true;
-        }
-      }
-      if(DIDLinkedDocument.debug) {
-        console.log('DIDLinkedDocument::growDocument:isIncluded=<',isIncluded,'>');
-      }
-      if(isIncluded === false) {
-        newDidDoc.publicKey.push(origPublicKey);
-        isModified = true;
-      }
-    }
-    // service
-    for( const origService of this.didDoc_.service) {
-      if(DIDLinkedDocument.trace) {
-        console.log('DIDLinkedDocument::growDocument:origService=<',origService,'>');
-      }
-      let isIncluded = false;
-      for( const newService of newDidDoc.service) {
-        if(DIDLinkedDocument.trace) {
-          console.log('DIDLinkedDocument::growDocument:newService=<',newService,'>');
-        }
-        if(newService.id === origService.id) {
-          isIncluded = true;
-        }
-      }
-      if(DIDLinkedDocument.debug) {
-        console.log('DIDLinkedDocument::growDocument:isIncluded=<',isIncluded,'>');
-      }
-      if(isIncluded === false) {
-        newDidDoc.service.push(origService);
-        isModified = true;
-      }
-    }
-
-    if(DIDLinkedDocument.debug) {
-      console.log('DIDLinkedDocument::growDocument:isModified=<',isModified,'>');
-    }
-    
-    let proofAgain = false;
-    
-    if(isModified) {
-      newDidDoc.updated = (new Date()).toISOString();
-      proofAgain = true;
-    } else {
-      // proof
-      for( const origProof of this.didDoc_.proof) {
-        if(DIDLinkedDocument.trace) {
-          console.log('DIDLinkedDocument::growDocument:origProof=<',origProof,'>');
-        }
-        let isIncluded = false;
-        for( const newProof of newDidDoc.proof) {
-          if(DIDLinkedDocument.trace) {
-            console.log('DIDLinkedDocument::growDocument:newProof=<',newProof,'>');
-          }
-          if(newProof.creator === origProof.creator) {
-            isIncluded = true;
-          }
-        }
-        if(DIDLinkedDocument.debug) {
-          console.log('DIDLinkedDocument::growDocument:isIncluded=<',isIncluded,'>');
-        }
-        if(isIncluded === false) {
-          proofAgain = true;
-        }
-      }
-    }
-    if(DIDLinkedDocument.debug) {
-      console.log('DIDLinkedDocument::growDocument:proofAgain=<',proofAgain,'>');
-    }
-    
-    if(proofAgain) {
-      delete newDidDoc.proof;
-      const creator = `${didCode}#${this.massAuth_.address_}`;
-      const proofs = newDidDoc.proof.filter(( proof ) => {
-        return proof.creator !== creator;
-      });
-      if(DIDLinkedDocument.debug) {
-        console.log('DIDLinkedDocument::growDocument:proofs=<',proofs,'>');
-      }
-      const signedMsg = this.massAuth_.signWithoutTS(newDidDoc);
-      const proof = {
-        type:'ed25519',
-        creator:creator,
-        signatureValue:signedMsg.auth.sign,
-      };
-      proofs.push(proof); 
-      newDidDoc.proof = proofs;
-      
-    } else {
-      let isLongerThanMe = false;
-      if(newDidDoc.proof.length > this.didDoc_.proof.length) {
-        isLongerThanMe = true;
-      }
-      if(newDidDoc.service.length > this.didDoc_.service.length) {
-        isLongerThanMe = true;
-      }
-      if(newDidDoc.publicKey.length > this.didDoc_.publicKey.length) {
-        isLongerThanMe = true;
-      }
-      if(newDidDoc.recovery.length > this.didDoc_.recovery.length) {
-        isLongerThanMe = true;
-      }
-      if(isLongerThanMe) {
-        return newDidDoc;
-      } else {
-        return false;
+      if(isHintProof) {
+        return true;
       }
     }
     return false;
   }
+  completeProof(){
+    if(DIDLinkedDocument.debug) {
+      console.log('DIDLinkedDocument::completeProof:this.didDoc_=<',this.didDoc_,'>');
+    }
+    const didDoc = JSON.parse(JSON.stringify(this.didDoc_));
+    delete didDoc.proof;
+    const signedMsg = this.massAuth_.signWithoutTS(didDoc);
+    const proof = {
+      type:'ed25519',
+      creator:`${this.address()}#${this.massAuth_.address_}`,
+      signatureValue:signedMsg.auth.sign,
+    };
+    const newDidDoc = JSON.parse(JSON.stringify(this.didDoc_));
+    if(!newDidDoc.proof) {
+      newDidDoc.proof = [];
+    }
+    newDidDoc.proof.push(proof);
+    if(DIDLinkedDocument.debug) {
+      console.log('DIDLinkedDocument::completeProof:newDidDoc=<',newDidDoc,'>');
+    }
+    return newDidDoc;
+  }
   
-
-
-  loadAuthMass_() {
-    if(DIDLinkedDocument.trace) {
+  async loadAuthMass_() {
+    if(DIDLinkedDocument.debug) {
       console.log('DIDLinkedDocument::loadAuthMass_:this.didDoc_=<',this.didDoc_,'>');
     }
-    const self = this;
+    if(!this.didDoc_.authentication) {
+      return;
+    }
     for(const authentication of this.didDoc_.authentication) {
-      if(DIDLinkedDocument.trace) {
+      if(DIDLinkedDocument.debug) {
         console.log('DIDLinkedDocument::loadAuthMass_:authentication=<',authentication,'>');
       }
       const authParams = authentication.split('#');
       if(authParams.length >1 ) {
         const keyId = authParams[authParams.length-1];
-        if(DIDLinkedDocument.trace) {
+        if(DIDLinkedDocument.debug) {
           console.log('DIDLinkedDocument::loadAuthMass_:keyId=<',keyId,'>');
         }
-        if(keyId && !this.massAuth_) {
-          const mass = new MassStore(keyId,(good)=>{
-            if(DIDLinkedDocument.trace) {
-              console.log('DIDLinkedDocument::loadAuthMass_:good=<',good,'>');
+        if(keyId) {
+          const mass = new MassStore(keyId);
+          const isGood = await mass.load();
+          if(DIDLinkedDocument.debug) {
+            console.log('DIDLinkedDocument::loadAuthMass_:isGood=<',isGood,'>');
+          }
+          if(isGood) {
+            if(DIDLinkedDocument.debug) {
+              console.log('DIDLinkedDocument::loadAuthMass_:this.didDoc_.service=<',this.didDoc_.service,'>');
             }
-            if(good) {
-              for(const service of self.didDoc_.service) {
-                if(service.id.endsWith(`#${keyId}`)) {
-                  self.massAuth_ = mass;
-                  if(typeof self.cb_ === 'function') {
-                    self.cb_();
-                  }
-                }
+            for(const service of this.didDoc_.service) {
+              if(service.id.endsWith(`#${keyId}`)) {
+                this.massAuth_ = mass;            
+                return;
               }
             }
-          });
+          }
         }
       }
     }
@@ -413,14 +233,14 @@ export class DIDLinkedDocument {
 
 
 export class DIDGuestDocument {
+  static trace = false;
   static debug = true;
-  constructor(address,cb) {
+  constructor(address) {
     this.address_ = address;
-    const self = this;
-    this.massAuth_ = new MassStore(null,() => {
-      self.document();
-      cb();
-    });
+    this.massAuth_ = new MassStore(null);
+  }
+  async load() {
+    await this.massAuth_.load();
   }
   address() {
     return this.address_;

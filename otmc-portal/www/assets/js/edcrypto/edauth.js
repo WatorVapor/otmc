@@ -1,10 +1,10 @@
 const strConstAddressPrefix = 'otm';
 export class EdAuth {
-  constructor(edKey) {
+  constructor(edKey,util) {
     this.trace = false;
     this.debug = true;
     this.edKey_ = edKey;
-    this.util_ = new EdUtils();
+    this.util_ = util;
   }
   
   
@@ -48,11 +48,11 @@ export class EdAuth {
     if(this.trace) {
       console.log('EdAuth::signWithoutTS::hashMsgB64=<',hashMsgB64,'>');
     }
-    const hashMsgBin = nacl.util.decodeBase64(hashMsgB64);;
+    const hashMsgBin = this.util_.decodeBase64(hashMsgB64);;
     if(this.trace) {
       console.log('EdAuth::signWithoutTS::hashMsgBin=<',hashMsgBin,'>');
     }
-    const secretKeyBin = nacl.util.decodeBase64(signkey.secretKey);;
+    const secretKeyBin = this.util_.decodeBase64(signkey.secretKey);;
     if(this.trace) {
       console.log('EdAuth::signWithoutTS::secretKeyBin=<',secretKeyBin,'>');
     }
@@ -60,7 +60,7 @@ export class EdAuth {
     if(this.trace) {
       console.log('EdAuth::signWithoutTS::signed=<',signed,'>');
     }
-    const signedB64 = nacl.util.encodeBase64(signed);
+    const signedB64 = this.util_.encodeBase64(signed);
     const signMsgObj = JSON.parse(msgOrigStr);
     signMsgObj.auth = {};
     signMsgObj.auth.pub = signkey.publicKey;

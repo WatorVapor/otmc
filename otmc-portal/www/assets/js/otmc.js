@@ -1,6 +1,10 @@
 import { EventEmitter } from 'eventemitter3';
 import { MqttMessager } from './otmc.mqtt.message.js';
 import { DidDocument } from './otmc.did.document.js';
+import { createMachine, interpret }  from 'xstate';
+console.log('::::createMachine=:<',createMachine,'>');
+console.log('::::interpret=:<',interpret,'>');
+
 /**
 *
 */
@@ -16,13 +20,13 @@ export class Otmc extends EventEmitter {
       console.log('EdcryptWorker::constructor::this.scriptPath=:<',this.scriptPath,'>');
     }
     this.edcrypt = new EdcryptWorker(this);
+    const self = this;
     setTimeout(() => {
       self.edcrypt.loadKey();
     },0);
     
     this.did = new DidDocument(this);
     this.mqtt = new MqttMessager(this);
-    const self = this;
   }
   startMining() {
     const data = {

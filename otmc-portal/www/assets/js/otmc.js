@@ -19,6 +19,8 @@ export class Otmc extends EventEmitter {
     if(this.trace) {
       console.log('EdcryptWorker::constructor::this.scriptPath=:<',this.scriptPath,'>');
     }
+    this.createStateMachine_();
+    
     this.edcrypt = new EdcryptWorker(this);
     const self = this;
     setTimeout(() => {
@@ -39,7 +41,29 @@ export class Otmc extends EventEmitter {
   createDidTeamFromSeed() {
     return this.did.createSeed();
   }
+  
+  createStateMachine_() {
+    const toggleMachine = createMachine(otmcStateMachine);
+    const toggleService = interpret(toggleMachine)
+    .onTransition((state) => {
+      console.log('EdcryptWorker::createStateMachine_::state.value=:<',state.value,'>');
+    })
+    .start();
+    toggleService.send('TOGGLE');
+    toggleService.send('TOGGLE');
+  }
+  
 }
+
+const otmcStateMachine = {
+  id: 'toggle',
+  initial: 'inactive',
+  states: {
+    inactive: { on: { TOGGLE: 'active' } },
+    active: { on: { TOGGLE: 'inactive' } }
+  }
+}
+
 
 
 /**

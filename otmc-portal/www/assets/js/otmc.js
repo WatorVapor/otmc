@@ -18,14 +18,12 @@ export class Otmc extends EventEmitter {
       console.log('EdcryptWorker::constructor::this.scriptPath=:<',this.scriptPath,'>');
     }   
     this.edcrypt = new EdcryptWorker(this);
-    
     this.did = new DidDocument(this);
     this.mqtt = new MqttMessager(this);
     const self = this;
     setTimeout(() => {
       self.sm = new OtmcStateMachine(this);
-    },0);
-
+    },10);
   }
   startMining() {
     const data = {
@@ -79,6 +77,7 @@ class EdcryptWorker {
         auth:this.authKey.idOfKey,
         recovery:this.recoveryKey.idOfKey,
       };
+      this.evtEmitter.did = new DidDocument(this);
       this.evtEmitter.emit('edcrypt:address',addressMsg);
       this.evtEmitter.sm.actor.send('edcrypt:address');
     } catch(err) {
@@ -98,6 +97,7 @@ class EdcryptWorker {
         auth:this.authKey.idOfKey,
         recovery:this.recoveryKey.idOfKey,
       };
+      this.evtEmitter.did = new DidDocument(this);
       this.evtEmitter.emit('edcrypt:address',addressMsg);
     }
     if(msg.mining) {

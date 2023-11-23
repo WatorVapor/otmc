@@ -14,7 +14,7 @@ export class DidDocument {
     const self = this;
     setTimeout(() => {
       self.createMoudles_();
-    },1);
+    },0);
   }
   loadDocument() {
     if(this.trace) {
@@ -37,6 +37,9 @@ export class DidDocument {
   }
   
   async createMoudles_() {
+    if(this.trace) {
+      console.log('DidDocument::createMoudles_::this.otmc=:<',this.otmc,'>');
+    } 
     this.base32 = new Base32();
     this.util = new EdUtil(this.base32);
     this.auth = new EdAuth(this.otmc.edcrypt.authKey,this.util);

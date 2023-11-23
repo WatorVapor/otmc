@@ -43,12 +43,7 @@ export class OtmcStateMachine {
 
 const otmcStateTable = {
   genesis: {
-    /*
-    entry:assign({ otmc: () => {
-      OtmcStateMachine.otmc.edcrypt.loadKey();
-    }}),
-    */
-    on: { 
+    on: {
       'init': { 
         actions:assign({ otmc: () => {
           OtmcStateMachine.otmc.edcrypt.loadKey();

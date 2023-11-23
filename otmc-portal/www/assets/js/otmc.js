@@ -16,13 +16,14 @@ export class Otmc extends EventEmitter {
     this.scriptPath = getScriptPath();
     if(this.trace) {
       console.log('EdcryptWorker::constructor::this.scriptPath=:<',this.scriptPath,'>');
-    }   
-    this.edcrypt = new EdcryptWorker(this);
-    this.did = new DidDocument(this);
-    this.mqtt = new MqttMessager(this);
+    }
+    const thisRefer = {otmc:this};
+    this.edcrypt = new EdcryptWorker(thisRefer);
+    this.did = new DidDocument(thisRefer);
+    this.mqtt = new MqttMessager(thisRefer);
     const self = this;
     setTimeout(() => {
-      self.sm = new OtmcStateMachine(this);
+      self.sm = new OtmcStateMachine(thisRefer);
     },10);
   }
   startMining() {
@@ -45,11 +46,11 @@ export class Otmc extends EventEmitter {
 *
 */
 class EdcryptWorker {
-  constructor(evtEmitter) {
+  constructor(parentRef) {
     this.trace = true;
     this.debug = true;
-    this.evtEmitter = evtEmitter;
-    this.edcrypt = new Worker(`${evtEmitter.scriptPath}/otmc.worker.edcrypt.js`);
+    this.otmc = parentRef.otmc;
+    this.edcrypt = new Worker(`${this.otmc.scriptPath}/otmc.worker.edcrypt.js`);
     if(this.trace) {
       console.log('EdcryptWorker::constructor::this.edcrypt=:<',this.edcrypt,'>');
     }
@@ -59,7 +60,7 @@ class EdcryptWorker {
     }
     const initMsg = {
       init:{
-        path:evtEmitter.scriptPath,
+        path:this.otmc.scriptPath,
       }
     };
     this.edcrypt.postMessage(initMsg);
@@ -77,9 +78,8 @@ class EdcryptWorker {
         auth:this.authKey.idOfKey,
         recovery:this.recoveryKey.idOfKey,
       };
-      this.evtEmitter.did = new DidDocument(this);
-      this.evtEmitter.emit('edcrypt:address',addressMsg);
-      this.evtEmitter.sm.actor.send('edcrypt:address');
+      this.otmc.emit('edcrypt:address',addressMsg);
+      this.otmc.sm.actor.send('edcrypt:address');
     } catch(err) {
       console.log('EdcryptWorker::loadKey::err=:<',err,'>');
     }
@@ -97,11 +97,10 @@ class EdcryptWorker {
         auth:this.authKey.idOfKey,
         recovery:this.recoveryKey.idOfKey,
       };
-      this.evtEmitter.did = new DidDocument(this);
-      this.evtEmitter.emit('edcrypt:address',addressMsg);
+      this.otmc.emit('edcrypt:address',addressMsg);
     }
     if(msg.mining) {
-      this.evtEmitter.emit('edcrypt:mining',msg.mining);
+      this.otmc.emit('edcrypt:mining',msg.mining);
     }
   }
 }

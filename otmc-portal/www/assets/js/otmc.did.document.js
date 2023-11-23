@@ -7,10 +7,10 @@ import { DIDSeedDocument } from './did/document.js';
 *
 */
 export class DidDocument {
-  constructor(otmc) {
+  constructor(parentRef) {
     this.trace = true;
     this.debug = true;
-    this.otmc = otmc;
+    this.otmc = parentRef.otmc;
     const self = this;
     setTimeout(() => {
       self.createMoudles_();

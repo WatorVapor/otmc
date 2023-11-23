@@ -9,11 +9,11 @@ console.log('::::assign=:<',assign,'>');
 */
 export class OtmcStateMachine {
   static otmc = false;
-  constructor(otmc) {
+  constructor(parentRef) {
     this.trace = true;
     this.debug = true;
-    console.log('OtmcStateMachine::constructor::otmc=:<',otmc,'>');
-    OtmcStateMachine.otmc = otmc;
+    console.log('OtmcStateMachine::constructor::parentRef=:<',parentRef,'>');
+    OtmcStateMachine.otmc = parentRef.otmc;
     const self = this;
     setTimeout(()=>{
       self.createStateMachine_();

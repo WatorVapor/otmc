@@ -2,6 +2,7 @@ import { EventEmitter } from 'eventemitter3';
 import { MqttMessager } from './otmc.mqtt.message.js';
 import { DidDocument } from './otmc.did.document.js';
 import { OtmcStateMachine } from './otmc.state.machine.js';
+import { StoreKey } from './otmc.const.js';
 
 /**
 *
@@ -70,9 +71,9 @@ class EdcryptWorker {
   }
   loadKey() {
     try {
-      const authKeyStr = localStorage.getItem(constAuthKey);
+      const authKeyStr = localStorage.getItem(StoreKey.auth);
       this.authKey = JSON.parse(authKeyStr);
-      const recoveryKeyStr = localStorage.getItem(constRecoveryKey);
+      const recoveryKeyStr = localStorage.getItem(StoreKey.recovery);
       this.recoveryKey = JSON.parse(recoveryKeyStr);
       const addressMsg = {
         auth:this.authKey.idOfKey,
@@ -89,8 +90,8 @@ class EdcryptWorker {
       console.log('EdcryptWorker::onEdCryptMessage_::msg=:<',msg,'>');
     }
     if(msg.auth && msg.recovery) {
-      localStorage.setItem(constAuthKey,JSON.stringify(msg.auth));
-      localStorage.setItem(constRecoveryKey,JSON.stringify(msg.recovery));
+      localStorage.setItem(StoreKey.auth,JSON.stringify(msg.auth));
+      localStorage.setItem(StoreKey.recovery,JSON.stringify(msg.recovery));
       this.authKey = msg.auth;
       this.recoveryKey = msg.recovery;
       const addressMsg = {

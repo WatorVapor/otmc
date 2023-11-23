@@ -1,3 +1,5 @@
+import { default as mqtt } from 'mqtt';
+console.log('::::mqtt=:<',mqtt,'>');
 /**
 *
 */
@@ -6,7 +8,12 @@ export class MqttMessager {
     this.trace = true;
     this.debug = true;
     this.otmc = otmc;
-    //this.mqtt = mqtt.connect();
+    //this.client = mqtt.connect();
+  }
+  validateMqttJwt() {
+    if(this.trace) {
+      console.log('MqttMessager::validateMqttJwt::this.otmc=:<',this.otmc,'>');
+    }    
   }
   send(data) {
   }

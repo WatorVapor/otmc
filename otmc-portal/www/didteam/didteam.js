@@ -50,8 +50,9 @@ const didTeamOption = {
       console.log('clickCreateDidTeamSeed::didDoc=:<',didDoc,'>');
       this.did.id = didDoc.id;
       this.did.doc = JSON.stringify(didDoc,undefined,2);
+      appDidVM.hasAddress = true;
     },
-  }  
+  }, 
 }
 
 
@@ -74,6 +75,13 @@ const loadDidTeamApps = (evt) => {
     console.log('loadDidTeamApps::mining=:<',mining,'>');
     edcryptKeyVM.mining = mining;
   });
+  otmc.on('did:document',(didDoc)=>{
+    console.log('loadDidTeamApps::didDoc=:<',didDoc,'>');
+    appDidVM.did.id = didDoc.id;
+    appDidVM.did.doc = JSON.stringify(didDoc,undefined,2);
+    appDidVM.hasAddress = true;
+  });
+  
   edcryptKeyVM.otmc = otmc;
   appDidVM.otmc = otmc;
 

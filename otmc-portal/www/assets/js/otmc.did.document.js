@@ -22,6 +22,19 @@ export class DidDocument {
       console.log('DidDocument::loadDocument::this.otmc=:<',this.otmc,'>');
     }
     this.checkEdcrypt_();
+    try {
+      const didDocStr = localStorage.getItem(StoreKey.didDoc);
+      if(didDocStr) {
+        const didDoc = JSON.parse(didDocStr);
+        if(this.trace) {
+          console.log('DidDocument::loadDocument::didDoc=:<',didDoc,'>');
+        }
+        this.otmc.emit('did:document',didDoc);
+        this.otmc.sm.actor.send('did:document');
+      }
+    } catch(err) {
+      console.log('DidDocument::loadDocument::err=:<',err,'>');
+    }
   }
   createSeed() {
     if(this.trace) {

@@ -24,6 +24,9 @@ export class Otmc extends EventEmitter {
     this.mqtt = new MqttMessager(thisRefer);
     const self = this;
     setTimeout(() => {
+      this.edcrypt.otmc = self;
+      this.did.otmc = self;
+      this.mqtt.otmc = self;
       self.sm = new OtmcStateMachine(thisRefer);
     },10);
   }

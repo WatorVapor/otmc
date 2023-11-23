@@ -3,7 +3,7 @@ document.addEventListener('TopMenuBarLoaded', (evt) => {
   createMultiLanguage_();
 });
 const multiLang = {
-  trace:true,
+  trace:false,
   debug:true,
 };
 

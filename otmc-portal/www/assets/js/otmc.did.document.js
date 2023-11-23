@@ -16,6 +16,11 @@ export class DidDocument {
       self.createMoudles_();
     },1);
   }
+  loadDocument() {
+    if(this.trace) {
+      console.log('DidDocument::loadDocument::this.otmc=:<',this.otmc,'>');
+    }    
+  }
   createSeed() {
     if(this.trace) {
       console.log('DidDocument::createSeed::this.otmc=:<',this.otmc,'>');

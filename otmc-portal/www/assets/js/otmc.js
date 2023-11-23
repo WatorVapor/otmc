@@ -1,9 +1,7 @@
 import { EventEmitter } from 'eventemitter3';
 import { MqttMessager } from './otmc.mqtt.message.js';
 import { DidDocument } from './otmc.did.document.js';
-import { createMachine, interpret }  from 'xstate';
-console.log('::::createMachine=:<',createMachine,'>');
-console.log('::::interpret=:<',interpret,'>');
+import { OtmcStateMachine } from './otmc.state.machine.js';
 
 /**
 *
@@ -18,17 +16,16 @@ export class Otmc extends EventEmitter {
     this.scriptPath = getScriptPath();
     if(this.trace) {
       console.log('EdcryptWorker::constructor::this.scriptPath=:<',this.scriptPath,'>');
-    }
-    this.createStateMachine_();
-    
+    }   
     this.edcrypt = new EdcryptWorker(this);
-    const self = this;
-    setTimeout(() => {
-      self.edcrypt.loadKey();
-    },0);
     
     this.did = new DidDocument(this);
     this.mqtt = new MqttMessager(this);
+    const self = this;
+    setTimeout(() => {
+      self.sm = new OtmcStateMachine(this);
+    },0);
+
   }
   startMining() {
     const data = {
@@ -41,28 +38,8 @@ export class Otmc extends EventEmitter {
   createDidTeamFromSeed() {
     return this.did.createSeed();
   }
-  
-  createStateMachine_() {
-    const toggleMachine = createMachine(otmcStateMachine);
-    const toggleService = interpret(toggleMachine)
-    .onTransition((state) => {
-      console.log('EdcryptWorker::createStateMachine_::state.value=:<',state.value,'>');
-    })
-    .start();
-    toggleService.send('TOGGLE');
-    toggleService.send('TOGGLE');
-  }
-  
 }
 
-const otmcStateMachine = {
-  id: 'toggle',
-  initial: 'inactive',
-  states: {
-    inactive: { on: { TOGGLE: 'active' } },
-    active: { on: { TOGGLE: 'inactive' } }
-  }
-}
 
 
 
@@ -103,6 +80,7 @@ class EdcryptWorker {
         recovery:this.recoveryKey.idOfKey,
       };
       this.evtEmitter.emit('edcrypt:address',addressMsg);
+      this.evtEmitter.sm.actor.send('edcrypt:address');
     } catch(err) {
       console.log('EdcryptWorker::loadKey::err=:<',err,'>');
     }

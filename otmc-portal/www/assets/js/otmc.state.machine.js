@@ -61,14 +61,14 @@ const otmcStateTable = {
     entry:assign({ otmc: () => {
       OtmcStateMachine.otmc.did.loadDocument();
     }}),
-    on: { 'did:document': 'didReady' } 
+    on: { 'did:document_manifest': 'didReady' } 
   },
   didReady: {
     entry:assign({ otmc: () => {
       //console.log('OtmcStateMachine::otmcStateTable::OtmcStateMachine.otmc=:<',OtmcStateMachine.otmc,'>');
       OtmcStateMachine.otmc.mqtt.validateMqttJwt();
     }}),
-    on: { TOGGLE: 'jwtReady' } 
+    on: { '???': 'jwtReady' } 
   },
   jwtReady: {
     on: { TOGGLE: 'mqttService' } 

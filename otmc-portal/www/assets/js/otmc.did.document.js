@@ -2,6 +2,7 @@ import { Base32 } from './edcrypto/base32.js';
 import { EdUtil } from './edcrypto/edutils.js';
 import { EdAuth } from './edcrypto/edauth.js';
 import { DIDSeedDocument } from './did/document.js';
+import { DIDManifest } from './did/manifest.js';
 import { StoreKey } from './otmc.const.js';
 
 /**
@@ -30,8 +31,16 @@ export class DidDocument {
           console.log('DidDocument::loadDocument::didDoc=:<',didDoc,'>');
         }
         this.otmc.emit('did:document',didDoc);
-        this.otmc.sm.actor.send('did:document');
       }
+      const manifestStr = localStorage.getItem(StoreKey.manifest);
+      if(manifestStr) {
+        const manifest = JSON.parse(manifestStr);
+        if(this.trace) {
+          console.log('DidDocument::loadDocument::manifest=:<',manifest,'>');
+        }
+        this.otmc.emit('did:manifest',manifest);
+        this.otmc.sm.actor.send('did:document_manifest');
+      }      
     } catch(err) {
       console.log('DidDocument::loadDocument::err=:<',err,'>');
     }
@@ -50,6 +59,8 @@ export class DidDocument {
       console.log('DidDocument::createSeed::documentObj=:<',documentObj,'>');
     }
     localStorage.setItem(StoreKey.didDoc,JSON.stringify(documentObj));
+    const manifest = DIDManifest.rule();
+    localStorage.setItem(StoreKey.manifest,JSON.stringify(manifest));
     return documentObj;
   }
   

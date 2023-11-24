@@ -5,7 +5,7 @@ export class DIDManifest {
     id:'',
     diddoc: {
       authentication:{
-        policy:'chain'
+        policy:'Proof.Chain'
       },
       capabilityInvocation: {
         join:{
@@ -46,7 +46,7 @@ export class DIDManifest {
     id:'',
     did: {
       authentication:{
-        policy:'seed'
+        policy:'Seed.Dogma'
       },
       capabilityInvocation: {
         join:{
@@ -89,5 +89,4 @@ export class DIDManifest {
     return myRule;
   }
 }
-
 

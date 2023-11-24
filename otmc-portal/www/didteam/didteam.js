@@ -55,6 +55,25 @@ const didTeamOption = {
   }, 
 }
 
+const manifestOption = {
+  data() {
+    return {
+      manifest:`{}`,
+    };
+  },
+  methods: {
+    clickCreateDidTeamSeed(evt) {
+      console.log('clickCreateDidTeamSeed::this=:<',this,'>');
+      const otmc = this.otmc;
+      console.log('clickCreateDidTeamSeed::otmc=:<',otmc,'>');
+      const didDoc = otmc.createDidTeamFromSeed();
+      console.log('clickCreateDidTeamSeed::didDoc=:<',didDoc,'>');
+      this.did.id = didDoc.id;
+      this.did.doc = JSON.stringify(didDoc,undefined,2);
+      appDidVM.hasAddress = true;
+    },
+  }, 
+}
 
 const loadDidTeamApps = (evt) => {
   const appEdcryptKey = Vue.createApp(edcryptKeyOption);
@@ -64,6 +83,10 @@ const loadDidTeamApps = (evt) => {
   const appDidTeam = Vue.createApp(didTeamOption);
   const appDidVM = appDidTeam.mount('#vue-ui-app-did-team');
   console.log('loadDidTeamApps::appDidVM=:<',appDidVM,'>');
+
+  const appManifest = Vue.createApp(manifestOption);
+  const appManifestVM = appManifest.mount('#vue-ui-app-did-manifest');
+  console.log('loadDidTeamApps::appManifestVM=:<',appManifestVM,'>');
   
   const otmc = new Otmc();
   console.log('loadDidTeamApps::otmc=:<',otmc,'>');
@@ -81,9 +104,21 @@ const loadDidTeamApps = (evt) => {
     appDidVM.did.doc = JSON.stringify(didDoc,undefined,2);
     appDidVM.hasAddress = true;
   });
+  otmc.on('did:manifest',(manifest) => {
+    console.log('loadDidTeamApps::manifest=:<',manifest,'>');
+    const manifestStr = JSON.stringify(manifest,undefined,2);
+    console.log('loadDidTeamApps::manifestStr=:<',manifestStr,'>');
+    appManifestVM.manifest = manifestStr;
+    loadCodeEditorApps(manifestStr);
+    /*
+    console.log('loadDidTeamApps::editorObject.editor=:<',editorObject.editor,'>');
+    editorObject.editor.setValue(manifestStr);
+    */
+  });
   
   edcryptKeyVM.otmc = otmc;
   appDidVM.otmc = otmc;
+  appManifestVM.otmc = otmc;
 
 }
 
@@ -100,3 +135,15 @@ const onAddressRefreshTeamApp = (address,app) => {
   console.log('onAddressRefreshTeamApp::app=:<',app,'>');
   app.edKeyReady = true;
 };
+
+const loadCodeEditorApps = (textMsg) => {
+  const editorOption = {
+    theme: "ace/theme/monokai",
+    mode: "ace/mode/json",
+    minLines: 32,
+  };
+  const editor = ace.edit('vue-ui-app-did-manifest-editor',editorOption);
+  console.log('loadCodeEditorApps::editor=:<',editor,'>');
+  console.log('loadCodeEditorApps::editor.session=:<',editor.session,'>');
+  editor.session.insert({row:0, column:0}, textMsg)
+}

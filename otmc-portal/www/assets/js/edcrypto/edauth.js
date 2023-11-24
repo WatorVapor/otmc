@@ -1,3 +1,4 @@
+import { default as nacl } from 'nacl';
 const strConstAddressPrefix = 'otm';
 export class EdAuth {
   constructor(edKey,util) {

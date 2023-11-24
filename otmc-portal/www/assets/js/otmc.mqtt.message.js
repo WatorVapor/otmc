@@ -41,6 +41,9 @@ export class MqttMessager {
   }
 }
 
+/**
+*
+*/
 class MqttJwtRequest {
   constructor(parentRef) {
     this.trace = true;
@@ -56,16 +59,16 @@ class MqttJwtRequest {
       }
     });
     const self = this;
-    socket.addEventListener('message', (event) => {
+    this.socket.addEventListener('message', (evt) => {
       if(this.trace) {
         console.log('MqttJwtRequest::constructor::evt=:<',evt,'>');
       }
       self.onMsg_(evt.data);
-    })    
+    })
   }
   request() {
     if(this.trace) {
-      console.log('MqttJwtRequest::request::this.socket=:<',this.socket,'>');
+      console.log('MqttJwtRequest::request::this.socket.readyState=:<',this.socket.readyState,'>');
     }
   }
   onMsg_(msgData) {

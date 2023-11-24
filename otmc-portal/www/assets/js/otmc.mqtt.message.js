@@ -55,11 +55,22 @@ class MqttJwtRequest {
         console.log('MqttJwtRequest::constructor::evt=:<',evt,'>');
       }
     });
-
+    const self = this;
+    socket.addEventListener('message', (event) => {
+      if(this.trace) {
+        console.log('MqttJwtRequest::constructor::evt=:<',evt,'>');
+      }
+      self.onMsg_(evt.data);
+    })    
   }
   request() {
     if(this.trace) {
       console.log('MqttJwtRequest::request::this.socket=:<',this.socket,'>');
+    }
+  }
+  onMsg_(msgData) {
+    if(this.trace) {
+      console.log('MqttJwtRequest::constructor::msgData=:<',msgData,'>');
     }
   }
 }

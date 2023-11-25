@@ -1,16 +1,14 @@
 export class DIDManifest {
   static trace = false;
   static debug = true;
-  static defaultRule = {
+  static openRule = {
     id:'',
     diddoc: {
       authentication:{
         policy:'Proof.Chain'
       },
       capabilityInvocation: {
-        join:{
-          permission:'once'
-        }
+        policy:'Agree.By.Once'
       },
     },
     acl:{
@@ -26,15 +24,20 @@ export class DIDManifest {
       },
       capability: {
         all: [
-          '${did.id}/${key.id}/sys/did/#'
+          '${did.id}/${key.id}/sys/did/capability/#'
         ],
         pub: [
           '${did.id}/broadcast/${key.id}/#'
         ],
       },
+      invitation: {
+        all: [
+          '${did.id}/${key.id}/sys/did/invitation/#'
+        ],
+      },
       guest:{
         all: [
-          '${did.id}/${key.id}/sys/did/#'
+          '${did.id}/${key.id}/sys/did/guest/#'
         ],
         sub:[
           '${did.id}/broadcast/#'
@@ -42,16 +45,14 @@ export class DIDManifest {
       },
     }
   };
-  static strictRule = {
+  static dogmaRule = {
     id:'',
     did: {
       authentication:{
         policy:'Seed.Dogma'
       },
       capabilityInvocation: {
-        join:{
-          permission:'all'
-        }
+        policy:'Agree.By.Seed'
       },
     },
     acl:{
@@ -67,10 +68,15 @@ export class DIDManifest {
       },
       capability: {
         all: [
-          '${did.id}/${key.id}/sys/did/document/#'
+          '${did.id}/${key.id}/sys/did/capability/#'
         ],
         pub: [
           '${did.id}/broadcast/${key.id}/#'
+        ],
+      },
+      invitation: {
+        all: [
+          '${did.id}/${key.id}/sys/did/invitation/#'
         ],
       },
       guest:{
@@ -84,7 +90,7 @@ export class DIDManifest {
   }
   
   static rule(did) {
-    const myRule = JSON.parse(JSON.stringify(DIDManifest.defaultRule));
+    const myRule = JSON.parse(JSON.stringify(DIDManifest.openRule));
     myRule.id = did;
     return myRule;
   }

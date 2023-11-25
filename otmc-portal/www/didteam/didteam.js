@@ -5,6 +5,8 @@ document.addEventListener('DOMContentLoaded', async (evt) => {
   loadDidTeamApps(evt);
 });
 
+const apps = {};
+
 const edcryptKeyOption = {
   data() {
     return {
@@ -50,7 +52,7 @@ const didTeamOption = {
       console.log('clickCreateDidTeamSeed::didDoc=:<',didDoc,'>');
       this.did.id = didDoc.id;
       this.did.doc = JSON.stringify(didDoc,undefined,2);
-      appDidVM.hasAddress = true;
+      this.hasAddress = true;
     },
   }, 
 }
@@ -62,15 +64,9 @@ const manifestOption = {
     };
   },
   methods: {
-    clickCreateDidTeamSeed(evt) {
-      console.log('clickCreateDidTeamSeed::this=:<',this,'>');
+    clickSaveManifest(evt) {
+      console.log('clickSaveManifest::this=:<',this,'>');
       const otmc = this.otmc;
-      console.log('clickCreateDidTeamSeed::otmc=:<',otmc,'>');
-      const didDoc = otmc.createDidTeamFromSeed();
-      console.log('clickCreateDidTeamSeed::didDoc=:<',didDoc,'>');
-      this.did.id = didDoc.id;
-      this.did.doc = JSON.stringify(didDoc,undefined,2);
-      appDidVM.hasAddress = true;
     },
   }, 
 }
@@ -119,6 +115,10 @@ const loadDidTeamApps = (evt) => {
   edcryptKeyVM.otmc = otmc;
   appDidVM.otmc = otmc;
   appManifestVM.otmc = otmc;
+  
+  apps.edcrypt = edcryptKeyVM;
+  apps.did = appDidVM;
+  apps.manifest = appManifestVM;
 
 }
 

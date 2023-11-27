@@ -68,9 +68,13 @@ const otmcStateTable = {
       //console.log('OtmcStateMachine::otmcStateTable::OtmcStateMachine.otmc=:<',OtmcStateMachine.otmc,'>');
       OtmcStateMachine.otmc.mqtt.validateMqttJwt();
     }}),
-    on: { '???': 'jwtReady' } 
+    on: { 'mqtt:jwt': 'jwtReady' } 
   },
   jwtReady: {
+    entry:assign({ otmc: () => {
+      //console.log('OtmcStateMachine::otmcStateTable::OtmcStateMachine.otmc=:<',OtmcStateMachine.otmc,'>');
+      OtmcStateMachine.otmc.mqtt.connectMqtt();
+    }}),
     on: { TOGGLE: 'mqttService' } 
   },
   mqttService: {

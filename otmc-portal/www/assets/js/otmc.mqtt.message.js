@@ -23,10 +23,25 @@ export class MqttMessager {
     try {
       const mqttJwtStr = localStorage.getItem(StoreKey.mqttJwt);
       if(mqttJwtStr) {
-        const mqttJwt = JSON.parse(mqttJwtStr);
+        this.mqttJwt = JSON.parse(mqttJwtStr);
         if(this.trace) {
-          console.log('MqttMessager::validateMqttJwt::mqttJwt=:<',mqttJwt,'>');
+          console.log('MqttMessager::validateMqttJwt::this.mqttJwt=:<',this.mqttJwt,'>');
         }
+        const expDate = new Date();
+        expDate.setTime(parseInt(this.mqttJwt.payload.exp) * 1000);
+        if(this.trace) {
+          console.log('MqttMessager::validateMqttJwt::expDate=:<',expDate,'>');
+        }
+        const exp_ms = expDate - new Date();
+        if(this.trace) {
+          console.log('MqttMessager::validateMqttJwt::exp_ms=:<',exp_ms,'>');
+        }
+        if(exp_ms < 0) {
+          this.jwt.request();
+          return;
+        }
+        this.otmc.emit('mqtt:jwt',this.mqttJwt);
+        this.otmc.sm.actor.send('mqtt:jwt');
       } else {
         this.jwt.request();
       }
@@ -35,6 +50,19 @@ export class MqttMessager {
       this.jwt.request();
     }
   }
+  connectMqtt() {
+    if(this.trace) {
+      console.log('MqttMessager::connectMqtt::this.otmc=:<',this.otmc,'>');
+    }
+    if(!this.mqttJwt) {
+      this.validateMqttJwt();
+      return;
+    }
+    if(this.trace) {
+      console.log('MqttMessager::connectMqtt::this.mqttJwt=:<',this.mqttJwt,'>');
+    }
+    this.createMqttConnection_(this.mqttJwt.jwt,this.mqttJwt.payload);
+  }    
   send(data) {
   }
   onMessage_(msg) {
@@ -42,6 +70,85 @@ export class MqttMessager {
       console.log('MqttMessager::onMessage_::msg=:<',msg,'>');
     }
   }
+  
+  createMqttConnection_(jwt,payload) {
+    if(this.trace) {
+      console.log('MqttMessager::createMqttConnection_:jwt=<',jwt,'>');
+    }
+    this.jwt_ = jwt;
+    this.payload_ = payload;
+    const options = {
+      // Authentication
+      clientId: payload.clientid,
+      username: payload.username,
+      password: jwt,
+      protocolVersion:5,
+      keepalive: 60*5,
+      connectTimeout: 4000,
+      clean: true,
+      rejectUnauthorized: true
+    };
+    const srvUrl = payload.mqtt.portal.wss;
+    const mqttClient = mqtt.connect(srvUrl,options);
+    const self = this;
+    mqttClient.on('connect', (connack) => {
+      //console.log('MqttMessager::createMqttConnection_::connect connack=<',connack,'>');
+      console.log('MqttMessager::createMqttConnection_::mqttClient.connected=<',mqttClient.connected,'>');
+      self.runSubscriber_();
+      setTimeout(()=>{
+        self.exchangeDidTeamInfo_();
+      },10);
+    });
+    mqttClient.on('disconnect', (connack) => {
+      //console.log('MqttMessager::createMqttConnection_::disconnect connack=<',connack,'>');
+      console.log('MqttMessager::createMqttConnection_::mqttClient.connected=<',mqttClient.connected,'>');
+    });
+    mqttClient.on('reconnect', () => {
+      console.log('MqttMessager::createMqttConnection_ reconnect');
+    });
+    mqttClient.on('error', (err) => {
+      self.mqttClient_ = null;
+      console.log('MqttMessager::createMqttConnection_::err.message=<',err.message,'>');
+      console.log('MqttMessager::createMqttConnection_::err.name=<',err.name,'>');
+      console.log('MqttMessager::createMqttConnection_::err.code=<',err.code,'>');
+      const isJwtWrong = (err.code === 134 && err.message === 'Connection refused: Bad User Name or Password');
+      console.log('MqttMessager::createMqttConnection_::isJwtWrong=<',isJwtWrong,'>');
+      if(isJwtWrong && self.isRequestingJwt === false) {
+        self.isRequestingJwt = true;
+        self.requestMqttAgent_();
+      }
+      mqttClient.end();
+    });
+    mqttClient.on('close', (evt) => {
+      console.log('MqttMessager::createMqttConnection_::close evt=<',evt,'>');
+    });
+    mqttClient.on('end', (evt) => {
+      console.log(':MqttMessager:createMqttConnection_::end evt=<',evt,'>');
+    });
+    mqttClient.on('offline', (evt) => {
+      console.log('MqttMessager::createMqttConnection_::offline evt=<',evt,'>');
+    });
+    mqttClient.on('message', (topic, message, packet) => {
+      if(this.trace) {
+        console.log('MqttMessager::createMqttConnection_::message topic=<',topic,'>');
+        console.log('MqttMessager::createMqttConnection_::message message=<',message,'>');
+      }
+      try {
+        const msgUtf8 = message.toString('utf-8');
+        const msgJson = JSON.parse(msgUtf8);
+        self.onMqttMessage_(topic, msgJson);
+      } catch( err ){
+        console.log('MqttMessager::createMqttConnection_::message err=<',err,'>');
+      }
+    });
+    mqttClient.on('packetsend', (packet) => {
+      //console.log('MqttMessager::createMqttConnection_::packetsend packet=<',packet,'>');
+    });
+    mqttClient.on('packetreceive', (packet) => {
+      //console.log('MqttMessager::createMqttConnection_::packetreceive packet=<',packet,'>');
+    });
+    this.mqttClient_ = mqttClient;
+  }  
 }
 
 /**
@@ -104,6 +211,10 @@ class MqttJWTAgent {
   onMsg_(msgData) {
     if(this.trace) {
       console.log('MqttJWTAgent::onMsg_::msgData=:<',msgData,'>');
+    }
+    if(msgData.jwt && msgData.payload) {
+      localStorage.setItem(StoreKey.mqttJwt,JSON.stringify(msgData));
+      this.otmc.emit('mqtt:jwt',msgData);
     }
   }
   

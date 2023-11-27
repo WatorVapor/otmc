@@ -62,6 +62,9 @@ export class EdAuth {
       console.log('EdAuth::signWithoutTS::signed=<',signed,'>');
     }
     const signedB64 = this.util_.encodeBase64(signed);
+    if(this.trace) {
+      console.log('EdAuth::signWithoutTS::signedB64=<',signedB64,'>');
+    }
     const signMsgObj = JSON.parse(msgOrigStr);
     signMsgObj.auth = {};
     signMsgObj.auth.pub = signkey.publicKey;

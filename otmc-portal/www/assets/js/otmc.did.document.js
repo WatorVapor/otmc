@@ -31,6 +31,7 @@ export class DidDocument {
           console.log('DidDocument::loadDocument::didDoc=:<',didDoc,'>');
         }
         this.otmc.emit('did:document',didDoc);
+        this.didDoc_ = didDoc;
       }
       const manifestStr = localStorage.getItem(StoreKey.manifest);
       if(manifestStr) {
@@ -40,6 +41,7 @@ export class DidDocument {
         }
         this.otmc.emit('did:manifest',manifest);
         this.otmc.sm.actor.send('did:document_manifest');
+        this.didManifest_ = manifest;
       }      
     } catch(err) {
       console.log('DidDocument::loadDocument::err=:<',err,'>');

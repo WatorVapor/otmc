@@ -32,6 +32,9 @@ export class EdUtil {
   }
 
   calcMessage(textMsg) {
+    if(this.trace) {
+      console.log('EdUtil::calcMessage:textMsg=<',textMsg,'>');
+    }
     const shaS1 = this.sha2b64_(textMsg);
     const shaS2 = this.sha2b64_(shaS1);
     if(this.trace) {
@@ -48,7 +51,10 @@ export class EdUtil {
     const data = encoder.encode(textMsg);
     const hash = nacl.hash(data);
     const hashArray = Array.from(new Uint8Array(hash)); 
-    const b64Hash = this.base32.encode(hashArray);
+    if(this.trace) {
+      console.log('EdUtil::sha2b64_:hashArray=<',hashArray,'>');
+    }
+    const b64Hash = this.encodeBase64(hashArray);
     if(this.trace) {
       console.log('EdUtil::sha2b64_:b64Hash=<',b64Hash,'>');
     }

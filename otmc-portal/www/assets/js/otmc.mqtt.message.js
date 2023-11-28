@@ -14,7 +14,7 @@ export class MqttMessager {
     this.debug = true;
     this.otmc = parentRef.otmc;
     this.jwt = new MqttJWTAgent(parentRef);
-    //this.client = mqtt.connect();
+    this.util = new EdUtil(new Base32());
   }
   validateMqttJwt() {
     if(this.trace) {
@@ -74,12 +74,13 @@ export class MqttMessager {
   createMqttConnection_(jwt,payload) {
     if(this.trace) {
       console.log('MqttMessager::createMqttConnection_:jwt=<',jwt,'>');
+      console.log('MqttMessager::createMqttConnection_:this.jwt=<',this.jwt,'>');
     }
-    this.jwt_ = jwt;
+    this.mqttjwt_ = jwt;
     this.payload_ = payload;
     const options = {
       // Authentication
-      clientId: payload.clientid,
+      clientId: `${this.util.randomAddress()}@${payload.clientid}`,
       username: payload.username,
       password: jwt,
       protocolVersion:5,
@@ -88,6 +89,9 @@ export class MqttMessager {
       clean: true,
       rejectUnauthorized: true
     };
+    if(this.trace) {
+      console.log('MqttMessager::createMqttConnection_:options=<',options,'>');
+    }
     const srvUrl = payload.mqtt.portal.wss;
     const mqttClient = mqtt.connect(srvUrl,options);
     const self = this;
@@ -95,9 +99,6 @@ export class MqttMessager {
       //console.log('MqttMessager::createMqttConnection_::connect connack=<',connack,'>');
       console.log('MqttMessager::createMqttConnection_::mqttClient.connected=<',mqttClient.connected,'>');
       self.runSubscriber_();
-      setTimeout(()=>{
-        self.exchangeDidTeamInfo_();
-      },10);
     });
     mqttClient.on('disconnect', (connack) => {
       //console.log('MqttMessager::createMqttConnection_::disconnect connack=<',connack,'>');
@@ -115,7 +116,7 @@ export class MqttMessager {
       console.log('MqttMessager::createMqttConnection_::isJwtWrong=<',isJwtWrong,'>');
       if(isJwtWrong && self.isRequestingJwt === false) {
         self.isRequestingJwt = true;
-        self.requestMqttAgent_();
+        self.jwt.request();
       }
       mqttClient.end();
     });
@@ -148,6 +149,28 @@ export class MqttMessager {
       //console.log('MqttMessager::createMqttConnection_::packetreceive packet=<',packet,'>');
     });
     this.mqttClient_ = mqttClient;
+  }
+
+  runSubscriber_() {
+    if(this.trace) {
+      console.log('MqttMessager::runSubscriber_:this.payload_=<',this.payload_,'>');
+    }
+    const subOpt = {qos: 0,nl:true};
+    const subCallBack = (err, granted) => {
+      if(this.trace) {
+        console.log('MqttMessager::runSubscriber_:err=<',err,'>');
+        console.log('MqttMessager::runSubscriber_:granted=<',granted,'>');
+      }
+      if(err) {
+        console.log('MqttMessager::runSubscriber_:granted=<',granted,'>');
+      }
+    }
+    if(this.payload_ && this.payload_.acl.all ) {
+      this.mqttClient_.subscribe(this.payload_.acl.all,subOpt,subCallBack);
+    }
+    if(this.payload_ && this.payload_.acl.sub ) {
+      this.mqttClient_.subscribe(this.payload_.acl.sub,subOpt,subCallBack);
+    }
   }  
 }
 
@@ -160,27 +183,7 @@ class MqttJWTAgent {
     this.debug = true;
     this.otmc = parentRef.otmc;
     this.tryCreateAuth_();
-    this.socket = new WebSocket(OtmcPortal.jwt.did.wss);
-    if(this.trace) {
-      console.log('MqttJWTAgent::constructor::this.socket=:<',this.socket,'>');
-    }
-    const self = this;
-    this.socket.addEventListener('open', (evt) => {
-      if(this.trace) {
-        console.log('MqttJWTAgent::constructor::evt=:<',evt,'>');
-      }
-    });
-    this.socket.addEventListener('message', (evt) => {
-      if(this.trace) {
-        console.log('MqttJWTAgent::constructor::evt=:<',evt,'>');
-      }
-      try {
-        const msgJson = JSON.parse(evt.data);
-        self.onMsg_(msgJson);
-      } catch (err) {
-        console.log('MqttJWTAgent::constructor::evt=:<',evt,'>');
-      }
-    })
+    this.connectOtmcPortal_();
   }
   
   request() {
@@ -229,5 +232,28 @@ class MqttJWTAgent {
     } else {
       console.log('MqttJWTAgent::tryCreateAuth_::this.otmc.edcrypt=:<',this.otmc.edcrypt,'>');      
     }
+  }
+  connectOtmcPortal_() {
+    this.socket = new WebSocket(OtmcPortal.jwt.did.wss);
+    if(this.trace) {
+      console.log('MqttJWTAgent::connectOtmcPortal_::this.socket=:<',this.socket,'>');
+    }
+    const self = this;
+    this.socket.addEventListener('open', (evt) => {
+      if(this.trace) {
+        console.log('MqttJWTAgent::connectOtmcPortal_::evt=:<',evt,'>');
+      }
+    });
+    this.socket.addEventListener('message', (evt) => {
+      if(this.trace) {
+        console.log('MqttJWTAgent::connectOtmcPortal_::evt=:<',evt,'>');
+      }
+      try {
+        const msgJson = JSON.parse(evt.data);
+        self.onMsg_(msgJson);
+      } catch (err) {
+        console.log('MqttJWTAgent::connectOtmcPortal_::evt=:<',evt,'>');
+      }
+    })    
   }
 }

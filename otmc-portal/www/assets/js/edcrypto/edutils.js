@@ -19,18 +19,13 @@ export class EdUtil {
     }
     return address;
   }
-  sha2b32_(textMsg,typeFn) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(textMsg);
-    const hash = nacl.hash(data);
-    const hashArray = Array.from(new Uint8Array(hash)); 
-    const b32Hash = this.base32.encode(hashArray);
+  randomAddress() {
+    const randomHex = nacl.randomBytes(1024);
     if(this.trace) {
-      console.log('EdUtil::sha2b32_:b32Hash=<',b32Hash,'>');
+      console.log('EdUtil::randomAddress:randomHex=<',randomHex,'>');
     }
-    return b32Hash.toLowerCase();
+    return this.calcAddress(randomHex);
   }
-
   calcMessage(textMsg) {
     if(this.trace) {
       console.log('EdUtil::calcMessage:textMsg=<',textMsg,'>');
@@ -46,6 +41,31 @@ export class EdUtil {
     }
     return address;
   }
+  encodeBase64(arr) {
+    let i, s = [], len = arr.length;
+    for (i = 0; i < len; i++) s.push(String.fromCharCode(arr[i]));
+    return btoa(s.join(''));    
+  }
+  decodeBase64(s) {
+    validateBase64(s);
+    let i, d = atob(s), b = new Uint8Array(d.length);
+    for (i = 0; i < d.length; i++) b[i] = d.charCodeAt(i);
+    return b;    
+  }
+
+  
+  sha2b32_(textMsg,typeFn) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(textMsg);
+    const hash = nacl.hash(data);
+    const hashArray = Array.from(new Uint8Array(hash)); 
+    const b32Hash = this.base32.encode(hashArray);
+    if(this.trace) {
+      console.log('EdUtil::sha2b32_:b32Hash=<',b32Hash,'>');
+    }
+    return b32Hash.toLowerCase();
+  }
+
   sha2b64_(textMsg,typeFn) {
     const encoder = new TextEncoder();
     const data = encoder.encode(textMsg);
@@ -59,17 +79,6 @@ export class EdUtil {
       console.log('EdUtil::sha2b64_:b64Hash=<',b64Hash,'>');
     }
     return b64Hash;
-  }
-  encodeBase64(arr) {
-    let i, s = [], len = arr.length;
-    for (i = 0; i < len; i++) s.push(String.fromCharCode(arr[i]));
-    return btoa(s.join(''));    
-  }
-  decodeBase64(s) {
-    validateBase64(s);
-    let i, d = atob(s), b = new Uint8Array(d.length);
-    for (i = 0; i < d.length; i++) b[i] = d.charCodeAt(i);
-    return b;    
   }
 }
 

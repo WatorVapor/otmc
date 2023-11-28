@@ -12,6 +12,7 @@ export class MqttMessager {
   constructor(parentRef) {
     this.trace = true;
     this.debug = true;
+    this.isRequestingJwt = false;
     this.otmc = parentRef.otmc;
     this.jwt = new MqttJWTAgent(parentRef);
     this.util = new EdUtil(new Base32());
@@ -62,7 +63,12 @@ export class MqttMessager {
       console.log('MqttMessager::connectMqtt::this.mqttJwt=:<',this.mqttJwt,'>');
     }
     this.createMqttConnection_(this.mqttJwt.jwt,this.mqttJwt.payload);
-  }    
+  }
+  syncDidDocument(){
+    if(this.trace) {
+      console.log('MqttMessager::syncDidDocument::new Date()=:<',new Date(),'>');
+    }    
+  }
   send(data) {
   }
   onMessage_(msg) {
@@ -84,7 +90,7 @@ export class MqttMessager {
       username: payload.username,
       password: jwt,
       protocolVersion:5,
-      keepalive: 60*5,
+      keepalive: 60*30,
       connectTimeout: 4000,
       clean: true,
       rejectUnauthorized: true
@@ -97,22 +103,36 @@ export class MqttMessager {
     const self = this;
     mqttClient.on('connect', (connack) => {
       //console.log('MqttMessager::createMqttConnection_::connect connack=<',connack,'>');
-      console.log('MqttMessager::createMqttConnection_::mqttClient.connected=<',mqttClient.connected,'>');
-      self.runSubscriber_();
+      if(self.trace) {
+        console.log('MqttMessager::createMqttConnection_::mqttClient.connected=<',mqttClient.connected,'>');
+      }
+      self.isRequestingJwt = false;
+      if(!self.firstConnected) {      
+        this.otmc.emit('mqtt:connected');
+        this.otmc.sm.actor.send('mqtt:connected');
+        self.runSubscriber_();
+        self.firstConnected = true;
+      }
     });
     mqttClient.on('disconnect', (connack) => {
       //console.log('MqttMessager::createMqttConnection_::disconnect connack=<',connack,'>');
-      console.log('MqttMessager::createMqttConnection_::mqttClient.connected=<',mqttClient.connected,'>');
+      if(self.trace) {
+        console.log('MqttMessager::createMqttConnection_::mqttClient.connected=<',mqttClient.connected,'>');
+      }
     });
     mqttClient.on('reconnect', () => {
-      console.log('MqttMessager::createMqttConnection_ reconnect');
+      if(self.trace) {
+        console.log('MqttMessager::createMqttConnection_ reconnect');
+      }
     });
     mqttClient.on('error', (err) => {
       self.mqttClient_ = null;
+      self.firstConnected = false;
       console.log('MqttMessager::createMqttConnection_::err.message=<',err.message,'>');
       console.log('MqttMessager::createMqttConnection_::err.name=<',err.name,'>');
       console.log('MqttMessager::createMqttConnection_::err.code=<',err.code,'>');
-      const isJwtWrong = (err.code === 134 && err.message === 'Connection refused: Bad User Name or Password');
+      const isJwtWrong = (err.name === 'ErrorWithReasonCode' && err.code === 134 
+                          && err.message === 'Connection refused: Bad User Name or Password' );
       console.log('MqttMessager::createMqttConnection_::isJwtWrong=<',isJwtWrong,'>');
       if(isJwtWrong && self.isRequestingJwt === false) {
         self.isRequestingJwt = true;
@@ -120,14 +140,20 @@ export class MqttMessager {
       }
       mqttClient.end();
     });
-    mqttClient.on('close', (evt) => {
-      console.log('MqttMessager::createMqttConnection_::close evt=<',evt,'>');
+    mqttClient.on('offline', () => {
+      if(self.trace) {
+        console.log('MqttMessager::createMqttConnection_::offline new Date() =<',new Date(),'>');
+      }
     });
-    mqttClient.on('end', (evt) => {
-      console.log(':MqttMessager:createMqttConnection_::end evt=<',evt,'>');
+    mqttClient.on('close', () => {
+      if(self.trace) {
+        console.log('MqttMessager::createMqttConnection_::close new Date()=<',new Date(),'>');
+      }
     });
-    mqttClient.on('offline', (evt) => {
-      console.log('MqttMessager::createMqttConnection_::offline evt=<',evt,'>');
+    mqttClient.on('end', () => {
+      if(self.trace) {
+        console.log(':MqttMessager:createMqttConnection_::end new Date()=<',new Date(),'>');
+      }
     });
     mqttClient.on('message', (topic, message, packet) => {
       if(this.trace) {

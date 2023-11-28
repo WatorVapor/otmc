@@ -80,7 +80,7 @@ const otmcStateTable = {
   mqttService: {
     entry:assign({ otmc: () => {
       //console.log('OtmcStateMachine::otmcStateTable::OtmcStateMachine.otmc=:<',OtmcStateMachine.otmc,'>');
-      OtmcStateMachine.otmc.mqtt.connectMqtt();
+      OtmcStateMachine.otmc.mqtt.syncDidDocument();
     }}),
   },  
 }

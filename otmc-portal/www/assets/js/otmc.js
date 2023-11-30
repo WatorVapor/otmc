@@ -42,6 +42,9 @@ export class Otmc extends EventEmitter {
   createDidTeamFromSeed() {
     return this.did.createSeed();
   }
+  joinDidTeamAsAuth(id) {
+    return this.did.createJoinAsAuth(id);
+  }
 }
 
 

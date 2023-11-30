@@ -73,6 +73,58 @@ export class DIDSeedDocument {
   }
 }
 
+
+export class DIDGuestDocument {
+  static trace = false;
+  static debug = true;
+  constructor(address,auth) {
+    this.address_ = address;
+    this.auth_ = auth;
+  }
+  address() {
+    return this.address_;
+  }
+  document() {
+    const didDoc = {
+      '@context':`${DIDConfig.context}`,
+      id:this.address(),
+      version:`${DIDConfig.version}`,
+      created:(new Date()).toISOString(),
+      updated:(new Date()).toISOString(),
+      verificationMethod:[
+        {
+          id:`${this.address()}#${this.auth_.address()}`,
+          type: 'ed25519',
+          controller:this.address_,
+          publicKeyBase64: this.auth_.pub(),
+        }
+      ],
+      authentication:[
+        `${this.address()}#${this.auth_.address()}`,
+      ],
+      service: [
+        {
+          id:`${this.address()}#${this.auth_.address()}`,
+          type: 'mqtt',
+          serviceEndpoint: `${DIDConfig.end_point}`
+        },
+      ],
+    };
+    const proofs = [];
+    const signedMsg = this.auth_.signWithoutTS(didDoc);
+    const proof = {
+      type:'ed25519',
+      creator:`${this.address()}#${this.auth_.address()}`,
+      signatureValue:signedMsg.auth.sign,
+    };
+    proofs.push(proof);
+    didDoc.proof = proofs;
+    super.didDoc_ = didDoc;
+    return didDoc;
+  }
+}
+
+
 export class DIDLinkedDocument {
   static trace = false;
   static debug = true;
@@ -232,62 +284,3 @@ export class DIDLinkedDocument {
 }
 
 
-export class DIDGuestDocument {
-  static trace = false;
-  static debug = true;
-  constructor(address) {
-    this.address_ = address;
-    this.massAuth_ = new MassStore(null);
-  }
-  async load() {
-    await this.massAuth_.load();
-  }
-  address() {
-    return this.address_;
-  }
-  document() {
-    const didDoc = {
-      '@context':`${DIDDocument.did_context}`,
-      id:this.address(),
-      version:1.0,
-      created:(new Date()).toISOString(),
-      updated:(new Date()).toISOString(),
-      publicKey:[
-        {
-          id:`${this.address()}#${this.massAuth_.address()}`,
-          type: 'ed25519',
-          publicKeyBase64: this.massAuth_.pub(),
-        }
-      ],
-      authentication:[
-        `${this.address()}#${this.massAuth_.address()}`,
-      ],
-      service: [
-        {
-          id:`${this.address()}#${this.massAuth_.address()}`,
-          type: 'mqtturi',
-          serviceEndpoint: `${DIDDocument.did_mqtt_end_point}`,
-          serviceMqtt:{
-            uri:`${DIDDocument.did_mqtt_uri}`,
-            acl:{
-              all:[
-                `${this.address()}/invited/#`,
-              ]
-            }
-          }
-        },
-      ],
-    };
-    const proofs = [];
-    const signedMsg = this.massAuth_.signWithoutTS(didDoc);
-    const proof = {
-      type:'ed25519',
-      creator:`${this.address()}#${this.massAuth_.address_}`,
-      signatureValue:signedMsg.auth.sign,
-    };
-    proofs.push(proof);
-    didDoc.proof = proofs;
-    super.didDoc_ = didDoc;
-    return didDoc;
-  }
-}

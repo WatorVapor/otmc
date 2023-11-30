@@ -54,6 +54,15 @@ const didTeamOption = {
       this.did.doc = JSON.stringify(didDoc,undefined,2);
       this.hasAddress = true;
     },
+    clickJoinDidTeam(evt) {
+      console.log('clickJoinDidTeam::this=:<',this,'>');
+      const otmc = this.otmc;
+      console.log('clickJoinDidTeam::otmc=:<',otmc,'>');
+      const didDoc = otmc.joinDidTeamAsAuth(this.did.id);
+      console.log('clickJoinDidTeam::didDoc=:<',didDoc,'>');
+      this.did.doc = JSON.stringify(didDoc,undefined,2);
+      this.hasAddress = true;
+    },
   }, 
 }
 

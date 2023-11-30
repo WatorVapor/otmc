@@ -1,9 +1,9 @@
 import { Base32 } from './edcrypto/base32.js';
 import { EdUtil } from './edcrypto/edutils.js';
 import { EdAuth } from './edcrypto/edauth.js';
-import { DIDSeedDocument } from './did/document.js';
 import { DIDManifest } from './did/manifest.js';
 import { StoreKey } from './otmc.const.js';
+import { DIDSeedDocument,DIDGuestDocument } from './did/document.js';
 
 /**
 *
@@ -52,6 +52,10 @@ export class DidDocument {
       console.log('DidDocument::createSeed::this.otmc=:<',this.otmc,'>');
     }
     this.checkEdcrypt_();
+    this.seed = new DIDSeedDocument(this.auth,this.recovery);
+    if(this.trace) {
+      console.log('DidDocument::createSeed::this.seed=:<',this.seed,'>');
+    }
     const address = this.seed.address();
     if(this.trace) {
       console.log('DidDocument::createSeed::address=:<',address,'>');
@@ -63,6 +67,23 @@ export class DidDocument {
     localStorage.setItem(StoreKey.didDoc,JSON.stringify(documentObj));
     const manifest = DIDManifest.rule();
     localStorage.setItem(StoreKey.manifest,JSON.stringify(manifest));
+    return documentObj;
+  }
+  createJoinAsAuth(id) {
+    if(this.trace) {
+      console.log('DidDocument::createJoinAsAuth::id=:<',id,'>');
+      console.log('DidDocument::createJoinAsAuth::this.otmc=:<',this.otmc,'>');
+    }
+    this.checkEdcrypt_();
+    this.guest = new DIDGuestDocument(id,this.auth);
+    if(this.trace) {
+      console.log('DidDocument::createJoinAsAuth::this.guest=:<',this.guest,'>');
+    }
+    const documentObj = this.guest.document();
+    if(this.trace) {
+      console.log('DidDocument::createJoinAsAuth::documentObj=:<',documentObj,'>');
+    }
+    localStorage.setItem(StoreKey.didDoc,JSON.stringify(documentObj));
     return documentObj;
   }
   
@@ -93,10 +114,6 @@ export class DidDocument {
     }
     if(this.trace) {
       console.log('DidDocument::createMoudles_::this.recovery=:<',this.recovery,'>');
-    }
-    this.seed = new DIDSeedDocument(this.auth,this.recovery);
-    if(this.trace) {
-      console.log('DidDocument::createMoudles_::this.seed=:<',this.seed,'>');
     }
   }
 }

@@ -9,7 +9,7 @@ import { default as mqtt } from 'mqtt';
 *
 */
 export class Otmc extends EventEmitter {
-  static trace = true;
+  static trace = false;
   static debug = true;
   constructor() {
     super();
@@ -110,24 +110,24 @@ class EdcryptWorker {
   }
 }
 
-const browserName = () => {
-  const agent = window.navigator.userAgent.toLowerCase();
-  if(Otmc.trace) {
-    console.log('::browserName::agent:=:<',agent,'>');
-  }
-  if (agent.indexOf('chrome') != -1) {
-    return 'chrome';
-  }
-  if (agent.indexOf('safari') != -1) {
-    return 'safari';
-  }
-  if (agent.indexOf('firefox') != -1) {
-    return 'firefox';
-  }
-  return 'chrome'
-}
-
 const getScriptPath = () => {
+  const browserName = () => {
+    const agent = window.navigator.userAgent.toLowerCase();
+    if(Otmc.trace) {
+      console.log('::browserName::agent:=:<',agent,'>');
+    }
+    if (agent.indexOf('chrome') != -1) {
+      return 'chrome';
+    }
+    if (agent.indexOf('safari') != -1) {
+      return 'safari';
+    }
+    if (agent.indexOf('firefox') != -1) {
+      return 'firefox';
+    }
+    return 'chrome'
+  }
+
   const browser = browserName();
   if(Otmc.trace) {
     console.log('::getScriptPath::browser=:<',browser,'>');

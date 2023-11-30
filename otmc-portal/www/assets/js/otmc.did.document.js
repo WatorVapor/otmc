@@ -89,8 +89,9 @@ export class DidDocument {
   createSyncDid() {
     this.checkEdcrypt_();
     const role = 'seed';
+    const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
     const syncDid = {
-      topic:`${this.didDoc_.id}/${this.auth.address()}/sys/did/${role}/store`,
+      topic:`${prefixDidToTopic}/${this.auth.address()}/sys/did/${role}/store`,
       did:this.didDoc_,
     };
     if(this.didManifest_) {

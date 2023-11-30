@@ -64,13 +64,18 @@ export class MqttMessager {
     }
     this.createMqttConnection_(this.mqttJwt.jwt,this.mqttJwt.payload);
   }
-  syncDidDocument(){
+  publish(topic,msgData) {
     if(this.trace) {
-      console.log('MqttMessager::syncDidDocument::new Date()=:<',new Date(),'>');
-    }    
+      console.log('MqttMessager::publish::topic=:<',topic,'>');
+      console.log('MqttMessager::publish::msgData=:<',msgData,'>');
+    }
+    this.mqttClient_.publish(topic,JSON.stringify(msgData),{},(err) => {
+      console.log('MqttMessager::publish::err=:<',err,'>');
+    });
   }
-  send(data) {
-  }
+  
+  
+  
   onMessage_(msg) {
     if(this.trace) {
       console.log('MqttMessager::onMessage_::msg=:<',msg,'>');

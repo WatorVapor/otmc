@@ -17,7 +17,7 @@ export class Otmc extends EventEmitter {
     this.debug = true;
     this.scriptPath = getScriptPath();
     if(this.trace) {
-      console.log('EdcryptWorker::constructor::this.scriptPath=:<',this.scriptPath,'>');
+      console.log('Otmc::constructor::this.scriptPath=:<',this.scriptPath,'>');
     }
     const thisRefer = {otmc:this};
     this.edcrypt = new EdcryptWorker(thisRefer);
@@ -44,6 +44,16 @@ export class Otmc extends EventEmitter {
   }
   joinDidTeamAsAuth(id) {
     return this.did.createJoinAsAuth(id);
+  }
+  syncDidDocument(){
+    if(this.trace) {
+      console.log('Otmc::syncDidDocument::new Date()=:<',new Date(),'>');
+    }
+    const syncDoc = this.did.createSyncDid();
+    if(this.trace) {
+      console.log('Otmc::syncDidDocument::syncDoc=:<',syncDoc,'>');
+    }
+    this.mqtt.publish(syncDoc.topic,syncDoc);
   }
 }
 

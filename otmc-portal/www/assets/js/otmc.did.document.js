@@ -86,6 +86,25 @@ export class DidDocument {
     localStorage.setItem(StoreKey.didDoc,JSON.stringify(documentObj));
     return documentObj;
   }
+  createSyncDid() {
+    this.checkEdcrypt_();
+    const role = 'seed';
+    const syncDid = {
+      topic:`${this.didDoc_.id}/${this.auth.address()}/sys/did/${role}/store`,
+      did:this.didDoc_,
+    };
+    if(this.didManifest_) {
+      syncDid.manifest = this.didManifest_;
+    }
+    if(this.trace) {
+      console.log('DidDocument::syncDidDocument::syncDid=:<',syncDid,'>');
+    }
+    const syncDidSigned = this.auth.sign(syncDid);
+    if(this.trace) {
+      console.log('DidDocument::syncDidDocument::syncDidSigned=:<',syncDidSigned,'>');
+    }
+    return syncDidSigned;
+  }
   
   checkEdcrypt_() {
     if(!this.auth || !this.recovery) {

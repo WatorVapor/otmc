@@ -9,7 +9,7 @@ import { default as mqtt } from 'mqtt';
 *
 */
 export class Otmc extends EventEmitter {
-  static trace = false;
+  static trace = true;
   static debug = true;
   constructor() {
     super();
@@ -110,22 +110,51 @@ class EdcryptWorker {
   }
 }
 
+const browserName = () => {
+  const agent = window.navigator.userAgent.toLowerCase();
+  if(Otmc.trace) {
+    console.log('::browserName::agent:=:<',agent,'>');
+  }
+  if (agent.indexOf('chrome') != -1) {
+    return 'chrome';
+  }
+  if (agent.indexOf('safari') != -1) {
+    return 'safari';
+  }
+  if (agent.indexOf('firefox') != -1) {
+    return 'firefox';
+  }
+  return 'chrome'
+}
 
 const getScriptPath = () => {
+  const browser = browserName();
+  if(Otmc.trace) {
+    console.log('::getScriptPath::browser=:<',browser,'>');
+  }
   const errorDummy = new Error();
   if(Otmc.trace) {
     console.log('::getScriptPath::errorDummy.stack.trim()=:<',errorDummy.stack.trim(),'>');
   }
-  const stackParams = errorDummy.stack.trim().split('\n    at ');
+  let sepStackLine = '\n    at ';
+  let indexOfStack = 1;
+  let replacePartern = 'getScriptPath (';
+  if(browser === 'firefox') {
+    sepStackLine = '\n';
+    indexOfStack = 0;
+    replacePartern = 'getScriptPath@';
+  }
+  let stackParams = errorDummy.stack.trim().split(sepStackLine);
   if(Otmc.trace) {
     console.log('::getScriptPath::stackParams=:<',stackParams,'>');
-  }  
-  if(stackParams.length > 0 ) {
-    const fileStack = stackParams[1];
+    console.log('::getScriptPath::stackParams.length=:<',stackParams.length,'>');
+  }
+  if(stackParams.length > indexOfStack + 1) {
+    const fileStack = stackParams[indexOfStack];
     if(Otmc.trace) {
       console.log('::getScriptPath::fileStack=:<',fileStack,'>');
     }
-    const fileLine = fileStack.replace('getScriptPath (','').replace(')','');
+    const fileLine = fileStack.replace(replacePartern,'').replace(')','');
     if(Otmc.trace) {
       console.log('::getScriptPath::fileLine=:<',fileLine,'>');
     }

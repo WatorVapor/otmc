@@ -96,7 +96,7 @@ export class DIDGuestDocument {
           id:`${this.address()}#${this.auth_.address()}`,
           type: 'ed25519',
           controller:this.address_,
-          publicKeyBase64: this.auth_.pub(),
+          publicKeyMultibase: this.auth_.pub(),
         }
       ],
       authentication:[

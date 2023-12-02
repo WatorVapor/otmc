@@ -53,7 +53,7 @@ export class Otmc extends EventEmitter {
     if(this.trace) {
       console.log('Otmc::syncDidDocument::syncDoc=:<',syncDoc,'>');
     }
-    this.mqtt.publish(syncDoc.topic,syncDoc);
+    this.mqtt.publish(syncDoc.topic,syncDoc,{qos:1,nl:true});
   }
 }
 

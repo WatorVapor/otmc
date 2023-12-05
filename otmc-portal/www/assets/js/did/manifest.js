@@ -13,35 +13,43 @@ export class DIDManifest {
     },
     acl:{
       seed:{
+        pub: [ ],
+        sub: [ ],
         all: [
           '${did.id}/#'
         ],
       },
       authentication: {
+        pub: [ ],
+        sub: [ ],
         all: [
           '${did.id}/#'
         ],
       },
       capability: {
-        all: [
-          '${did.id}/${key.id}/sys/did/capability/#'
-        ],
         pub: [
           '${did.id}/broadcast/${key.id}/#'
         ],
+        sub: [ ],
+        all: [
+          '${did.id}/${key.id}/sys/did/capability/#'
+        ],
       },
       invitation: {
+        pub: [ ],
+        sub: [ ],
         all: [
           '${did.id}/${key.id}/sys/did/invitation/#'
         ],
       },
       guest:{
+        pub: [ ],
+        sub:[
+          '${did.id}/broadcast/#'
+        ],
         all: [
           '${did.id}/${key.id}/sys/did/guest/#'
         ],
-        sub:[
-          '${did.id}/broadcast/#'
-        ]
       },
     }
   };
@@ -57,24 +65,31 @@ export class DIDManifest {
     },
     acl:{
       seed:{
+        pub: [ ],
+        sub: [ ],
         all: [
           '${did.id}/#'
         ],
       },
       authentication: {
+        pub: [ ],
+        sub: [ ],
         all: [
           '${did.id}/#'
         ],
       },
       capability: {
-        all: [
-          '${did.id}/${key.id}/sys/did/capability/#'
-        ],
         pub: [
           '${did.id}/broadcast/${key.id}/#'
         ],
+        sub: [ ],
+        all: [
+          '${did.id}/${key.id}/sys/did/capability/#'
+        ],
       },
       invitation: {
+        pub: [ ],
+        sub: [ ],
         all: [
           '${did.id}/${key.id}/sys/did/invitation/#'
         ],
@@ -82,7 +97,8 @@ export class DIDManifest {
       guest:{
         pub: [],
         sub:[
-        ]
+        ],
+        all: [],
       },
     }
   };  

@@ -61,7 +61,10 @@ const otmcStateTable = {
     entry:assign({ otmc: () => {
       OtmcStateMachine.otmc.did.loadDocument();
     }}),
-    on: { 'did:document_manifest': 'didReady' } 
+    on: {
+      'did:document_manifest': 'didReady',
+      'did:document': 'didReady'
+    } 
   },
   didReady: {
     entry:assign({ otmc: () => {

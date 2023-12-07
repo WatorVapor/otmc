@@ -42,7 +42,9 @@ export class DidDocument {
         this.otmc.emit('did:manifest',manifest);
         this.otmc.sm.actor.send('did:document_manifest');
         this.didManifest_ = manifest;
-      }      
+      } else {
+        this.otmc.sm.actor.send('did:document');
+      }
     } catch(err) {
       console.log('DidDocument::loadDocument::err=:<',err,'>');
     }

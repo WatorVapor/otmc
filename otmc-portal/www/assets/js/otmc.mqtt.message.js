@@ -196,10 +196,10 @@ export class MqttMessager {
         console.log('MqttMessager::runSubscriber_:granted=<',granted,'>');
       }
     }
-    if(this.payload_ && this.payload_.acl.all ) {
+    if(this.payload_ && this.payload_.acl.all && this.payload_.acl.all.length > 0 ) {
       this.mqttClient_.subscribe(this.payload_.acl.all,subOpt,subCallBack);
     }
-    if(this.payload_ && this.payload_.acl.sub ) {
+    if(this.payload_ && this.payload_.acl.sub && this.payload_.acl.sub.length > 0 ) {
       this.mqttClient_.subscribe(this.payload_.acl.sub,subOpt,subCallBack);
     }
   }  
@@ -239,7 +239,17 @@ class MqttJWTAgent {
     if(this.trace) {
       console.log('MqttJWTAgent::request:signedJwtReq=<',signedJwtReq,'>');
     }
-    this.socket.send(JSON.stringify(signedJwtReq));
+    this.retryRequest_(signedJwtReq);
+  }
+  retryRequest_(signedJwtReq) {
+    if(this.socket && this.socket.readyState ) {
+      this.socket.send(JSON.stringify(signedJwtReq));
+    } else {
+      const self = this;
+      setTimeout(() => {
+        self.retryRequest_(signedJwtReq);
+      },1000)
+    }
   }
   
   onMsg_(msgData) {

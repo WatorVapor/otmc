@@ -63,6 +63,12 @@ const didTeamOption = {
       this.did.doc = JSON.stringify(didDoc,undefined,2);
       this.hasAddress = true;
     },
+    clickRequestJoinTeam(evt) {
+      console.log('clickRequestJoinTeam::this=:<',this,'>');
+      const otmc = this.otmc;
+      console.log('clickRequestJoinTeam::otmc=:<',otmc,'>');
+      const didDoc = otmc.requestJoinDidTeam();
+    },
   }, 
 }
 

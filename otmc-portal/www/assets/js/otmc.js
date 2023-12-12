@@ -55,6 +55,13 @@ export class Otmc extends EventEmitter {
     }
     this.mqtt.publish(syncDoc.topic,syncDoc,{qos:1,nl:true});
   }
+  requestJoinDidTeam() {
+    const joinRequest = this.did.requestJoinDid();
+    if(this.trace) {
+      console.log('Otmc::requestJoinDidTeam::joinRequest=:<',joinRequest,'>');
+    }
+    this.mqtt.publish(joinRequest.topic,joinRequest,{qos:1,nl:true});
+  }
 }
 
 

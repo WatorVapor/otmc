@@ -108,6 +108,29 @@ export class DidDocument {
     }
     return syncDidSigned;
   }
+
+  requestJoinDid() {
+    // 0:"did/otmc/otmsnaftnd45lzlcdrsqpr73zzst3okf/otm6mefe2b6jqyypd2etnyxj3ho56km6/sys/did/invitation/#"
+    if(this.trace) {
+      console.log('DidDocument::requestJoinDid::this.otmc=:<',this.otmc,'>');
+    }
+    this.checkEdcrypt_();    
+    const role = 'invitation';
+    const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
+    const joinDid = {
+      topic:`${prefixDidToTopic}/${this.auth.address()}/sys/did/${role}/join`,
+      did:this.didDoc_,
+    };
+    if(this.trace) {
+      console.log('DidDocument::requestJoinDid::joinDid=:<',joinDid,'>');
+    }
+    const joinDidSigned = this.auth.sign(joinDid);
+    if(this.trace) {
+      console.log('DidDocument::requestJoinDid::joinDidSigned=:<',joinDidSigned,'>');
+    }
+    return joinDidSigned;
+  }
+
   
   checkEdcrypt_() {
     if(!this.auth || !this.recovery) {

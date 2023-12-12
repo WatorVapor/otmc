@@ -58,7 +58,14 @@
           </span>
           <span class="input-group-text" v-if="hasAddress === false">
             <button class="btn btn-primary" type="button" @click="clickJoinDidTeam()" :disabled="edKeyReady == false" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Join An Exist DidTeam">
+              <i class="fa-solid fa-plus"></i>
               <i class="fa-solid fa-link"></i>
+              <i class="fa-solid fa-people-group"></i>
+            </button>
+          </span>
+          <span class="input-group-text" v-if="hasAddress === true">
+            <button class="btn btn-primary" type="button" @click="clickRequestJoinTeam()" :disabled="edKeyReady == false" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Join An Exist DidTeam">
+              <i class="fa-solid fa-share"></i>
               <i class="fa-solid fa-people-group"></i>
             </button>
           </span>

@@ -202,7 +202,13 @@ export class MqttMessager {
     if(this.payload_ && this.payload_.acl.sub && this.payload_.acl.sub.length > 0 ) {
       this.mqttClient_.subscribe(this.payload_.acl.sub,subOpt,subCallBack);
     }
-  }  
+  }
+  onMqttMessage_(topic, msgJson) {
+    if(this.trace) {
+      console.log('MqttMessager::onMqttMessage_:topic=<',topic,'>');
+      console.log('MqttMessager::onMqttMessage_:msgJson=<',msgJson,'>');
+    }    
+  }
 }
 
 /**

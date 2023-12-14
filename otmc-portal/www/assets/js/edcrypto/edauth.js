@@ -95,8 +95,8 @@ export class EdAuth {
       console.log('EdAuth::verify::calcAddress=<',calcAddress,'>');
       return false;
     }
-    const publicKey = nacl.util.decodeBase64(msg.auth.pub);
-    const signMsg = nacl.util.decodeBase64(msg.auth.sign);
+    const publicKey = this.util_.decodeBase64(msg.auth.pub);
+    const signMsg = this.util_.decodeBase64(msg.auth.sign);
     if(this.trace) {
       console.log('EdAuth::verify::publicKey=<',publicKey,'>');
       console.log('EdAuth::verify::signMsg=<',signMsg,'>');
@@ -106,7 +106,7 @@ export class EdAuth {
       console.log('EdAuth::verify::signedHash=<',signedHash,'>');
       return false;
     }
-    const signedHashB64 = nacl.util.encodeBase64(signedHash);
+    const signedHashB64 = this.util_.encodeBase64(signedHash);
     if(this.trace) {
       console.log('EdAuth::verify::signedHashB64=<',signedHashB64,'>');
     }

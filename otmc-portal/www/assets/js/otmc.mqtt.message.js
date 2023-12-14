@@ -180,6 +180,7 @@ export class MqttMessager {
       //console.log('MqttMessager::createMqttConnection_::packetreceive packet=<',packet,'>');
     });
     this.mqttClient_ = mqttClient;
+    this.tryCreateAuth_();
   }
 
   runSubscriber_() {
@@ -207,8 +208,42 @@ export class MqttMessager {
     if(this.trace) {
       console.log('MqttMessager::onMqttMessage_:topic=<',topic,'>');
       console.log('MqttMessager::onMqttMessage_:msgJson=<',msgJson,'>');
-    }    
+      console.log('MqttMessager::onMqttMessage_:this.auth=<',this.auth,'>');
+    }
+    const goodMsg = this.auth.verify(msgJson);
+    if(this.trace) {
+      console.log('MqttMessager::onMqttMessage_:goodMsg=<',goodMsg,'>');
+    }
+    if(!goodMsg) {
+      console.log('MqttMessager::onMqttMessage_:goodMsg=<',goodMsg,'>');
+      console.log('MqttMessager::onMqttMessage_:msgJson=<',msgJson,'>');
+      return;
+    }
+    if(msgJson.topic !== topic) {
+      console.log('MqttMessager::onMqttMessage_:topic=<',topic,'>');
+      console.log('MqttMessager::onMqttMessage_:msgJson.topic=<',msgJson.topic,'>');
+      return;      
+    }
+    if(topic.endsWith('sys/did/invitation/join')) {
+      this.otmc.emit('didteam:join',msgJson);
+    }
   }
+  
+  
+  
+  tryCreateAuth_() {
+    if(this.trace) {
+      console.log('MqttMessager::tryCreateAuth_::this.otmc.edcrypt=:<',this.otmc.edcrypt,'>');
+    }
+    if(this.otmc.edcrypt && this.otmc.edcrypt.authKey) {
+      this.base32 = new Base32();
+      this.util = new EdUtil(this.base32);
+      this.auth = new EdAuth(this.otmc.edcrypt.authKey,this.util);
+    } else {
+      console.log('MqttMessager::tryCreateAuth_::this.otmc.edcrypt=:<',this.otmc.edcrypt,'>');      
+    }
+  }
+
 }
 
 /**

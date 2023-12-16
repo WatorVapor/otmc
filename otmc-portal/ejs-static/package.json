@@ -9,6 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "chokidar": "^3.5.3"
+    "ejs": "^3.1.9"
   }
 }

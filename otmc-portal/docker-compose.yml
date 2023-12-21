@@ -24,3 +24,18 @@ services:
         limits:
           cpus: '2.0'
           memory: 64M
+  ejs-compiler:
+    image: node:lts
+    network_mode: 'none'
+    environment:
+      TZ: Asia/Tokyo
+    volumes:
+      - ./ejs-static:/ejs
+      - /dev/shm/:/dev/shm/
+    working_dir: '/ejs'
+    command: node ./index.js
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 256M

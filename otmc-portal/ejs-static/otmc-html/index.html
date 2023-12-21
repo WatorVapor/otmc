@@ -27,7 +27,7 @@
           "@popperjs/core": "https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/esm/popper.min.js",
           "bootstrap": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.esm.min.js",
           "eventemitter3": "https://cdn.jsdelivr.net/npm/eventemitter3@5.0.1/dist/eventemitter3.esm.min.js",
-          "xstate": "https://cdn.jsdelivr.net/npm/xstate@4.38.3/dist/xstate.web.js",
+          "xstate": "https://cdn.jsdelivr.net/npm/xstate@5.3.1/dist/xstate.esm.js",
           "three": "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.min.js",        
           "vue": "https://cdn.jsdelivr.net/npm/vue@3.3.8/dist/vue.esm-browser.prod.js"
         }
@@ -41,15 +41,72 @@
       const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
     </script>
     
-    <script type="text/javascript" src="/otmc/assets/js/const.js"></script>
-    <script type="text/javascript" src="/otmc/assets/js/ga.js"></script>    
+    <script type="text/javascript" src="/otmc3/assets/js/const.js"></script>
+    <script type="text/javascript" src="/otmc3/assets/js/ga.js"></script>
+        <header class="navbar navbar-expand-lg navbar-dark bd-navbar bg-dark fixed-top sticky-top">
+      <nav class="container" aria-label="Main navigation" id="vue-navbar-top">
+        <a class="navbar-brand text-primary " v-bind:href="root + '/'" role="button">
+          <i class="material-icons md-48">home</i>
+        </a>
+        <div class="collapse navbar-collapse d-flex justify-content-start">
+          <ul class="navbar-nav">
+            <li class="nav-item active border rounded-pill">
+              <!--
+              <a class="nav-link text-primary vue-lang" v-bind:href="root + '/mansion/create/'" role="button">
+                <i class="material-icons md-48">add</i> {% navbar.mansion %}
+              </a>
+              -->
+            </li>
+          </ul>
+        </div>
+        <div class="collapse navbar-collapse d-flex justify-content-center">
+          <ul class="navbar-nav">
+            <li class="nav-item active border rounded-pill" v-for="(app,index) in apps">
+              <a class="nav-link text-primary vue-lang" v-bind:href="app.href" role="button">
+                <i class="material-icons md-48" v-if="app.icon1">{{app.icon1}}</i>
+                <i class="material-icons md-48" v-if="app.icon2">{{app.icon2}}</i>
+                <i class="material-icons md-48" v-if="app.icon3">{{app.icon3}}</i>
+              </a>
+            </li>    
+          </ul>
+        </div>
+        <div class="collapse navbar-collapse d-flex justify-content-end">
+          <ul class="navbar-nav">
+            <li class="nav-item dropdown ml-5">
+              <a class="nav-link dropdown-toggle text-info" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="material-icons md-48">language</i>
+              </a>
+              <ul class="dropdown-menu">
+                <li class="nav-item">
+                  <a class="dropdown-item" @click="onClickChangeLang('cn')"><span class="flag-icon flag-icon-background flag-icon-cn"></span>中文</a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li class="nav-item">
+                  <a class="dropdown-item" @click="onClickChangeLang('ja')"><span class="flag-icon flag-icon-background flag-icon-jp"></span>日本語</a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li class="nav-item">
+                  <a class="dropdown-item" @click="onClickChangeLang('en')"><span class="flag-icon flag-icon-background flag-icon-us"></span>English</a>
+                </li>
+              </ul>
+            </li>
+            <li class="nav-item dropdown ml-5">
+              <a class="nav-link text-success" v-bind:href="root + '/didteam/'">
+                <i class="material-icons md-48" >manage_accounts</i>
+                {{ accout.name }}
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </header>
     <header class="navbar navbar-expand-lg navbar-dark bd-navbar bg-dark fixed-top sticky-top">
       <nav class="container" aria-label="Main navigation" id="vue-navbar-top">
         <w-navbar></w-navbar>
       </nav>
     </header>
-     <script type="module" src="/otmc/layout/navbar.js"></script>
-    <script type="module" src="/otmc/assets/js/lang.js"></script>
+     <script type="module" src="/otmc3/layout/navbar.js"></script>
+    <script type="module" src="/otmc3/assets/js/lang.js"></script>
   </body>
 </html>
  

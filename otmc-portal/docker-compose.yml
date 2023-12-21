@@ -12,3 +12,15 @@ services:
         limits:
           cpus: '2.0'
           memory: 64M
+  nginx-ejs:
+    image: nginx:stable
+    volumes:
+      - ./ejs-static/otmc-html:/www
+      - ./ejs-static/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
+      - /dev/shm/:/dev/shm/
+    network_mode : 'none'
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 64M

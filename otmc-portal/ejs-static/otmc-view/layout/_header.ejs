@@ -35,17 +35,24 @@
     </script>
     <script type="module">
       import * as bootstrap from 'bootstrap';
+      console.log('::bootstrap=<',bootstrap,'>');
       const collapseElementList = document.querySelectorAll('.collapse');
       const collapseList = [...collapseElementList].map(collapseEl => new bootstrap.Collapse(collapseEl));
       const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
       const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+      
+      const dropdownToggleElementList = document.querySelectorAll('.dropdown-toggle')
+      const dropdownToggleList = [...dropdownToggleElementList].map(dropdownToggleEl => new bootstrap.Dropdown(dropdownToggleEl))
+
+      const dropdownItemElementList = document.querySelectorAll('.dropdown-item')
+      const dropdownItemList = [...dropdownItemElementList].map(dropdownItemEl => new bootstrap.Dropdown(dropdownItemEl))
+
+      
+      const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
+      const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
+      
     </script>
     
     <script type="text/javascript" src="<%- `${prefix}/assets/js/const.js` %>"></script>
     <script type="text/javascript" src="<%- `${prefix}/assets/js/ga.js` %>"></script>
-    <%- include(`${rootView}/layout/_navbar.ejs`) %>
-    <header class="navbar navbar-expand-lg navbar-dark bd-navbar bg-dark fixed-top sticky-top">
-      <nav class="container" aria-label="Main navigation" id="vue-navbar-top">
-        <w-navbar></w-navbar>
-      </nav>
-    </header>
+    <%- include(`/layout/_navbar.ejs`) %>

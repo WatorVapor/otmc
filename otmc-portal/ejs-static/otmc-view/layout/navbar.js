@@ -6,12 +6,19 @@ const NAVBAR = {
 window.addEventListener('DOMContentLoaded', async (evt) => {
   createTopNavBar_();
 });
-const navbarOption = {
+const appOption = {
   data() {
     return {
-      accout: {
-        name:'',
-      }
+      app:{
+        
+      },
+    };
+  },
+}
+
+const langOption = {
+  data() {
+    return {
     };
   },
   methods: {
@@ -25,12 +32,37 @@ const navbarOption = {
   }  
 }
 
+const teamOption = {
+  data() {
+    return {
+      accout: {
+        name:'',
+      },
+    };
+  },
+}
+
+
 const createTopNavBar_ = async ()=> {
-  const app = Vue.createApp(navbarOption);
-  const vm = app.mount('#vue-navbar-top');  
+  const app = Vue.createApp(appOption);
+  const vmApp = app.mount('#vue-ui-navbar-top-app');  
   if(NAVBAR.trace) {
-    console.log('w-navbar::createTopNavBar_::vm=<',vm,'>');
+    console.log('w-navbar::createTopNavBar_::vmApp=<',vmApp,'>');
   }
+
+  const lang = Vue.createApp(langOption);
+  const vmLang = lang.mount('#vue-ui-navbar-top-lang');  
+  if(NAVBAR.trace) {
+    console.log('w-navbar::createTopNavBar_::vmLang=<',vmLang,'>');
+  }
+
+  const team = Vue.createApp(teamOption);
+  const vmTeam = team.mount('#vue-ui-navbar-top-team');  
+  if(NAVBAR.trace) {
+    console.log('w-navbar::createTopNavBar_::vmTeam=<',vmTeam,'>');
+  }
+
+  
   /*
   window.vueVm = window.vueVm || {};
   window.vueVm.navbar = vm;

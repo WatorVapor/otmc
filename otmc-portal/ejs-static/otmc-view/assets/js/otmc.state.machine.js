@@ -1,10 +1,3 @@
-/*
-import { createMachine, interpret, assign  }  from 'xstate4';
-console.log('::::createMachine=:<',createMachine,'>');
-console.log('::::interpret=:<',interpret,'>');
-console.log('::::assign=:<',assign,'>');
-*/
-
 import * as xstate  from 'xstate';
 console.log('::::xstate=:<',xstate,'>');
 import { createMachine, createActor, assign  }  from 'xstate';
@@ -40,13 +33,6 @@ export class OtmcStateMachine {
       console.log('OtmcStateMachine::createStateMachine_::otmcStateMachine=:<',otmcStateMachine,'>');
     }
     const stateMachine = createMachine(otmcStateMachine);
-    /*
-    this.actor = interpret(stateMachine)
-    .onTransition((state) => {
-      console.log('OtmcStateMachine::createStateMachine_::state.value=:<',state.value,'>');
-    })
-    .start();
-    */
     this.actor = createActor(stateMachine);
     this.actor.subscribe((state) => {
       console.log('OtmcStateMachine::createStateMachine_::state.value=:<',state.value,'>');
@@ -62,9 +48,7 @@ const otmcStateTable = {
     on: {
       'init': { 
         actions: assign({ otmc: () => {
-          console.log('OtmcStateMachine::otmcStateTable::OtmcStateMachine.otmc=:<',OtmcStateMachine.otmc,'>');
-          console.log('OtmcStateMachine::otmcStateTable::OtmcStateMachine.otmc.edcrypt=:<',OtmcStateMachine.otmc.edcrypt,'>');
-          //console.log('OtmcStateMachine::otmcStateTable::OtmcStateMachine.otmc.edcrypt=:<',OtmcStateMachine.otmc.edcrypt,'>');
+          //console.log('OtmcStateMachine::otmcStateTable::OtmcStateMachine.otmc=:<',OtmcStateMachine.otmc,'>');
           OtmcStateMachine.otmc.edcrypt.loadKey();
         }})
       },

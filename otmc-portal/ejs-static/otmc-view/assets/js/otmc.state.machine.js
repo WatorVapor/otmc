@@ -1,12 +1,13 @@
+/*
 import { createMachine, interpret, assign  }  from 'xstate4';
 console.log('::::createMachine=:<',createMachine,'>');
 console.log('::::interpret=:<',interpret,'>');
 console.log('::::assign=:<',assign,'>');
-/*
+*/
+
 import * as xstate  from 'xstate';
 console.log('::::xstate=:<',xstate,'>');
 import { createMachine, createActor, assign  }  from 'xstate';
-*/
 
 
 /**
@@ -36,12 +37,19 @@ export class OtmcStateMachine {
       console.log('OtmcStateMachine::createStateMachine_::otmcStateMachine=:<',otmcStateMachine,'>');
     }
     const stateMachine = createMachine(otmcStateMachine);
+    /*
     this.actor = interpret(stateMachine)
     .onTransition((state) => {
       console.log('OtmcStateMachine::createStateMachine_::state.value=:<',state.value,'>');
     })
     .start();
-    this.actor.send({ type:'init'});
+    */
+    this.actor = createActor(stateMachine);
+    this.actor.subscribe((state) => {
+      console.log('OtmcStateMachine::createStateMachine_::state.value=:<',state.value,'>');
+    });
+    this.actor.start();
+    this.actor.send({type:'init'});
   }
 }
 
@@ -50,8 +58,8 @@ const otmcStateTable = {
   genesis: {
     on: {
       'init': { 
-        actions:assign({ otmc: () => {
-          OtmcStateMachine.otmc.edcrypt.loadKey();
+        actions: assign({ otmc: () => {
+          //OtmcStateMachine.otmc.edcrypt.loadKey();
         }})
       },
       'edcrypt:address': 'edKeyReady',      

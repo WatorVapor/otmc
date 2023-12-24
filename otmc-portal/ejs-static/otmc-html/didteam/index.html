@@ -21,13 +21,14 @@
     <script type="importmap">
       {
         "imports": {
-          "otmc": "/otmc/assets/js/otmc.js",
+          "otmc": "/otmc3/assets/js/otmc.js",
           "nacl": "https://cdn.jsdelivr.net/npm/tweetnacl-es6@1.0.3/nacl-fast-es.min.js",
           "mqtt": "https://cdn.jsdelivr.net/npm/mqtt@5.3.3/dist/mqtt.esm.js",
           "@popperjs/core": "https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/esm/popper.min.js",
           "bootstrap": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.esm.min.js",
           "eventemitter3": "https://cdn.jsdelivr.net/npm/eventemitter3@5.0.1/dist/eventemitter3.esm.min.js",
-          "xstate": "https://cdn.jsdelivr.net/npm/xstate@5.3.1/dist/xstate.esm.js",
+          "xstate": "https://cdn.jsdelivr.net/npm/xstate@5.4.1/+esm",
+          "xstate4": "https://cdn.jsdelivr.net/npm/xstate@4.38.3/dist/xstate.web.js",
           "three": "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.min.js",        
           "vue": "https://cdn.jsdelivr.net/npm/vue@3.3.8/dist/vue.esm-browser.prod.js"
         }
@@ -40,17 +41,6 @@
       const collapseList = [...collapseElementList].map(collapseEl => new bootstrap.Collapse(collapseEl));
       const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
       const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
-      
-      const dropdownToggleElementList = document.querySelectorAll('.dropdown-toggle')
-      const dropdownToggleList = [...dropdownToggleElementList].map(dropdownToggleEl => new bootstrap.Dropdown(dropdownToggleEl))
-
-      const dropdownItemElementList = document.querySelectorAll('.dropdown-item')
-      const dropdownItemList = [...dropdownItemElementList].map(dropdownItemEl => new bootstrap.Dropdown(dropdownItemEl))
-
-      
-      const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
-      const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
-      
     </script>
     
     <script type="text/javascript" src="/otmc3/assets/js/const.js"></script>
@@ -123,6 +113,131 @@
     </header>
     
 
+ 
+ 
+
+    <div class="container text-center mt-3">
+      <div class="row justify-content-center">
+        <div class="col-8">
+          <p class="d-inline-flex gap-1">
+            <a class="btn btn-primary" data-bs-toggle="collapse" href="#edcrypt-key" role="button" aria-expanded="true" aria-controls="edcrypt-key">
+              edcrypt authentication key
+            </a>
+          </p>
+        </div>
+      </div>
+      <div class="row justify-content-center">
+        <div class="col-8" id="vue-ui-app-edcrypt-key">
+          <div class="collapse multi-collapse" id="edcrypt-key">
+            <div class="input-group mb-1">
+              <span class="input-group-text w-25">Auth Key Address</span>
+              <input type="text" class="form-control" id="edcrypt-auth-key-address" placeholder="otm" readonly v-model="address.auth">
+              <span class="input-group-text" v-if="hasAddress === false">
+                <button class="btn btn-primary" type="button" @click="clickStartMining()" :disabled="isMining == true">
+                  <i class="material-icons">add_circle</i>
+                </button>
+              </span>
+              <span class="input-group-text" v-if="isMining">
+                <div class="spinner-border text-primary"  role="status">
+                  <span class="visually-hidden"><i class="material-icons">refresh</i></span>
+                </div>
+                <span class="badge bg-success">{{mining.counter}}</span>
+              </span>
+            </div>
+            <div class="input-group mb-1">
+              <span class="input-group-text w-25">Recovery Key Address</span>
+              <input type="text" class="form-control" id="edcrypt-recovery-key-address" placeholder="otm" readonly v-model="address.recovery">
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="row justify-content-center">
+        <div class="col-8">
+          <p class="d-inline-flex gap-1">
+            <a class="btn btn-primary" data-bs-toggle="collapse" href="#did-team-document" role="button" aria-expanded="true" aria-controls="did-team-document">
+              Did Team Document
+            </a>
+          </p>
+        </div>
+      </div>
+      <div class="row justify-content-center">
+        <div class="col-8" id="vue-ui-app-did-team">
+          <div class="collapse multi-collapse" id="did-team-document">
+            <div class="input-group mb-3">
+              <span class="input-group-text w-25">Team Address</span>
+              <input type="text" class="form-control" id="did-team-address" placeholder="did:otmc:" v-model="did.id">
+              <span class="input-group-text" v-if="hasAddress === false">
+                <button class="btn btn-primary" type="button" @click="clickCreateDidTeamSeed()" :disabled="edKeyReady == false" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create A New DidTeam">
+                  <i class="fa-solid fa-seedling"></i>
+                  <i class="fa-solid fa-user-gear"></i>
+                </button>
+              </span>
+              <span class="input-group-text" v-if="hasAddress === false">
+                <button class="btn btn-primary" type="button" @click="clickJoinDidTeam()" :disabled="edKeyReady == false" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Join An Exist DidTeam">
+                  <i class="fa-solid fa-plus"></i>
+                  <i class="fa-solid fa-link"></i>
+                  <i class="fa-solid fa-people-group"></i>
+                </button>
+              </span>
+              <span class="input-group-text" v-if="hasAddress === true">
+                <button class="btn btn-primary" type="button" @click="clickRequestJoinTeam()" :disabled="edKeyReady == false" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Join An Exist DidTeam">
+                  <i class="fa-solid fa-share"></i>
+                  <i class="fa-solid fa-people-group"></i>
+                </button>
+              </span>
+            </div>
+            <div class="input-group mb-3">
+              <div class="form-floating">
+                 <textarea class="form-control fs-6" style="height: 200px" readonly v-model="did.doc">
+                 </textarea>
+                <label>Did Document</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row justify-content-center">
+        <div class="col-8">
+          <p class="d-inline-flex gap-1">
+            <a class="btn btn-primary" data-bs-toggle="collapse" href="#did-team-manifest" role="button" aria-expanded="true" aria-controls="did-team-manifest">
+              Did Team Manifest
+            </a>
+          </p>
+        </div>
+      </div>
+      <div class="row justify-content-center collapse multi-collapse" id="did-team-manifest">
+        <div class="col-8" id="vue-ui-app-did-manifest">
+          <div class="row justify-content-center">
+            <div class="col-8">
+              <div class="card card-default">
+                <div class="card-body">
+                  <div id="vue-ui-app-did-manifest-editor" style="height: 540px;">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="d-grid gap-5 mt-5">
+                <button class="btn btn-success" type="button">Check Manifest</button>
+                <button class="btn btn-primary" type="button">Save Manifest</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+ 
+
+    <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.31.2/src-min-noconflict/ace.js" integrity="sha256-ScWQ2xfi8beTMGHcIj8J03x83jnNG/1Fz6OG+UCsHnw=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.31.2/src-min-noconflict/theme-monokai.js" integrity="sha256-QYtRGCAF2FEla9w5pwlaEgKvuf3SEAqk+QdbliP7HBU=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.31.2/src-min-noconflict/mode-json.js" integrity="sha256-AQ/qtz/XXPze4wzccb3Mho5PkURlpZpxQcXuSYOor+w=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.28.2/dist/editorjs.umd.js" integrity="sha256-jZHY2Vd0A1MWFmdaD2fySEIfAfKBUHiwWhLppacS24M=" crossorigin="anonymous"></script>
+    <script src="./didteam.js" type="module"></script>
+
+ 
      <script type="module" src="/otmc3/layout/navbar.js"></script>
     <script type="module" src="/otmc3/assets/js/lang.js"></script>
   </body>

@@ -42,7 +42,7 @@ export class MqttMessager {
           return;
         }
         this.otmc.emit('mqtt:jwt',this.mqttJwt);
-        this.otmc.sm.actor.send('mqtt:jwt');
+        this.otmc.sm.actor.send({type:'mqtt:jwt'});
       } else {
         this.jwt.request();
       }
@@ -114,7 +114,7 @@ export class MqttMessager {
       self.isRequestingJwt = false;
       if(!self.firstConnected) {      
         this.otmc.emit('mqtt:connected');
-        this.otmc.sm.actor.send('mqtt:connected');
+        this.otmc.sm.actor.send({type:'mqtt:connected'});
         self.runSubscriber_();
         self.firstConnected = true;
       }

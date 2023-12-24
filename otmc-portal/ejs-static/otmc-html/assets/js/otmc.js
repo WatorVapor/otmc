@@ -25,9 +25,9 @@ export class Otmc extends EventEmitter {
     this.mqtt = new MqttMessager(thisRefer);
     const self = this;
     setTimeout(() => {
-      this.edcrypt.otmc = self;
-      this.did.otmc = self;
-      this.mqtt.otmc = self;
+      self.edcrypt.otmc = self;
+      self.did.otmc = self;
+      self.mqtt.otmc = self;
       self.sm = new OtmcStateMachine(thisRefer);
     },10);
   }
@@ -103,8 +103,11 @@ class EdcryptWorker {
         auth:this.authKey.idOfKey,
         recovery:this.recoveryKey.idOfKey,
       };
+      if(this.trace) {
+        console.log('EdcryptWorker::loadKey::addressMsg=:<',addressMsg,'>');
+      }
       this.otmc.emit('edcrypt:address',addressMsg);
-      this.otmc.sm.actor.send('edcrypt:address');
+      this.otmc.sm.actor.send({type:'edcrypt:address'});
     } catch(err) {
       console.log('EdcryptWorker::loadKey::err=:<',err,'>');
     }

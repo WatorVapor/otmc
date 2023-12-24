@@ -15,6 +15,7 @@ import { createMachine, createActor, assign  }  from 'xstate';
 */
 export class OtmcStateMachine {
   static otmc = false;
+  static instances = {};
   constructor(parentRef) {
     this.trace = true;
     this.debug = true;
@@ -30,7 +31,9 @@ export class OtmcStateMachine {
     const otmcStateMachine = {
       id: 'otmc',
       initial: 'genesis',
-      context: {},      
+      context: {
+        
+      },      
       states: otmcStateTable,
     }
     if(this.trace) {
@@ -59,7 +62,10 @@ const otmcStateTable = {
     on: {
       'init': { 
         actions: assign({ otmc: () => {
-          //OtmcStateMachine.otmc.edcrypt.loadKey();
+          console.log('OtmcStateMachine::otmcStateTable::OtmcStateMachine.otmc=:<',OtmcStateMachine.otmc,'>');
+          console.log('OtmcStateMachine::otmcStateTable::OtmcStateMachine.otmc.edcrypt=:<',OtmcStateMachine.otmc.edcrypt,'>');
+          //console.log('OtmcStateMachine::otmcStateTable::OtmcStateMachine.otmc.edcrypt=:<',OtmcStateMachine.otmc.edcrypt,'>');
+          OtmcStateMachine.otmc.edcrypt.loadKey();
         }})
       },
       'edcrypt:address': 'edKeyReady',      

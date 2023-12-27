@@ -21,9 +21,9 @@
     <script type="importmap">
       {
         "imports": {
-          "otmc": "/otmc3/assets/js/otmc.js",
+          "otmc": "/otmc/assets/js/otmc.js",
           "nacl": "https://cdn.jsdelivr.net/npm/tweetnacl-es6@1.0.3/nacl-fast-es.min.js",
-          "mqtt": "https://cdn.jsdelivr.net/npm/mqtt@5.3.3/dist/mqtt.esm.js",
+          "mqtt": "https://cdn.jsdelivr.net/npm/mqtt@5.3.4/+esm",
           "@popperjs/core": "https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/esm/popper.min.js",
           "bootstrap": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.esm.min.js",
           "eventemitter3": "https://cdn.jsdelivr.net/npm/eventemitter3@5.0.1/dist/eventemitter3.esm.min.js",
@@ -42,20 +42,20 @@
       const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
     </script>
     
-    <script type="text/javascript" src="/otmc3/assets/js/const.js"></script>
-    <script type="text/javascript" src="/otmc3/assets/js/ga.js"></script>
+    <script type="text/javascript" src="/otmc/assets/js/const.js"></script>
+    <script type="text/javascript" src="/otmc/assets/js/ga.js"></script>
     
 
     <header class="navbar navbar-expand-lg navbar-dark bd-navbar bg-dark fixed-top sticky-top ">
       <nav class="container" aria-label="Main navigation">
-        <a class="navbar-brand text-primary " href="/otmc3/" role="button">
+        <a class="navbar-brand text-primary " href="/otmc/" role="button">
           <i class="material-icons md-48">home</i>
         </a>
         <div class="collapse navbar-collapse d-flex justify-content-start">
           <ul class="navbar-nav">
             <li class="nav-item active border rounded-pill">
               <!--
-              <a class="nav-link text-primary vue-lang" href="/otmc3/mansion/create/" role="button">
+              <a class="nav-link text-primary vue-lang" href="/otmc/mansion/create/" role="button">
                 <i class="material-icons md-48">add</i> {% navbar.mansion %}
               </a>
               -->
@@ -98,7 +98,7 @@
 
             </li>
             <li class="nav-item dropdown ml-5" id="vue-ui-navbar-top-team">
-              <a class="nav-link text-success" href="/otmc3/didteam/">
+              <a class="nav-link text-success" href="/otmc/didteam/">
                 <i class="material-icons md-48" >manage_accounts</i>
                 {{ accout.name }}
               </a>
@@ -232,7 +232,7 @@
     <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.31.2/src-min-noconflict/mode-json.js" integrity="sha256-AQ/qtz/XXPze4wzccb3Mho5PkURlpZpxQcXuSYOor+w=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.28.2/dist/editorjs.umd.js" integrity="sha256-jZHY2Vd0A1MWFmdaD2fySEIfAfKBUHiwWhLppacS24M=" crossorigin="anonymous"></script>
     <script src="./didteam.js" type="module"></script>
-    <script type="module" src="/otmc3/layout/navbar.js"></script>
-    <script type="module" src="/otmc3/assets/js/lang.js"></script>
+    <script type="module" src="/otmc/layout/navbar.js"></script>
+    <script type="module" src="/otmc/assets/js/lang.js"></script>
   </body>
 </html>

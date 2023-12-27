@@ -115,7 +115,9 @@ export class MqttMessager {
       if(!self.firstConnected) {      
         this.otmc.emit('mqtt:connected');
         this.otmc.sm.actor.send({type:'mqtt:connected'});
-        self.runSubscriber_();
+        setTimeout(() => {
+          self.runSubscriber_();
+        },1);
         self.firstConnected = true;
       }
     });
@@ -185,6 +187,7 @@ export class MqttMessager {
 
   runSubscriber_() {
     if(this.trace) {
+      console.log('MqttMessager::runSubscriber_::this.mqttClient_.connected=<',this.mqttClient_.connected,'>');
       console.log('MqttMessager::runSubscriber_:this.payload_=<',this.payload_,'>');
     }
     const subOpt = {qos: 0,nl:true};
@@ -194,6 +197,7 @@ export class MqttMessager {
         console.log('MqttMessager::runSubscriber_:granted=<',granted,'>');
       }
       if(err) {
+        console.log('MqttMessager::runSubscriber_:err=<',err,'>');
         console.log('MqttMessager::runSubscriber_:granted=<',granted,'>');
       }
     }
@@ -226,6 +230,7 @@ export class MqttMessager {
     }
     if(topic.endsWith('sys/did/invitation/join')) {
       this.otmc.emit('didteam:join',msgJson);
+      this.otmc.did.onInvitationJoinRequest(msgJson.did,msgJson.auth_address);
     }
   }
   

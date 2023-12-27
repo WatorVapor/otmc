@@ -126,6 +126,10 @@ const loadDidTeamApps = (evt) => {
     editorObject.editor.setValue(manifestStr);
     */
   });
+  otmc.on('didteam:join',(joinMsg) => {
+    console.log('loadDidTeamApps::joinMsg=:<',joinMsg,'>');
+  });
+
   
   edcryptKeyVM.otmc = otmc;
   appDidVM.otmc = otmc;

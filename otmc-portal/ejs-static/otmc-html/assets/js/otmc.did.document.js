@@ -130,6 +130,15 @@ export class DidDocument {
     }
     return joinDidSigned;
   }
+  onInvitationJoinRequest(joinDid,joinAddress) {
+    if(this.trace) {
+      console.log('DidDocument::onInvitationJoinRequest::this.otmc=:<',this.otmc,'>');
+      console.log('DidDocument::onInvitationJoinRequest::joinDid=:<',joinDid,'>');
+      console.log('DidDocument::onInvitationJoinRequest::joinAddress=:<',joinAddress,'>');
+    }
+    this.checkEdcrypt_();    
+  }
+
 
   
   checkEdcrypt_() {

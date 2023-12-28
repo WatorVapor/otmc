@@ -45,6 +45,14 @@ export class DidDocument {
       } else {
         this.otmc.sm.actor.send({type:'did:document'});
       }
+      const joinStr = localStorage.getItem(StoreKey.invitation.join);
+      if(joinStr) {
+        const joinList = JSON.parse(joinStr);
+        if(this.trace) {
+          console.log('DidDocument::loadDocument::joinList=:<',joinList,'>');
+        }
+        this.otmc.emit('didteam:joinLoaded',joinList);
+      }
     } catch(err) {
       console.log('DidDocument::loadDocument::err=:<',err,'>');
     }
@@ -136,7 +144,19 @@ export class DidDocument {
       console.log('DidDocument::onInvitationJoinRequest::joinDid=:<',joinDid,'>');
       console.log('DidDocument::onInvitationJoinRequest::joinAddress=:<',joinAddress,'>');
     }
-    this.checkEdcrypt_();    
+    this.checkEdcrypt_();
+    
+    const joinStr = localStorage.getItem(StoreKey.invitation.join);
+    let joinList = {};
+    if(joinStr) {
+      joinList = JSON.parse(joinStr);
+      if(this.trace) {
+        console.log('DidDocument::onInvitationJoinRequest::joinList=:<',joinList,'>');
+      }
+    }
+    joinList[joinAddress] = joinDid;
+    localStorage.setItem(StoreKey.invitation.join,JSON.stringify(joinList,undefined,2));
+    this.otmc.emit('didteam:joinLoaded',joinList);
   }
 
 

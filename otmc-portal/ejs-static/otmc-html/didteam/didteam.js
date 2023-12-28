@@ -86,6 +86,25 @@ const manifestOption = {
   }, 
 }
 
+const invitationOption = {
+  data() {
+    return {
+      invitations:{},
+    };
+  },
+  methods: {
+    clickAcceptInvitationJoin(evt) {
+      console.log('clickAcceptInvitationJoin::this=:<',this,'>');
+      const otmc = this.otmc;
+    },
+    clickRejectInvitationJoin(evt) {
+      console.log('clickRejectInvitationJoin::this=:<',this,'>');
+      const otmc = this.otmc;
+    },
+  }, 
+}
+
+
 const loadDidTeamApps = (evt) => {
   const appEdcryptKey = Vue.createApp(edcryptKeyOption);
   const edcryptKeyVM = appEdcryptKey.mount('#vue-ui-app-edcrypt-key');
@@ -98,6 +117,11 @@ const loadDidTeamApps = (evt) => {
   const appManifest = Vue.createApp(manifestOption);
   const appManifestVM = appManifest.mount('#vue-ui-app-did-manifest');
   console.log('loadDidTeamApps::appManifestVM=:<',appManifestVM,'>');
+  
+  const appInvitation = Vue.createApp(invitationOption);
+  const appInvitationVM = appInvitation.mount('#vue-ui-app-invitation-join');
+  console.log('loadDidTeamApps::appInvitationVM=:<',appInvitationVM,'>');
+  
   
   const otmc = new Otmc();
   console.log('loadDidTeamApps::otmc=:<',otmc,'>');
@@ -129,15 +153,21 @@ const loadDidTeamApps = (evt) => {
   otmc.on('didteam:join',(joinMsg) => {
     console.log('loadDidTeamApps::joinMsg=:<',joinMsg,'>');
   });
+  otmc.on('didteam:joinLoaded',(invitationJoin) => {
+    console.log('loadDidTeamApps::invitationJoin=:<',invitationJoin,'>');
+    apps.invitation.invitations = invitationJoin;
+  });
 
   
   edcryptKeyVM.otmc = otmc;
   appDidVM.otmc = otmc;
   appManifestVM.otmc = otmc;
+  appInvitationVM.otmc = otmc;
   
   apps.edcrypt = edcryptKeyVM;
   apps.did = appDidVM;
   apps.manifest = appManifestVM;
+  apps.invitation = appInvitationVM;
 
 }
 

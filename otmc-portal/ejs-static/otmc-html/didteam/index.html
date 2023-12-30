@@ -238,20 +238,34 @@
       <div class="row justify-content-center">
         <div class="col-8" id="vue-ui-app-invitation-join">
           <div class="collapse multi-collapse" id="team-invitation-join">
-            <div class="input-group mt-2" v-for="(invitation, address) of invitations">
-              <span class="input-group-text w-20">{{ address }}</span>
-              <span class="input-group-text w-20">{{ new Date(invitation.created) }}</span>
-              <span class="input-group-text">
-                <button class="btn btn-success" type="button" @click="clickAcceptInvitationJoin()">
-                  <i class="material-icons">check_circle</i>
-                </button>
-              </span>
-              <span class="input-group-text">
-                <button class="btn btn-danger" type="button" @click="clickRejectInvitationJoin()">
-                  <i class="material-icons">cancel</i>
-                </button>
-              </span>
-            </div>
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th scope="col">Invitation Address</th>
+                  <th scope="col">Create Time</th>
+                  <th scope="col">Message</th>
+                  <th scope="col">Accept</th>
+                  <th scope="col">Reject</th>
+                </tr>
+              </thead>
+              <tbody class="table-group-divider">
+                <tr v-for="(invitation, address) of invitations">
+                  <td>{{ address }}</td>
+                  <td>{{ new Date(invitation.created) }}</td>
+                  <td>{{ invitation.message }}</td>
+                  <td>
+                    <button class="btn btn-success" type="button" @click="clickAcceptInvitationJoin($event,address)">
+                      <i class="material-icons">check_circle</i>
+                    </button>
+                  </td>
+                  <td>
+                    <button class="btn btn-danger" type="button" @click="clickRejectInvitationJoin($event,address)">
+                      <i class="material-icons">cancel</i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

@@ -93,12 +93,16 @@ const invitationOption = {
     };
   },
   methods: {
-    clickAcceptInvitationJoin(evt) {
+    clickAcceptInvitationJoin(evt,address) {
       console.log('clickAcceptInvitationJoin::this=:<',this,'>');
+      console.log('clickAcceptInvitationJoin::evt=:<',evt,'>');
+      console.log('clickAcceptInvitationJoin::address=:<',address,'>');
       const otmc = this.otmc;
     },
-    clickRejectInvitationJoin(evt) {
+    clickRejectInvitationJoin(evt,address) {
       console.log('clickRejectInvitationJoin::this=:<',this,'>');
+      console.log('clickRejectInvitationJoin::evt=:<',evt,'>');
+      console.log('clickRejectInvitationJoin::address=:<',address,'>');
       const otmc = this.otmc;
     },
   }, 

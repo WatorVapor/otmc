@@ -51,6 +51,7 @@ const onOtmcViewChanged = (evt, pathWatch) => {
   }
 }
 
+/*
 const onOtmcViewCompile = (ejsSrc) => {
   console.log('onOtmcViewCompile::ejsSrc:=<',ejsSrc ,'>');
   const htmlDst = ejsSrc.replace(ejsViewRoot,htmlViewRoot).replace('.ejs','.html');
@@ -72,6 +73,7 @@ const onOtmcViewCompile = (ejsSrc) => {
   console.log('onOtmcViewCompile::data:=<',data ,'>');
   const options = {
     root:rootView,
+    filename:path.basename(ejsSrc)
   };
   console.log('onOtmcViewCompile::options:=<',options ,'>');
   try {
@@ -82,6 +84,40 @@ const onOtmcViewCompile = (ejsSrc) => {
     console.log('onOtmcViewCompile::err:=<',err ,'>');    
   }
 }
+*/
+
+
+const onOtmcViewCompile = async (ejsSrc) => {
+  console.log('onOtmcViewCompile::ejsSrc:=<',ejsSrc ,'>');
+  const htmlDst = ejsSrc.replace(ejsViewRoot,htmlViewRoot).replace('.ejs','.html');
+  console.log('onOtmcViewCompile::htmlDst:=<',htmlDst ,'>');
+  const htmlDir = path.dirname(htmlDst);
+  console.log('onOtmcViewCompile::htmlDir:=<',htmlDir ,'>');
+  const htmlDstDir = execSync(`mkdir -p ${htmlDir}`).toString('utf-8');
+  console.log('onOtmcViewCompile::htmlDstDir:=<',htmlDstDir ,'>');
+  const htmlDstTouch = execSync(`touch ${htmlDst}`).toString('utf-8');
+  console.log('onOtmcViewCompile::htmlDstTouch:=<',htmlDstTouch ,'>');
+  
+  const rootView = path.resolve(ejsViewRoot);
+  console.log('onOtmcViewCompile::rootView:=<',rootView ,'>');
+  const data = {
+    prefix:htmlViewPrefix,
+  };
+  console.log('onOtmcViewCompile::data:=<',data ,'>');
+  const options = {
+    root:rootView,
+    filename:path.basename(ejsSrc)
+  };
+  console.log('onOtmcViewCompile::options:=<',options ,'>');
+  try {
+    const htmlContents = await ejs.renderFile(ejsSrc, data, options);
+    console.log('onOtmcViewCompile::htmlContents:=<',htmlContents ,'>');
+    fs.writeFileSync(htmlDst,htmlContents);
+  } catch(err) {
+    console.log('onOtmcViewCompile::err:=<',err ,'>');    
+  }
+}
+
 
 const onOtmcViewCopy = (ejsSrc) => {
   //console.log('onOtmcViewCopy::ejsSrc:=<',ejsSrc ,'>');

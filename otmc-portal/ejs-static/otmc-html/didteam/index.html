@@ -112,7 +112,6 @@
     </header>
     
 
-
      <div class="container text-center mt-3">
       <div class="row justify-content-center">
         <div class="col-8">
@@ -243,7 +242,7 @@
               <thead>
                 <tr>
                   <th scope="col">Invitation Address</th>
-                  <th scope="col">Member Type</th>
+                  <th scope="col">Invitation Type</th>
                   <th scope="col">Message</th>
                   <th scope="col">Create Time</th>
                   <th scope="col">Accept</th>
@@ -253,7 +252,9 @@
               <tbody class="table-group-divider">
                 <tr v-for="(invitation, address) of invitations">
                   <td>{{ address }}</td>
-                  <td>{{ invitation.type }}</td>
+                  <td >
+                    {{ invitation.invitationType }}
+                  </td>
                   <td>{{ invitation.message }}</td>
                   <td>{{ new Date(invitation.created) }}</td>
                   <td>

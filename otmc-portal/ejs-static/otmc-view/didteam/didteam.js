@@ -159,6 +159,16 @@ const loadDidTeamApps = (evt) => {
   });
   otmc.on('didteam:joinLoaded',(invitationJoin) => {
     console.log('loadDidTeamApps::invitationJoin=:<',invitationJoin,'>');
+    for(const addIndex in invitationJoin) {
+      console.log('loadDidTeamApps::addIndex=:<',addIndex,'>');
+      const join = invitationJoin[addIndex];
+      if(join.authentication && join.authentication.length > 0) {
+        invitationJoin[addIndex].invitationType = 'Auth Member';
+      }
+      if(join.capabilityInvocation && join.capabilityInvocation.length > 0) {
+        invitationJoin[addIndex].invitationType = 'Capability Member';
+      }
+    }
     apps.invitation.invitations = invitationJoin;
   });
 

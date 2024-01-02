@@ -98,12 +98,14 @@ const invitationOption = {
       console.log('clickAcceptInvitationJoin::evt=:<',evt,'>');
       console.log('clickAcceptInvitationJoin::address=:<',address,'>');
       const otmc = this.otmc;
+      otmc.acceptInvitation(address);
     },
     clickRejectInvitationJoin(evt,address) {
       console.log('clickRejectInvitationJoin::this=:<',this,'>');
       console.log('clickRejectInvitationJoin::evt=:<',evt,'>');
       console.log('clickRejectInvitationJoin::address=:<',address,'>');
       const otmc = this.otmc;
+      otmc.rejectInvitation(address);
     },
   }, 
 }

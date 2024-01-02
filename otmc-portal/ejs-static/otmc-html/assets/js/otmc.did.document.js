@@ -158,7 +158,52 @@ export class DidDocument {
     localStorage.setItem(StoreKey.invitation.join,JSON.stringify(joinList,undefined,2));
     this.otmc.emit('didteam:joinLoaded',joinList);
   }
+  acceptInvitation(address) {
+    if(this.trace) {
+      console.log('DidDocument::acceptInvitation::this.otmc=:<',this.otmc,'>');
+      console.log('DidDocument::acceptInvitation::address=:<',address,'>');
+    }
+    this.checkEdcrypt_();
 
+    const role = 'invitation';
+    const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
+    const acceptDid = {
+      topic:`${prefixDidToTopic}/${this.auth.address()}/sys/did/${role}/accept`,
+      did:this.didDoc_,
+    };
+    if(this.trace) {
+      console.log('DidDocument::acceptInvitation::acceptDid=:<',acceptDid,'>');
+    }
+    const acceptDidSigned = this.auth.sign(acceptDid);
+    if(this.trace) {
+      console.log('DidDocument::acceptInvitation::acceptDidSigned=:<',acceptDidSigned,'>');
+    }
+    return acceptDidSigned;
+
+  }
+
+  rejectInvitation(address) {
+    if(this.trace) {
+      console.log('DidDocument::rejectInvitation::this.otmc=:<',this.otmc,'>');
+      console.log('DidDocument::rejectInvitation::address=:<',address,'>');
+    }
+    this.checkEdcrypt_();
+
+    const role = 'invitation';
+    const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
+    const rejectDid = {
+      topic:`${prefixDidToTopic}/${this.auth.address()}/sys/did/${role}/reject`,
+      did:this.didDoc_,
+    };
+    if(this.trace) {
+      console.log('DidDocument::acceptInvitation::rejectDid=:<',rejectDid,'>');
+    }
+    const rejectDidSigned = this.auth.sign(rejectDid);
+    if(this.trace) {
+      console.log('DidDocument::acceptInvitation::rejectDidSigned=:<',rejectDidSigned,'>');
+    }
+    return rejectDidSigned;
+  }
 
   
   checkEdcrypt_() {

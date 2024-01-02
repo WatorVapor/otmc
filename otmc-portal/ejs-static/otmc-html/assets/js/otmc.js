@@ -62,6 +62,22 @@ export class Otmc extends EventEmitter {
     }
     this.mqtt.publish(joinRequest.topic,joinRequest,{qos:1,nl:true});
   }
+  acceptInvitation(address){
+    if(this.trace) {
+      console.log('Otmc::acceptInvitation::new Date()=:<',new Date(),'>');
+      console.log('Otmc::acceptInvitation::address=:<',address,'>');
+    }
+    const invitationReply = this.did.acceptInvitation(address);
+    this.mqtt.publish(invitationReply.topic,invitationReply,{qos:1,nl:true});
+  }
+  rejectInvitation(address){
+    if(this.trace) {
+      console.log('Otmc::rejectInvitation::new Date()=:<',new Date(),'>');
+      console.log('Otmc::rejectInvitation::address=:<',address,'>');
+    }
+    const rejectInvitationReply = this.did.rejectInvitation(address);
+    this.mqtt.publish(invitationReply.topic,invitationReply,{qos:1,nl:true});
+  }
 }
 
 

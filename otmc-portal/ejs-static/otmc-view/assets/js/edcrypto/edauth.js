@@ -113,6 +113,9 @@ export class EdAuth {
     const msgCal = JSON.parse(JSON.stringify(msg));
     delete msgCal.auth;
     const msgCalcStr = JSON.stringify(msgCal);
+    if(this.trace) {
+      console.log('EdAuth::verify::msgCalcStr=<',msgCalcStr,'>');
+    }
     const hashCalclB64 = this.util_.calcMessage(msgCalcStr);
     if(signedHashB64 === hashCalclB64) {
       msg.auth_address = calcAddress;
@@ -168,10 +171,8 @@ export class EdAuth {
         console.log('EdAuth::verifyDid::verifyResult=<',verifyResult,'>');
         return false;        
       }
-      if(verifyResult.isSeedProof) {
-        results.isSeedProof = true;
-      }
     }
+    results.proofList = this.collectVerificationMember_(didDoc);
     return results;
   }
   verifyWeak(msg) {
@@ -298,8 +299,8 @@ export class EdAuth {
       console.log('EdAuth::verificationProof_:: dismatch verificationMethods=<',verificationMethods,'>');
       return false;
     }
-    const publicKey = nacl.util.decodeBase64(verificationMethod.publicKeyMultibase);
-    const signMsg = nacl.util.decodeBase64(proof.signatureValue);
+    const publicKey = this.util_.decodeBase64(verificationMethod.publicKeyMultibase);
+    const signMsg = this.util_.decodeBase64(proof.signatureValue);
     if(this.trace) {
       console.log('EdAuth::verificationProof_::publicKey=<',publicKey,'>');
       console.log('EdAuth::verificationProof_::signMsg=<',signMsg,'>');
@@ -309,7 +310,7 @@ export class EdAuth {
       console.log('EdAuth::verificationProof_::signedHash=<',signedHash,'>');
       return false;
     }
-    const signedHashB64 = nacl.util.encodeBase64(signedHash);
+    const signedHashB64 = this.util_.encodeBase64(signedHash);
     if(this.trace) {
       console.log('EdAuth::verificationProof_::signedHashB64=<',signedHashB64,'>');
     }
@@ -328,5 +329,78 @@ export class EdAuth {
     return results;
   }
   
+  
+  collectVerificationMember_(didDoc) {
+    if(this.trace) {
+      console.log('EdAuth::collectVerificationMember_::didDoc=<',didDoc,'>');
+    }
+    const resultAuth = this.collectAuthentication_(didDoc.proof,didDoc.authentication);
+    const resultCapability = this.collectCapability_(didDoc.proof,didDoc.capabilityInvocation);
+    return Object.assign(resultAuth, resultCapability);
+  }
+
+  collectAuthentication_(proofs,authentication) {
+    if(this.trace) {
+      console.log('EdAuth::collectAuthentication_::proofs=<',proofs,'>');
+      console.log('EdAuth::collectAuthentication_::authentication=<',authentication,'>');
+    }
+    const result = {
+      authProof:[],
+    };
+    if(!authentication) {
+      return result;
+    }
+    for(const proof of proofs) {
+      if(this.trace) {
+        console.log('EdAuth::collectAuthentication_::proof=<',proof,'>');
+      }
+      if(!authentication.includes(proof.creator)){
+        continue;
+      }
+      const creatorParts = proof.creator.replace('did:otmc:','').split('#');
+      if(this.trace) {
+        console.log('EdAuth::collectAuthentication_::creatorParts=<',creatorParts,'>');
+      }
+      const proofCreator = {};
+      if(creatorParts.length > 1) {
+        proofCreator.team = creatorParts[0];
+        proofCreator.member = creatorParts[1];
+      }
+      result.authProof.push(proofCreator.member);
+    }
+    return result;
+  }
+
+  collectCapability_(proofs,capability) {
+    if(this.trace) {
+      console.log('EdAuth::collectCapability_::proofs=<',proofs,'>');
+      console.log('EdAuth::collectCapability_::capability=<',capability,'>');
+    }
+    const result = {
+      capabilityProof:[],
+    };
+    if(!capability) {
+      return result;
+    }
+    for(const proof of proofs) {
+      if(this.trace) {
+        console.log('EdAuth::collectAuthentication_::proof=<',proof,'>');
+      }
+      if(!capability.includes(proof.creator)) {
+        continue;
+      }
+      const creatorParts = proof.creator.replace('did:otmc:','').split('#');
+      if(this.trace) {
+        console.log('EdAuth::collectAuthentication_::creatorParts=<',creatorParts,'>');
+      }
+      const proofCreator = {};
+      if(creatorParts.length > 1) {
+        proofCreator.team = creatorParts[0];
+        proofCreator.member = creatorParts[1];
+      }
+      result.capabilityProof.push(proofCreator.member);
+    }
+    return result;
+  }
   
 }

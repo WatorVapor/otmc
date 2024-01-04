@@ -48,6 +48,7 @@ export class DidDocument {
       const joinStr = localStorage.getItem(StoreKey.invitation.join);
       if(joinStr) {
         const joinList = JSON.parse(joinStr);
+        this.joinList_ = JSON.parse(joinStr);
         if(this.trace) {
           console.log('DidDocument::loadDocument::joinList=:<',joinList,'>');
         }
@@ -156,15 +157,27 @@ export class DidDocument {
     }
     joinList[joinAddress] = joinDid;
     localStorage.setItem(StoreKey.invitation.join,JSON.stringify(joinList,undefined,2));
+    this.joinList_ = JSON.parse(JSON.stringify(joinList));    
     this.otmc.emit('didteam:joinLoaded',joinList);
   }
   acceptInvitation(address) {
     if(this.trace) {
       console.log('DidDocument::acceptInvitation::this.otmc=:<',this.otmc,'>');
+      console.log('DidDocument::acceptInvitation::this.joinList_=:<',this.joinList_,'>');
       console.log('DidDocument::acceptInvitation::address=:<',address,'>');
     }
     this.checkEdcrypt_();
-
+    const joinInvitation = this.joinList_[address];
+    if(!joinInvitation) {
+      return false;
+    }
+    if(this.trace) {
+      console.log('DidDocument::acceptInvitation::joinInvitation=:<',joinInvitation,'>');
+    }
+    const goodDid = this.auth.verifyDid(joinInvitation);
+    if(this.trace) {
+      console.log('DidDocument::acceptInvitation::goodDid=:<',goodDid,'>');
+    }
     const role = 'invitation';
     const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
     const acceptDid = {
@@ -211,6 +224,7 @@ export class DidDocument {
       this.createMoudles_();
     }
   }
+  
   
   createMoudles_() {
     if(this.trace) {

@@ -3,7 +3,7 @@ import { EdUtil } from './edcrypto/edutils.js';
 import { EdAuth } from './edcrypto/edauth.js';
 import { DIDManifest } from './did/manifest.js';
 import { StoreKey } from './otmc.const.js';
-import { DIDSeedDocument,DIDGuestDocument } from './did/document.js';
+import { DIDSeedDocument, DIDGuestDocument, DIDLinkedDocument } from './did/document.js';
 
 /**
 *
@@ -174,15 +174,56 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::acceptInvitation::joinInvitation=:<',joinInvitation,'>');
     }
-    const goodDid = this.auth.verifyDid(joinInvitation);
+    const results = this.auth.verifyDid(joinInvitation);
     if(this.trace) {
-      console.log('DidDocument::acceptInvitation::goodDid=:<',goodDid,'>');
+      console.log('DidDocument::acceptInvitation::results=:<',results,'>');
     }
+    const roleInvitation = this.judgeDidProofChain(results.proofList,joinInvitation.id,this.didManifest_.diddoc);
+    if(this.trace) {
+      console.log('DidDocument::acceptInvitation::roleInvitation:=<',roleInvitation,'>');
+    }
+    const nextDid = JSON.parse(JSON.stringify(this.didDoc_));
+    if(this.trace) {
+      console.log('DidDocument::acceptInvitation::nextDid:=<',nextDid,'>');
+    }
+    nextDid.updated = (new Date).toISOString();
+    if(joinInvitation.verificationMethod && joinInvitation.verificationMethod.length > 0) {
+      nextDid.verificationMethod.push(joinInvitation.verificationMethod[0]);
+    }
+    switch (roleInvitation) {
+      case 'auth.proof.by.seed':
+      {
+      }
+      case 'auth.proof.by.none':
+      {
+        if(joinInvitation.authentication && joinInvitation.authentication.length > 0) {
+          nextDid.authentication.push(joinInvitation.authentication[0]);
+        }        
+      }
+      case 'capability.proof.by.seed':
+      {
+      }
+      case 'capability.proof.by.none':
+      {
+        if(joinInvitation.capabilityInvocation && joinInvitation.capabilityInvocation.length > 0) {
+          nextDid.capabilityInvocation.push(joinInvitation.capabilityInvocation[0]);
+        }        
+      }
+      default:
+      {
+        console.log('DidDocument::acceptInvitation::roleInvitation:=<',roleInvitation,'>');
+      }
+    }
+    this.linked = new DIDLinkedDocument(nextDid,this.auth);
+    if(this.trace) {
+      console.log('DidDocument::acceptInvitation::this.linked:=<',this.linked,'>');
+    }
+    const documentObj = this.linked.document();
     const role = 'invitation';
     const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
     const acceptDid = {
       topic:`${prefixDidToTopic}/${this.auth.address()}/sys/did/${role}/accept`,
-      did:this.didDoc_,
+      did:documentObj,
     };
     if(this.trace) {
       console.log('DidDocument::acceptInvitation::acceptDid=:<',acceptDid,'>');
@@ -192,7 +233,6 @@ export class DidDocument {
       console.log('DidDocument::acceptInvitation::acceptDidSigned=:<',acceptDidSigned,'>');
     }
     return acceptDidSigned;
-
   }
 
   rejectInvitation(address) {
@@ -249,4 +289,30 @@ export class DidDocument {
       console.log('DidDocument::createMoudles_::this.recovery=:<',this.recovery,'>');
     }
   }
+  
+  judgeDidProofChain(proofList,did,manifest) {
+    if(this.trace) {
+      console.log('DidDocument::judgeDidProofChain::proofList=<',proofList,'>');
+      console.log('DidDocument::judgeDidProofChain::did=<',did,'>');
+      console.log('DidDocument::judgeDidProofChain::manifest=<',manifest,'>');
+    }
+    const didKey = did.replace('did:otmc:','');
+    if(this.trace) {
+      console.log('DidDocument::judgeDidProofChain::didKey=<',didKey,'>');
+    }
+    if(proofList.authProof) {
+      if(proofList.authProof.includes(didKey)) {
+        return 'auth.proof.by.seed';
+      }
+      return 'auth.proof.by.none';
+    }
+    if(proofList.capabilityProof) {
+      if(proofList.capabilityProof.includes(didKey)) {
+        return 'capability.proof.by.seed';
+      }
+      return 'capability.proof.by.none';
+    }
+    return 'none.proof';
+  }  
+  
 }

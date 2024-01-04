@@ -126,6 +126,37 @@ export class DIDGuestDocument {
 
 
 export class DIDLinkedDocument {
+  static trace = true;
+  static debug = true;
+  constructor(nextDid,auth) {
+    this.address_ = nextDid.id;
+    this.auth_ = auth;
+    this.nextDid_ = nextDid;
+  }
+  address() {
+    return this.address_;
+  }
+  document() {
+    delete this.nextDid_.proof;
+    const proofs = [];
+    const signedMsg = this.auth_.signWithoutTS(this.nextDid_);
+    if(DIDLinkedDocument.trace) {
+      console.log('DIDLinkedDocument::document:signedMsg=<',signedMsg,'>');
+    }
+    const proof = {
+      type:'ed25519',
+      creator:`${this.address_}#${this.auth_.address()}`,
+      signatureValue:signedMsg.auth.sign,
+    };
+    proofs.push(proof);    
+    this.nextDid_.proof = proofs;
+    return this.nextDid_;
+  }
+}
+
+
+/*
+export class DIDLinkedDocument {
   static trace = false;
   static debug = true;
   constructor(evidence) {
@@ -282,5 +313,5 @@ export class DIDLinkedDocument {
     }
   }
 }
-
+*/
 

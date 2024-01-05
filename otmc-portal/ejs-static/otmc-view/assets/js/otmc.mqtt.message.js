@@ -51,6 +51,17 @@ export class MqttMessager {
       this.jwt.request();
     }
   }
+  freshMqttJwt() {
+    if(this.trace) {
+      console.log('MqttMessager::freshMqttJwt::this.otmc=:<',this.otmc,'>');
+    }
+    try {
+      localStorage.removeItem(StoreKey.mqttJwt);
+    } catch(err) {
+      console.log('MqttMessager::freshMqttJwt::err=:<',err,'>');
+    }
+    this.validateMqttJwt();
+  }
   connectMqtt() {
     if(this.trace) {
       console.log('MqttMessager::connectMqtt::this.otmc=:<',this.otmc,'>');
@@ -231,6 +242,11 @@ export class MqttMessager {
     if(topic.endsWith('sys/did/invitation/join')) {
       this.otmc.emit('didteam:join',msgJson);
       this.otmc.did.onInvitationJoinRequest(msgJson.did,msgJson.auth_address);
+    } else if(topic.endsWith('sys/did/invitation/accept')) {
+      this.otmc.emit('didteam:accept',msgJson);
+      this.otmc.did.onInvitationAcceptReply(msgJson.did,msgJson.auth_address);
+    } else {
+      
     }
   }
   

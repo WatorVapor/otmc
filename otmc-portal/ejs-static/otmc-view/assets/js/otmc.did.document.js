@@ -3,7 +3,7 @@ import { EdUtil } from './edcrypto/edutils.js';
 import { EdAuth } from './edcrypto/edauth.js';
 import { DIDManifest } from './did/manifest.js';
 import { StoreKey } from './otmc.const.js';
-import { DIDSeedDocument, DIDGuestDocument, DIDLinkedDocument } from './did/document.js';
+import { DIDSeedDocument, DIDGuestDocument, DIDExpandDocument, DIDAscentDocument } from './did/document.js';
 
 /**
 *
@@ -214,15 +214,15 @@ export class DidDocument {
         console.log('DidDocument::acceptInvitation::roleInvitation:=<',roleInvitation,'>');
       }
     }
-    this.linked = new DIDLinkedDocument(nextDid,this.auth);
+    this.expand = new DIDExpandDocument(nextDid,this.auth);
     if(this.trace) {
-      console.log('DidDocument::acceptInvitation::this.linked:=<',this.linked,'>');
+      console.log('DidDocument::acceptInvitation::this.expand:=<',this.expand,'>');
     }
-    const documentObj = this.linked.document();
+    const documentObj = this.expand.document();
     const role = 'invitation';
     const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
     const acceptDid = {
-      topic:`${prefixDidToTopic}/${this.auth.address()}/sys/did/${role}/accept`,
+      topic:`${prefixDidToTopic}/${address}/sys/did/${role}/accept`,
       did:documentObj,
     };
     if(this.trace) {
@@ -257,6 +257,49 @@ export class DidDocument {
     }
     return rejectDidSigned;
   }
+
+  onInvitationAcceptReply(acceptDid,acceptAddress) {
+    if(this.trace) {
+      console.log('DidDocument::onInvitationAcceptReply::this.otmc=:<',this.otmc,'>');
+      console.log('DidDocument::onInvitationAcceptReply::acceptDid=:<',acceptDid,'>');
+      console.log('DidDocument::onInvitationAcceptReply::acceptAddress=:<',acceptAddress,'>');
+    }
+    this.checkEdcrypt_();
+    const baseDid = JSON.parse(JSON.stringify(acceptDid));
+    this.based = new DIDAscentDocument(baseDid,this.auth);
+    if(this.trace) {
+      console.log('DidDocument::onInvitationAcceptReply::this.based:=<',this.based,'>');
+    }
+    const documentObj = this.based.document();
+    if(this.trace) {
+      console.log('DidDocument::onInvitationAcceptReply::documentObj:=<',documentObj,'>');
+    }
+
+    localStorage.setItem(StoreKey.didDoc,JSON.stringify(documentObj));
+    this.otmc.mqtt.freshMqttJwt();
+    
+    const self = this;
+    setTimeout(() => {
+      self.syncAscentDid_(documentObj);
+    },1000);
+
+  }
+  syncAscentDid_(documentObj,acceptAddress) {
+    const role = 'invitation';
+    const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
+    const syncDid = {
+      topic:`${prefixDidToTopic}/${acceptAddress}/sys/did/${role}/sync`,
+      did:documentObj,
+    };
+    if(this.trace) {
+      console.log('DidDocument::syncAscentDid_::syncDid=:<',syncDid,'>');
+    }
+    const syncDidSigned = this.auth.sign(syncDid);
+    if(this.trace) {
+      console.log('DidDocument::syncAscentDid_::syncDidSigned=:<',syncDidSigned,'>');
+    }    
+  }
+
 
   
   checkEdcrypt_() {

@@ -125,7 +125,7 @@ export class DIDGuestDocument {
 }
 
 
-export class DIDLinkedDocument {
+export class DIDExpandDocument {
   static trace = true;
   static debug = true;
   constructor(nextDid,auth) {
@@ -140,8 +140,8 @@ export class DIDLinkedDocument {
     delete this.nextDid_.proof;
     const proofs = [];
     const signedMsg = this.auth_.signWithoutTS(this.nextDid_);
-    if(DIDLinkedDocument.trace) {
-      console.log('DIDLinkedDocument::document:signedMsg=<',signedMsg,'>');
+    if(DIDExpandDocument.trace) {
+      console.log('DIDExpandDocument::document:signedMsg=<',signedMsg,'>');
     }
     const proof = {
       type:'ed25519',
@@ -151,6 +151,35 @@ export class DIDLinkedDocument {
     proofs.push(proof);    
     this.nextDid_.proof = proofs;
     return this.nextDid_;
+  }
+}
+
+export class DIDAscentDocument {
+  static trace = true;
+  static debug = true;
+  constructor(baseDid,auth) {
+    this.address_ = baseDid.id;
+    this.auth_ = auth;
+    this.baseDid_ = baseDid;
+  }
+  address() {
+    return this.address_;
+  }
+  document() {
+    const proofs = JSON.parse(JSON.stringify(this.baseDid_.proof));
+    delete this.baseDid_.proof;
+    const signedMsg = this.auth_.signWithoutTS(this.baseDid_);
+    if(DIDAscentDocument.trace) {
+      console.log('DIDAscentDocument::document:signedMsg=<',signedMsg,'>');
+    }
+    const proof = {
+      type:'ed25519',
+      creator:`${this.address_}#${this.auth_.address()}`,
+      signatureValue:signedMsg.auth.sign,
+    };
+    proofs.push(proof);    
+    this.baseDid_.proof = proofs;
+    return this.baseDid_;
   }
 }
 

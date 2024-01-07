@@ -270,10 +270,12 @@ export class MqttMessager {
     }
     switch(featureTopic ) {
       case 'sys/did/seed/store': 
+      case 'sys/did/auth/store': 
+        this.otmc.did.onDidDocumentStore(msgJson.did,msgJson.auth_address);
         break;
       case 'sys/did/invitation/join':
         this.otmc.emit('didteam:accept',msgJson);
-        this.otmc.did.onInvitationAcceptReply(msgJson.did,msgJson.auth_address);        
+        this.otmc.did.onInvitationAcceptReply(msgJson.did,msgJson.auth_address);
         break;
       case 'sys/did/invitation/join':
         this.otmc.emit('didteam:accept',msgJson);

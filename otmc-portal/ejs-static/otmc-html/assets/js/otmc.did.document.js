@@ -45,6 +45,20 @@ export class DidDocument {
       } else {
         this.otmc.sm.actor.send({type:'did:document'});
       }
+      const results = this.auth.verifyDid(this.didDoc_);
+      if(this.trace) {
+        console.log('DidDocument::loadDocument::results=:<',results,'>');
+      }
+      let role = false;
+      if(this.didManifest_) {
+        role = this.judgeDidProofChain(results.proofList,this.didDoc_.id,this.didManifest_.diddoc);
+      } else {
+        role = this.judgeDidProofChain(results.proofList,this.didDoc_.id);
+      }
+      if(this.trace) {
+        console.log('DidDocument::loadDocument::role=:<',role,'>');
+      }
+      this.role_ = role;
       const joinStr = localStorage.getItem(StoreKey.invitation.join);
       if(joinStr) {
         const joinList = JSON.parse(joinStr);
@@ -99,7 +113,17 @@ export class DidDocument {
   }
   createSyncDid() {
     this.checkEdcrypt_();
-    const role = 'seed';
+    let role = 'guest';
+    switch (this.role_) {
+      case 'auth.proof.by.seed':
+        role = 'seed';
+        break;
+      case 'auth.proof.by.auth':
+        role = 'auth';
+        break;
+      default:
+        break;
+    }
     const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
     const syncDid = {
       topic:`${prefixDidToTopic}/${this.auth.address()}/sys/did/${role}/store`,
@@ -178,7 +202,12 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::acceptInvitation::results=:<',results,'>');
     }
-    const roleInvitation = this.judgeDidProofChain(results.proofList,joinInvitation.id,this.didManifest_.diddoc);
+    let roleInvitation = false;
+    if(this.didManifest_) {
+      roleInvitation = this.judgeDidProofChain(results.proofList,joinInvitation.id,this.didManifest_.diddoc);
+    } else {
+      roleInvitation = this.judgeDidProofChain(results.proofList,joinInvitation.id);      
+    }
     if(this.trace) {
       console.log('DidDocument::acceptInvitation::roleInvitation:=<',roleInvitation,'>');
     }
@@ -334,18 +363,23 @@ export class DidDocument {
   }
   
   judgeDidProofChain(proofList,did,manifest) {
+    const myAddress = this.auth.address();
     if(this.trace) {
       console.log('DidDocument::judgeDidProofChain::proofList=<',proofList,'>');
       console.log('DidDocument::judgeDidProofChain::did=<',did,'>');
+      console.log('DidDocument::judgeDidProofChain::myAddress=<',myAddress,'>');
       console.log('DidDocument::judgeDidProofChain::manifest=<',manifest,'>');
     }
     const didKey = did.replace('did:otmc:','');
     if(this.trace) {
       console.log('DidDocument::judgeDidProofChain::didKey=<',didKey,'>');
     }
+    if(myAddress === didKey) {
+      return 'auth.proof.by.seed';      
+    }
     if(proofList.authProof) {
-      if(proofList.authProof.includes(didKey)) {
-        return 'auth.proof.by.seed';
+      if(proofList.authProof.includes(myAddress)) {
+        return 'auth.proof.by.auth';
       }
       return 'auth.proof.by.none';
     }
@@ -353,9 +387,12 @@ export class DidDocument {
       if(proofList.capabilityProof.includes(didKey)) {
         return 'capability.proof.by.seed';
       }
+      if(proofList.capabilityProof.includes(myAddress)) {
+        return 'capability.proof.by.auth';
+      }
       return 'capability.proof.by.none';
     }
     return 'none.proof';
-  }  
+  }
   
 }

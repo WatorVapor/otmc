@@ -244,18 +244,7 @@ export class MqttMessager {
     if(this.trace) {
       console.log('MqttMessager::onMqttMessage_:featureTopic=<',featureTopic,'>');
     }
-    if(topic.endsWith('sys/did/seed/store')) {
-    } else if(topic.endsWith('sys/did/seed/store')) {
-      
-    } else if(topic.endsWith('sys/did/invitation/join')) {
-      this.otmc.emit('didteam:accept',msgJson);
-      this.otmc.did.onInvitationAcceptReply(msgJson.did,msgJson.auth_address);
-    } else if(topic.endsWith('sys/did/invitation/accept')) {
-      this.otmc.emit('didteam:accept',msgJson);
-      this.otmc.did.onInvitationAcceptReply(msgJson.did,msgJson.auth_address);
-    } else {
-      
-    }
+    this.dispatchMessage_(featureTopic,topic,msgJson);
   }
   
   getFeatureTopic_(fullTopic) {
@@ -266,8 +255,34 @@ export class MqttMessager {
     if(this.trace) {
       console.log('MqttMessager::getFeatureTopic_:featureTopics=<',featureTopics,'>');
     }
+    const featureTopic = featureTopics.slice(4).join('/');
+    if(this.trace) {
+      console.log('MqttMessager::getFeatureTopic_:featureTopic=<',featureTopic,'>');
+    }
+    return featureTopic;
   }
-  
+
+  dispatchMessage_(featureTopic,fullTopic,msgJson) {
+    if(this.trace) {
+      console.log('MqttMessager::dispatchMessage_:featureTopic=<',featureTopic,'>');
+      console.log('MqttMessager::dispatchMessage_:fullTopic=<',fullTopic,'>');
+      console.log('MqttMessager::dispatchMessage_:msgJson=<',msgJson,'>');
+    }
+    switch(featureTopic ) {
+      case 'sys/did/seed/store': 
+        break;
+      case 'sys/did/invitation/join':
+        this.otmc.emit('didteam:accept',msgJson);
+        this.otmc.did.onInvitationAcceptReply(msgJson.did,msgJson.auth_address);        
+        break;
+      case 'sys/did/invitation/join':
+        this.otmc.emit('didteam:accept',msgJson);
+        this.otmc.did.onInvitationAcceptReply(msgJson.did,msgJson.auth_address);
+        break;
+      default:
+        break;
+    }
+  }  
   
   
   tryCreateAuth_() {

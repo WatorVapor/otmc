@@ -274,10 +274,10 @@ export class MqttMessager {
         this.otmc.did.onDidDocumentStore(msgJson.did,msgJson.auth_address);
         break;
       case 'sys/did/invitation/join':
-        this.otmc.emit('didteam:accept',msgJson);
-        this.otmc.did.onInvitationAcceptReply(msgJson.did,msgJson.auth_address);
+        this.otmc.emit('didteam:joinLoaded',msgJson);
+        this.otmc.did.onInvitationJoinRequest(msgJson.did,msgJson.auth_address);
         break;
-      case 'sys/did/invitation/join':
+      case 'sys/did/invitation/accept':
         this.otmc.emit('didteam:accept',msgJson);
         this.otmc.did.onInvitationAcceptReply(msgJson.did,msgJson.auth_address);
         break;

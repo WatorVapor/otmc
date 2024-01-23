@@ -91,12 +91,12 @@ class EdcryptWorker {
     this.trace = true;
     this.debug = true;
     this.otmc = parentRef.otmc;
-    this.edcrypt = new Worker(`${this.otmc.scriptPath}/otmc.worker.edcrypt.js`);
+    this.cryptWorker = new Worker(`${this.otmc.scriptPath}/otmc.worker.edcrypt.js`);
     if(this.trace) {
-      console.log('EdcryptWorker::constructor::this.edcrypt=:<',this.edcrypt,'>');
+      console.log('EdcryptWorker::constructor::this.cryptWorker=:<',this.cryptWorker,'>');
     }
     const self = this;
-    this.edcrypt.onmessage = (e) => {
+    this.cryptWorker.onmessage = (e) => {
       self.onEdCryptMessage_(e.data);
     }
     const initMsg = {
@@ -104,10 +104,10 @@ class EdcryptWorker {
         path:this.otmc.scriptPath,
       }
     };
-    this.edcrypt.postMessage(initMsg);
+    this.cryptWorker.postMessage(initMsg);
   }
   postMessage(data) {
-    this.edcrypt.postMessage(data);
+    this.cryptWorker.postMessage(data);
   }
   loadKey() {
     try {

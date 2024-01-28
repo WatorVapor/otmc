@@ -313,6 +313,39 @@ export class DidDocument {
     },1000);
 
   }
+  
+  onDidDocumentStore(storeDid,acceptAddress) {
+    if(this.trace) {
+      console.log('DidDocument::onDidDocumentStore::this.otmc=:<',this.otmc,'>');
+      console.log('DidDocument::onDidDocumentStore::storeDid=:<',storeDid,'>');
+      console.log('DidDocument::onDidDocumentStore::acceptAddress=:<',acceptAddress,'>');
+    }
+    this.checkEdcrypt_();
+    /*
+    const baseDid = JSON.parse(JSON.stringify(storeDid));
+    this.based = new DIDAscentDocument(baseDid,this.auth);
+    if(this.trace) {
+      console.log('DidDocument::onDidDocumentStore::this.based:=<',this.based,'>');
+    }
+    const documentObj = this.based.document();
+    if(this.trace) {
+      console.log('DidDocument::onDidDocumentStore::documentObj:=<',documentObj,'>');
+    }
+
+    localStorage.setItem(StoreKey.didDoc,JSON.stringify(documentObj));
+    this.otmc.mqtt.freshMqttJwt();
+    
+    const self = this;
+    setTimeout(() => {
+      self.syncAscentDid_(documentObj);
+    },1000);
+    */
+
+  }
+  
+  
+  
+  
   syncAscentDid_(documentObj,acceptAddress) {
     const role = 'invitation';
     const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')

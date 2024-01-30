@@ -170,6 +170,7 @@ const loadDidTeamApps = (evt) => {
       if(join.capabilityInvocation && join.capabilityInvocation.length > 0) {
         invitationJoin[addIndex].invitationType = 'Capability Member';
       }
+      console.log('loadDidTeamApps::invitationJoin=:<',invitationJoin,'>');
     }
     apps.invitation.invitations = invitationJoin;
   });

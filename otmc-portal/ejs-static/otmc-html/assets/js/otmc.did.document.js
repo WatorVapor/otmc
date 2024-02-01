@@ -248,6 +248,8 @@ export class DidDocument {
       console.log('DidDocument::acceptInvitation::this.expand:=<',this.expand,'>');
     }
     const documentObj = this.expand.document();
+    localStorage.setItem(StoreKey.didDoc,JSON.stringify(documentObj));
+
     const role = 'invitation';
     const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
     const acceptDid = {
@@ -261,6 +263,7 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::acceptInvitation::acceptDidSigned=:<',acceptDidSigned,'>');
     }
+    this.loadDocument();
     return acceptDidSigned;
   }
 

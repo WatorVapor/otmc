@@ -1,6 +1,6 @@
 version: '3'
 services:
-  nginx-ejs:
+  ejs-nginx:
     image: nginx:stable
     volumes:
       - ./ejs-static/otmc-html:/www

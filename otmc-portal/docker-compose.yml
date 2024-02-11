@@ -3,8 +3,8 @@ services:
   ejs-nginx:
     image: nginx:stable
     volumes:
-      - ./ejs-element-plus-static/otmc-html:/www
-      - ./ejs-element-plus-static/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
+      - ./ejs-static/otmc-html:/www
+      - ./ejs-static/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
       - /dev/shm/:/dev/shm/
     network_mode : 'none'
     deploy:
@@ -18,7 +18,7 @@ services:
     environment:
       TZ: Asia/Tokyo
     volumes:
-      - ./ejs-element-plus-static:/ejs
+      - ./ejs-static:/ejs
       - /dev/shm/:/dev/shm/
     working_dir: '/ejs'
     command: node ./index.js

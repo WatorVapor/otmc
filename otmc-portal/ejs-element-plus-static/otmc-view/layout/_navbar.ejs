@@ -1,6 +1,66 @@
+    <header id="vue-ui-navbar">
 
-
-    <header class="navbar navbar-expand navbar-dark bd-navbar bg-dark fixed-top sticky-top ">
+      <el-menu
+        :default-active="activeIndex"
+        class="el-menu-demo"
+        mode="horizontal"
+        :ellipsis="false"
+        @select="handleSelect"
+      >
+        <el-menu-item index="0">
+          <el-link type="primary" href="<%- `${prefix}/` %>">
+            <i class="material-icons md-48">home</i>
+          </el-link>
+        </el-menu-item>
+        <div class="flex-grow" />
+        <el-menu-item index="1">Processing Center</el-menu-item>
+        <el-sub-menu index="2">
+          <template #title>Workspace</template>
+          <el-menu-item index="2-1">item one</el-menu-item>
+          <el-menu-item index="2-2">item two</el-menu-item>
+          <el-menu-item index="2-3">item three</el-menu-item>
+          <el-sub-menu index="2-4">
+            <template #title>item four</template>
+            <el-menu-item index="2-4-1">item one</el-menu-item>
+            <el-menu-item index="2-4-2">item two</el-menu-item>
+            <el-menu-item index="2-4-3">item three</el-menu-item>
+          </el-sub-menu>
+        </el-sub-menu>
+      </el-menu>
+  
+<!--  
+      <div class="h-6" />
+      <el-menu
+        :default-active="activeIndex2"
+        class="el-menu-demo"
+        mode="horizontal"
+        background-color="#545c64"
+        text-color="#fff"
+        active-text-color="#ffd04b"
+        @select="handleSelect"
+      >
+        <el-menu-item index="1">
+        </el-menu-item>
+        <div class="flex-grow" />
+        <el-sub-menu index="2">
+          <template #title>Workspace</template>
+          <el-menu-item index="2-1">item one</el-menu-item>
+          <el-menu-item index="2-2">item two</el-menu-item>
+          <el-menu-item index="2-3">item three</el-menu-item>
+          <el-sub-menu index="2-4">
+            <template #title>item four</template>
+            <el-menu-item index="2-4-1">item one</el-menu-item>
+            <el-menu-item index="2-4-2">item two</el-menu-item>
+            <el-menu-item index="2-4-3">item three</el-menu-item>
+          </el-sub-menu>
+        </el-sub-menu>
+        <el-menu-item index="3" disabled>Info</el-menu-item>
+        <el-menu-item index="4">Orders</el-menu-item>
+      </el-menu>
+-->  
+      
+      
+      <!--
       <nav class="container" aria-label="Main navigation">
         <a class="navbar-brand text-primary btn-lg" href="<%- `${prefix}/` %>" role="button">
           <i class="material-icons md-48">home</i>
@@ -8,15 +68,13 @@
         <div class="collapse navbar-collapse d-flex justify-content-start">
           <ul class="navbar-nav">
             <li class="nav-item active border rounded-pill">
-              <!--
               <a class="nav-link text-primary vue-lang" href="<%- `${prefix}/mansion/create/` %>" role="button">
                 <i class="material-icons md-48">add</i> {% navbar.mansion %}
               </a>
-              -->
             </li>
           </ul>
         </div>
-        <div class="collapse navbar-collapse d-flex justify-content-center" id="vue-ui-navbar-top-app">
+        <div class="collapse navbar-collapse d-flex justify-content-center">
           <ul class="navbar-nav">
             <li class="nav-item active border rounded-pill" v-for="(app,index) in apps">
               <a class="nav-link text-primary vue-lang" v-bind:href="app.href" role="button">
@@ -30,7 +88,7 @@
         
         <div class="collapse navbar-collapse d-flex justify-content-end">
           <ul class="navbar-nav">
-            <li class="nav-item dropdown ml-5" id="vue-ui-navbar-top-lang">
+            <li class="nav-item dropdown ml-5">
               
               <button class="nav-link dropdown-toggle btn-lg" role="button" href="#" data-bs-toggle="dropdown" 
                 data-bs-target="#navbarLanguageDropdown" aria-expanded="true">
@@ -51,7 +109,7 @@
               </ul>
 
             </li>
-            <li class="nav-item dropdown ml-5" id="vue-ui-navbar-top-team">
+            <li class="nav-item dropdown ml-5">
               <a class="nav-link text-success btn-lg" role="button"  href="<%- `${prefix}/didteam/` %>">
                 <i class="material-icons md-48" >manage_accounts</i>
                 {{ accout.name }}
@@ -63,5 +121,13 @@
 
         
       </nav>
+    -->
+
+
+      <style>
+      .flex-grow {
+        flex-grow: 1;
+      }
+      </style>
     </header>
     

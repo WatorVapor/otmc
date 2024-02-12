@@ -243,6 +243,16 @@ export class DidDocument {
         console.log('DidDocument::acceptInvitation::roleInvitation:=<',roleInvitation,'>');
       }
     }
+    if(nextDid.verificationMethod) {
+      nextDid.verificationMethod = this.removeDuplicates(nextDid.verificationMethod);
+    }
+    if(nextDid.authentication) {
+      nextDid.authentication = this.removeDuplicates(nextDid.authentication);
+    }
+    if(nextDid.capabilityInvocation) {
+      nextDid.capabilityInvocation = this.removeDuplicates(nextDid.capabilityInvocation);
+    }
+
     this.expand = new DIDExpandDocument(nextDid,this.auth);
     if(this.trace) {
       console.log('DidDocument::acceptInvitation::this.expand:=<',this.expand,'>');
@@ -309,6 +319,7 @@ export class DidDocument {
 
     localStorage.setItem(StoreKey.didDoc,JSON.stringify(documentObj));
     this.otmc.mqtt.freshMqttJwt();
+    this.loadDocument();
     
     const self = this;
     setTimeout(() => {
@@ -317,33 +328,40 @@ export class DidDocument {
 
   }
   
-  onDidDocumentStore(storeDid,acceptAddress) {
+  onDidDocumentStore(incomeDid,acceptAddress) {
     if(this.trace) {
       console.log('DidDocument::onDidDocumentStore::this.otmc=:<',this.otmc,'>');
-      console.log('DidDocument::onDidDocumentStore::storeDid=:<',storeDid,'>');
+      console.log('DidDocument::onDidDocumentStore::incomeDid=:<',incomeDid,'>');
       console.log('DidDocument::onDidDocumentStore::acceptAddress=:<',acceptAddress,'>');
     }
     this.checkEdcrypt_();
-    /*
-    const baseDid = JSON.parse(JSON.stringify(storeDid));
-    this.based = new DIDAscentDocument(baseDid,this.auth);
+    const inclomeDidClone = JSON.parse(JSON.stringify(incomeDid));
     if(this.trace) {
-      console.log('DidDocument::onDidDocumentStore::this.based:=<',this.based,'>');
+      console.log('DidDocument::onDidDocumentStore::inclomeDidClone:=<',inclomeDidClone,'>');
     }
-    const documentObj = this.based.document();
+    const storedDidStr = localStorage.getItem(StoreKey.didDoc);
+    if(!storedDidStr) {
+      console.log('DidDocument::onDidDocumentStore::storedDidStr:=<',storedDidStr,'>');
+      return;
+    }
+    const storedDid = JSON.parse(storedDidStr);
     if(this.trace) {
-      console.log('DidDocument::onDidDocumentStore::documentObj:=<',documentObj,'>');
+      console.log('DidDocument::onDidDocumentStore::storedDid:=<',storedDid,'>');
     }
-
-    localStorage.setItem(StoreKey.didDoc,JSON.stringify(documentObj));
-    this.otmc.mqtt.freshMqttJwt();
+    const results = this.auth.verifyDid(incomeDid);
+    if(this.trace) {
+      console.log('DidDocument::onDidDocumentStore::results=:<',results,'>');
+    }
+    let roleInclome = false;
+    if(this.didManifest_) {
+      roleInclome = this.judgeDidProofChain(results.proofList,inclomeDidClone.id,this.didManifest_.diddoc);
+    } else {
+      roleInclome = this.judgeDidProofChain(results.proofList,inclomeDidClone.id);      
+    }
+    if(this.trace) {
+      console.log('DidDocument::onDidDocumentStore::roleInclome:=<',roleInclome,'>');
+    }
     
-    const self = this;
-    setTimeout(() => {
-      self.syncAscentDid_(documentObj);
-    },1000);
-    */
-
   }
   
   
@@ -429,6 +447,18 @@ export class DidDocument {
       return 'capability.proof.by.none';
     }
     return 'none.proof';
+  }
+  removeDuplicates(arrObject) {
+    if(this.trace) {
+      console.log('DidDocument::removeDuplicates::arrObject=<',arrObject,'>');
+    }
+    const jsonObject = arrObject.map(JSON.stringify);
+    const uniqueSet = new Set(jsonObject);
+    const uniqueArray = Array.from(uniqueSet).map(JSON.parse);
+    if(this.trace) {
+      console.log('DidDocument::removeDuplicates::uniqueArray=<',uniqueArray,'>');
+    }
+    return uniqueArray;
   }
   
 }

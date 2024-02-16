@@ -49,11 +49,21 @@ export class Otmc extends EventEmitter {
     if(this.trace) {
       console.log('Otmc::syncDidDocument::new Date()=:<',new Date(),'>');
     }
+
+    const syncManifest = this.did.createSyncManifest();
+    if(this.trace) {
+      console.log('Otmc::syncDidDocument::syncManifest=:<',syncManifest,'>');
+    }
+    if(syncManifest) {
+      this.mqtt.publish(syncManifest.topic,syncManifest,{qos:1,nl:true});
+    }
+
     const syncDoc = this.did.createSyncDid();
     if(this.trace) {
       console.log('Otmc::syncDidDocument::syncDoc=:<',syncDoc,'>');
     }
     this.mqtt.publish(syncDoc.topic,syncDoc,{qos:1,nl:true});
+
   }
   requestJoinDidTeam() {
     const joinRequest = this.did.requestJoinDid();

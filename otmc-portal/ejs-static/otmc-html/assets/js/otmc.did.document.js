@@ -126,12 +126,9 @@ export class DidDocument {
     }
     const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
     const syncDid = {
-      topic:`${prefixDidToTopic}/${this.auth.address()}/sys/did/${role}/store`,
+      topic:`${prefixDidToTopic}/${this.auth.address()}/sys/did/document/${role}/store`,
       did:this.didDoc_,
     };
-    if(this.didManifest_) {
-      syncDid.manifest = this.didManifest_;
-    }
     if(this.trace) {
       console.log('DidDocument::syncDidDocument::syncDid=:<',syncDid,'>');
     }
@@ -141,6 +138,38 @@ export class DidDocument {
     }
     return syncDidSigned;
   }
+
+  createSyncManifest() {
+    if(!this.didManifest_) {
+      return false;
+    }
+    this.checkEdcrypt_();
+    let role = 'guest';
+    switch (this.role_) {
+      case 'auth.proof.by.seed':
+        role = 'seed';
+        break;
+      case 'auth.proof.by.auth':
+        role = 'auth';
+        break;
+      default:
+        break;
+    }
+    const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
+    const syncManifest = {
+      topic:`${prefixDidToTopic}/${this.auth.address()}/sys/did/manifest/${role}/store`,
+      manifest:this.didManifest_,
+    };
+    if(this.trace) {
+      console.log('DidDocument::createSyncManifest::syncManifest=:<',syncManifest,'>');
+    }
+    const syncManifestSigned = this.auth.sign(syncManifest);
+    if(this.trace) {
+      console.log('DidDocument::createSyncManifest::syncManifestSigned=:<',syncManifestSigned,'>');
+    }
+    return syncManifestSigned;
+  }
+
 
   requestJoinDid() {
     // 0:"did/otmc/otmsnaftnd45lzlcdrsqpr73zzst3okf/otm6mefe2b6jqyypd2etnyxj3ho56km6/sys/did/invitation/#"

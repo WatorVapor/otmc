@@ -61,14 +61,4 @@ const createTopNavBar_ = async ()=> {
   if(NAVBAR.trace) {
     console.log('w-navbar::createTopNavBar_::vmTeam=<',vmTeam,'>');
   }
-
-  
-  /*
-  window.vueVm = window.vueVm || {};
-  window.vueVm.navbar = vm;
-
-  const evt = document.createEvent('Event');
-  evt.initEvent('TopMenuBarLoaded', true, true);
-  document.dispatchEvent(evt);
-  */
 }

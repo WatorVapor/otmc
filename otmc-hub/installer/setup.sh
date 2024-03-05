@@ -14,4 +14,4 @@ TTY_CONF=/etc/systemd/system/getty@tty59.service.d/
 sudo mkdir -p ${TTY_CONF}
 sudo cp -f ${TTY_TMP_CONF} ${TTY_CONF}/override.conf
 sudo systemctl daemon-reload
-sudo systemctl start getty@tty59
+sudo systemctl enable getty@tty59

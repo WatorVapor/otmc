@@ -9,4 +9,6 @@ echo "[Service]" | sudo tee -a ${TTY_CONF}
 echo "ExecStart=" | sudo tee -a ${TTY_CONF}
 echo "ExecStart=-/sbin/agetty -a ${USER} --noclear %I $TERM"\
  | sudo tee -a ${TTY_CONF}
+
+sudo systemctl daemon-reload
 sudo systemctl start getty@tty59

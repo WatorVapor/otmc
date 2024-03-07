@@ -12,45 +12,51 @@ export class DIDManifest {
       },
     },
     acl:{
-      seed:{
-        pub: [ ],
-        sub: [ ],
-        all: [
-          '${did.id}/#'
-        ],
-      },
-      authentication: {
-        pub: [ ],
-        sub: [ ],
-        all: [
-          '${did.id}/#'
-        ],
-      },
-      capability: {
-        pub: [
-          '${did.id}/broadcast/${key.id}/#'
-        ],
-        sub: [ ],
-        all: [
-          '${did.id}/${key.id}/sys/did/capability/#'
-        ],
-      },
-      invitation: {
-        pub: [ ],
-        sub: [ ],
-        all: [
-          '${did.id}/${key.id}/sys/did/invitation/#'
-        ],
-      },
-      guest:{
-        pub: [ ],
-        sub:[
-          '${did.id}/broadcast/#'
-        ],
-        all: [
-          '${did.id}/${key.id}/sys/did/guest/#'
-        ],
-      },
+      seed:[
+        {
+          permission: 'allow',
+          action: 'all',
+          topic:'${did.id}/#'
+        },
+      ],
+      authentication:[
+        {
+          permission: 'allow',
+          action: 'all',
+          topic:'${did.id}/#'
+        },
+      ],
+      capability: [
+        {
+          permission: 'allow',
+          action: 'publish',
+          topic:'${did.id}/broadcast/${key.id}/#'
+        },
+        {
+          permission: 'allow',
+          action: 'all',
+          topic:'${did.id}/${key.id}/sys/did/capability/#'
+        },
+      ],
+      invitation: [
+        {
+          permission: 'allow',
+          action: 'all',
+          topic:'${did.id}/${key.id}/sys/did/invitation/#'
+        },
+      ],
+      guest:[
+        {
+          permission: 'allow',
+          action: 'subscribe',
+          topic:'${did.id}/broadcast/#'
+        },
+        {
+          permission: 'allow',
+          action: 'all',
+          topic:'${did.id}/${key.id}/sys/did/guest/#'
+        },
+      ]
     }
   };
   static dogmaRule = {
@@ -64,42 +70,41 @@ export class DIDManifest {
       },
     },
     acl:{
-      seed:{
-        pub: [ ],
-        sub: [ ],
-        all: [
-          '${did.id}/#'
-        ],
-      },
-      authentication: {
-        pub: [ ],
-        sub: [ ],
-        all: [
-          '${did.id}/#'
-        ],
-      },
-      capability: {
-        pub: [
-          '${did.id}/broadcast/${key.id}/#'
-        ],
-        sub: [ ],
-        all: [
-          '${did.id}/${key.id}/sys/did/capability/#'
-        ],
-      },
-      invitation: {
-        pub: [ ],
-        sub: [ ],
-        all: [
-          '${did.id}/${key.id}/sys/did/invitation/#'
-        ],
-      },
-      guest:{
-        pub: [],
-        sub:[
-        ],
-        all: [],
-      },
+      seed:[
+        {
+          permission: 'allow',
+          action: 'all',
+          topic:'${did.id}/#'
+        },
+      ],
+      authentication:[
+        {
+          permission: 'allow',
+          action: 'all',
+          topic:'${did.id}/#'
+        },
+      ],
+      capability: [
+        {
+          permission: 'allow',
+          action: 'publish',
+          topic:'${did.id}/broadcast/${key.id}/#'
+        },
+        {
+          permission: 'allow',
+          action: 'all',
+          topic:'${did.id}/${key.id}/sys/did/capability/#'
+        },
+      ],
+      invitation: [
+        {
+          permission: 'allow',
+          action: 'all',
+          topic:'${did.id}/${key.id}/sys/did/invitation/#'
+        },
+      ],
+      guest:[
+      ],
     }
   };  
   constructor() {

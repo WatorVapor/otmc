@@ -103,10 +103,12 @@ export class MqttMessager {
     this.payload_ = payload;
     const options = {
       // Authentication
-      clientId: `${this.util.randomAddress()}@${payload.clientid}`,
+      //clientId: `${this.util.randomAddress()}@${payload.clientid}`,
+      clientId: `${payload.clientid}`,
       username: payload.username,
       password: jwt,
       protocolVersion:5,
+      reconnectPeriod:1000*2,
       keepalive: 60*30,
       connectTimeout: 4000,
       clean: true,
@@ -119,7 +121,9 @@ export class MqttMessager {
     const mqttClient = mqtt.connect(srvUrl,options);
     const self = this;
     mqttClient.on('connect', (connack) => {
-      //console.log('MqttMessager::createMqttConnection_::connect connack=<',connack,'>');
+      if(self.trace) {
+        console.log('MqttMessager::createMqttConnection_::connect connack=<',connack,'>');
+      }
       if(self.trace) {
         console.log('MqttMessager::createMqttConnection_::mqttClient.connected=<',mqttClient.connected,'>');
       }
@@ -134,7 +138,9 @@ export class MqttMessager {
       }
     });
     mqttClient.on('disconnect', (connack) => {
-      //console.log('MqttMessager::createMqttConnection_::disconnect connack=<',connack,'>');
+      if(self.trace) {
+        console.log('MqttMessager::createMqttConnection_::disconnect connack=<',connack,'>');
+      }
       if(self.trace) {
         console.log('MqttMessager::createMqttConnection_::mqttClient.connected=<',mqttClient.connected,'>');
       }
@@ -191,7 +197,9 @@ export class MqttMessager {
       //console.log('MqttMessager::createMqttConnection_::packetsend packet=<',packet,'>');
     });
     mqttClient.on('packetreceive', (packet) => {
-      //console.log('MqttMessager::createMqttConnection_::packetreceive packet=<',packet,'>');
+      if(this.trace) {
+        console.log('MqttMessager::createMqttConnection_::packetreceive packet=<',packet,'>');
+      }
     });
     this.mqttClient_ = mqttClient;
     this.tryCreateAuth_();
@@ -227,8 +235,8 @@ export class MqttMessager {
         }
         if(aclPart.action === 'all' || aclPart.action === 'subscribe') {
           const subOpt2 = {qos: 0,nl:true};
-          if(aclPart.qos) {
-            subOpt2.qos = aclPart.qos;
+          if(aclPart.qos && aclPart.qos.length > 0) {
+            subOpt2.qos = aclPart.qos[0];
           }
           if(aclPart.permission === 'allow') {
             this.mqttClient_.subscribe(aclPart.topic,subOpt2,subCallBack);

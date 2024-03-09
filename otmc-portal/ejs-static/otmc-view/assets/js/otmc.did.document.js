@@ -114,6 +114,9 @@ export class DidDocument {
   createSyncDid() {
     this.checkEdcrypt_();
     let role = 'guest';
+    if(this.trace) {
+      console.log('DidDocument::createSyncDid::this.role_=:<',this.role_,'>');
+    }
     switch (this.role_) {
       case 'auth.proof.by.seed':
         role = 'seed';
@@ -121,14 +124,23 @@ export class DidDocument {
       case 'auth.proof.by.auth':
         role = 'auth';
         break;
+      case 'auth.proof.by.invitation':
+        role = 'invitation';
+        break;
       default:
         break;
+    }
+    if(this.trace) {
+      console.log('DidDocument::createSyncDid::role=:<',role,'>');
     }
     const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
     const syncDid = {
       topic:`${prefixDidToTopic}/${this.auth.address()}/sys/did/document/${role}/store`,
       did:this.didDoc_,
     };
+    if(role === 'invitation') {
+      syncDid.topic = `${prefixDidToTopic}/${this.auth.address()}/sys/did/invitation/store`;
+    }
     if(this.trace) {
       console.log('DidDocument::syncDidDocument::syncDid=:<',syncDid,'>');
     }
@@ -453,30 +465,52 @@ export class DidDocument {
       console.log('DidDocument::judgeDidProofChain::myAddress=<',myAddress,'>');
       console.log('DidDocument::judgeDidProofChain::manifest=<',manifest,'>');
     }
+    let proof = 'none.proof';
     const didKey = did.replace('did:otmc:','');
     if(this.trace) {
       console.log('DidDocument::judgeDidProofChain::didKey=<',didKey,'>');
     }
     if(myAddress === didKey) {
-      return 'auth.proof.by.seed';      
-    }
-    if(proofList.authProof) {
-      if(proofList.authProof.includes(myAddress)) {
-        return 'auth.proof.by.auth';
+      proof = 'auth.proof.by.seed';
+    } else {
+      if(proofList.authProof && proofList.authProof.length > 0) {
+        if(proofList.authProof.includes(didKey)) {
+          proof = 'auth.proof.by.seed';
+        } else if(proofList.authProof.includes(myAddress)) {
+          proof = this.judgeDidProofChainDeep(proofList,did,manifest);
+        }
+        else {
+          proof = 'auth.proof.by.none';
+        }
       }
-      return 'auth.proof.by.none';
-    }
-    if(proofList.capabilityProof) {
-      if(proofList.capabilityProof.includes(didKey)) {
-        return 'capability.proof.by.seed';
+      if(proofList.capabilityProof && proofList.capabilityProof.length > 0) {
+        if(proofList.capabilityProof.includes(didKey)) {
+          proof = 'capability.proof.by.seed';
+        } else if(proofList.capabilityProof.includes(myAddress)) {
+          proof = 'capability.proof.by.auth';
+        } else {
+          proof = 'capability.proof.by.none';
+        }
       }
-      if(proofList.capabilityProof.includes(myAddress)) {
-        return 'capability.proof.by.auth';
-      }
-      return 'capability.proof.by.none';
     }
-    return 'none.proof';
+    if(this.trace) {
+      console.log('DidDocument::judgeDidProofChain::proof=<',proof,'>');
+    }
+    return proof;
   }
+  judgeDidProofChainDeep(proofList,did,manifest) {
+    if(this.trace) {
+      console.log('DidDocument::judgeDidProofChainDeep::proofList=<',proofList,'>');
+      console.log('DidDocument::judgeDidProofChainDeep::manifest=<',manifest,'>');
+    }
+    //let proof = 'auth.proof.by.auth';
+    let proof = 'auth.proof.by.invitation';
+    if(this.trace) {
+      console.log('DidDocument::judgeDidProofChainDeep::proof=<',proof,'>');
+    }
+    return proof;
+  }
+  
   removeDuplicates(arrObject) {
     if(this.trace) {
       console.log('DidDocument::removeDuplicates::arrObject=<',arrObject,'>');

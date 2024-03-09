@@ -1,34 +1,38 @@
-    <div class="container text-center mt-3">     
+    <div class="container text-center mt-3" id="vue-ui-app-did-manifest">     
       <div class="row justify-content-center">
-        <div class="col-8">
-          <p class="d-inline-flex gap-1">
-            <a class="btn btn-primary" data-bs-toggle="collapse" href="#did-team-manifest" role="button" aria-expanded="true" aria-controls="did-team-manifest">
-              Did Team Manifest
-            </a>
-          </p>
+
+        <div class="col-4">
+          <div class="d-grid gap-5">
+            <button class="btn btn-primary" type="button">Save Manifest</button>
+          </div>
         </div>
+
+        <div class="col-4">
+          <div class="d-grid gap-5">
+            <button class="btn btn-success" type="button">Check Manifest</button>
+          </div>
+        </div>
+
       </div>
-      <div class="row justify-content-center collapse multi-collapse" id="did-team-manifest">
-        <div class="col-8" id="vue-ui-app-did-manifest">
-          <div class="row justify-content-center">
-            <div class="col-8">
-              <div class="card card-default">
-                <div class="card-body">
-                  <div id="vue-ui-app-did-manifest-editor" style="height: 540px;">
-                  </div>
-                </div>
+
+      <div class="row justify-content-center mt-2">
+        <div class="col-6">
+          <div class="card card-default">
+            <div class="card-body">
+              <div id="app-did-manifest-editor" style="height: 540px;">
               </div>
             </div>
-            <div class="col-4">
-              <div class="d-grid gap-5 mt-5">
-                <button class="btn btn-success" type="button">Check Manifest</button>
-                <button class="btn btn-primary" type="button">Save Manifest</button>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="card card-default">
+            <div class="card-body">
+              <div id="app-did-manifest-result" style="height: 540px;">
               </div>
             </div>
           </div>
         </div>
       </div>
-      
 
     </div>
  

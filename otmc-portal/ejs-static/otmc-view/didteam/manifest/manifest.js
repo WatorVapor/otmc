@@ -41,6 +41,7 @@ const loadDidTeamManifestApps = (evt) => {
     console.log('loadDidTeamManifestApps::manifestStr=:<',manifestStr,'>');
     appManifestVM.manifest = manifestStr;
     loadCodeEditorApps(manifestStr);
+    loadResultEditorApps('');
   });
   appManifestVM.otmc = otmc;
   apps.manifest = appManifestVM;
@@ -53,8 +54,21 @@ const loadCodeEditorApps = (textMsg) => {
     mode: "ace/mode/json",
     minLines: 32,
   };
-  const editor = ace.edit('vue-ui-app-did-manifest-editor',editorOption);
+  const editor = ace.edit('app-did-manifest-editor',editorOption);
   console.log('loadCodeEditorApps::editor=:<',editor,'>');
   console.log('loadCodeEditorApps::editor.session=:<',editor.session,'>');
   editor.session.insert({row:0, column:0}, textMsg)
+}
+
+const loadResultEditorApps = (textMsg) => {
+  const editorOption = {
+    theme: "ace/theme/monokai",
+    mode: "ace/mode/json",
+    minLines: 32,
+  };
+  const editor = ace.edit('app-did-manifest-result',editorOption);
+  console.log('loadResultEditorApps::editor=:<',editor,'>');
+  console.log('loadResultEditorApps::editor.session=:<',editor.session,'>');
+  editor.session.insert({row:0, column:0}, textMsg)
+  editor.setReadOnly(true);
 }

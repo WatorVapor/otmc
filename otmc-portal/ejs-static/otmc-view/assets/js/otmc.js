@@ -30,6 +30,10 @@ export class Otmc extends EventEmitter {
       self.mqtt.otmc = self;
       self.sm = new OtmcStateMachine(thisRefer);
     },10);
+    this.mqttOption = {
+      qos:0,
+      nl:true
+    };
   }
   startMining() {
     const data = {
@@ -55,14 +59,14 @@ export class Otmc extends EventEmitter {
       console.log('Otmc::syncDidDocument::syncManifest=:<',syncManifest,'>');
     }
     if(syncManifest) {
-      this.mqtt.publish(syncManifest.topic,syncManifest,{qos:1,nl:true});
+      this.mqtt.publish(syncManifest.topic,syncManifest,this.mqttOption);
     }
 
     const syncDoc = this.did.createSyncDid();
     if(this.trace) {
       console.log('Otmc::syncDidDocument::syncDoc=:<',syncDoc,'>');
     }
-    this.mqtt.publish(syncDoc.topic,syncDoc,{qos:1,nl:true});
+    this.mqtt.publish(syncDoc.topic,syncDoc,this.mqttOption);
 
   }
   requestJoinDidTeam() {
@@ -70,7 +74,7 @@ export class Otmc extends EventEmitter {
     if(this.trace) {
       console.log('Otmc::requestJoinDidTeam::joinRequest=:<',joinRequest,'>');
     }
-    this.mqtt.publish(joinRequest.topic,joinRequest,{qos:1,nl:true});
+    this.mqtt.publish(joinRequest.topic,joinRequest,this.mqttOption);
   }
   acceptInvitation(address){
     if(this.trace) {
@@ -78,7 +82,7 @@ export class Otmc extends EventEmitter {
       console.log('Otmc::acceptInvitation::address=:<',address,'>');
     }
     const invitationReply = this.did.acceptInvitation(address);
-    this.mqtt.publish(invitationReply.topic,invitationReply,{qos:1,nl:true});
+    this.mqtt.publish(invitationReply.topic,invitationReply,this.mqttOption);
   }
   rejectInvitation(address){
     if(this.trace) {
@@ -86,7 +90,7 @@ export class Otmc extends EventEmitter {
       console.log('Otmc::rejectInvitation::address=:<',address,'>');
     }
     const rejectInvitationReply = this.did.rejectInvitation(address);
-    this.mqtt.publish(invitationReply.topic,invitationReply,{qos:1,nl:true});
+    this.mqtt.publish(invitationReply.topic,invitationReply,this.mqttOption);
   }
 }
 

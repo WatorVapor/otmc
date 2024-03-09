@@ -219,6 +219,23 @@ export class MqttMessager {
     if(this.payload_ && this.payload_.acl.sub && this.payload_.acl.sub.length > 0 ) {
       this.mqttClient_.subscribe(this.payload_.acl.sub,subOpt,subCallBack);
     }
+    
+    if(this.payload_ && this.payload_.acl && this.payload_.acl.length > 0 ) {
+      for(const aclPart of this.payload_.acl) {
+        if(this.trace) {
+          console.log('MqttMessager::runSubscriber_:aclPart=<',aclPart,'>');
+        }
+        if(aclPart.action === 'all' || aclPart.action === 'subscribe') {
+          const subOpt2 = {qos: 0,nl:true};
+          if(aclPart.qos) {
+            subOpt2.qos = aclPart.qos;
+          }
+          if(aclPart.permission === 'allow') {
+            this.mqttClient_.subscribe(aclPart.topic,subOpt2,subCallBack);
+          }
+        }
+      }
+    }    
   }
   onMqttMessage_(topic, msgJson) {
     if(this.trace) {

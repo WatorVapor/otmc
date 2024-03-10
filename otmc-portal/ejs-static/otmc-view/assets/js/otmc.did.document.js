@@ -111,11 +111,13 @@ export class DidDocument {
     localStorage.setItem(StoreKey.didDoc,JSON.stringify(documentObj));
     return documentObj;
   }
-  createSyncDid() {
+  
+  
+  createSyncUploadDid() {
     this.checkEdcrypt_();
     let role = 'guest';
     if(this.trace) {
-      console.log('DidDocument::createSyncDid::this.role_=:<',this.role_,'>');
+      console.log('DidDocument::createSyncUploadDid::this.role_=:<',this.role_,'>');
     }
     switch (this.role_) {
       case 'auth.proof.by.seed':
@@ -131,7 +133,7 @@ export class DidDocument {
         break;
     }
     if(this.trace) {
-      console.log('DidDocument::createSyncDid::role=:<',role,'>');
+      console.log('DidDocument::createSyncUploadDid::role=:<',role,'>');
     }
     const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
     const syncDid = {
@@ -142,16 +144,48 @@ export class DidDocument {
       syncDid.topic = `${prefixDidToTopic}/${this.auth.address()}/sys/did/invitation/store`;
     }
     if(this.trace) {
-      console.log('DidDocument::syncDidDocument::syncDid=:<',syncDid,'>');
+      console.log('DidDocument::createSyncUploadDid::syncDid=:<',syncDid,'>');
     }
     const syncDidSigned = this.auth.sign(syncDid);
     if(this.trace) {
-      console.log('DidDocument::syncDidDocument::syncDidSigned=:<',syncDidSigned,'>');
+      console.log('DidDocument::createSyncUploadDid::syncDidSigned=:<',syncDidSigned,'>');
     }
     return syncDidSigned;
   }
 
-  createSyncManifest() {
+  createSyncDownloadDid() {
+    this.checkEdcrypt_();
+    const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
+    const syncDid = {
+      topic:`${prefixDidToTopic}/${this.auth.address()}/sys/did/document/request`,
+    };
+    if(this.trace) {
+      console.log('DidDocument::createSyncDownloadDid::syncDid=:<',syncDid,'>');
+    }
+    const syncDidSigned = this.auth.sign(syncDid);
+    if(this.trace) {
+      console.log('DidDocument::createSyncDownloadDid::syncDidSigned=:<',syncDidSigned,'>');
+    }
+    return syncDidSigned;
+  }
+  createSyncDownloadInvitation() {
+    this.checkEdcrypt_();
+    const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
+    const syncDid = {
+      topic:`${prefixDidToTopic}/${this.auth.address()}/sys/did/invitation/request`,
+    };
+    if(this.trace) {
+      console.log('DidDocument::createSyncDownloadInvitation::syncDid=:<',syncDid,'>');
+    }
+    const syncDidSigned = this.auth.sign(syncDid);
+    if(this.trace) {
+      console.log('DidDocument::createSyncDownloadInvitation::syncDidSigned=:<',syncDidSigned,'>');
+    }
+    return syncDidSigned;
+  }
+
+
+  createSyncUploadManifest() {
     if(!this.didManifest_) {
       return false;
     }
@@ -173,14 +207,33 @@ export class DidDocument {
       manifest:this.didManifest_,
     };
     if(this.trace) {
-      console.log('DidDocument::createSyncManifest::syncManifest=:<',syncManifest,'>');
+      console.log('DidDocument::createSyncUploadManifest::syncManifest=:<',syncManifest,'>');
     }
     const syncManifestSigned = this.auth.sign(syncManifest);
     if(this.trace) {
-      console.log('DidDocument::createSyncManifest::syncManifestSigned=:<',syncManifestSigned,'>');
+      console.log('DidDocument::createSyncUploadManifest::syncManifestSigned=:<',syncManifestSigned,'>');
     }
     return syncManifestSigned;
   }
+
+  createSyncDownloadManifest() {
+    this.checkEdcrypt_();
+    const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
+    const syncDid = {
+      topic:`${prefixDidToTopic}/${this.auth.address()}/sys/did/manifest/request`,
+    };
+    if(this.trace) {
+      console.log('DidDocument::createSyncDownloadManifest::syncDid=:<',syncDid,'>');
+    }
+    const syncDidSigned = this.auth.sign(syncDid);
+    if(this.trace) {
+      console.log('DidDocument::createSyncDownloadManifest::syncDidSigned=:<',syncDidSigned,'>');
+    }
+    return syncDidSigned;
+  }
+
+
+
 
 
   requestJoinDid() {

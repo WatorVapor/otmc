@@ -83,7 +83,7 @@ const otmcStateTable = {
       //console.log('OtmcStateMachine::otmcStateTable::OtmcStateMachine.otmc=:<',OtmcStateMachine.otmc,'>');
       OtmcStateMachine.otmc.syncDidDocument();
     }}),
-  },  
+  },
 }
 
 

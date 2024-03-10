@@ -236,10 +236,16 @@ export class MqttMessager {
         if(aclPart.action === 'all' || aclPart.action === 'subscribe') {
           const subOpt2 = {qos: 0,nl:true};
           if(aclPart.qos && aclPart.qos.length > 0) {
-            subOpt2.qos = aclPart.qos[0];
-          }
-          if(aclPart.permission === 'allow') {
-            this.mqttClient_.subscribe(aclPart.topic,subOpt2,subCallBack);
+            for(const aclQos of aclPart.qos) {
+              subOpt2.qos = aclQos;
+              if(aclPart.permission === 'allow') {
+                this.mqttClient_.subscribe(aclPart.topic,subOpt2,subCallBack);
+              }              
+            }
+          } else {
+            if(aclPart.permission === 'allow') {
+              this.mqttClient_.subscribe(aclPart.topic,subOpt2,subCallBack);
+            }
           }
         }
       }

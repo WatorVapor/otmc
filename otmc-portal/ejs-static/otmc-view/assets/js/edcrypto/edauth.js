@@ -126,6 +126,49 @@ export class EdAuth {
     }
     return false;
   }
+  verifyWithoutTS(msg) {
+    if(this.trace) {
+      console.log('EdAuth::verifyWithoutTS::msg=<',msg,'>');
+    }
+    const calcAddress = this.util_.calcAddress(msg.auth.pub);
+    if(this.trace) {
+      console.log('EdAuth::verifyWithoutTS::calcAddress=<',calcAddress,'>');
+    }
+    if(!calcAddress.startsWith(strConstAddressPrefix)) {
+      console.log('EdAuth::verifyWithoutTS::calcAddress=<',calcAddress,'>');
+      return false;
+    }
+    const publicKey = this.util_.decodeBase64(msg.auth.pub);
+    const signMsg = this.util_.decodeBase64(msg.auth.sign);
+    if(this.trace) {
+      console.log('EdAuth::verifyWithoutTS::publicKey=<',publicKey,'>');
+      console.log('EdAuth::verifyWithoutTS::signMsg=<',signMsg,'>');
+    }
+    const signedHash = nacl.sign.open(signMsg,publicKey);
+    if(!signedHash) {
+      console.log('EdAuth::verifyWithoutTS::signedHash=<',signedHash,'>');
+      return false;
+    }
+    const signedHashB64 = this.util_.encodeBase64(signedHash);
+    if(this.trace) {
+      console.log('EdAuth::verifyWithoutTS::signedHashB64=<',signedHashB64,'>');
+    }
+    const msgCal = JSON.parse(JSON.stringify(msg));
+    delete msgCal.auth;
+    const msgCalcStr = JSON.stringify(msgCal);
+    if(this.trace) {
+      console.log('EdAuth::verifyWithoutTS::msgCalcStr=<',msgCalcStr,'>');
+    }
+    const hashCalclB64 = this.util_.calcMessage(msgCalcStr);
+    if(signedHashB64 === hashCalclB64) {
+      msg.auth_address = calcAddress;
+      return true;
+    } else {
+      console.log('EdAuth::verifyWithoutTS::signedHashB64=<',signedHashB64,'>');
+      console.log('EdAuth::verifyWithoutTS::hashCalclB64=<',hashCalclB64,'>');
+    }
+    return false;
+  }
   verifyDid(didDoc) {
     if(this.trace) {
       console.log('EdAuth::verifyDid::didDoc=<',didDoc,'>');

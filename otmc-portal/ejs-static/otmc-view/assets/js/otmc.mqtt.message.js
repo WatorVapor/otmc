@@ -257,19 +257,29 @@ export class MqttMessager {
       console.log('MqttMessager::onMqttMessage_:msgJson=<',msgJson,'>');
       console.log('MqttMessager::onMqttMessage_:this.auth=<',this.auth,'>');
     }
-    const goodMsg = this.auth.verify(msgJson);
+    let goodMsg = this.auth.verify(msgJson);
     if(this.trace) {
       console.log('MqttMessager::onMqttMessage_:goodMsg=<',goodMsg,'>');
     }
     if(!goodMsg) {
-      console.log('MqttMessager::onMqttMessage_:goodMsg=<',goodMsg,'>');
-      console.log('MqttMessager::onMqttMessage_:msgJson=<',msgJson,'>');
-      return;
+      if(topic.endsWith('/historyRelay')) {
+        goodMsg = this.auth.verifyWithoutTS(msgJson);
+      }
+      if(!goodMsg) {
+        console.log('MqttMessager::onMqttMessage_:goodMsg=<',goodMsg,'>');
+        console.log('MqttMessager::onMqttMessage_:msgJson=<',msgJson,'>');
+        return;
+      }
     }
     if(msgJson.topic !== topic) {
       console.log('MqttMessager::onMqttMessage_:topic=<',topic,'>');
       console.log('MqttMessager::onMqttMessage_:msgJson.topic=<',msgJson.topic,'>');
-      return;      
+      if(topic.endsWith('/historyRelay')) {
+        topic = topic.replace('/historyRelay','');
+        if(msgJson.topic !== topic) {
+          return;
+        }
+      }
     }
     const featureTopic = this.getFeatureTopic_(topic);
     if(this.trace) {

@@ -265,6 +265,9 @@ export class MqttMessager {
       if(topic.endsWith('/historyRelay')) {
         goodMsg = this.auth.verifyWithoutTS(msgJson);
       }
+      if(topic.endsWith('/historyRelay4Invitation')) {
+        goodMsg = this.auth.verifyWithoutTS(msgJson);
+      }
       if(!goodMsg) {
         console.log('MqttMessager::onMqttMessage_:goodMsg=<',goodMsg,'>');
         console.log('MqttMessager::onMqttMessage_:msgJson=<',msgJson,'>');
@@ -272,14 +275,19 @@ export class MqttMessager {
       }
     }
     if(msgJson.topic !== topic) {
-      console.log('MqttMessager::onMqttMessage_:topic=<',topic,'>');
-      console.log('MqttMessager::onMqttMessage_:msgJson.topic=<',msgJson.topic,'>');
-      if(topic.endsWith('/historyRelay')) {
-        topic = topic.replace('/historyRelay','');
-        if(msgJson.topic !== topic) {
-          return;
+      if(topic.endsWith('/historyRelay') ||
+        topic.endsWith('/historyRelay4Invitation')
+      ) {
+        const featureTopic = this.getFeatureTopic_(msgJson.topic);
+        if(this.trace) {
+          console.log('MqttMessager::onMqttMessage_:featureTopic=<',featureTopic,'>');
         }
+        this.dispatchMessageHistory_(featureTopic,msgJson.topic,msgJson);
+      } else {
+        console.log('MqttMessager::onMqttMessage_:topic=<',topic,'>');
+        console.log('MqttMessager::onMqttMessage_:msgJson.topic=<',msgJson.topic,'>');
       }
+      return;
     }
     const featureTopic = this.getFeatureTopic_(topic);
     if(this.trace) {
@@ -325,7 +333,28 @@ export class MqttMessager {
       default:
         break;
     }
+  }
+  
+  dispatchMessageHistory_(featureTopic,fullTopic,msgJson) {
+    if(this.trace) {
+      console.log('MqttMessager::dispatchMessageHistory_:featureTopic=<',featureTopic,'>');
+      console.log('MqttMessager::dispatchMessageHistory_:fullTopic=<',fullTopic,'>');
+      console.log('MqttMessager::dispatchMessageHistory_:msgJson=<',msgJson,'>');
+    }
+    switch(featureTopic ) {
+      case 'sys/did/document/seed/store': 
+      case 'sys/did/document/auth/store': 
+        this.otmc.did.storeDidDocumentHistory(msgJson.did,msgJson.auth_address);
+        break;
+      case 'sys/did/invitation/join':
+        this.otmc.emit('didteam:joinLoaded',msgJson);
+        this.otmc.did.onInvitationJoinRequest(msgJson.did,msgJson.auth_address);
+        break;
+      default:
+        break;
+    }
   }  
+  
   
   
   tryCreateAuth_() {

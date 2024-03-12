@@ -72,7 +72,9 @@ export class Otmc extends EventEmitter {
     if(this.trace) {
       console.log('Otmc::syncDidDocument::downloadManifest=:<',downloadManifest,'>');
     }
-    this.mqtt.publish(downloadManifest.topic,downloadManifest,this.mqttOption);
+    if(downloadManifest) {
+      this.mqtt.publish(downloadManifest.topic,downloadManifest,this.mqttOption);
+    }
     
     const downloadDoc = this.did.createSyncDownloadDid();
     if(this.trace) {
@@ -84,7 +86,9 @@ export class Otmc extends EventEmitter {
     if(this.trace) {
       console.log('Otmc::syncDidDocument::downloadInvitation=:<',downloadInvitation,'>');
     }
-    this.mqtt.publish(downloadInvitation.topic,downloadInvitation,this.mqttOption);
+    if(downloadInvitation) {
+      this.mqtt.publish(downloadInvitation.topic,downloadInvitation,this.mqttOption);
+    }
 
   }
   requestJoinDidTeam() {

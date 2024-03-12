@@ -115,23 +115,7 @@ export class DidDocument {
   
   createSyncUploadDid() {
     this.checkEdcrypt_();
-    let role = 'guest';
-    if(this.trace) {
-      console.log('DidDocument::createSyncUploadDid::this.role_=:<',this.role_,'>');
-    }
-    switch (this.role_) {
-      case 'auth.proof.by.seed':
-        role = 'seed';
-        break;
-      case 'auth.proof.by.auth':
-        role = 'auth';
-        break;
-      case 'auth.proof.by.invitation':
-        role = 'invitation';
-        break;
-      default:
-        break;
-    }
+    const role = this.getDidRole_();
     if(this.trace) {
       console.log('DidDocument::createSyncUploadDid::role=:<',role,'>');
     }
@@ -155,25 +139,39 @@ export class DidDocument {
 
   createSyncDownloadDid() {
     this.checkEdcrypt_();
+    const role = this.getDidRole_();
+    if(this.trace) {
+      console.log('DidDocument::createSyncDownloadDid::role=:<',role,'>');
+    }
     const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
-    const syncDid = {
+    const syncDownload = {
       topic:`${prefixDidToTopic}/${this.auth.address()}/sys/did/document/request`,
     };
-    if(this.trace) {
-      console.log('DidDocument::createSyncDownloadDid::syncDid=:<',syncDid,'>');
+    if(role === 'invitation') {
+      syncDownload.topic = `${prefixDidToTopic}/${this.auth.address()}/sys/did/invitation/document/request`;
     }
-    const syncDidSigned = this.auth.sign(syncDid);
     if(this.trace) {
-      console.log('DidDocument::createSyncDownloadDid::syncDidSigned=:<',syncDidSigned,'>');
+      console.log('DidDocument::createSyncDownloadDid::syncDownload=:<',syncDownload,'>');
     }
-    return syncDidSigned;
+    const syncDownloadSigned = this.auth.sign(syncDownload);
+    if(this.trace) {
+      console.log('DidDocument::createSyncDownloadDid::syncDownloadSigned=:<',syncDownloadSigned,'>');
+    }
+    return syncDownloadSigned;
   }
   createSyncDownloadInvitation() {
     this.checkEdcrypt_();
+    const role = this.getDidRole_();
+    if(this.trace) {
+      console.log('DidDocument::createSyncDownloadInvitation::role=:<',role,'>');
+    }
     const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
     const syncDid = {
       topic:`${prefixDidToTopic}/${this.auth.address()}/sys/did/invitation/request`,
     };
+    if(role === 'invitation') {
+      return false;
+    }
     if(this.trace) {
       console.log('DidDocument::createSyncDownloadInvitation::syncDid=:<',syncDid,'>');
     }
@@ -190,16 +188,12 @@ export class DidDocument {
       return false;
     }
     this.checkEdcrypt_();
-    let role = 'guest';
-    switch (this.role_) {
-      case 'auth.proof.by.seed':
-        role = 'seed';
-        break;
-      case 'auth.proof.by.auth':
-        role = 'auth';
-        break;
-      default:
-        break;
+    const role = this.getDidRole_();
+    if(this.trace) {
+      console.log('DidDocument::createSyncUploadManifest::role=:<',role,'>');
+    }
+    if(role === 'invitation') {
+      return false;
     }
     const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
     const syncManifest = {
@@ -218,6 +212,13 @@ export class DidDocument {
 
   createSyncDownloadManifest() {
     this.checkEdcrypt_();
+    const role = this.getDidRole_();
+    if(this.trace) {
+      console.log('DidDocument::createSyncDownloadManifest::role=:<',role,'>');
+    }
+    if(role === 'invitation') {
+      return false;
+    }
     const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
     const syncDid = {
       topic:`${prefixDidToTopic}/${this.auth.address()}/sys/did/manifest/request`,
@@ -232,7 +233,26 @@ export class DidDocument {
     return syncDidSigned;
   }
 
-
+  getDidRole_() {
+    let role = 'guest';
+    if(this.trace) {
+      console.log('DidDocument::getDidRole_::this.role_=:<',this.role_,'>');
+    }
+    switch (this.role_) {
+      case 'auth.proof.by.seed':
+        role = 'seed';
+        break;
+      case 'auth.proof.by.auth':
+        role = 'auth';
+        break;
+      case 'auth.proof.by.invitation':
+        role = 'invitation';
+        break;
+      default:
+        break;
+    }
+    return role;
+  }
 
 
 
@@ -456,6 +476,14 @@ export class DidDocument {
       console.log('DidDocument::onDidDocumentStore::roleInclome:=<',roleInclome,'>');
     }
     
+  }
+  
+  storeDidDocumentHistory(historyDid,acceptAddress) {
+    if(this.trace) {
+      console.log('DidDocument::storeDidDocumentHistory::this.otmc=:<',this.otmc,'>');
+      console.log('DidDocument::storeDidDocumentHistory::historyDid=:<',historyDid,'>');
+      console.log('DidDocument::storeDidDocumentHistory::acceptAddress=:<',acceptAddress,'>');
+    }    
   }
   
   

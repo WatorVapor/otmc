@@ -5,6 +5,14 @@ import { DIDManifest } from './did/manifest.js';
 import { StoreKey } from './otmc.const.js';
 import { DIDSeedDocument, DIDGuestDocument, DIDExpandDocument, DIDAscentDocument } from './did/document.js';
 
+import * as Level  from 'level';
+//console.log('::::Level=:<',Level,'>');
+
+const LEVEL_OPT = {
+  keyEncoding: 'utf8',
+  valueEncoding: 'utf8',
+};
+
 /**
 *
 */
@@ -17,6 +25,8 @@ export class DidDocument {
     setTimeout(() => {
       self.createMoudles_();
     },0);
+    this.dbDocument = new Level.Level('did.document.history',LEVEL_OPT);
+    this.dbManifest = new Level.Level('did.manifest.history',LEVEL_OPT);
   }
   loadDocument() {
     if(this.trace) {
@@ -70,6 +80,10 @@ export class DidDocument {
       }
     } catch(err) {
       console.log('DidDocument::loadDocument::err=:<',err,'>');
+    }
+    if(this.trace) {
+      console.log('DidDocument::loadDocument::this.dbDocument=:<',this.dbDocument,'>');
+      console.log('DidDocument::loadDocument::this.dbManifest=:<',this.dbManifest,'>');
     }
   }
   createSeed() {
@@ -484,6 +498,23 @@ export class DidDocument {
       console.log('DidDocument::storeDidDocumentHistory::historyDid=:<',historyDid,'>');
       console.log('DidDocument::storeDidDocumentHistory::acceptAddress=:<',acceptAddress,'>');
     }    
+    if(this.trace) {
+      console.log('DidDocument::storeDidDocumentHistory::this.dbDocument=:<',this.dbDocument,'>');
+      //console.log('DidDocument::storeDidDocumentHistory::this.dbManifest=:<',this.dbManifest,'>');
+    }
+    this.checkEdcrypt_();
+    if(this.trace) {
+      console.log('DidDocument::storeDidDocumentHistory::this.util=:<',this.util,'>');
+    }
+    const historyStr = JSON.stringify(historyDid);
+    if(this.trace) {
+      console.log('DidDocument::storeDidDocumentHistory::historyStr=:<',historyStr,'>');
+    }
+    const historyAdd = this.util.calcMessage(historyStr)
+    if(this.trace) {
+      console.log('DidDocument::storeDidDocumentHistory::historyAdd=:<',historyAdd,'>');
+    }
+    this.dbDocument.put(historyAdd, historyStr);
   }
   
   

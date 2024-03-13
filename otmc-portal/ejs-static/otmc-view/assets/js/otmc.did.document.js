@@ -253,9 +253,10 @@ export class DidDocument {
       console.log('DidDocument::getDidRole_::this.role_=:<',this.role_,'>');
     }
     switch (this.role_) {
-      case 'auth.proof.by.seed':
+      case 'auth.proof.is.seed':
         role = 'seed';
         break;
+      case 'auth.proof.by.seed':
       case 'auth.proof.by.auth':
         role = 'auth';
         break;
@@ -510,11 +511,19 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::storeDidDocumentHistory::historyStr=:<',historyStr,'>');
     }
-    const historyAdd = this.util.calcMessage(historyStr)
+    const historyAdd = this.util.calcAddress(historyStr)
     if(this.trace) {
       console.log('DidDocument::storeDidDocumentHistory::historyAdd=:<',historyAdd,'>');
     }
-    this.dbDocument.put(historyAdd, historyStr);
+    this.dbDocument.put(historyAdd, historyStr, LEVEL_OPT,(err)=>{
+      if(this.trace) {
+        console.log('DidDocument::storeDidDocumentHistory::put err=:<',err,'>');
+      }      
+    });
+    const self = this;
+    setTimeout(()=>{
+      self.checkDidEvidence_();
+    },5000);
   }
   
   
@@ -583,7 +592,7 @@ export class DidDocument {
       console.log('DidDocument::judgeDidProofChain::didKey=<',didKey,'>');
     }
     if(myAddress === didKey) {
-      proof = 'auth.proof.by.seed';
+      proof = 'auth.proof.is.seed';
     } else {
       if(proofList.authProof && proofList.authProof.length > 0) {
         if(proofList.authProof.includes(didKey)) {
@@ -636,4 +645,70 @@ export class DidDocument {
     return uniqueArray;
   }
   
+  
+  async checkDidEvidence_() {
+    if(this.trace) {
+      console.log('DidDocument::checkDidEvidence_::this.dbDocument=<',this.dbDocument,'>');
+    }
+    const evidences = await this.dbDocument.values().all();
+    if(this.trace) {
+      console.log('DidDocument::checkDidEvidence_::evidences=<',evidences,'>');
+    }
+    for(const evidence of evidences) {
+      if(this.trace) {
+        console.log('DidDocument::checkDidEvidence_::evidence=<',evidence,'>');
+      }
+      const evidenceJson = JSON.parse(evidence);
+      const results = this.auth.verifyDid(evidenceJson);
+      if(this.trace) {
+        console.log('DidDocument::checkDidEvidence_::results=<',results,'>');
+      }
+      let roleEvidence = false;
+      if(this.didManifest_) {
+        roleEvidence = this.judgeDidProofChain(results.proofList,evidenceJson.id,this.didManifest_.diddoc);
+      } else {
+        roleEvidence = this.judgeDidProofChain(results.proofList,evidenceJson.id);      
+      }
+      if(this.trace) {
+        console.log('DidDocument::checkDidEvidence_::roleEvidence:=<',roleEvidence,'>');
+      }
+      if(roleEvidence === 'auth.proof.by.seed') {
+        this.tryExtendDid_(evidenceJson);
+      }
+    }
+  }
+  tryExtendDid_(evidenceJson) {
+    if(this.trace) {
+      console.log('DidDocument::tryExtendDid_::evidenceJson=<',evidenceJson,'>');
+      console.log('DidDocument::tryExtendDid_::this.didDoc_=<',this.didDoc_,'>');
+    }
+    const myRole = this.getDidRole_();
+    if(this.trace) {
+      console.log('DidDocument::tryExtendDid_::myRole=<',myRole,'>');
+    }
+    const myAddress = this.auth.address();
+    if(myRole === 'invitation') {
+      for(const authentication of evidenceJson.authentication) {
+        if(this.trace) {
+          console.log('DidDocument::tryExtendDid_::authentication=<',authentication,'>');
+        }
+        if(authentication.endsWith(myAddress)) {
+          this.upgradeDidDocumentOnInvitation_(evidenceJson);
+        }
+      }
+    }
+  }
+  upgradeDidDocumentOnInvitation_(evidenceJson) {
+    if(this.trace) {
+      console.log('DidDocument::upgradeDidDocumentOnInvitation_::evidenceJson=<',evidenceJson,'>');
+    }
+    const ascentDocument = new DIDAscentDocument(evidenceJson,this.auth);
+    const documentObj = ascentDocument.document();
+    if(this.trace) {
+      console.log('DidDocument::upgradeDidDocumentOnInvitation_::documentObj=<',documentObj,'>');
+    }
+    localStorage.setItem(StoreKey.didDoc,JSON.stringify(documentObj));
+    this.otmc.mqtt.freshMqttJwt();
+    this.loadDocument();
+  }
 }

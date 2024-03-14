@@ -3,7 +3,10 @@ import { EdUtil } from './edcrypto/edutils.js';
 import { EdAuth } from './edcrypto/edauth.js';
 import { DIDManifest } from './did/manifest.js';
 import { StoreKey } from './otmc.const.js';
-import { DIDSeedDocument, DIDGuestDocument, DIDExpandDocument, DIDAscentDocument } from './did/document.js';
+import { 
+  DIDSeedDocument, DIDGuestDocument, 
+  DIDExpandDocument, DIDAscentDocument 
+} from './did/document.js';
 
 import * as Level  from 'level';
 //console.log('::::Level=:<',Level,'>');
@@ -518,7 +521,7 @@ export class DidDocument {
     this.dbDocument.put(historyAdd, historyStr, LEVEL_OPT,(err)=>{
       if(this.trace) {
         console.log('DidDocument::storeDidDocumentHistory::put err=:<',err,'>');
-      }      
+      }
     });
     const self = this;
     setTimeout(()=>{
@@ -675,6 +678,9 @@ export class DidDocument {
       if(roleEvidence === 'auth.proof.by.seed') {
         this.tryExtendDid_(evidenceJson);
       }
+      if(roleEvidence === 'auth.proof.is.seed') {
+        this.tryExtendDid_(evidenceJson);
+      }
     }
   }
   tryExtendDid_(evidenceJson) {
@@ -697,6 +703,16 @@ export class DidDocument {
         }
       }
     }
+    if(myRole === 'seed') {
+      for(const authentication of evidenceJson.authentication) {
+        if(this.trace) {
+          console.log('DidDocument::tryExtendDid_::authentication=<',authentication,'>');
+        }
+        if(authentication.endsWith(myAddress)) {
+          this.upgradeDidDocumentOnChain_(evidenceJson);
+        }
+      }
+    }
   }
   upgradeDidDocumentOnInvitation_(evidenceJson) {
     if(this.trace) {
@@ -710,5 +726,23 @@ export class DidDocument {
     localStorage.setItem(StoreKey.didDoc,JSON.stringify(documentObj));
     this.otmc.mqtt.freshMqttJwt();
     this.loadDocument();
+  }
+  upgradeDidDocumentOnChain_(evidenceJson) {
+    if(this.trace) {
+      console.log('DidDocument::upgradeDidDocumentOnChain_::evidenceJson=<',evidenceJson,'>');
+      console.log('DidDocument::upgradeDidDocumentOnChain_::this.didDoc_=<',this.didDoc_,'>');
+    }
+    if(evidenceJson.authentication.length > this.didDoc_.authentication.length
+      || evidenceJson.verificationMethod.length > this.didDoc_.verificationMethod.length
+      || evidenceJson.capabilityInvocation.length > this.didDoc_.capabilityInvocation.length
+      || evidenceJson.proof.length > this.didDoc_.proof.length
+    ) {
+      const nextUpdate = new Date(evidenceJson.updated);
+      const myUpdate = new Date(this.didDoc_.updated);
+      const escape_ms = nextUpdate - myUpdate;
+      if(this.trace) {
+        console.log('DidDocument::upgradeDidDocumentOnChain_::escape_ms=<',escape_ms,'>');
+      }
+    }
   }
 }

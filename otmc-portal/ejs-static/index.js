@@ -87,14 +87,18 @@ const onOtmcViewCompile = async (ejsSrc) => {
 
 
 const onOtmcViewCopy = (ejsSrc) => {
-  //console.log('onOtmcViewCopy::ejsSrc:=<',ejsSrc ,'>');
-  const copyDst = ejsSrc.replace(ejsViewRoot,htmlViewRoot);
-  //console.log('onOtmcViewCopy::copyDst:=<',copyDst ,'>');
-  const copyDir = path.dirname(copyDst);
-  //console.log('onOtmcViewCopy::copyDir:=<',copyDir ,'>');
-  const copyDstDir = execSync(`mkdir -p ${copyDir}`).toString('utf-8');
-  //console.log('onOtmcViewCopy::copyDstDir:=<',copyDstDir ,'>');
-  const copyResult = execSync(`cp -f ${ejsSrc} ${copyDir}/`).toString('utf-8');
-  //console.log('onOtmcViewCopy::copyResult:=<',copyResult ,'>');
+  try {
+    //console.log('onOtmcViewCopy::ejsSrc:=<',ejsSrc ,'>');
+    const copyDst = ejsSrc.replace(ejsViewRoot,htmlViewRoot);
+    //console.log('onOtmcViewCopy::copyDst:=<',copyDst ,'>');
+    const copyDir = path.dirname(copyDst);
+    //console.log('onOtmcViewCopy::copyDir:=<',copyDir ,'>');
+    const copyDstDir = execSync(`mkdir -p ${copyDir}`).toString('utf-8');
+    //console.log('onOtmcViewCopy::copyDstDir:=<',copyDstDir ,'>');
+    const copyResult = execSync(`cp -f ${ejsSrc} ${copyDir}/`).toString('utf-8');
+    //console.log('onOtmcViewCopy::copyResult:=<',copyResult ,'>');
+  } catch(err) {
+    console.log('onOtmcViewCopy::err:=<',err ,'>');
+  }
 }
 

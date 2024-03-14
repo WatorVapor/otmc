@@ -709,7 +709,7 @@ export class DidDocument {
           console.log('DidDocument::tryExtendDid_::authentication=<',authentication,'>');
         }
         if(authentication.endsWith(myAddress)) {
-          this.upgradeDidDocumentOnChain_(evidenceJson);
+          this.raiseDidDocument_(evidenceJson);
         }
       }
     }
@@ -727,10 +727,10 @@ export class DidDocument {
     this.otmc.mqtt.freshMqttJwt();
     this.loadDocument();
   }
-  upgradeDidDocumentOnChain_(evidenceJson) {
+  raiseDidDocument_(evidenceJson) {
     if(this.trace) {
-      console.log('DidDocument::upgradeDidDocumentOnChain_::evidenceJson=<',evidenceJson,'>');
-      console.log('DidDocument::upgradeDidDocumentOnChain_::this.didDoc_=<',this.didDoc_,'>');
+      console.log('DidDocument::raiseDidDocument_::evidenceJson=<',evidenceJson,'>');
+      console.log('DidDocument::raiseDidDocument_::this.didDoc_=<',this.didDoc_,'>');
     }
     if(evidenceJson.authentication.length > this.didDoc_.authentication.length
       || evidenceJson.verificationMethod.length > this.didDoc_.verificationMethod.length
@@ -741,8 +741,15 @@ export class DidDocument {
       const myUpdate = new Date(this.didDoc_.updated);
       const escape_ms = nextUpdate - myUpdate;
       if(this.trace) {
-        console.log('DidDocument::upgradeDidDocumentOnChain_::escape_ms=<',escape_ms,'>');
+        console.log('DidDocument::raiseDidDocument_::escape_ms=<',escape_ms,'>');
       }
+      this.topdressDidDocument_(evidenceJson);
+    }
+  }
+  topdressDidDocument_(fertiliserJson) {
+    if(this.trace) {
+      console.log('DidDocument::topdressDidDocument_::fertiliserJson=<',fertiliserJson,'>');
+      console.log('DidDocument::topdressDidDocument_::this.didDoc_=<',this.didDoc_,'>');
     }
   }
 }

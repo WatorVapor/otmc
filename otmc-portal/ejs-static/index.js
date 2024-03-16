@@ -1,3 +1,6 @@
+LOG = {
+  trace:false
+};
 const fs = require('fs');
 const path = require('path');
 const execSync = require('child_process').execSync;
@@ -64,11 +67,19 @@ const onOtmcViewCompile = async (ejsSrc) => {
   console.log('onOtmcViewCompile::htmlDstDir:=<',htmlDstDir ,'>');
   const htmlDstTouch = execSync(`touch ${htmlDst}`).toString('utf-8');
   console.log('onOtmcViewCompile::htmlDstTouch:=<',htmlDstTouch ,'>');
+
   
   const rootView = path.resolve(ejsViewRoot);
   console.log('onOtmcViewCompile::rootView:=<',rootView ,'>');
+
+  const htmlViewFull = path.resolve(path.dirname(ejsSrc));
+  console.log('onOtmcViewCompile::htmlViewFull:=<',htmlViewFull ,'>');
+  const htmlViewTitle = htmlViewFull.replace(rootView,'').replaceAll('/','-');
+  console.log('onOtmcViewCompile::htmlViewTitle:=<',htmlViewTitle ,'>');
+
   const data = {
     prefix:htmlViewPrefix,
+    title:htmlViewTitle,
   };
   console.log('onOtmcViewCompile::data:=<',data ,'>');
   const options = {
@@ -78,7 +89,9 @@ const onOtmcViewCompile = async (ejsSrc) => {
   console.log('onOtmcViewCompile::options:=<',options ,'>');
   try {
     const htmlContents = await ejs.renderFile(ejsSrc, data, options);
-    console.log('onOtmcViewCompile::htmlContents:=<',htmlContents ,'>');
+    if(LOG.trace) {
+      console.log('onOtmcViewCompile::htmlContents:=<',htmlContents ,'>');
+    }
     fs.writeFileSync(htmlDst,htmlContents);
   } catch(err) {
     console.log('onOtmcViewCompile::err:=<',err ,'>');    

@@ -4,16 +4,14 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=0.5, maximum-scale=0.5,minimum-scale=0.5">
-    <title>otmc</title>
-    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Raleway:100,600">
-    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/icon?family=Material+Icons">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" integrity="sha256-MBffSnbbXwHCuZtgPYiwMQbfE7z+GOZ7fBPCNB06Z98=" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.3.0/css/all.min.css" integrity="sha256-/4UQcSmErDzPCMAiuOiWPVVsNN2s3ZY/NsmXNcj0IFc=" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@dzangolab/flag-icon-css@3.4.5/css/flag-icon.min.css" integrity="sha256-IRIR3+BLtMymR0ev1oPdR2xRyepuawjkZ2dULRiPlJs=" crossorigin="anonymous">    
-
+    <title>otmc-didteam-document</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/material-icons@1.13.12/css/material-icons.min.css" integrity="sha256-KNrVfo3JedF61w34Vm5xE5nVjcLCo1XXyPKlD8UYVQo=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha256-PI8n5gCcz9cQqQXm3PEtDuPG8qx9oFsFctPg0S5zb8g=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" integrity="sha256-wiz7ZSCn/btzhjKDQBms9Hx4sSeUYsDrTLg7roPstac=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icon-css@4.1.7/css/flag-icons.min.css" integrity="sha256-8qup5VqQKcE2cLILwBU2zpXUkT+eW5tI1ZLzJjh/TdY=" crossorigin="anonymous">
   </script>
   </head>
-  <body>   
+  <body>
     <script src="https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/nacl-fast.min.js" integrity="sha256-PsU1wASu6yJXhdjpP7M7+Z9S45m9ffwBlptWKbrqUTE=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/tweetnacl-util@0.15.1/nacl-util.min.js" integrity="sha256-l9yVE3YPWsTD48cjI2ABjQo466SAR0oLKj1VzQOlZ1U=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/base32.js@0.1.0/dist/base32.min.js" integrity="sha256-ldOeMFJRCfPOxZR9dDqaMn2MZwP94Ut+maKjKQsbK4s=" crossorigin="anonymous"></script>
@@ -23,13 +21,13 @@
         "imports": {
           "otmc": "/otmc/assets/js/otmc.js",
           "nacl": "https://cdn.jsdelivr.net/npm/tweetnacl-es6@1.0.3/nacl-fast-es.min.js",
-          "mqtt": "https://cdn.jsdelivr.net/npm/mqtt@5.3.6/+esm",
+          "mqtt": "https://cdn.jsdelivr.net/npm/mqtt@5.4.0/+esm",
           "@popperjs/core": "https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/esm/popper.min.js",
-          "bootstrap": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.esm.min.js",
+          "bootstrap": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.esm.min.js",
           "eventemitter3": "https://cdn.jsdelivr.net/npm/eventemitter3@5.0.1/dist/eventemitter3.esm.min.js",
-          "xstate": "https://cdn.jsdelivr.net/npm/xstate@5.4.1/+esm",
+          "xstate": "https://cdn.jsdelivr.net/npm/xstate@5.9.1/+esm",
           "level": "https://cdn.jsdelivr.net/npm/level@8.0.1/+esm",
-          "three": "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.min.js",        
+          "three": "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.min.js",
           "vue": "https://cdn.jsdelivr.net/npm/vue@3.4.5/dist/vue.esm-browser.prod.js"
         }
       }
@@ -42,15 +40,13 @@
       const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
       const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
     </script>
-    
     <script type="text/javascript" src="/otmc/assets/js/const.js"></script>
-    <script type="text/javascript" src="/otmc/assets/js/ga.js"></script>
     
 
     <header class="navbar navbar-expand navbar-dark bd-navbar bg-dark fixed-top sticky-top ">
       <nav class="container" aria-label="Main navigation">
         <a class="navbar-brand text-primary btn-lg" href="/otmc/" role="button">
-          <i class="material-icons md-48">home</i>
+          <i class="fa-solid fa-house"></i>
         </a>
         <div class="collapse navbar-collapse d-flex justify-content-start">
           <ul class="navbar-nav">
@@ -81,7 +77,7 @@
               
               <button class="nav-link dropdown-toggle btn-lg" role="button" href="#" data-bs-toggle="dropdown" 
                 data-bs-target="#navbarLanguageDropdown" aria-expanded="true">
-                <i class="material-icons md-48">language</i>
+                <i class="fa-solid fa-globe"></i>
               </button>
               <ul class="dropdown-menu z-index-n2" id="navbarLanguageDropdown">
                 <li class="nav-item">
@@ -100,7 +96,7 @@
             </li>
             <li class="nav-item dropdown ml-5" id="vue-ui-navbar-top-team">
               <a class="nav-link text-success btn-lg" role="button"  href="/otmc/didteam/">
-                <i class="material-icons md-48" >manage_accounts</i>
+                <i class="fa-solid fa-user-gear"></i>
                 {{ accout.name }}
               </a>
             </li>
@@ -132,7 +128,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.28.2/dist/editorjs.umd.js" integrity="sha256-jZHY2Vd0A1MWFmdaD2fySEIfAfKBUHiwWhLppacS24M=" crossorigin="anonymous"></script> 
     <script src="./document.js" type="module"></script>
 
-    <!-- Google tag (gtag.js) -->
+    <!-- Google tag (gtag.js)
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZSKYY24LCP"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -141,6 +137,7 @@
 
       gtag('config', 'G-ZSKYY24LCP');
     </script>
+     -->
     <script type="module" src="/otmc/layout/navbar.js"></script>
     <script type="module" src="/otmc/assets/js/lang.js"></script>
   </body>

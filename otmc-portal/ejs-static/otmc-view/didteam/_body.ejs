@@ -79,7 +79,10 @@
                   </a> 
                   <a class="btn btn-success" href="/otmc/didteam/manifest/" role="button">
                     Did Team Manifest
-                  </a>                 
+                  </a>
+                  <button class="btn btn-danger" @click="clickCheckEvidenceChain()" role="button">
+                    Check Evidence Chain
+                  </button>
                 </div>
               </span>
             </div>
@@ -123,12 +126,12 @@
                   <td>{{ new Date(invitation.created) }}</td>
                   <td>
                     <button class="btn btn-success" type="button" @click="clickAcceptInvitationJoin($event,address)">
-                      <i class="material-icons">check_circle</i>
+                      <i class="fa-solid fa-circle-check"></i>
                     </button>
                   </td>
                   <td>
                     <button class="btn btn-danger" type="button" @click="clickRejectInvitationJoin($event,address)">
-                      <i class="material-icons">cancel</i>
+                      <i class="fa-solid fa-ban"></i>
                     </button>
                   </td>
                 </tr>

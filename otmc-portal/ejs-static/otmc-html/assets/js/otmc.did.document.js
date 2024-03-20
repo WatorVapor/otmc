@@ -10,6 +10,11 @@ import {
 
 import * as Level  from 'level';
 //console.log('::::Level=:<',Level,'>');
+import * as diff  from 'diff';
+//console.log('::::diff=:<',diff,'>')
+import * as jsDiff  from 'jsDiff';
+console.log('::::jsDiff=:<',jsDiff,'>')
+
 
 const LEVEL_OPT = {
   keyEncoding: 'utf8',
@@ -323,13 +328,14 @@ export class DidDocument {
       console.log('DidDocument::acceptInvitation::address=:<',address,'>');
     }
     this.checkEdcrypt_();
-    const joinInvitation = this.joinList_[address];
+    const joinInvitation = JSON.parse(JSON.stringify(this.joinList_[address]));
     if(!joinInvitation) {
       return false;
     }
     if(this.trace) {
       console.log('DidDocument::acceptInvitation::joinInvitation=:<',joinInvitation,'>');
     }
+    delete joinInvitation.invitationType;
     const results = this.auth.verifyDid(joinInvitation);
     if(this.trace) {
       console.log('DidDocument::acceptInvitation::results=:<',results,'>');
@@ -353,27 +359,32 @@ export class DidDocument {
     }
     switch (roleInvitation) {
       case 'auth.proof.by.seed':
-      {
-      }
+        {
+        }
+        break;
       case 'auth.proof.by.none':
-      {
-        if(joinInvitation.authentication && joinInvitation.authentication.length > 0) {
-          nextDid.authentication.push(joinInvitation.authentication[0]);
-        }        
-      }
+        {
+          if(joinInvitation.authentication && joinInvitation.authentication.length > 0) {
+            nextDid.authentication.push(joinInvitation.authentication[0]);
+          }
+        }
+        break;
       case 'capability.proof.by.seed':
-      {
-      }
+        {
+        }
+        break;
       case 'capability.proof.by.none':
-      {
-        if(joinInvitation.capabilityInvocation && joinInvitation.capabilityInvocation.length > 0) {
-          nextDid.capabilityInvocation.push(joinInvitation.capabilityInvocation[0]);
-        }        
-      }
+        {
+          if(joinInvitation.capabilityInvocation && joinInvitation.capabilityInvocation.length > 0) {
+            nextDid.capabilityInvocation.push(joinInvitation.capabilityInvocation[0]);
+          }        
+        }
+        break;
       default:
-      {
-        console.log('DidDocument::acceptInvitation::roleInvitation:=<',roleInvitation,'>');
-      }
+        {
+          console.log('DidDocument::acceptInvitation::roleInvitation:=<',roleInvitation,'>');
+        }
+        break;
     }
     if(nextDid.verificationMethod) {
       nextDid.verificationMethod = this.removeDuplicates(nextDid.verificationMethod);
@@ -523,10 +534,6 @@ export class DidDocument {
         console.log('DidDocument::storeDidDocumentHistory::put err=:<',err,'>');
       }
     });
-    const self = this;
-    setTimeout(()=>{
-      self.checkDidEvidence_();
-    },5000);
   }
   
   
@@ -590,31 +597,30 @@ export class DidDocument {
       console.log('DidDocument::judgeDidProofChain::manifest=<',manifest,'>');
     }
     let proof = 'none.proof';
-    const didKey = did.replace('did:otmc:','');
+    const didAddress = did.replace('did:otmc:','');
     if(this.trace) {
-      console.log('DidDocument::judgeDidProofChain::didKey=<',didKey,'>');
+      console.log('DidDocument::judgeDidProofChain::didAddress=<',didAddress,'>');
     }
-    if(myAddress === didKey) {
-      proof = 'auth.proof.is.seed';
-    } else {
-      if(proofList.authProof && proofList.authProof.length > 0) {
-        if(proofList.authProof.includes(didKey)) {
-          proof = 'auth.proof.by.seed';
-        } else if(proofList.authProof.includes(myAddress)) {
-          proof = this.judgeDidProofChainDeep(proofList,did,manifest);
+    if(proofList.authProof && proofList.authProof.length > 0) {
+      if(proofList.authProof.includes(didAddress)) {
+        proof = 'auth.proof.by.seed';
+        if(myAddress === didAddress) {
+          proof = 'auth.proof.is.seed';
         }
-        else {
-          proof = 'auth.proof.by.none';
-        }
+      } else if(proofList.authProof.includes(myAddress)) {
+        proof = this.judgeDidProofChainDeep(proofList,did,manifest);
       }
-      if(proofList.capabilityProof && proofList.capabilityProof.length > 0) {
-        if(proofList.capabilityProof.includes(didKey)) {
-          proof = 'capability.proof.by.seed';
-        } else if(proofList.capabilityProof.includes(myAddress)) {
-          proof = 'capability.proof.by.auth';
-        } else {
-          proof = 'capability.proof.by.none';
-        }
+      else {
+        proof = 'auth.proof.by.none';
+      }
+    }
+    if(proofList.capabilityProof && proofList.capabilityProof.length > 0) {
+      if(proofList.capabilityProof.includes(didAddress)) {
+        proof = 'capability.proof.by.seed';
+      } else if(proofList.capabilityProof.includes(myAddress)) {
+        proof = 'capability.proof.by.auth';
+      } else {
+        proof = 'capability.proof.by.none';
       }
     }
     if(this.trace) {
@@ -657,11 +663,15 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::checkDidEvidence_::evidences=<',evidences,'>');
     }
+    const evidencesJson = [];
     for(const evidence of evidences) {
       if(this.trace) {
         console.log('DidDocument::checkDidEvidence_::evidence=<',evidence,'>');
       }
       const evidenceJson = JSON.parse(evidence);
+      if(this.trace) {
+        console.log('DidDocument::checkDidEvidence_::evidenceJson=<',evidenceJson,'>');
+      }
       const results = this.auth.verifyDid(evidenceJson);
       if(this.trace) {
         console.log('DidDocument::checkDidEvidence_::results=<',results,'>');
@@ -681,6 +691,7 @@ export class DidDocument {
       if(roleEvidence === 'auth.proof.is.seed') {
         this.tryExtendDid_(evidenceJson);
       }
+      evidencesJson.push(evidenceJson);
     }
   }
   tryExtendDid_(evidenceJson) {
@@ -732,6 +743,27 @@ export class DidDocument {
       console.log('DidDocument::raiseDidDocument_::evidenceJson=<',evidenceJson,'>');
       console.log('DidDocument::raiseDidDocument_::this.didDoc_=<',this.didDoc_,'>');
     }
+    const diffDid = jsDiff.diff(this.didDoc_,evidenceJson);
+    if(this.trace) {
+      console.log('DidDocument::raiseDidDocument_::diffDid=<',diffDid,'>');
+    }
+    if(diffDid) {
+      this.CheckDidDocumentDiff_(diffDid,evidenceJson);
+    }
+  }
+  CheckDidDocumentDiff_(diffDid,evidenceJson) {
+    if(this.trace) {
+      console.log('DidDocument::CheckDidDocumentDiff_::diffDid=<',diffDid,'>');
+      console.log('DidDocument::CheckDidDocumentDiff_::evidenceJson=<',evidenceJson,'>');
+      console.log('DidDocument::CheckDidDocumentDiff_::this.didDoc_=<',this.didDoc_,'>');
+    }
+    for(const diffKey of Object.keys(diffDid)) {
+      if(this.trace) {
+        console.log('DidDocument::CheckDidDocumentDiff_::diffKey=<',diffKey,'>');
+      }
+    }
+    
+    /*
     if(evidenceJson.authentication.length > this.didDoc_.authentication.length
       || evidenceJson.verificationMethod.length > this.didDoc_.verificationMethod.length
       || evidenceJson.capabilityInvocation.length > this.didDoc_.capabilityInvocation.length
@@ -745,7 +777,9 @@ export class DidDocument {
       }
       this.topdressDidDocument_(evidenceJson);
     }
+    */
   }
+
   topdressDidDocument_(fertiliserJson) {
     if(this.trace) {
       console.log('DidDocument::topdressDidDocument_::fertiliserJson=<',fertiliserJson,'>');

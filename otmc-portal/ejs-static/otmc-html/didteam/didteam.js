@@ -69,6 +69,12 @@ const didTeamOption = {
       console.log('clickRequestJoinTeam::otmc=:<',otmc,'>');
       const didDoc = otmc.requestJoinDidTeam();
     },
+    clickCheckEvidenceChain(evt) {
+      console.log('clickCheckEvidenceChain::this=:<',this,'>');
+      const otmc = this.otmc;
+      console.log('clickCheckEvidenceChain::otmc=:<',otmc,'>');
+      const didDoc = otmc.checkEvidenceChain();
+    },
   }, 
 }
 

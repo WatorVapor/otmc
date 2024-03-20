@@ -114,6 +114,12 @@ export class Otmc extends EventEmitter {
     const rejectInvitationReply = this.did.rejectInvitation(address);
     this.mqtt.publish(invitationReply.topic,invitationReply,this.mqttOption);
   }
+  checkEvidenceChain(){
+    if(this.trace) {
+      console.log('Otmc::checkEvidenceChain::new Date()=:<',new Date(),'>');
+    }
+    this.did.checkDidEvidence_();
+  }
 }
 
 

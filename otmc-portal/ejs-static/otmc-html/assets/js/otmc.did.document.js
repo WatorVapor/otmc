@@ -2,6 +2,7 @@ import { Base32 } from './edcrypto/base32.js';
 import { EdUtil } from './edcrypto/edutils.js';
 import { EdAuth } from './edcrypto/edauth.js';
 import { DIDManifest } from './did/manifest.js';
+import { EvidenceChain } from './did/evidence.js';
 import { StoreKey } from './otmc.const.js';
 import { 
   DIDSeedDocument, DIDGuestDocument, 
@@ -93,6 +94,7 @@ export class DidDocument {
       console.log('DidDocument::loadDocument::this.dbDocument=:<',this.dbDocument,'>');
       console.log('DidDocument::loadDocument::this.dbManifest=:<',this.dbManifest,'>');
     }
+    this.evidence = new EvidenceChain(this.auth,this.didDoc_,this.dbDocument,this.dbManifest);
   }
   createSeed() {
     if(this.trace) {
@@ -238,17 +240,17 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::createSyncDownloadManifest::role=:<',role,'>');
     }
-    if(role === 'invitation') {
-      return false;
-    }
     const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
-    const syncDid = {
+    const syncDownload = {
       topic:`${prefixDidToTopic}/${this.auth.address()}/sys/did/manifest/request`,
     };
-    if(this.trace) {
-      console.log('DidDocument::createSyncDownloadManifest::syncDid=:<',syncDid,'>');
+    if(role === 'invitation') {
+      syncDownload.topic = `${prefixDidToTopic}/${this.auth.address()}/sys/did/invitation/manifest/request`;
     }
-    const syncDidSigned = this.auth.sign(syncDid);
+    if(this.trace) {
+      console.log('DidDocument::createSyncDownloadManifest::syncDownload=:<',syncDownload,'>');
+    }
+    const syncDidSigned = this.auth.sign(syncDownload);
     if(this.trace) {
       console.log('DidDocument::createSyncDownloadManifest::syncDidSigned=:<',syncDidSigned,'>');
     }
@@ -507,11 +509,11 @@ export class DidDocument {
     
   }
   
-  storeDidDocumentHistory(historyDid,acceptAddress) {
+  storeDidDocumentHistory(historyDid,uploadAddress) {
     if(this.trace) {
       console.log('DidDocument::storeDidDocumentHistory::this.otmc=:<',this.otmc,'>');
       console.log('DidDocument::storeDidDocumentHistory::historyDid=:<',historyDid,'>');
-      console.log('DidDocument::storeDidDocumentHistory::acceptAddress=:<',acceptAddress,'>');
+      console.log('DidDocument::storeDidDocumentHistory::uploadAddress=:<',uploadAddress,'>');
     }    
     if(this.trace) {
       console.log('DidDocument::storeDidDocumentHistory::this.dbDocument=:<',this.dbDocument,'>');
@@ -536,7 +538,33 @@ export class DidDocument {
     });
   }
   
-  
+  storeDidManifestHistory(historyManifest,uploadAddress) {
+    if(this.trace) {
+      console.log('DidDocument::storeDidManifestHistory::this.otmc=:<',this.otmc,'>');
+      console.log('DidDocument::storeDidManifestHistory::historyDid=:<',historyManifest,'>');
+      console.log('DidDocument::storeDidManifestHistory::uploadAddress=:<',uploadAddress,'>');
+    }    
+    if(this.trace) {
+      console.log('DidDocument::storeDidManifestHistory::this.dbManifest=:<',this.dbManifest,'>');
+    }
+    this.checkEdcrypt_();
+    if(this.trace) {
+      console.log('DidDocument::storeDidManifestHistory::this.util=:<',this.util,'>');
+    }
+    const historyStr = JSON.stringify(historyManifest);
+    if(this.trace) {
+      console.log('DidDocument::storeDidManifestHistory::historyStr=:<',historyStr,'>');
+    }
+    const historyAdd = this.util.calcAddress(historyStr)
+    if(this.trace) {
+      console.log('DidDocument::storeDidManifestHistory::historyAdd=:<',historyAdd,'>');
+    }
+    this.dbManifest.put(historyAdd, historyStr, LEVEL_OPT,(err)=>{
+      if(this.trace) {
+        console.log('DidDocument::storeDidManifestHistory::put err=:<',err,'>');
+      }
+    });
+  }  
   
   
   syncAscentDid_(documentObj,acceptAddress) {

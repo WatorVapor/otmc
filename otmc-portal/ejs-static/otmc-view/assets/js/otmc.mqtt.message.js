@@ -190,7 +190,7 @@ export class MqttMessager {
         const msgJson = JSON.parse(msgUtf8);
         self.onMqttMessage_(topic, msgJson);
       } catch( err ){
-        console.log('MqttMessager::createMqttConnection_::message err=<',err,'>');
+        console.error('MqttMessager::createMqttConnection_::message err=<',err,'>');
       }
     });
     mqttClient.on('packetsend', (packet) => {
@@ -343,15 +343,27 @@ export class MqttMessager {
     }
     switch(featureTopic ) {
       case 'sys/did/document/seed/store': 
+        this.otmc.did.storeDidDocumentHistory(msgJson.did,msgJson.auth_address);
+        break;
       case 'sys/did/document/auth/store': 
         this.otmc.did.storeDidDocumentHistory(msgJson.did,msgJson.auth_address);
+        break;
+      case 'sys/did/manifest/seed/store': 
+        this.otmc.did.storeDidManifestHistory(msgJson.manifest,msgJson.auth_address);
+        break;
+      case 'sys/did/manifest/auth/store': 
+        this.otmc.did.storeDidManifestHistory(msgJson.manifest,msgJson.auth_address);
         break;
       case 'sys/did/invitation/join':
         this.otmc.emit('didteam:joinLoaded',msgJson);
         this.otmc.did.onInvitationJoinRequest(msgJson.did,msgJson.auth_address);
         break;
       default:
+        console.log('MqttMessager::dispatchMessageHistory_:featureTopic=<',featureTopic,'>');
         break;
+    }
+    if(this.trace) {
+      console.log('MqttMessager::dispatchMessageHistory_:featureTopic=<',featureTopic,'>');
     }
   }  
   

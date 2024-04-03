@@ -1,8 +1,17 @@
 import * as xstate  from 'xstate';
 console.log('::did::xstate=:<',xstate,'>');
 import { createMachine, createActor, assign  }  from 'xstate';
+import { EvidenceChain } from './did/evidence.js';
+
+const LOG = {
+  trace:true,
+  debug:true,
+};
 
 export class DidDocStateMachine {
+  static trace = true;
+  static debug = true;
+
   static otmc = false;
   static instances = {};
   constructor(parentRef) {
@@ -33,19 +42,27 @@ export class DidDocStateMachine {
     this.actor.send({type:'init'});
   }
 }
-
 const didDocStateTable = {
   genesis: {
     on: {
       'init': { 
         actions: assign({ otmc: () => {
+          loadEvidenceChain(DidDocStateMachine.otmc);
         }})
       },
-      'edcrypt:address': 'edKeyReady',
     } 
   },
 }
 
+let gEvidence = false;
+const loadEvidenceChain = (otmc) => {
+  gEvidence = new EvidenceChain(otmc.did.auth,otmc.did.didDoc_,otmc.did.dbDocument,otmc.did.dbManifest);
+  if(LOG.trace) {
+    console.log('DidDocStateMachine::loadEvidenceChain::otmc.did=:<',otmc.did,'>');
+  }
+  //otmc.did.docState.actor.send({type:'chain.load'})
+  //otmc.did.rtState.actor.send({type:'chain.load'})
+}
 
 
 export class DidRuntimeStateMachine {
@@ -87,7 +104,6 @@ const didRuntimeStateTable = {
         actions: assign({ otmc: () => {
         }})
       },
-      'edcrypt:address': 'edKeyReady',
     } 
   },
 }

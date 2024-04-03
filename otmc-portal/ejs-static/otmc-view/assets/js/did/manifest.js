@@ -110,8 +110,13 @@ export class DIDManifest {
   constructor() {
   }
   
-  static rule(did) {
+  static ruleChain(did) {
     const myRule = JSON.parse(JSON.stringify(DIDManifest.openRule));
+    myRule.id = did;
+    return myRule;
+  }
+  static ruleDogma(did) {
+    const myRule = JSON.parse(JSON.stringify(DIDManifest.dogmaRule));
     myRule.id = did;
     return myRule;
   }

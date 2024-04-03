@@ -1,9 +1,10 @@
 export class EvidenceChain {
-  static trace1 = false;
-  static trace2 = false;
-  static trace3 = false;
+  static trace1 = true;
+  static trace2 = true;
+  static trace3 = true;
   static trace4 = true;
-  static trace = false;
+  static trace5 = true;
+  static trace = true;
   static debug = true;
   constructor(auth,docTop,docDb,manifestDb) {
     if(EvidenceChain.trace1) {
@@ -21,19 +22,28 @@ export class EvidenceChain {
       self.loadEvidenceChain();
     },100);
     this.tree_ = {};
+    this.didRule_ = {};
   }
   async loadEvidenceChain() {
+    const didRule = await this.loadDidRuleFromManifest_();
+    if(EvidenceChain.trace2) {
+      console.log('EvidenceChain::loadEvidenceChain::didRule=<',didRule,'>');
+    }
+    if(!didRule) {
+      return;
+    }
+    this.didRule_ = didRule;
     const evidences = await this.docDB_.values().all();
-    if(EvidenceChain.trace1) {
+    if(EvidenceChain.trace2) {
       console.log('EvidenceChain::loadEvidenceChain::evidences=<',evidences,'>');
     }
     const evidencesJson = [];
     for(const evidence of evidences) {
-      if(EvidenceChain.trace) {
+      if(EvidenceChain.trace2) {
         console.log('EvidenceChain::loadEvidenceChain::evidence=<',evidence,'>');
       }
       const evidenceJson = JSON.parse(evidence);
-      if(EvidenceChain.trace) {
+      if(EvidenceChain.trace2) {
         console.log('EvidenceChain::loadEvidenceChain::evidenceJson=<',evidenceJson,'>');
       }
       evidencesJson.push(evidenceJson);
@@ -42,11 +52,11 @@ export class EvidenceChain {
       console.log('EvidenceChain::loadEvidenceChain::evidencesJson=<',evidencesJson,'>');
     }
     this.calacEvidenceProofChainDB(evidencesJson);
-    if(EvidenceChain.trace4) {
+    if(EvidenceChain.trace2) {
       console.log('EvidenceChain::loadEvidenceChain::this.tree_=<',this.tree_,'>');
     }
   }
-  async calacEvidenceProofChainDB(evidenceDids) {
+  calacEvidenceProofChainDB(evidenceDids) {
     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::calacEvidenceProofChainDB::evidenceDids=<',evidenceDids,'>');
     }
@@ -77,9 +87,9 @@ export class EvidenceChain {
               console.log('EvidenceChain::calacEvidenceProofChainDB::evidenceDid=<',evidenceDid,'>');
             }
             if(seedKeyId === authProof) {
-              await this.trySaveSeedEvidenceTree(evidenceDid,seedKeyId,authedList);
+              this.trySaveSeedEvidenceTree(evidenceDid,seedKeyId,authedList);
             } else {
-              await this.trySaveLeafEvidenceTree(evidenceDid,authProof,authedList);
+              this.trySaveLeafEvidenceTree(evidenceDid,authProof,authedList);
             }
           }
         }
@@ -87,7 +97,7 @@ export class EvidenceChain {
     }  
   }
 
-  async collectAllAuthedKeyId(did,nodeId) {
+  collectAllAuthedKeyId(did,nodeId) {
     if(EvidenceChain.trace3) {
       console.log('EvidenceChain::collectAllAuthedKeyId::this.tree_=<',this.tree_,'>');
     }
@@ -116,11 +126,11 @@ export class EvidenceChain {
   }
   
   
-  async trySaveSeedEvidenceTree(evidenceDid,seedKeyId,authedList) {
+  trySaveSeedEvidenceTree(evidenceDid,seedKeyId,authedList) {
     if(EvidenceChain.trace3) {
       console.log('EvidenceChain::trySaveSeedEvidenceTree::authedList=<',authedList,'>');
     }
-    const allAuthedKeyIds = await this.collectAllAuthedKeyId(evidenceDid.id,seedKeyId);
+    const allAuthedKeyIds = this.collectAllAuthedKeyId(evidenceDid.id,seedKeyId);
     if(EvidenceChain.trace3) {
       console.log('EvidenceChain::trySaveSeedEvidenceTree::allAuthedKeyIds=<',allAuthedKeyIds,'>');
     }
@@ -165,11 +175,11 @@ export class EvidenceChain {
 
 
 
-  async trySaveLeafEvidenceTree(evidenceDid,leafKeyId,authedList){
+  trySaveLeafEvidenceTree(evidenceDid,leafKeyId,authedList){
     if(EvidenceChain.trace3) {
       console.log('EvidenceChain::trySaveLeafEvidenceTree::authedList=<',authedList,'>');
     }
-    const allAuthedKeyIds = await this.collectAllAuthedKeyId(evidenceDid.id);
+    const allAuthedKeyIds = this.collectAllAuthedKeyId(evidenceDid.id);
     if(EvidenceChain.trace3) {
       console.log('EvidenceChain::trySaveLeafEvidenceTree::allAuthedKeyIds=<',allAuthedKeyIds,'>');
     }
@@ -186,7 +196,7 @@ export class EvidenceChain {
         }
       }
       if(newComing) {
-        const result = await savedNode.save();
+        const result = savedNode.save();
         if(EvidenceChain.trace3) {
           console.log('EvidenceChain::trySaveLeafEvidenceTree::result=<',result,'>');
         }
@@ -208,12 +218,35 @@ export class EvidenceChain {
       console.log('EvidenceChain::trySaveLeafEvidenceTree::newNode=<',newNode,'>');
     }
     this.tree_[leafKeyId] = newNode;
-    if(EvidenceChain.trace3) {
+    if(EvidenceChain.trace5) {
       console.log('EvidenceChain::trySaveSeedEvidenceTree::this.tree_=<',this.tree_,'>');
     }
   }
 
 
-
+  async loadDidRuleFromManifest_() {
+    const manifests = await this.manifestDb_.values().all();
+    if(EvidenceChain.trace5) {
+      console.log('EvidenceChain::loadDidRuleFromManifest_::manifests=<',manifests,'>');
+    }
+    const manifestsJson = [];
+    for(const manifest of manifests) {
+      if(EvidenceChain.trace5) {
+        console.log('EvidenceChain::loadDidRuleFromManifest_::manifest=<',manifest,'>');
+      }
+      const manifestJson = JSON.parse(manifest);
+      if(EvidenceChain.trace5) {
+        console.log('EvidenceChain::loadDidRuleFromManifest_::manifestJson=<',manifestJson,'>');
+      }
+      manifestsJson.push(manifestJson);
+    }
+    if(EvidenceChain.trace5) {
+      console.log('EvidenceChain::loadDidRuleFromManifest_::manifestsJson=<',manifestsJson,'>');
+    }
+    if(manifestsJson.length > 0) {
+      return manifestsJson[0].diddoc;
+    }
+    return false;
+  }
 
 }

@@ -4,10 +4,18 @@ import { EdAuth } from './edcrypto/edauth.js';
 import { DIDManifest } from './did/manifest.js';
 import { EvidenceChain } from './did/evidence.js';
 import { StoreKey } from './otmc.const.js';
+
 import { 
-  DIDSeedDocument, DIDGuestDocument, 
-  DIDExpandDocument, DIDAscentDocument 
+  DIDSeedDocument,
+  DIDGuestDocument, 
+  DIDExpandDocument,
+  DIDAscentDocument 
 } from './did/document.js';
+
+import {
+ DidDocStateMachine,
+ DidRuntimeStateMachine } from './otmc.did.stm.js';
+
 
 import * as Level  from 'level';
 //console.log('::::Level=:<',Level,'>');
@@ -15,6 +23,9 @@ import * as diff  from 'diff';
 //console.log('::::diff=:<',diff,'>')
 import * as jsDiff  from 'jsDiff';
 console.log('::::jsDiff=:<',jsDiff,'>')
+
+
+
 
 
 const LEVEL_OPT = {
@@ -94,7 +105,9 @@ export class DidDocument {
       console.log('DidDocument::loadDocument::this.dbDocument=:<',this.dbDocument,'>');
       console.log('DidDocument::loadDocument::this.dbManifest=:<',this.dbManifest,'>');
     }
-    this.evidence = new EvidenceChain(this.auth,this.didDoc_,this.dbDocument,this.dbManifest);
+    const otmcRefer = {otmc:this.otmc};
+    this.docState = new DidDocStateMachine(otmcRefer);
+    this.rtState = new DidRuntimeStateMachine(otmcRefer);
   }
   createSeed() {
     if(this.trace) {
@@ -114,7 +127,7 @@ export class DidDocument {
       console.log('DidDocument::createSeed::documentObj=:<',documentObj,'>');
     }
     localStorage.setItem(StoreKey.didDoc,JSON.stringify(documentObj));
-    const manifest = DIDManifest.rule();
+    const manifest = DIDManifest.ruleChain();
     localStorage.setItem(StoreKey.manifest,JSON.stringify(manifest));
     return documentObj;
   }

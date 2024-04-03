@@ -3,6 +3,8 @@ console.log('::did::xstate=:<',xstate,'>');
 import { createMachine, createActor, assign  }  from 'xstate';
 import { EvidenceChain } from './did/evidence.js';
 
+const Evidence = {};
+
 const LOG = {
   trace:true,
   debug:true,
@@ -42,26 +44,39 @@ export class DidDocStateMachine {
     this.actor.send({type:'init'});
   }
 }
+
 const didDocStateTable = {
   genesis: {
     on: {
-      'init': { 
+      'init': {
         actions: assign({ otmc: () => {
           loadEvidenceChain(DidDocStateMachine.otmc);
         }})
       },
+      'chain.load':'evidenceChainReady',
+      'manifest.lack':'evidenceFailure',
+    } 
+  },
+  evidenceChainReady: {
+    entry:assign({ otmc: () => {
+      Evidence.chain.calcDidAuth();
+    }}),
+    on: {
+    } 
+  },
+  evidenceFailure: {
+    entry:assign({ otmc: () => {
+    }}),
+    on: {
     } 
   },
 }
 
-let gEvidence = false;
 const loadEvidenceChain = (otmc) => {
-  gEvidence = new EvidenceChain(otmc.did.auth,otmc.did.didDoc_,otmc.did.dbDocument,otmc.did.dbManifest);
+  Evidence.chain = new EvidenceChain(otmc.did);
   if(LOG.trace) {
     console.log('DidDocStateMachine::loadEvidenceChain::otmc.did=:<',otmc.did,'>');
   }
-  //otmc.did.docState.actor.send({type:'chain.load'})
-  //otmc.did.rtState.actor.send({type:'chain.load'})
 }
 
 

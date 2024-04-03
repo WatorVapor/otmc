@@ -6,17 +6,15 @@ export class EvidenceChain {
   static trace5 = true;
   static trace = true;
   static debug = true;
-  constructor(auth,docTop,docDb,manifestDb) {
+  constructor(didMgr) {
     if(EvidenceChain.trace1) {
-      console.log('EvidenceChain::constructor::auth=<',auth,'>');
-      console.log('EvidenceChain::constructor::docTop=<',docTop,'>');
-      console.log('EvidenceChain::constructor::docDb=<',docDb,'>');
-      console.log('EvidenceChain::constructor::manifestDb=<',manifestDb,'>');
+      console.log('EvidenceChain::constructor::didMgr=<',didMgr,'>');
     }
-    this.auth_ = auth;
-    this.docTop_ = docTop;
-    this.docDB_ = docDb;
-    this.manifestDb_ = manifestDb;
+    this.auth_ = didMgr.auth;
+    this.docTop_ = didMgr.didDoc_;
+    this.docDB_ = didMgr.dbDocument;
+    this.manifestDb_ = didMgr.dbManifest;
+    this.actor_ = didMgr.docState.actor;
     const self = this;
     setTimeout(()=>{
       self.loadEvidenceChain();
@@ -24,12 +22,18 @@ export class EvidenceChain {
     this.tree_ = {};
     this.didRule_ = {};
   }
+  calcDidAuth() {
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::calcDidAuth::this.docTop_=<',this.docTop_,'>');
+    }    
+  }
   async loadEvidenceChain() {
     const didRule = await this.loadDidRuleFromManifest_();
     if(EvidenceChain.trace2) {
       console.log('EvidenceChain::loadEvidenceChain::didRule=<',didRule,'>');
     }
     if(!didRule) {
+      this.actor_.send({type:'manifest.lack'});
       return;
     }
     this.didRule_ = didRule;
@@ -55,6 +59,7 @@ export class EvidenceChain {
     if(EvidenceChain.trace2) {
       console.log('EvidenceChain::loadEvidenceChain::this.tree_=<',this.tree_,'>');
     }
+    this.actor_.send({type:'chain.load'});
   }
   calacEvidenceProofChainDB(evidenceDids) {
     if(EvidenceChain.trace1) {

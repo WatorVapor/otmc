@@ -52,7 +52,7 @@ const otmcStateTable = {
           OtmcStateMachine.otmc.edcrypt.loadKey();
         }})
       },
-      'edcrypt:address': 'edKeyReady',      
+      'edcrypt:address': 'edKeyReady',
     } 
   },
   edKeyReady: {

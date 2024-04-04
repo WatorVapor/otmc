@@ -3,23 +3,21 @@ console.log('::did::xstate=:<',xstate,'>');
 import { createMachine, createActor, assign  }  from 'xstate';
 import { EvidenceChain } from './did/evidence.js';
 
-const Evidence = {};
-
 const LOG = {
   trace:true,
   debug:true,
 };
 
 export class DidDocStateMachine {
-  static trace = true;
-  static debug = true;
-
   static otmc = false;
+  static chain = false;
   static instances = {};
   constructor(parentRef) {
     this.trace = true;
     this.debug = true;
-    console.log('DidDocStateMachine::constructor::parentRef=:<',parentRef,'>');
+    if(this.trace) {
+      console.log('DidDocStateMachine::constructor::parentRef=:<',parentRef,'>');
+    }
     DidDocStateMachine.otmc = parentRef.otmc;
     const self = this;
     setTimeout(()=>{
@@ -37,11 +35,16 @@ export class DidDocStateMachine {
     }
     const stateMachine = createMachine(stmOption);
     this.actor = createActor(stateMachine);
+    DidDocStateMachine.chain = new EvidenceChain(DidDocStateMachine.otmc.did);
+    
     this.actor.subscribe((state) => {
       console.log('DidDocStateMachine::createStateMachine_::state.value=:<',state.value,'>');
     });
     this.actor.start();
-    this.actor.send({type:'init'});
+    const self = this;
+    setTimeout(()=>{
+      self.actor.send({type:'init'});
+    },1);
   }
 }
 
@@ -50,7 +53,7 @@ const didDocStateTable = {
     on: {
       'init': {
         actions: assign({ otmc: () => {
-          loadEvidenceChain(DidDocStateMachine.otmc);
+          DidDocStateMachine.chain.loadEvidenceChain();
         }})
       },
       'chain.load':'evidenceChainReady',
@@ -59,7 +62,7 @@ const didDocStateTable = {
   },
   evidenceChainReady: {
     entry:assign({ otmc: () => {
-      Evidence.chain.calcDidAuth();
+      DidDocStateMachine.chain.calcDidAuth();
     }}),
     on: {
     } 
@@ -72,12 +75,6 @@ const didDocStateTable = {
   },
 }
 
-const loadEvidenceChain = (otmc) => {
-  Evidence.chain = new EvidenceChain(otmc.did);
-  if(LOG.trace) {
-    console.log('DidDocStateMachine::loadEvidenceChain::otmc.did=:<',otmc.did,'>');
-  }
-}
 
 
 export class DidRuntimeStateMachine {

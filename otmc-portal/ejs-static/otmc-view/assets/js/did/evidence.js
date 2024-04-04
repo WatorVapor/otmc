@@ -11,22 +11,120 @@ export class EvidenceChain {
       console.log('EvidenceChain::constructor::didMgr=<',didMgr,'>');
     }
     this.auth_ = didMgr.auth;
-    this.docTop_ = didMgr.didDoc_;
+    this.docTop_ = JSON.parse(JSON.stringify(didMgr.didDoc_));
     this.docDB_ = didMgr.dbDocument;
     this.manifestDb_ = didMgr.dbManifest;
     this.actor_ = didMgr.docState.actor;
-    const self = this;
-    setTimeout(()=>{
-      self.loadEvidenceChain();
-    },100);
     this.tree_ = {};
+    this.seed_ = {};
     this.didRule_ = {};
   }
+
   calcDidAuth() {
     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::calcDidAuth::this.docTop_=<',this.docTop_,'>');
-    }    
+    }
+    const isGoodDid = this.auth_.verifyDid(this.docTop_);
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::calcDidAuth::isGoodDid=<',isGoodDid,'>');
+    }
+    const seedTracedIds = this.collectSeedTracedKeyId_();
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::calcDidAuth::seedTracedIds=<',seedTracedIds,'>');
+    }
+    const myAddress = this.auth_.address();
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::calcDidAuth::myAddress=<',myAddress,'>');
+    }
+    const didAddress = this.docTop_.id.replace('did:otmc:','');
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::calcDidAuth::didAddress=<',didAddress,'>');
+    }
+    let proof = 'none.proof';
+    const proofList = isGoodDid.proofList;
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::calcDidAuth::proofList=<',proofList,'>');
+    }
+    if(proofList.authProof && proofList.authProof.length > 0) {
+      if(proofList.authProof.includes(didAddress)) {
+        proof = 'auth.proof.by.seed';
+        if(myAddress === didAddress) {
+          proof = 'auth.proof.is.seed';
+        }
+      } else if(proofList.authProof.includes(myAddress)) {
+        if(seedTracedIds.includes(myAddress)) {
+          proof = 'auth.proof.by.auth';
+        } else {
+          proof = 'auth.proof.by.none';
+        }
+      }
+      else {
+        proof = 'auth.proof.by.none';
+      }
+    }
+    if(proofList.capabilityProof && proofList.capabilityProof.length > 0) {
+      if(proofList.capabilityProof.includes(didAddress)) {
+        proof = 'capability.proof.by.seed';
+      } else if(proofList.capabilityProof.includes(myAddress)) {
+        proof = 'capability.proof.by.auth';
+      } else {
+        proof = 'capability.proof.by.none';
+      }
+    }
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::calcDidAuth::proof=<',proof,'>');
+    }
   }
+  
+  collectSeedTracedKeyId_ () {
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::collectSeedTracedKeyId_::this.tree_=<',this.tree_,'>');
+    }
+    const seedKeyId = this.docTop_.id.replace('did:otmc:','');
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::collectSeedTracedKeyId_::seedKeyId=<',seedKeyId,'>');
+    }
+    const seedAuthed = this.tree_[seedKeyId];;
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::collectSeedTracedKeyId_::seedAuthed=<',seedAuthed,'>');
+    }
+    const tracedIds = [];
+    for(const proof of seedAuthed.proof) {
+      if(EvidenceChain.trace1) {
+        console.log('EvidenceChain::collectSeedTracedKeyId_::proof=<',proof,'>');
+      }
+      tracedIds.push(proof);
+      if(EvidenceChain.trace1) {
+        console.log('EvidenceChain::collectSeedTracedKeyId_::this.didRule_=<',this.didRule_,'>');
+      }
+      if(this.didRule_ && this.didRule_.authentication && this.didRule_.authentication.policy === 'Proof.Chain') {
+        if(proof !== seedKeyId) {
+          this.collectSeedTracedKeyIdFromLeaf_(this.tree_[proof],tracedIds,seedKeyId);
+        }
+      }
+    }
+    return tracedIds;
+  }
+  collectSeedTracedKeyIdFromLeaf_ (leafProof,tracedIds,seedKeyId) {
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::collectSeedTracedKeyIdFromLeaf_::leafProof=<',leafProof,'>');
+      console.log('EvidenceChain::collectSeedTracedKeyIdFromLeaf_::tracedIds=<',tracedIds,'>');
+    }
+    for(const proof of leafProof.proof) {
+      if(EvidenceChain.trace1) {
+        console.log('EvidenceChain::collectSeedTracedKeyIdFromLeaf_::proof=<',proof,'>');
+      }
+      tracedIds.push(proof);
+      if(EvidenceChain.trace1) {
+        console.log('EvidenceChain::collectSeedTracedKeyIdFromLeaf_::this.didRule_=<',this.didRule_,'>');
+      }
+      if(proof !== seedKeyId) {
+        this.collectSeedTracedKeyIdFromLeaf_(this.tree_[proof],tracedIds);
+      }
+    }
+  }
+
+
   async loadEvidenceChain() {
     const didRule = await this.loadDidRuleFromManifest_();
     if(EvidenceChain.trace2) {

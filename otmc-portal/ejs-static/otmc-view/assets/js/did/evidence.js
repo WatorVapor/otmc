@@ -65,8 +65,15 @@ export class EvidenceChain {
     if(proofList.capabilityProof && proofList.capabilityProof.length > 0) {
       if(proofList.capabilityProof.includes(didAddress)) {
         proof = 'capability.proof.by.seed';
+        if(myAddress === didAddress) {
+          proof = 'capability.proof.is.seed';
+        }
       } else if(proofList.capabilityProof.includes(myAddress)) {
-        proof = 'capability.proof.by.auth';
+        if(seedTracedIds.includes(myAddress)) {
+          proof = 'capability.proof.by.auth';
+        } else {
+          proof = 'capability.proof.by.none';
+        }
       } else {
         proof = 'capability.proof.by.none';
       }

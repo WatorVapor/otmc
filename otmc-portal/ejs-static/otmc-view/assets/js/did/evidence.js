@@ -81,6 +81,7 @@ export class EvidenceChain {
     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::calcDidAuth::proof=<',proof,'>');
     }
+    this.actor_.send({type:proof});
   }
   
   collectSeedTracedKeyId_ () {

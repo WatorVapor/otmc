@@ -65,9 +65,30 @@ const didDocStateTable = {
       DidDocStateMachine.chain.calcDidAuth();
     }}),
     on: {
+      'auth.proof.is.seed':'authIsSeed',
+      'auth.proof.by.seed':'authBySeed',
+      'auth.proof.by.auth':'authByAuth',
     } 
   },
   evidenceFailure: {
+    entry:assign({ otmc: () => {
+    }}),
+    on: {
+    } 
+  },
+  authIsSeed: {
+    entry:assign({ otmc: () => {
+    }}),
+    on: {
+    } 
+  },
+  authBySeed: {
+    entry:assign({ otmc: () => {
+    }}),
+    on: {
+    } 
+  },
+  authByAuth: {
     entry:assign({ otmc: () => {
     }}),
     on: {

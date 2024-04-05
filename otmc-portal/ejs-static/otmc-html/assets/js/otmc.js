@@ -49,6 +49,7 @@ export class Otmc extends EventEmitter {
   joinDidTeamAsAuth(id) {
     return this.did.createJoinAsAuth(id);
   }
+  
   syncDidDocument(){
     if(this.trace) {
       console.log('Otmc::syncDidDocument::new Date()=:<',new Date(),'>');

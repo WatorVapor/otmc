@@ -33,12 +33,14 @@ export class DidDocStateMachine {
     if(this.trace) {
       console.log('DidDocStateMachine::createStateMachine_::stmOption=:<',stmOption,'>');
     }
-    const stateMachine = createMachine(stmOption);
-    this.actor = createActor(stateMachine);
+    this.stm = createMachine(stmOption);
+    this.actor = createActor(this.stm);
     DidDocStateMachine.chain = new EvidenceChain(DidDocStateMachine.otmc.did);
     
     this.actor.subscribe((state) => {
+      console.log('DidDocStateMachine::createStateMachine_::state=:<',state,'>');
       console.log('DidDocStateMachine::createStateMachine_::state.value=:<',state.value,'>');
+      console.log('DidDocStateMachine::createStateMachine_::this.stm=:<',this.stm,'>');
     });
     this.actor.start();
     const self = this;
@@ -68,31 +70,38 @@ const didDocStateTable = {
       'auth.proof.is.seed':'authIsSeed',
       'auth.proof.by.seed':'authBySeed',
       'auth.proof.by.auth':'authByAuth',
+      'auth.proof.by.none':'authByNone',
     } 
   },
   evidenceFailure: {
     entry:assign({ otmc: () => {
     }}),
     on: {
-    } 
+    }
   },
   authIsSeed: {
     entry:assign({ otmc: () => {
     }}),
     on: {
-    } 
+    }
   },
   authBySeed: {
     entry:assign({ otmc: () => {
     }}),
     on: {
-    } 
+    }
   },
   authByAuth: {
     entry:assign({ otmc: () => {
     }}),
     on: {
-    } 
+    }
+  },
+  authByNone: {
+    entry:assign({ otmc: () => {
+    }}),
+    on: {
+    }
   },
 }
 

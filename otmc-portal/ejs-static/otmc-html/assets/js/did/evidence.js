@@ -1,3 +1,5 @@
+const includesAny = (arr, values) => values.some(v => arr.includes(v));
+
 export class EvidenceChain {
   static trace1 = true;
   static trace2 = true;
@@ -40,44 +42,7 @@ export class EvidenceChain {
     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::calcDidAuth::didAddress=<',didAddress,'>');
     }
-    let proof = 'none.proof';
-    const proofList = isGoodDid.proofList;
-    if(EvidenceChain.trace1) {
-      console.log('EvidenceChain::calcDidAuth::proofList=<',proofList,'>');
-    }
-    if(proofList.authProof && proofList.authProof.length > 0) {
-      if(proofList.authProof.includes(didAddress)) {
-        proof = 'auth.proof.by.seed';
-        if(myAddress === didAddress) {
-          proof = 'auth.proof.is.seed';
-        }
-      } else if(proofList.authProof.includes(myAddress)) {
-        if(seedTracedIds.includes(myAddress)) {
-          proof = 'auth.proof.by.auth';
-        } else {
-          proof = 'auth.proof.by.none';
-        }
-      }
-      else {
-        proof = 'auth.proof.by.none';
-      }
-    }
-    if(proofList.capabilityProof && proofList.capabilityProof.length > 0) {
-      if(proofList.capabilityProof.includes(didAddress)) {
-        proof = 'capability.proof.by.seed';
-        if(myAddress === didAddress) {
-          proof = 'capability.proof.is.seed';
-        }
-      } else if(proofList.capabilityProof.includes(myAddress)) {
-        if(seedTracedIds.includes(myAddress)) {
-          proof = 'capability.proof.by.auth';
-        } else {
-          proof = 'capability.proof.by.none';
-        }
-      } else {
-        proof = 'capability.proof.by.none';
-      }
-    }
+    const proof = this.searchProofFromChain_(isGoodDid.proofList,didAddress,myAddress,seedTracedIds);
     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::calcDidAuth::proof=<',proof,'>');
     }
@@ -130,6 +95,64 @@ export class EvidenceChain {
         this.collectSeedTracedKeyIdFromLeaf_(this.tree_[proof],tracedIds);
       }
     }
+  }
+  searchProofFromChain_(proofList,didAddress,myAddress,seedTracedIds) {
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::searchProofFromChain_::proofList=<',proofList,'>');
+      console.log('EvidenceChain::searchProofFromChain_::didAddress=<',didAddress,'>');
+      console.log('EvidenceChain::searchProofFromChain_::myAddress=<',myAddress,'>');
+      console.log('EvidenceChain::searchProofFromChain_::seedTracedIds=<',seedTracedIds,'>');
+    }
+    let proof = 'none.proof';
+    if(proofList.authProof && proofList.authProof.length > 0) {
+      if(proofList.authProof.includes(didAddress)) {
+        proof = 'auth.proof.by.seed';
+        if(myAddress === didAddress) {
+          proof = 'auth.proof.is.seed';
+        }
+      } else if(proofList.authProof.includes(myAddress)) {
+        const poofHint = includesAny(proofList.authProof,seedTracedIds);
+        if(EvidenceChain.trace1) {
+          console.log('EvidenceChain::searchProofFromChain_::poofHint=<',poofHint,'>');
+        }
+        if(poofHint) {
+          proof = 'auth.proof.by.auth';
+        } else {
+          proof = 'auth.proof.by.none';
+        }
+      } else {
+        for(const proofId of proofList.authProof) {
+          if(EvidenceChain.trace1) {
+            console.log('EvidenceChain::searchProofFromChain_::proofId=<',proofId,'>');
+          }
+        }
+        proof = 'auth.proof.by.none';
+      }
+    }
+    if(proofList.capabilityProof && proofList.capabilityProof.length > 0) {
+      if(proofList.capabilityProof.includes(didAddress)) {
+        proof = 'capability.proof.by.seed';
+        if(myAddress === didAddress) {
+          proof = 'capability.proof.is.seed';
+        }
+      } else if(proofList.capabilityProof.includes(myAddress)) {
+        const poofHintCapability = includesAny(proofList.capabilityProof,seedTracedIds);
+        if(EvidenceChain.trace1) {
+          console.log('EvidenceChain::searchProofFromChain_::poofHintCapability=<',poofHintCapability,'>');
+        }
+        if(poofHintCapability) {
+          proof = 'capability.proof.by.auth';
+        } else {
+          proof = 'capability.proof.by.none';
+        }
+      } else {
+        proof = 'capability.proof.by.none';
+      }
+    }
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::searchProofFromChain_::proof=<',proof,'>');
+    }
+    return proof;
   }
 
 

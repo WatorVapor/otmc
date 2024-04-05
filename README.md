@@ -13,6 +13,7 @@ graph TD;
     otmc-portal --> mqtt-broker-cluster;
     
     otmc-team --> otmc-portal;
+    otmc-provision --> otmc-portal;
     otmc-dash --> otmc-portal;
 
     mqtt-broker-cluster --> mqtt-broker-node-1;

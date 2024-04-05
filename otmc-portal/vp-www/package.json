@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "docs:dev": "vitepress dev otmc",
-    "docs:build": "vitepress build otmc",
-    "docs:preview": "vitepress preview otmc"
+    "otmc:dev": "vitepress dev otmc",
+    "otmc:build": "vitepress build otmc",
+    "otmc:preview": "vitepress preview otmc"
   },
   "author": "",
   "license": "ISC",

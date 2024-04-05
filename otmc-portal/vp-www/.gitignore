@@ -135,3 +135,4 @@ node_modules
 .store
 
 otmc/.vitepress/cache
+public/

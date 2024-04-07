@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "otmc:dev": "vitepress dev otmc",
+    "otmc:dev": "vitepress dev otmc --host=0.0.0.0",
     "otmc:build": "vitepress build otmc",
     "otmc:preview": "vitepress preview otmc"
   },

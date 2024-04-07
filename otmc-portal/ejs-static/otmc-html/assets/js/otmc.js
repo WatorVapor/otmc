@@ -19,6 +19,15 @@ export class Otmc extends EventEmitter {
     if(this.trace) {
       console.log('Otmc::constructor::this.scriptPath=:<',this.scriptPath,'>');
     }
+    this.ee = {
+      edcrypt:new EventEmitter(),
+      mqtt : new EventEmitter(),
+      did : new EventEmitter(),
+      sm : new EventEmitter(),
+    }
+    if(this.trace) {
+      console.log('Otmc::constructor::this.ee=:<',this.ee,'>');
+    }
     const thisRefer = {otmc:this};
     this.edcrypt = new EdcryptWorker(thisRefer);
     this.did = new DidDocument(thisRefer);

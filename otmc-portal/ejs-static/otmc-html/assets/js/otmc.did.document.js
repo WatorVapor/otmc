@@ -13,8 +13,9 @@ import {
 } from './did/document.js';
 
 import {
- DidDocStateMachine,
- DidRuntimeStateMachine } from './otmc.did.stm.js';
+  DidDocStateMachine,
+  DidRuntimeStateMachine
+} from './otmc.did.stm.js';
 
 
 import * as Level  from 'level';
@@ -37,19 +38,42 @@ const LEVEL_OPT = {
 *
 */
 export class DidDocument {
-  constructor(parentRef) {
+  constructor(ee) {
     this.trace = true;
     this.debug = true;
-    this.otmc = parentRef.otmc;
-    const self = this;
-    setTimeout(() => {
-      self.createMoudles_();
-    },0);
+    this.ee = ee;
     this.dbDocument = new Level.Level('did.document.history',LEVEL_OPT);
     this.dbManifest = new Level.Level('did.manifest.history',LEVEL_OPT);
+    this.base32 = new Base32();
+    this.util = new EdUtil(this.base32);
+    this.ListenEventEmitter_(this.ee.did);
   }
+  
+  ListenEventEmitter_(didEE) {
+    const self = this;
+    didEE.on('edcrypt:authKey',(authKey)=>{
+      if(self.trace) {
+        console.log('DidDocument::ListenEventEmitter_::authKey=:<',authKey,'>');
+      }
+      self.auth = new EdAuth(authKey,self.util);
+      if(self.trace) {
+        console.log('DidDocument::ListenEventEmitter_::self.auth=:<',self.auth,'>');
+      }
+    });
+    didEE.on('edcrypt:recoveryKey',(recoveryKey)=>{
+      if(this.trace) {
+        console.log('DidDocument::ListenEventEmitter_::recoveryKey=:<',recoveryKey,'>');
+      }
+      self.recovery = new EdAuth(recoveryKey,self.util);
+      if(self.trace) {
+        console.log('DidDocument::ListenEventEmitter_::self.recovery=:<',self.recovery,'>');
+      }
+    });
+  }
+  
   loadDocument() {
     if(this.trace) {
+      console.log('DidDocument::loadDocument::this.ee=:<',this.ee,'>');
       console.log('DidDocument::loadDocument::this.otmc=:<',this.otmc,'>');
     }
     this.checkEdcrypt_();
@@ -616,16 +640,6 @@ export class DidDocument {
     if(!this.otmc.edcrypt.recoveryKey) {
       console.log('DidDocument::createMoudles_::this.otmc.edcrypt=:<',this.otmc.edcrypt,'>');
       return;
-    }
-    this.base32 = new Base32();
-    this.util = new EdUtil(this.base32);
-    this.auth = new EdAuth(this.otmc.edcrypt.authKey,this.util);
-    this.recovery = new EdAuth(this.otmc.edcrypt.recoveryKey,this.util);
-    if(this.trace) {
-      console.log('DidDocument::createMoudles_::this.auth=:<',this.auth,'>');
-    }
-    if(this.trace) {
-      console.log('DidDocument::createMoudles_::this.recovery=:<',this.recovery,'>');
     }
   }
   

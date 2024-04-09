@@ -10,12 +10,15 @@ import { MqttJWTAgent } from './otmc.mqtt.jwt.js';
 *
 */
 export class MqttMessager {
-  constructor(parentRef) {
+  constructor(ee) {
     this.trace = true;
     this.debug = true;
     this.isRequestingJwt = false;
-    this.otmc = parentRef.otmc;
+    this.otmc = false;
+    this.ee = ee;
+    /*
     this.jwt = new MqttJWTAgent(parentRef);
+    */
     this.util = new EdUtil(new Base32());
   }
   validateMqttJwt() {

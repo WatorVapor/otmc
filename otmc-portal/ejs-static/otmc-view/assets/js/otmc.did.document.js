@@ -49,9 +49,12 @@ export class DidDocument {
     this.ListenEventEmitter_();
   }
   
-  ListenEventEmitter_(ee) {
+  ListenEventEmitter_() {
+    if(this.trace) {
+      console.log('DidDocument::ListenEventEmitter_::this.ee=:<',this.ee,'>');
+    }
     const self = this;
-    this.ee.on('did.edcrypt:authKey',(authKey)=>{
+    this.ee.on('did.edcrypt.authKey',(authKey)=>{
       if(self.trace) {
         console.log('DidDocument::ListenEventEmitter_::authKey=:<',authKey,'>');
       }
@@ -60,7 +63,7 @@ export class DidDocument {
         console.log('DidDocument::ListenEventEmitter_::self.auth=:<',self.auth,'>');
       }
     });
-    this.ee.on('did.edcrypt:recoveryKey',(recoveryKey)=>{
+    this.ee.on('did.edcrypt.recoveryKey',(recoveryKey)=>{
       if(this.trace) {
         console.log('DidDocument::ListenEventEmitter_::recoveryKey=:<',recoveryKey,'>');
       }
@@ -68,6 +71,12 @@ export class DidDocument {
       if(self.trace) {
         console.log('DidDocument::ListenEventEmitter_::self.recovery=:<',self.recovery,'>');
       }
+    });
+    this.ee.on('did.loadDocument',(evt)=>{
+      if(this.trace) {
+        console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.loadDocument();
     });
   }
   

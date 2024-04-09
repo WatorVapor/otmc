@@ -23,16 +23,16 @@ export class Otmc extends EventEmitter {
     if(this.trace) {
       console.log('Otmc::constructor::this.ee=:<',this.ee,'>');
     }
-    const thisRefer = {otmc:this};
-    this.edcrypt = new EdcryptWorker(thisRefer,this.ee);
+    this.edcrypt = new EdcryptWorker(this.ee);
     this.did = new DidDocument(this.ee);
-    this.mqtt = new MqttMessager(thisRefer,this.ee);
+    this.mqtt = new MqttMessager(this.ee);
     const self = this;
     setTimeout(() => {
       self.edcrypt.otmc = self;
       self.did.otmc = self;
       self.mqtt.otmc = self;
-      self.sm = new OtmcStateMachine(thisRefer,this.ee);
+      self.ee.emit('edcrypt.runWorker',{});
+      self.sm = new OtmcStateMachine(this.ee);
     },1);
     this.mqttOption = {
       qos:0,
@@ -134,11 +134,30 @@ export class Otmc extends EventEmitter {
 *
 */
 class EdcryptWorker {
-  constructor(parentRef,ee) {
+  constructor(ee) {
     this.trace = true;
     this.debug = true;
-    this.otmc = parentRef.otmc;
+    this.otmc = false;
     this.ee = ee;
+    this.ListenEventEmitter_();
+  }
+  ListenEventEmitter_() {
+    const self = this;
+    this.ee.on('edcrypt.runWorker',(evt)=>{
+      if(this.trace) {
+        console.log('EdcryptWorker::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.runWorker();
+    });
+    this.ee.on('edcrypt.loadKey',(evt)=>{
+      if(this.trace) {
+        console.log('EdcryptWorker::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.loadKey();
+    });
+  }
+
+  runWorker() {
     this.cryptWorker = new Worker(`${this.otmc.scriptPath}/otmc.worker.edcrypt.js`);
     if(this.trace) {
       console.log('EdcryptWorker::constructor::this.cryptWorker=:<',this.cryptWorker,'>');
@@ -151,9 +170,10 @@ class EdcryptWorker {
       init:{
         path:this.otmc.scriptPath,
       }
-    };
+    };    
     this.cryptWorker.postMessage(initMsg);
   }
+
   postMessage(data) {
     this.cryptWorker.postMessage(data);
   }
@@ -161,9 +181,15 @@ class EdcryptWorker {
     try {
       const authKeyStr = localStorage.getItem(StoreKey.auth);
       this.authKey = JSON.parse(authKeyStr);
+      if(this.trace) {
+        console.log('EdcryptWorker::loadKey::this.authKey=:<',this.authKey,'>');
+      }
       this.ee.emit('did.edcrypt.authKey',this.authKey);
       const recoveryKeyStr = localStorage.getItem(StoreKey.recovery);
       this.recoveryKey = JSON.parse(recoveryKeyStr);
+      if(this.trace) {
+        console.log('EdcryptWorker::loadKey::this.recoveryKey=:<',this.recoveryKey,'>');
+      }
       this.ee.emit('did.edcrypt.recoveryKey',this.recoveryKey);
       const addressMsg = {
         auth:this.authKey.idOfKey,
@@ -173,9 +199,9 @@ class EdcryptWorker {
         console.log('EdcryptWorker::loadKey::addressMsg=:<',addressMsg,'>');
       }
       this.otmc.emit('edcrypt:address',addressMsg);
-      this.otmc.sm.actor.send({type:'edcrypt:address'});
+      this.ee.emit('OtmcStateMachine.actor.send',{type:'edcrypt:address'});
     } catch(err) {
-      console.log('EdcryptWorker::loadKey::err=:<',err,'>');
+      console.error('EdcryptWorker::loadKey::err=:<',err,'>');
     }
   }
   onEdCryptMessage_(msg) {

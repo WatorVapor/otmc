@@ -7,27 +7,22 @@ import { createMachine, createActor, assign  }  from 'xstate';
 *
 */
 export class OtmcStateMachine {
-  static otmc = false;
+  static ee = false;
   static instances = {};
-  constructor(parentRef,ee) {
+  constructor(ee) {
     this.trace = true;
     this.debug = true;
-    console.log('OtmcStateMachine::constructor::parentRef=:<',parentRef,'>');
-    OtmcStateMachine.otmc = parentRef.otmc;
     OtmcStateMachine.ee = ee;
-    const self = this;
-    setTimeout(()=>{
-      self.createStateMachine_();
-    },1)
+    this.ee = ee;
+    this.createStateMachine_();
+    this.ListenEventEmitter_();
   }
   
   createStateMachine_() {
     const otmcStateMachine = {
       id: 'otmc',
       initial: 'genesis',
-      context: {
-        
-      },      
+      context: {},
       states: otmcStateTable,
     }
     if(this.trace) {
@@ -39,7 +34,22 @@ export class OtmcStateMachine {
       console.log('OtmcStateMachine::createStateMachine_::state.value=:<',state.value,'>');
     });
     this.actor.start();
-    this.actor.send({type:'init'});
+    const self = this;
+    setTimeout(()=>{
+      self.actor.send({type:'init'});
+    },1)
+  }
+  ListenEventEmitter_() {
+    if(this.trace) {
+      console.log('OtmcStateMachine::ListenEventEmitter_::this.ee=:<',this.ee,'>');
+    }
+    const self = this;
+    this.ee.on('OtmcStateMachine.actor.send',(evt)=>{
+      if(self.trace) {
+        console.log('OtmcStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.actor.send(evt);
+    });
   }
 }
 
@@ -49,8 +59,7 @@ const otmcStateTable = {
     on: {
       'init': { 
         actions: assign({ otmc: () => {
-          //console.log('OtmcStateMachine::otmcStateTable::OtmcStateMachine.otmc=:<',OtmcStateMachine.otmc,'>');
-          OtmcStateMachine.otmc.edcrypt.loadKey();
+          OtmcStateMachine.ee.emit('edcrypt.loadKey',{});
         }})
       },
       'edcrypt:address': 'edKeyReady',
@@ -58,7 +67,7 @@ const otmcStateTable = {
   },
   edKeyReady: {
     entry:assign({ otmc: () => {
-      OtmcStateMachine.otmc.did.loadDocument();
+      OtmcStateMachine.ee.emit('did.loadDocument',{});
     }}),
     on: {
       'did:document_manifest': 'didReady',
@@ -67,22 +76,19 @@ const otmcStateTable = {
   },
   didReady: {
     entry:assign({ otmc: () => {
-      //console.log('OtmcStateMachine::otmcStateTable::OtmcStateMachine.otmc=:<',OtmcStateMachine.otmc,'>');
-      OtmcStateMachine.otmc.mqtt.validateMqttJwt();
+      OtmcStateMachine.ee.emit('mqtt.validateMqttJwt',{});
     }}),
     on: { 'mqtt:jwt': 'jwtReady' } 
   },
   jwtReady: {
     entry:assign({ otmc: () => {
-      //console.log('OtmcStateMachine::otmcStateTable::OtmcStateMachine.otmc=:<',OtmcStateMachine.otmc,'>');
-      OtmcStateMachine.otmc.mqtt.connectMqtt();
+      OtmcStateMachine.ee.emit('mqtt.connectMqtt',{});
     }}),
     on: { 'mqtt:connected': 'mqttService' } 
   },
   mqttService: {
     entry:assign({ otmc: () => {
-      //console.log('OtmcStateMachine::otmcStateTable::OtmcStateMachine.otmc=:<',OtmcStateMachine.otmc,'>');
-      OtmcStateMachine.otmc.syncDidDocument();
+      OtmcStateMachine.ee.emit('otmc.syncDidDocument',{});
     }}),
   },
 }

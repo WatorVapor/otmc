@@ -46,12 +46,12 @@ export class DidDocument {
     this.dbManifest = new Level.Level('did.manifest.history',LEVEL_OPT);
     this.base32 = new Base32();
     this.util = new EdUtil(this.base32);
-    this.ListenEventEmitter_(this.ee.did);
+    this.ListenEventEmitter_();
   }
   
-  ListenEventEmitter_(didEE) {
+  ListenEventEmitter_(ee) {
     const self = this;
-    didEE.on('edcrypt:authKey',(authKey)=>{
+    this.ee.on('did.edcrypt:authKey',(authKey)=>{
       if(self.trace) {
         console.log('DidDocument::ListenEventEmitter_::authKey=:<',authKey,'>');
       }
@@ -60,7 +60,7 @@ export class DidDocument {
         console.log('DidDocument::ListenEventEmitter_::self.auth=:<',self.auth,'>');
       }
     });
-    didEE.on('edcrypt:recoveryKey',(recoveryKey)=>{
+    this.ee.on('did.edcrypt:recoveryKey',(recoveryKey)=>{
       if(this.trace) {
         console.log('DidDocument::ListenEventEmitter_::recoveryKey=:<',recoveryKey,'>');
       }
@@ -123,7 +123,7 @@ export class DidDocument {
         this.otmc.emit('didteam:joinLoaded',joinList);
       }
     } catch(err) {
-      console.log('DidDocument::loadDocument::err=:<',err,'>');
+      console.error('DidDocument::loadDocument::err=:<',err,'>');
     }
     if(this.trace) {
       console.log('DidDocument::loadDocument::this.dbDocument=:<',this.dbDocument,'>');

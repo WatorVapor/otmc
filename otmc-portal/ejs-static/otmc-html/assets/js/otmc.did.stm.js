@@ -1,12 +1,15 @@
-import * as xstate  from 'xstate';
-console.log('::did::xstate=:<',xstate,'>');
-import { createMachine, createActor, assign  }  from 'xstate';
-import { EvidenceChain } from './did/evidence.js';
-
 const LOG = {
   trace:true,
   debug:true,
 };
+import * as xstate  from 'xstate';
+if(LOG.trace) {
+  console.log('::did::xstate=:<',xstate,'>');
+}
+import { createMachine, createActor, assign  }  from 'xstate';
+import { EvidenceChain } from './did/evidence.js';
+
+
 
 export class DidDocStateMachine {
   static otmc = false;

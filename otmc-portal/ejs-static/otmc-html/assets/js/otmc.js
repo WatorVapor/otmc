@@ -19,12 +19,7 @@ export class Otmc extends EventEmitter {
     if(this.trace) {
       console.log('Otmc::constructor::this.scriptPath=:<',this.scriptPath,'>');
     }
-    this.ee = {
-      edcrypt:new EventEmitter(),
-      mqtt : new EventEmitter(),
-      did : new EventEmitter(),
-      sm : new EventEmitter(),
-    }
+    this.ee = new EventEmitter();
     if(this.trace) {
       console.log('Otmc::constructor::this.ee=:<',this.ee,'>');
     }
@@ -37,7 +32,7 @@ export class Otmc extends EventEmitter {
       self.edcrypt.otmc = self;
       self.did.otmc = self;
       self.mqtt.otmc = self;
-      self.sm = new OtmcStateMachine(thisRefer);
+      self.sm = new OtmcStateMachine(thisRefer,this.ee);
     },1);
     this.mqttOption = {
       qos:0,
@@ -166,10 +161,10 @@ class EdcryptWorker {
     try {
       const authKeyStr = localStorage.getItem(StoreKey.auth);
       this.authKey = JSON.parse(authKeyStr);
-      this.ee.did.emit('edcrypt:authKey',this.authKey);
+      this.ee.emit('did.edcrypt.authKey',this.authKey);
       const recoveryKeyStr = localStorage.getItem(StoreKey.recovery);
       this.recoveryKey = JSON.parse(recoveryKeyStr);
-      this.ee.did.emit('edcrypt:recoveryKey',this.recoveryKey);
+      this.ee.emit('did.edcrypt.recoveryKey',this.recoveryKey);
       const addressMsg = {
         auth:this.authKey.idOfKey,
         recovery:this.recoveryKey.idOfKey,

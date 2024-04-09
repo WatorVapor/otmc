@@ -9,11 +9,12 @@ import { createMachine, createActor, assign  }  from 'xstate';
 export class OtmcStateMachine {
   static otmc = false;
   static instances = {};
-  constructor(parentRef) {
+  constructor(parentRef,ee) {
     this.trace = true;
     this.debug = true;
     console.log('OtmcStateMachine::constructor::parentRef=:<',parentRef,'>');
     OtmcStateMachine.otmc = parentRef.otmc;
+    OtmcStateMachine.ee = ee;
     const self = this;
     setTimeout(()=>{
       self.createStateMachine_();

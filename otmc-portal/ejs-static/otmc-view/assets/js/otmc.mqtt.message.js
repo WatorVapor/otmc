@@ -14,12 +14,28 @@ export class MqttMessager {
     this.trace = true;
     this.debug = true;
     this.isRequestingJwt = false;
-    this.otmc = false;
     this.ee = ee;
-    /*
-    this.jwt = new MqttJWTAgent(parentRef);
-    */
-    this.util = new EdUtil(new Base32());
+    this.jwt = new MqttJWTAgent(ee);
+    this.otmc = false;
+    this.auth = false;
+    this.base32 = false;
+    this.util = false;
+    this.ListenEventEmitter_();
+  }
+  ListenEventEmitter_() {
+    if(this.trace) {
+      console.log('MqttMessager::ListenEventEmitter_::this.ee=:<',this.ee,'>');
+    }
+    const self = this;
+    this.ee.on('sys.authKey.ready',(evt)=>{
+      if(self.trace) {
+        console.log('MqttMessager::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.otmc = evt.otmc;
+      self.auth = evt.auth;
+      self.base32 = evt.base32;
+      self.util = evt.util;
+    });
   }
   validateMqttJwt() {
     if(this.trace) {
@@ -205,7 +221,6 @@ export class MqttMessager {
       }
     });
     this.mqttClient_ = mqttClient;
-    this.tryCreateAuth_();
   }
 
   runSubscriber_() {
@@ -368,21 +383,5 @@ export class MqttMessager {
     if(this.trace) {
       console.log('MqttMessager::dispatchMessageHistory_:featureTopic=<',featureTopic,'>');
     }
-  }  
-  
-  
-  
-  tryCreateAuth_() {
-    if(this.trace) {
-      console.log('MqttMessager::tryCreateAuth_::this.otmc.edcrypt=:<',this.otmc.edcrypt,'>');
-    }
-    if(this.otmc.edcrypt && this.otmc.edcrypt.authKey) {
-      this.base32 = new Base32();
-      this.util = new EdUtil(this.base32);
-      this.auth = new EdAuth(this.otmc.edcrypt.authKey,this.util);
-    } else {
-      console.log('MqttMessager::tryCreateAuth_::this.otmc.edcrypt=:<',this.otmc.edcrypt,'>');      
-    }
   }
-
 }

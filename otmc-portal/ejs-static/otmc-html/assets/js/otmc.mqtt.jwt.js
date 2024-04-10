@@ -1,17 +1,33 @@
 import { StoreKey, OtmcPortal } from './otmc.const.js';
-import { Base32 } from './edcrypto/base32.js';
-import { EdUtil } from './edcrypto/edutils.js';
-import { EdAuth } from './edcrypto/edauth.js';
 /**
 *
 */
 export class MqttJWTAgent {
-  constructor(parentRef) {
+  constructor(ee) {
     this.trace = true;
     this.debug = true;
-    this.otmc = parentRef.otmc;
-    this.tryCreateAuth_();
-    this.connectOtmcPortal_();
+    this.ee = ee;
+    this.otmc = false;
+    this.auth = false;
+    this.base32 = false;
+    this.util = false;
+    this.ListenEventEmitter_();
+  }
+  ListenEventEmitter_() {
+    if(this.trace) {
+      console.log('MqttJWTAgent::ListenEventEmitter_::this.ee=:<',this.ee,'>');
+    }
+    const self = this;
+    this.ee.on('sys.authKey.ready',(evt)=>{
+      if(self.trace) {
+        console.log('MqttJWTAgent::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.otmc = evt.otmc;
+      self.auth = evt.auth;
+      self.base32 = evt.base32;
+      self.util = evt.util;
+      self.connectOtmcPortal_();
+    });
   }
   
   request() {
@@ -19,7 +35,6 @@ export class MqttJWTAgent {
       console.log('MqttJWTAgent::request::this.socket.readyState=:<',this.socket.readyState,'>');
       console.log('MqttJWTAgent::request::this.otmc=:<',this.otmc,'>');
     }
-    this.tryCreateAuth_();
     const jwtReq = {
       jwt:{
         browser:true,
@@ -56,19 +71,6 @@ export class MqttJWTAgent {
     if(msgData.jwt && msgData.payload) {
       localStorage.setItem(StoreKey.mqttJwt,JSON.stringify(msgData));
       this.otmc.emit('mqtt:jwt',msgData);
-    }
-  }
-  
-  tryCreateAuth_() {
-    if(this.trace) {
-      console.log('MqttJWTAgent::tryCreateAuth_::this.otmc.edcrypt=:<',this.otmc.edcrypt,'>');
-    }
-    if(this.otmc.edcrypt && this.otmc.edcrypt.authKey) {
-      this.base32 = new Base32();
-      this.util = new EdUtil(this.base32);
-      this.auth = new EdAuth(this.otmc.edcrypt.authKey,this.util);
-    } else {
-      console.log('MqttJWTAgent::tryCreateAuth_::this.otmc.edcrypt=:<',this.otmc.edcrypt,'>');      
     }
   }
   connectOtmcPortal_() {

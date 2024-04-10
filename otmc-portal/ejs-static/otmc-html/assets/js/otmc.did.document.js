@@ -62,6 +62,13 @@ export class DidDocument {
       if(self.trace) {
         console.log('DidDocument::ListenEventEmitter_::self.auth=:<',self.auth,'>');
       }
+      const evt = {
+        otmc:self.otmc,
+        base32:self.base32,
+        util:self.util,
+        auth:self.auth,
+      };
+      self.ee.emit('sys.authKey.ready',evt);
     });
     this.ee.on('did.edcrypt.recoveryKey',(recoveryKey)=>{
       if(this.trace) {
@@ -71,6 +78,11 @@ export class DidDocument {
       if(self.trace) {
         console.log('DidDocument::ListenEventEmitter_::self.recovery=:<',self.recovery,'>');
       }
+      const evt = {
+        otmc:self.otmc,
+        recovery:self.recovery,
+      };
+      self.ee.emit('mqtt.jwt.agent.recoveryKey.ready',evt);
     });
     this.ee.on('did.loadDocument',(evt)=>{
       if(this.trace) {

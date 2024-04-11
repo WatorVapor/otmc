@@ -83,6 +83,7 @@ export class MqttJWTAgent {
       if(this.trace) {
         console.log('MqttJWTAgent::connectOtmcPortal_::evt=:<',evt,'>');
       }
+      this.ee.emit('sys.mqtt.jwt.agent.wsready',evt);
     });
     this.socket.addEventListener('message', (evt) => {
       if(this.trace) {

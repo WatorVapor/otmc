@@ -1,9 +1,6 @@
 import { default as mqtt } from 'mqtt';
 //console.log('::::mqtt=:<',mqtt,'>');
 import { StoreKey, OtmcPortal } from './otmc.const.js';
-import { Base32 } from './edcrypto/base32.js';
-import { EdUtil } from './edcrypto/edutils.js';
-import { EdAuth } from './edcrypto/edauth.js';
 import { MqttJWTAgent } from './otmc.mqtt.jwt.js';
 
 /**
@@ -36,6 +33,18 @@ export class MqttMessager {
       self.base32 = evt.base32;
       self.util = evt.util;
     });
+    this.ee.on('sys.mqtt.jwt.agent.wsready',(evt)=>{
+      if(self.trace) {
+        console.log('MqttMessager::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.validateMqttJwt();
+    });
+    this.ee.on('mqtt.connectMqtt',(evt)=>{
+      if(self.trace) {
+        console.log('MqttMessager::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.connectMqtt();
+    });
   }
   validateMqttJwt() {
     if(this.trace) {
@@ -62,7 +71,7 @@ export class MqttMessager {
           return;
         }
         this.otmc.emit('mqtt:jwt',this.mqttJwt);
-        this.otmc.sm.actor.send({type:'mqtt:jwt'});
+        this.ee.emit('OtmcStateMachine.actor.send',{type:'mqtt:jwt'});
       } else {
         this.jwt.request();
       }

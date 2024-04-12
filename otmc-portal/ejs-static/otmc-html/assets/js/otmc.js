@@ -54,48 +54,7 @@ export class Otmc extends EventEmitter {
     return this.did.createJoinAsAuth(id);
   }
   
-  syncDidDocument(){
-    if(this.trace) {
-      console.log('Otmc::syncDidDocument::new Date()=:<',new Date(),'>');
-    }
-
-    const uploadManifest = this.did.createSyncUploadManifest();
-    if(this.trace) {
-      console.log('Otmc::syncDidDocument::uploadManifest=:<',uploadManifest,'>');
-    }
-    if(uploadManifest) {
-      this.mqtt.publish(uploadManifest.topic,uploadManifest,this.mqttOption);
-    }    
-    const uploadDoc = this.did.createSyncUploadDid();
-    if(this.trace) {
-      console.log('Otmc::syncDidDocument::uploadDoc=:<',uploadDoc,'>');
-    }
-    this.mqtt.publish(uploadDoc.topic,uploadDoc,this.mqttOption);
-
-
-    const downloadManifest = this.did.createSyncDownloadManifest();
-    if(this.trace) {
-      console.log('Otmc::syncDidDocument::downloadManifest=:<',downloadManifest,'>');
-    }
-    if(downloadManifest) {
-      this.mqtt.publish(downloadManifest.topic,downloadManifest,this.mqttOption);
-    }
-    
-    const downloadDoc = this.did.createSyncDownloadDid();
-    if(this.trace) {
-      console.log('Otmc::syncDidDocument::downloadDoc=:<',downloadDoc,'>');
-    }
-    this.mqtt.publish(downloadDoc.topic,downloadDoc,this.mqttOption);
-
-    const downloadInvitation = this.did.createSyncDownloadInvitation();
-    if(this.trace) {
-      console.log('Otmc::syncDidDocument::downloadInvitation=:<',downloadInvitation,'>');
-    }
-    if(downloadInvitation) {
-      this.mqtt.publish(downloadInvitation.topic,downloadInvitation,this.mqttOption);
-    }
-
-  }
+  
   requestJoinDidTeam() {
     const joinRequest = this.did.requestJoinDid();
     if(this.trace) {

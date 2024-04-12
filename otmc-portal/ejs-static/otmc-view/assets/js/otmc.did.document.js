@@ -47,6 +47,10 @@ export class DidDocument {
     this.base32 = new Base32();
     this.util = new EdUtil(this.base32);
     this.ListenEventEmitter_();
+    this.mqttOption = {
+      qos:0,
+      nl:true
+    };
   }
   
   ListenEventEmitter_() {
@@ -90,7 +94,58 @@ export class DidDocument {
       }
       self.loadDocument();
     });
+    this.ee.on('otmc.did.client.storage',(evt)=>{
+      if(this.trace) {
+        console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      setTimeout(()=>{
+        self.syncDidDocument_();
+      },1);
+    });
   }
+
+  syncDidDocument_(){
+    if(this.trace) {
+      console.log('DidDocument::syncDidDocument_::new Date()=:<',new Date(),'>');
+    }
+
+    const uploadManifest = this.createSyncUploadManifest();
+    if(this.trace) {
+      console.log('DidDocument::syncDidDocument_::uploadManifest=:<',uploadManifest,'>');
+    }
+    if(uploadManifest) {
+      this.ee.emit('otmc.mqtt.publish',{msg:uploadManifest,opt:this.mqttOption});
+    }    
+    const uploadDoc = this.createSyncUploadDid();
+    if(this.trace) {
+      console.log('DidDocument::syncDidDocument_::uploadDoc=:<',uploadDoc,'>');
+    }
+    this.ee.emit('otmc.mqtt.publish',{msg:uploadDoc,opt:this.mqttOption});
+
+
+    const downloadManifest = this.createSyncDownloadManifest();
+    if(this.trace) {
+      console.log('DidDocument::syncDidDocument_::downloadManifest=:<',downloadManifest,'>');
+    }
+    if(downloadManifest) {
+      this.ee.emit('otmc.mqtt.publish',{msg:downloadManifest,opt:this.mqttOption});
+    }
+    
+    const downloadDoc = this.createSyncDownloadDid();
+    if(this.trace) {
+      console.log('DidDocument::syncDidDocument_::downloadDoc=:<',downloadDoc,'>');
+    }
+    this.ee.emit('otmc.mqtt.publish',{msg:downloadDoc,opt:this.mqttOption});
+
+    const downloadInvitation = this.createSyncDownloadInvitation();
+    if(this.trace) {
+      console.log('DidDocument::syncDidDocument_::downloadInvitation=:<',downloadInvitation,'>');
+    }
+    if(downloadInvitation) {
+      this.ee.emit('otmc.mqtt.publish',{msg:downloadInvitation,opt:this.mqttOption});
+    }
+  }
+
   
   loadDocument() {
     if(this.trace) {

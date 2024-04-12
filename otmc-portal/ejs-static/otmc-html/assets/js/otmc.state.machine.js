@@ -88,7 +88,7 @@ const otmcStateTable = {
   },
   mqttService: {
     entry:assign({ otmc: () => {
-      OtmcStateMachine.ee.emit('otmc.syncDidDocument',{});
+      OtmcStateMachine.ee.emit('otmc.did.client.storage',{});
     }}),
   },
 }

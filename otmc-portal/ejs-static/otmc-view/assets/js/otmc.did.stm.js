@@ -14,19 +14,34 @@ import { EvidenceChain } from './did/evidence.js';
 export class DidDocStateMachine {
   static otmc = false;
   static chain = false;
+  static ee = false;
   static instances = {};
-  constructor(parentRef) {
+  constructor(ee) {
     this.trace = true;
     this.debug = true;
     if(this.trace) {
-      console.log('DidDocStateMachine::constructor::parentRef=:<',parentRef,'>');
+      console.log('DidDocStateMachine::constructor::ee=:<',ee,'>');
     }
-    DidDocStateMachine.otmc = parentRef.otmc;
+    DidDocStateMachine.ee = ee;
+    this.ee = ee;
+    this.ListenEventEmitter_();
     const self = this;
     setTimeout(()=>{
       self.createStateMachine_();
-    },1)
+    },1);
   }
+  ListenEventEmitter_() {
+    if(this.trace) {
+      console.log('DidDocStateMachine::ListenEventEmitter_::this.ee=:<',this.ee,'>');
+    }
+    this.ee.on('did:document',(evt)=>{
+      if(this.trace) {
+        console.log('DidDocStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      DidDocStateMachine.chain = new EvidenceChain(evt.didDoc);
+    });
+  }
+  
   createStateMachine_() {
     const stmOption = {
       initial: 'genesis',
@@ -38,7 +53,6 @@ export class DidDocStateMachine {
     }
     this.stm = createMachine(stmOption);
     this.actor = createActor(this.stm);
-    DidDocStateMachine.chain = new EvidenceChain(DidDocStateMachine.otmc.did);
     
     this.actor.subscribe((state) => {
       console.log('DidDocStateMachine::createStateMachine_::state=:<',state,'>');
@@ -58,7 +72,7 @@ const didDocStateTable = {
     on: {
       'init': {
         actions: assign({ otmc: () => {
-          DidDocStateMachine.chain.loadEvidenceChain();
+          //DidDocStateMachine.chain.loadEvidenceChain();
         }})
       },
       'chain.load':'evidenceChainReady',
@@ -67,7 +81,7 @@ const didDocStateTable = {
   },
   evidenceChainReady: {
     entry:assign({ otmc: () => {
-      DidDocStateMachine.chain.calcDidAuth();
+      //DidDocStateMachine.chain.calcDidAuth();
     }}),
     on: {
       'auth.proof.is.seed':'authIsSeed',
@@ -113,11 +127,11 @@ const didDocStateTable = {
 export class DidRuntimeStateMachine {
   static otmc = false;
   static instances = {};
-  constructor(parentRef) {
+  constructor(ee) {
     this.trace = true;
     this.debug = true;
-    console.log('DidRuntimeStateMachine::constructor::parentRef=:<',parentRef,'>');
-    DidRuntimeStateMachine.otmc = parentRef.otmc;
+    console.log('DidRuntimeStateMachine::constructor::ee=:<',ee,'>');
+    DidRuntimeStateMachine.ee = ee;
     const self = this;
     setTimeout(()=>{
       self.createStateMachine_();

@@ -51,6 +51,8 @@ export class DidDocument {
       qos:0,
       nl:true
     };
+    this.docState = new DidDocStateMachine(this.ee);
+    this.rtState = new DidRuntimeStateMachine(this.ee);
   }
   
   ListenEventEmitter_() {
@@ -71,6 +73,7 @@ export class DidDocument {
         base32:self.base32,
         util:self.util,
         auth:self.auth,
+        did:this,
       };
       self.ee.emit('sys.authKey.ready',evt);
     });
@@ -162,6 +165,7 @@ export class DidDocument {
         }
         this.otmc.emit('did:document',didDoc);
         this.didDoc_ = didDoc;
+        this.ee.emit('did:document',{didDoc:this});
       }
       const manifestStr = localStorage.getItem(StoreKey.manifest);
       if(manifestStr) {
@@ -205,9 +209,6 @@ export class DidDocument {
       console.log('DidDocument::loadDocument::this.dbDocument=:<',this.dbDocument,'>');
       console.log('DidDocument::loadDocument::this.dbManifest=:<',this.dbManifest,'>');
     }
-    const otmcRefer = {otmc:this.otmc};
-    this.docState = new DidDocStateMachine(otmcRefer);
-    this.rtState = new DidRuntimeStateMachine(otmcRefer);
   }
   createSeed() {
     if(this.trace) {

@@ -114,13 +114,13 @@ export class DidDocument {
       console.log('DidDocument::syncDidDocument_::uploadManifest=:<',uploadManifest,'>');
     }
     if(uploadManifest) {
-      this.ee.emit('otmc.mqtt.publish',{msg:uploadManifest,opt:this.mqttOption});
+      this.ee.emit('otmc.mqtt.publish',{msg:uploadManifest,option:this.mqttOption});
     }    
     const uploadDoc = this.createSyncUploadDid();
     if(this.trace) {
       console.log('DidDocument::syncDidDocument_::uploadDoc=:<',uploadDoc,'>');
     }
-    this.ee.emit('otmc.mqtt.publish',{msg:uploadDoc,opt:this.mqttOption});
+    this.ee.emit('otmc.mqtt.publish',{msg:uploadDoc,option:this.mqttOption});
 
 
     const downloadManifest = this.createSyncDownloadManifest();
@@ -128,21 +128,21 @@ export class DidDocument {
       console.log('DidDocument::syncDidDocument_::downloadManifest=:<',downloadManifest,'>');
     }
     if(downloadManifest) {
-      this.ee.emit('otmc.mqtt.publish',{msg:downloadManifest,opt:this.mqttOption});
+      this.ee.emit('otmc.mqtt.publish',{msg:downloadManifest,option:this.mqttOption});
     }
     
     const downloadDoc = this.createSyncDownloadDid();
     if(this.trace) {
       console.log('DidDocument::syncDidDocument_::downloadDoc=:<',downloadDoc,'>');
     }
-    this.ee.emit('otmc.mqtt.publish',{msg:downloadDoc,opt:this.mqttOption});
+    this.ee.emit('otmc.mqtt.publish',{msg:downloadDoc,option:this.mqttOption});
 
     const downloadInvitation = this.createSyncDownloadInvitation();
     if(this.trace) {
       console.log('DidDocument::syncDidDocument_::downloadInvitation=:<',downloadInvitation,'>');
     }
     if(downloadInvitation) {
-      this.ee.emit('otmc.mqtt.publish',{msg:downloadInvitation,opt:this.mqttOption});
+      this.ee.emit('otmc.mqtt.publish',{msg:downloadInvitation,option:this.mqttOption});
     }
   }
 

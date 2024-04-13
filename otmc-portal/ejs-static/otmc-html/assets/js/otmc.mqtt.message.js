@@ -45,6 +45,12 @@ export class MqttMessager {
       }
       self.connectMqtt();
     });
+    this.ee.on('otmc.mqtt.publish',(evt)=>{
+      if(self.trace) {
+        console.log('MqttMessager::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      this.publish(evt.msg.topic,evt.msg,evt.option);
+    });
   }
   validateMqttJwt() {
     if(this.trace) {

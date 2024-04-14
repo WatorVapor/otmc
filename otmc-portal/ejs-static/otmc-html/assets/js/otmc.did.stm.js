@@ -12,46 +12,55 @@ import { EvidenceChain } from './did/evidence.js';
 
 
 export class DidDocStateMachine {
-  static otmc = false;
-  static chain = false;
-  static ee = false;
-  static instances = {};
   constructor(ee) {
     this.trace = true;
     this.debug = true;
     if(this.trace) {
       console.log('DidDocStateMachine::constructor::ee=:<',ee,'>');
     }
-    DidDocStateMachine.ee = ee;
     this.ee = ee;
+    this.chain = false;
+    this.createStateMachine_();
     this.ListenEventEmitter_();
-    const self = this;
-    setTimeout(()=>{
-      self.createStateMachine_();
-    },1);
   }
   ListenEventEmitter_() {
     if(this.trace) {
       console.log('DidDocStateMachine::ListenEventEmitter_::this.ee=:<',this.ee,'>');
     }
+    const self = this;
     this.ee.on('did:document',(evt)=>{
       if(this.trace) {
         console.log('DidDocStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      DidDocStateMachine.chain = new EvidenceChain(evt.didDoc);
+      self.chain = new EvidenceChain(evt.didDoc);
+      self.chain.loadEvidenceChain();
+      if(self.trace) {
+        console.log('DidDocStateMachine::ListenEventEmitter_::this.stm=:<',this.stm,'>');
+        console.log('DidDocStateMachine::ListenEventEmitter_::this.stm.config.context=:<',this.stm.config.context,'>');
+      }
+      this.stm.config.context.chain = self.chain;
     });
   }
   
   createStateMachine_() {
-    const stmOption = {
+    const stmConfig = {
       initial: 'genesis',
-      context: {},
+      context: {
+        ee:this.ee,
+        chain:this.chain,
+      },
       states: didDocStateTable,
     }
+    const stmOption = {
+      actions:didDocActionTable,
+    }    
     if(this.trace) {
-      console.log('DidDocStateMachine::createStateMachine_::stmOption=:<',stmOption,'>');
+      console.log('DidDocStateMachine::createStateMachine_::stmConfig=:<',stmConfig,'>');
     }
-    this.stm = createMachine(stmOption);
+    this.stm = createMachine(stmConfig,stmOption);
+    if(this.trace) {
+      console.log('DidDocStateMachine::createStateMachine_::this.stm=:<',this.stm,'>');
+    }
     this.actor = createActor(this.stm);
     
     this.actor.subscribe((state) => {
@@ -71,18 +80,14 @@ const didDocStateTable = {
   genesis: {
     on: {
       'init': {
-        actions: assign({ otmc: () => {
-          //DidDocStateMachine.chain.loadEvidenceChain();
-        }})
+        actions: ['init']
       },
       'chain.load':'evidenceChainReady',
-      'manifest.lack':'evidenceFailure',
+      'manifest.lack':'evidenceChainFail',
     } 
   },
   evidenceChainReady: {
-    entry:assign({ otmc: () => {
-      //DidDocStateMachine.chain.calcDidAuth();
-    }}),
+    entry:['chainReady'],
     on: {
       'auth.proof.is.seed':'authIsSeed',
       'auth.proof.by.seed':'authBySeed',
@@ -90,38 +95,115 @@ const didDocStateTable = {
       'auth.proof.by.none':'authByNone',
     } 
   },
-  evidenceFailure: {
-    entry:assign({ otmc: () => {
-    }}),
+  evidenceChainFail: {
+    entry:['chainFail'],
     on: {
     }
   },
   authIsSeed: {
-    entry:assign({ otmc: () => {
-    }}),
+    entry:['authIsSeed'],
     on: {
     }
   },
   authBySeed: {
-    entry:assign({ otmc: () => {
-    }}),
+    entry:['authBySeed'],
     on: {
     }
   },
   authByAuth: {
-    entry:assign({ otmc: () => {
-    }}),
+    entry:['authByAuth'],
     on: {
     }
   },
   authByNone: {
-    entry:assign({ otmc: () => {
-    }}),
+    entry:['authByNone'],
     on: {
     }
   },
 }
 
+const didDocActionTable = {
+  init: (context, evt) => {
+    const ee = context.context.ee;
+    const chain = context.context.chain;
+    if(LOG.trace) {
+      console.log('DidDocStateMachine::didDocActionTable::init:context=:<',context,'>');
+      console.log('DidDocStateMachine::didDocActionTable::init:ee=:<',ee,'>');
+      console.log('DidDocStateMachine::didDocActionTable::init:chain=:<',chain,'>');
+    }
+  },
+  chainReady:(context, evt) => {
+    const ee = context.context.ee;
+    const chain = context.context.chain;
+    if(LOG.trace) {
+      console.log('DidDocStateMachine::didDocActionTable::chainReady:context=:<',context,'>');
+      console.log('DidDocStateMachine::didDocActionTable::chainReady:ee=:<',ee,'>');
+      console.log('DidDocStateMachine::didDocActionTable::chainReady:chain=:<',chain,'>');
+    }
+    chain.calcDidAuth();
+  },
+  chainFail:(context, evt) => {
+    const ee = context.context.ee;
+    const chain = context.context.chain;
+    if(LOG.trace) {
+      console.log('DidDocStateMachine::didDocActionTable::chainFail:context=:<',context,'>');
+      console.log('DidDocStateMachine::didDocActionTable::chainFail:ee=:<',ee,'>');
+      console.log('DidDocStateMachine::didDocActionTable::chainFail:chain=:<',chain,'>');
+    }
+  },
+  authIsSeed:(context, evt) => {
+    const ee = context.context.ee;
+    const chain = context.context.chain;
+    if(LOG.trace) {
+      console.log('DidDocStateMachine::didDocActionTable::authIsSeed:context=:<',context,'>');
+      console.log('DidDocStateMachine::didDocActionTable::authIsSeed:ee=:<',ee,'>');
+      console.log('DidDocStateMachine::didDocActionTable::authIsSeed:chain=:<',chain,'>');
+    }
+    const notify = {
+      isSeed:true,
+    };
+    ee.emit('did.evidence.auth',notify);
+  },
+  authBySeed:(context, evt) => {
+    const ee = context.context.ee;
+    const chain = context.context.chain;
+    if(LOG.trace) {
+      console.log('DidDocStateMachine::didDocActionTable::authBySeed:context=:<',context,'>');
+      console.log('DidDocStateMachine::didDocActionTable::authBySeed:ee=:<',ee,'>');
+      console.log('DidDocStateMachine::didDocActionTable::authBySeed:chain=:<',chain,'>');
+    }
+    const notify = {
+      bySeed:true,
+    };
+    ee.emit('did.evidence.auth',notify);
+  },
+  authByAuth:(context, evt) => {
+    const ee = context.context.ee;
+    const chain = context.context.chain;
+    if(LOG.trace) {
+      console.log('DidDocStateMachine::didDocActionTable::authByAuth:context=:<',context,'>');
+      console.log('DidDocStateMachine::didDocActionTable::authByAuth:ee=:<',ee,'>');
+      console.log('DidDocStateMachine::didDocActionTable::authByAuth:chain=:<',chain,'>');
+    }
+    const notify = {
+      byAuth:true,
+    };
+    ee.emit('did.evidence.auth',notify);
+  },
+  authByNone:(context, evt) => {
+    const ee = context.context.ee;
+    const chain = context.context.chain;
+    if(LOG.trace) {
+      console.log('DidDocStateMachine::didDocActionTable::authByNone:context=:<',context,'>');
+      console.log('DidDocStateMachine::didDocActionTable::authByNone:ee=:<',ee,'>');
+      console.log('DidDocStateMachine::didDocActionTable::authByNone:chain=:<',chain,'>');
+    }
+    const notify = {
+      byNone:true,
+    };
+    ee.emit('did.evidence.auth',notify);
+  },
+};
 
 
 export class DidRuntimeStateMachine {

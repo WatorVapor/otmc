@@ -53,6 +53,7 @@ export class DidDocument {
     };
     this.docState = new DidDocStateMachine(this.ee);
     this.rtState = new DidRuntimeStateMachine(this.ee);
+    this.evidenceAuth = {};
   }
   
   ListenEventEmitter_() {
@@ -96,6 +97,20 @@ export class DidDocument {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
       self.loadDocument();
+    });
+    this.ee.on('did.evidence.auth',(evt)=>{
+      if(this.trace) {
+        console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.evidenceAuth = Object.assign({}, evt);
+      if(this.trace) {
+        console.log('DidDocument::ListenEventEmitter_::self.evidenceAuth=:<',self.evidenceAuth,'>');
+      }
+    });
+    this.ee.on('did.evidence.capability',(evt)=>{
+      if(this.trace) {
+        console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
+      }
     });
     this.ee.on('otmc.did.client.storage',(evt)=>{
       if(this.trace) {

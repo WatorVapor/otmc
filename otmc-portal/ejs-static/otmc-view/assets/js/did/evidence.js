@@ -330,10 +330,7 @@ export class EvidenceChain {
         }
       }
       if(newComing) {
-        const result = savedNode.save();
-        if(EvidenceChain.trace3) {
-          console.log('EvidenceChain::trySaveLeafEvidenceTree::result=<',result,'>');
-        }
+        this.tree_[leafKeyId] = savedNode;
       }
       return;
     }

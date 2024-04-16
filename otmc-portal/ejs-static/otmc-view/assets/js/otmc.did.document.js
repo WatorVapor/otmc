@@ -111,6 +111,10 @@ export class DidDocument {
       if(this.trace) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
+      self.evidenceCapability = Object.assign({}, evt);
+      if(this.trace) {
+        console.log('DidDocument::ListenEventEmitter_::self.evidenceCapability=:<',self.evidenceCapability,'>');
+      }
     });
     this.ee.on('otmc.did.client.storage',(evt)=>{
       if(this.trace) {
@@ -126,7 +130,9 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::syncDidDocument_::new Date()=:<',new Date(),'>');
     }
-
+    if(this.trace) {
+      console.log('DidDocument::syncDidDocument_::this.evidenceAuth=:<',this.evidenceAuth,'>');
+    }
     const uploadManifest = this.createSyncUploadManifest();
     if(this.trace) {
       console.log('DidDocument::syncDidDocument_::uploadManifest=:<',uploadManifest,'>');
@@ -268,6 +274,9 @@ export class DidDocument {
   
   createSyncUploadDid() {
     this.checkEdcrypt_();
+    if(this.trace) {
+      console.log('DidDocument::createSyncUploadDid::this.evidenceAuth=:<',this.evidenceAuth,'>');
+    }
     const role = this.getDidRole_();
     if(this.trace) {
       console.log('DidDocument::createSyncUploadDid::role=:<',role,'>');
@@ -389,21 +398,17 @@ export class DidDocument {
   getDidRole_() {
     let role = 'guest';
     if(this.trace) {
-      console.log('DidDocument::getDidRole_::this.role_=:<',this.role_,'>');
+      console.log('DidDocument::getDidRole_::this.evidenceAuth=:<',this.evidenceAuth,'>');
     }
-    switch (this.role_) {
-      case 'auth.proof.is.seed':
-        role = 'seed';
-        break;
-      case 'auth.proof.by.seed':
-      case 'auth.proof.by.auth':
-        role = 'auth';
-        break;
-      case 'auth.proof.by.invitation':
-        role = 'invitation';
-        break;
-      default:
-        break;
+    if(this.evidenceAuth.isSeed) {
+      role = 'seed';
+    } else if(this.evidenceAuth.bySeed) {
+      role = 'auth';
+    } else if(this.evidenceAuth.byAuth) {
+      role = 'auth';
+    } else if(this.evidenceAuth.byNone) {
+      role = 'invitation';
+    } else {
     }
     return role;
   }

@@ -39,6 +39,7 @@ export class DidDocStateMachine {
         console.log('DidDocStateMachine::ListenEventEmitter_::this.stm.config.context=:<',this.stm.config.context,'>');
       }
       this.stm.config.context.chain = self.chain;
+      self.ee.emit('did.stm.runtime.chain',{chain:self.chain});
     });
   }
   
@@ -208,44 +209,74 @@ const didDocActionTable = {
 
 export class DidRuntimeStateMachine {
   static otmc = false;
-  static instances = {};
   constructor(ee) {
     this.trace = true;
     this.debug = true;
     console.log('DidRuntimeStateMachine::constructor::ee=:<',ee,'>');
-    DidRuntimeStateMachine.ee = ee;
-    const self = this;
-    setTimeout(()=>{
-      self.createStateMachine_();
-    },1)
+    this.ee = ee;
+    this.createStateMachine_();
+    this.ListenEventEmitter_();
   }
   createStateMachine_() {
-    const stmOption = {
+    const stmConfig = {
       initial: 'genesis',
-      context: {},
+      context: {
+        ee:this.ee,
+        chain:this.chain,
+      },
       states: didRuntimeStateTable,
     }
+    const stmOption = {
+      actions:didRuntimeActionTable,
+    }
     if(this.trace) {
+      console.log('DidRuntimeStateMachine::createStateMachine_::stmConfig=:<',stmConfig,'>');
       console.log('DidRuntimeStateMachine::createStateMachine_::stmOption=:<',stmOption,'>');
     }
-    const stateMachine = createMachine(stmOption);
-    this.actor = createActor(stateMachine);
+    this.stm = createMachine(stmConfig,stmOption);
+    this.actor = createActor(this.stm);
     this.actor.subscribe((state) => {
       console.log('DidRuntimeStateMachine::createStateMachine_::state.value=:<',state.value,'>');
     });
     this.actor.start();
-    this.actor.send({type:'init'});
+    const self = this;
+    setTimeout(()=>{
+      self.actor.send({type:'init'});
+    },1);    
+  }
+  ListenEventEmitter_() {
+    if(this.trace) {
+      console.log('DidRuntimeStateMachine::ListenEventEmitter_::this.ee=:<',this.ee,'>');
+    }
+    const self = this;
+    this.ee.on('did.stm.runtime.chain',(evt)=>{
+      if(this.trace) {
+        console.log('DidRuntimeStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
+      }      
+      this.stm.config.context.chain = evt.chain;
+    });
   }
 }
 
 const didRuntimeStateTable = {
   genesis: {
     on: {
-      'init': { 
-        actions: assign({ otmc: () => {
-        }})
+      'init': {
+        actions: ['init']
       },
     } 
   },
 }
 
+const didRuntimeActionTable = {
+  init: (context, evt) => {
+    const ee = context.context.ee;
+    const chain = context.context.chain;
+    if(LOG.trace) {
+      console.log('DidRuntimeStateMachine::didDocActionTable::init:context=:<',context,'>');
+      console.log('DidRuntimeStateMachine::didDocActionTable::init:ee=:<',ee,'>');
+      console.log('DidRuntimeStateMachine::didDocActionTable::init:chain=:<',chain,'>');
+      console.log('DidRuntimeStateMachine::didDocActionTable::init:evt=:<',evt,'>');
+    }
+  }
+}

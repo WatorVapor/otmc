@@ -254,6 +254,13 @@ export class DidRuntimeStateMachine {
         console.log('DidRuntimeStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
       }      
       this.stm.config.context.chain = evt.chain;
+      self.actor.send({type:'chain.load'});
+    });
+    this.ee.on('did.evidence.auth',(evt)=>{
+      if(this.trace) {
+        console.log('DidRuntimeStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
+      }      
+      self.actor.send({type:'chain.pass.auth.proof'});
     });
   }
 }
@@ -264,6 +271,18 @@ const didRuntimeStateTable = {
       'init': {
         actions: ['init']
       },
+      'chain.load':'evidenceChainReady',
+    } 
+  },
+  evidenceChainReady: {
+    entry:['chainReady'],
+    on: {
+      'chain.pass.auth.proof':'evidenceChainAuthPass',
+    } 
+  },
+  evidenceChainAuthPass: {
+    entry:['chainAuthPass'],
+    on: {
     } 
   },
 }
@@ -273,10 +292,29 @@ const didRuntimeActionTable = {
     const ee = context.context.ee;
     const chain = context.context.chain;
     if(LOG.trace) {
-      console.log('DidRuntimeStateMachine::didDocActionTable::init:context=:<',context,'>');
-      console.log('DidRuntimeStateMachine::didDocActionTable::init:ee=:<',ee,'>');
-      console.log('DidRuntimeStateMachine::didDocActionTable::init:chain=:<',chain,'>');
-      console.log('DidRuntimeStateMachine::didDocActionTable::init:evt=:<',evt,'>');
+      console.log('DidRuntimeStateMachine::didRuntimeActionTable::init:context=:<',context,'>');
+      console.log('DidRuntimeStateMachine::didRuntimeActionTable::init:ee=:<',ee,'>');
+      console.log('DidRuntimeStateMachine::didRuntimeActionTable::init:chain=:<',chain,'>');
+      console.log('DidRuntimeStateMachine::didRuntimeActionTable::init:evt=:<',evt,'>');
     }
-  }
-}
+  },
+  chainReady:(context, evt) => {
+    const ee = context.context.ee;
+    const chain = context.context.chain;
+    if(LOG.trace) {
+      console.log('DidRuntimeStateMachine::didRuntimeActionTable::chainReady:context=:<',context,'>');
+      console.log('DidRuntimeStateMachine::didRuntimeActionTable::chainReady:ee=:<',ee,'>');
+      console.log('DidRuntimeStateMachine::didRuntimeActionTable::chainReady:chain=:<',chain,'>');
+    }
+  },
+  chainAuthPass:(context, evt) => {
+    const ee = context.context.ee;
+    const chain = context.context.chain;
+    if(LOG.trace) {
+      console.log('DidRuntimeStateMachine::didRuntimeActionTable::chainAuthPass:context=:<',context,'>');
+      console.log('DidRuntimeStateMachine::didRuntimeActionTable::chainAuthPass:ee=:<',ee,'>');
+      console.log('DidRuntimeStateMachine::didRuntimeActionTable::chainAuthPass:chain=:<',chain,'>');
+    }
+    chain.tryMergeStoredDidDocument();
+  },
+};

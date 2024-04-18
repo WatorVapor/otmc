@@ -21,6 +21,53 @@ export class EvidenceChain {
     this.seed_ = {};
     this.didRule_ = {};
   }
+  tryMergeStoredDidDocument() {
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::tryMergeStoredDidDocument::this.docTop_=<',this.docTop_,'>');
+      console.log('EvidenceChain::tryMergeStoredDidDocument::this.evidencesJson_=<',this.evidencesJson_,'>');
+    }
+    const sortVerifyMethod = this.evidencesJson_.sort((a, b)=>{
+      const verificationSort = b.verificationMethod.length - a.verificationMethod.length;
+      return verificationSort;
+    });
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::tryMergeStoredDidDocument::sortVerifyMethod=<',sortVerifyMethod,'>');
+    }
+    const topVerifyMethod = this.evidencesJson_.filter((a)=>{
+      return a.verificationMethod.length >= sortVerifyMethod[0].verificationMethod.length;
+    });
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::tryMergeStoredDidDocument::topVerifyMethod=<',topVerifyMethod,'>');
+    }
+    
+    const sortAuthMethod = this.evidencesJson_.sort((a, b)=>{
+      const authenticationSort = b.authentication.length - a.authentication.length;
+      return authenticationSort;
+    });
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::tryMergeStoredDidDocument::sortAuthMethod=<',sortAuthMethod,'>');
+    }
+    const topAuthMethod = this.evidencesJson_.filter((a)=>{
+      return a.verificationMethod.length >= sortAuthMethod[0].verificationMethod.length;
+    });
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::tryMergeStoredDidDocument::topAuthMethod=<',topAuthMethod,'>');
+    }
+    
+    const sortCapabilityMethod = this.evidencesJson_.sort((a, b)=>{
+      const authenticationSort = b.capabilityInvocation.length - a.capabilityInvocation.length;
+      return authenticationSort;
+    });
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::tryMergeStoredDidDocument::sortCapabilityMethod=<',sortCapabilityMethod,'>');
+    }
+    const topCapabilityMethod = this.evidencesJson_.sort((a, b)=>{
+      return a.verificationMethod.length >= sortCapabilityMethod[0].verificationMethod.length;
+    });
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::tryMergeStoredDidDocument::topCapabilityMethod=<',topCapabilityMethod,'>');
+    }
+  }
 
   calcDidAuth() {
     if(EvidenceChain.trace1) {
@@ -188,6 +235,7 @@ export class EvidenceChain {
     if(EvidenceChain.trace2) {
       console.log('EvidenceChain::loadEvidenceChain::this.tree_=<',this.tree_,'>');
     }
+    this.evidencesJson_ = evidencesJson;
     this.actor_.send({type:'chain.load'});
   }
   calacEvidenceProofChainDB(evidenceDids) {

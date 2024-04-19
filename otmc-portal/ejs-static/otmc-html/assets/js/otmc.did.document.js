@@ -4,18 +4,14 @@ import { EdAuth } from './edcrypto/edauth.js';
 import { DIDManifest } from './did/manifest.js';
 import { EvidenceChain } from './did/evidence.js';
 import { StoreKey } from './otmc.const.js';
-
 import { 
   DIDSeedDocument,
   DIDGuestDocument, 
   DIDExpandDocument,
   DIDAscentDocument 
 } from './did/document.js';
-
-import {
-  DidDocStateMachine,
-  DidRuntimeStateMachine
-} from './otmc.did.stm.js';
+import {DidDocStateMachine} from './otmc.did.stm.docstate.js';
+import {DidRuntimeStateMachine} from './otmc.did.stm.runtime.js';
 
 
 import * as Level  from 'level';

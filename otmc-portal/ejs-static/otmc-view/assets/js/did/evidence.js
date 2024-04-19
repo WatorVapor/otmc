@@ -1,3 +1,5 @@
+import * as jsDiff  from 'jsDiff';
+console.log('::::jsDiff=:<',jsDiff,'>')
 const includesAny = (arr, values) => values.some(v => arr.includes(v));
 
 export class EvidenceChain {
@@ -26,88 +28,119 @@ export class EvidenceChain {
       console.log('EvidenceChain::tryMergeStoredDidDocument::this.docTop_=<',this.docTop_,'>');
       console.log('EvidenceChain::tryMergeStoredDidDocument::this.evidencesJson_=<',this.evidencesJson_,'>');
     }
-    const sortVerifyMethod = this.evidencesJson_.sort((a, b)=>{
-      const verificationSort = b.verificationMethod.length - a.verificationMethod.length;
-      return verificationSort;
-    });
-    if(EvidenceChain.trace1) {
-      console.log('EvidenceChain::tryMergeStoredDidDocument::sortVerifyMethod=<',sortVerifyMethod,'>');
-    }
-    const topVerifyMethod = this.evidencesJson_.filter((a)=>{
-      return a.verificationMethod.length >= sortVerifyMethod[0].verificationMethod.length;
-    });
-    if(EvidenceChain.trace1) {
+    const topVerifyMethod = this.filtTopByArrayLength_(this.evidencesJson_,'verificationMethod');
+     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::tryMergeStoredDidDocument::topVerifyMethod=<',topVerifyMethod,'>');
     }
-    
-    const sortAuthMethod = this.evidencesJson_.sort((a, b)=>{
-      const authenticationSort = b.authentication.length - a.authentication.length;
-      return authenticationSort;
-    });
-    if(EvidenceChain.trace1) {
-      console.log('EvidenceChain::tryMergeStoredDidDocument::sortAuthMethod=<',sortAuthMethod,'>');
-    }
-    const topAuthMethod = this.evidencesJson_.filter((a)=>{
-      return a.authentication.length >= authenticationSort[0].authentication.length;
-    });
-    if(EvidenceChain.trace1) {
+    const topAuthMethod = this.filtTopByArrayLength_(topVerifyMethod,'authentication');
+     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::tryMergeStoredDidDocument::topAuthMethod=<',topAuthMethod,'>');
     }
-    const sortProof = this.evidencesJson_.sort((a, b)=>{
-      const authenticationSort = b.proof.length - a.proof.length;
-      return authenticationSort;
-    });
-    if(EvidenceChain.trace1) {
-      console.log('EvidenceChain::tryMergeStoredDidDocument::sortProof=<',sortProof,'>');
-    }
-    const topProof = this.evidencesJson_.filter((a)=>{
-      return a.proof.length >= sortProof[0].proof.length;
-    });
-    if(EvidenceChain.trace1) {
-      console.log('EvidenceChain::tryMergeStoredDidDocument::topProof=<',topProof,'>');
-    }
-    
-    const sortCapabilityMethod = this.evidencesJson_.sort((a, b)=>{
-      const authenticationSort = b.capabilityInvocation.length - a.capabilityInvocation.length;
-      return authenticationSort;
-    });
-    if(EvidenceChain.trace1) {
-      console.log('EvidenceChain::tryMergeStoredDidDocument::sortCapabilityMethod=<',sortCapabilityMethod,'>');
-    }
-    const topCapabilityMethod = this.evidencesJson_.sort((a, b)=>{
-      return a.capabilityInvocation.length >= sortCapabilityMethod[0].capabilityInvocation.length;
-    });
-    if(EvidenceChain.trace1) {
+    const topCapabilityMethod = this.filtTopByArrayLength_(topVerifyMethod,'capabilityInvocation');
+     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::tryMergeStoredDidDocument::topCapabilityMethod=<',topCapabilityMethod,'>');
     }
+    const topUpdated = this.filtTopByDate_(topCapabilityMethod,'updated');
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::tryMergeStoredDidDocument::topUpdated=<',topUpdated,'>');
+    }
+    const topProof = this.filtTopByArrayLength_(topUpdated,'proof');
+     if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::tryMergeStoredDidDocument::topProof=<',topProof,'>');
+    }
+    if(topProof.length > 0) {
+      this.tryMergeTopStoredDidDocument(topProof[0]);
+    }
+  }
+  tryMergeTopStoredDidDocument(topEvidence) {
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::tryMergeTopStoredDidDocument::topEvidence=<',topEvidence,'>');
+      console.log('EvidenceChain::tryMergeTopStoredDidDocument::this.docTop_=<',this.docTop_,'>');
+    }
+    const proof = this.calcDidAuthInternal_(topEvidence);
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::tryMergeTopStoredDidDocument::proof=<',proof,'>');
+    }
+  }
+  
+  filtTopByArrayLength_(origArr,propertyArr) {
+    const sortElement = origArr.sort((a, b)=>{
+      return b[propertyArr].length - a[propertyArr].length;
+    });
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::filtTopByArrayLength_::sortElement=<',sortElement,'>');
+    }
+    const topElement = origArr.filter((a, b)=>{
+      return a[propertyArr].length >= sortElement[0][propertyArr].length;
+    });
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::filtTopByArrayLength_::topElement=<',topElement,'>');
+    }
+    return topElement;
+  }
+
+  filtTopByDate_(origArr,propertyArr) {
+    const sortElement = origArr.sort((a, b)=>{
+      const escape_ms_sort =  new Date(b[propertyArr]) - new Date(a[propertyArr]);
+      if(EvidenceChain.trace1) {
+        console.log('EvidenceChain::filtTopByDate_::escape_ms_sort=<',escape_ms_sort,'>');
+      }
+      return escape_ms_sort;
+    });
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::filtTopByDate_::sortElement=<',sortElement,'>');
+    }
+    const topElement = origArr.filter((a, b)=>{
+      const escape_ms_top = new Date(a[propertyArr]) - new Date(sortElement[0][propertyArr]);
+      if(EvidenceChain.trace1) {
+        console.log('EvidenceChain::filtTopByDate_::escape_ms_top=<',escape_ms_top,'>');
+      }
+      return escape_ms_top >= 0;
+    });
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::filtTopByDate_::topElement=<',topElement,'>');
+    }
+    return topElement;
   }
 
   calcDidAuth() {
     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::calcDidAuth::this.docTop_=<',this.docTop_,'>');
     }
-    const isGoodDid = this.auth_.verifyDid(this.docTop_);
-    if(EvidenceChain.trace1) {
-      console.log('EvidenceChain::calcDidAuth::isGoodDid=<',isGoodDid,'>');
-    }
-    const seedTracedIds = this.collectSeedTracedKeyId_();
-    if(EvidenceChain.trace1) {
-      console.log('EvidenceChain::calcDidAuth::seedTracedIds=<',seedTracedIds,'>');
-    }
-    const myAddress = this.auth_.address();
-    if(EvidenceChain.trace1) {
-      console.log('EvidenceChain::calcDidAuth::myAddress=<',myAddress,'>');
-    }
-    const didAddress = this.docTop_.id.replace('did:otmc:','');
-    if(EvidenceChain.trace1) {
-      console.log('EvidenceChain::calcDidAuth::didAddress=<',didAddress,'>');
-    }
-    const proof = this.searchProofFromChain_(isGoodDid.proofList,didAddress,myAddress,seedTracedIds);
+    const proof = this.calcDidAuthInternal_(this.docTop_);
     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::calcDidAuth::proof=<',proof,'>');
     }
     this.actor_.send({type:proof});
   }
+
+  calcDidAuthInternal_(didDoc) {
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::calcDidAuthInternal_::didDoc=<',didDoc,'>');
+    }
+    const isGoodDid = this.auth_.verifyDid(didDoc);
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::calcDidAuthInternal_::isGoodDid=<',isGoodDid,'>');
+    }
+    const seedTracedIds = this.collectSeedTracedKeyId_();
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::calcDidAuthInternal_::seedTracedIds=<',seedTracedIds,'>');
+    }
+    const myAddress = this.auth_.address();
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::calcDidAuthInternal_::myAddress=<',myAddress,'>');
+    }
+    const didAddress = didDoc.id.replace('did:otmc:','');
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::calcDidAuthInternal_::didAddress=<',didAddress,'>');
+    }
+    const proof = this.searchProofFromChain_(isGoodDid.proofList,didAddress,myAddress,seedTracedIds);
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::calcDidAuthInternal_::proof=<',proof,'>');
+    }
+    return proof;
+  }
+
   
   collectSeedTracedKeyId_ () {
     if(EvidenceChain.trace1) {
@@ -181,32 +214,36 @@ export class EvidenceChain {
           proof = 'auth.proof.by.none';
         }
       } else {
-        for(const proofId of proofList.authProof) {
-          if(EvidenceChain.trace1) {
-            console.log('EvidenceChain::searchProofFromChain_::proofId=<',proofId,'>');
-          }
-        }
-        proof = 'auth.proof.by.none';
-      }
-    }
-    if(proofList.capabilityProof && proofList.capabilityProof.length > 0) {
-      if(proofList.capabilityProof.includes(didAddress)) {
-        proof = 'capability.proof.by.seed';
-        if(myAddress === didAddress) {
-          proof = 'capability.proof.is.seed';
-        }
-      } else if(proofList.capabilityProof.includes(myAddress)) {
-        const poofHintCapability = includesAny(proofList.capabilityProof,seedTracedIds);
+        const poofHint = includesAny(proofList.authProof,seedTracedIds);
         if(EvidenceChain.trace1) {
-          console.log('EvidenceChain::searchProofFromChain_::poofHintCapability=<',poofHintCapability,'>');
+          console.log('EvidenceChain::searchProofFromChain_::poofHint=<',poofHint,'>');
         }
-        if(poofHintCapability) {
-          proof = 'capability.proof.by.auth';
+        if(poofHint) {
+          proof = 'auth.proof.by.auth';
+        } else {
+          proof = 'auth.proof.by.none';
+        }
+      }
+    } else {
+      if(proofList.capabilityProof && proofList.capabilityProof.length > 0) {
+        if(proofList.capabilityProof.includes(didAddress)) {
+          proof = 'capability.proof.by.seed';
+          if(myAddress === didAddress) {
+            proof = 'capability.proof.is.seed';
+          }
+        } else if(proofList.capabilityProof.includes(myAddress)) {
+          const poofHintCapability = includesAny(proofList.capabilityProof,seedTracedIds);
+          if(EvidenceChain.trace1) {
+            console.log('EvidenceChain::searchProofFromChain_::poofHintCapability=<',poofHintCapability,'>');
+          }
+          if(poofHintCapability) {
+            proof = 'capability.proof.by.auth';
+          } else {
+            proof = 'capability.proof.by.none';
+          }
         } else {
           proof = 'capability.proof.by.none';
         }
-      } else {
-        proof = 'capability.proof.by.none';
       }
     }
     if(EvidenceChain.trace1) {

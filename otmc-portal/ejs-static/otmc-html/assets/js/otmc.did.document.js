@@ -278,25 +278,38 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::mergeDidDocument::newDoc=:<',newDoc,'>');
     }
+    const docDiff = jsDiff.diff(newDoc,this.didDoc_);
+    if(this.trace) {
+      console.log('DidDocument::mergeDidDocument::docDiff=:<',docDiff,'>');
+    }
+    if(!docDiff) {
+      return false;
+    }
     const creator = `${newDoc.id}#${this.auth.address()}`;
     const proofed = includesAnyByCreator(newDoc.proof,creator);
     if(this.trace) {
-      console.log('DIDMergeDocument::mergeDidDocument:proofed=<',proofed,'>');
+      console.log('DidDocument::mergeDidDocument:proofed=<',proofed,'>');
     }
-    if(proofed) {
-      return ;
+    if(!proofed) {
+      const nextDid = JSON.parse(JSON.stringify(newDoc));
+      this.merge = new DIDMergeDocument(nextDid,this.auth);
+      if(this.trace) {
+        console.log('DidDocument::mergeDidDocument::this.merge:=<',this.merge,'>');
+      }
+      const documentObj = this.merge.document();
+      if(this.trace) {
+        console.log('DidDocument::mergeDidDocument::documentObj=:<',documentObj,'>');
+      }
+      localStorage.setItem(StoreKey.didDoc,JSON.stringify(documentObj));
+      return documentObj;
+    } else {
+      const documentObj = JSON.parse(JSON.stringify(newDoc));
+      if(this.trace) {
+        console.log('DidDocument::mergeDidDocument::documentObj=:<',documentObj,'>');
+      }
+      localStorage.setItem(StoreKey.didDoc,JSON.stringify(documentObj));
+      return documentObj;      
     }
-    const nextDid = JSON.parse(JSON.stringify(newDoc));
-    this.merge = new DIDMergeDocument(nextDid,this.auth);
-    if(this.trace) {
-      console.log('DidDocument::mergeDidDocument::this.merge:=<',this.merge,'>');
-    }
-    const documentObj = this.merge.document();
-    if(this.trace) {
-      console.log('DidDocument::mergeDidDocument::documentObj=:<',documentObj,'>');
-    }
-    localStorage.setItem(StoreKey.didDoc,JSON.stringify(documentObj));
-    return documentObj;
   }
   
   

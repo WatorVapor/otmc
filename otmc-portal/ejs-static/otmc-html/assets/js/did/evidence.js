@@ -1,6 +1,23 @@
 import * as jsDiff  from 'jsDiff';
-console.log('::::jsDiff=:<',jsDiff,'>')
+console.log('::::jsDiff=:<',jsDiff,'>');
+
 const includesAny = (arr, values) => values.some(v => arr.includes(v));
+
+const isSubsetById = (subset, superset) => {
+  return subset.every(subsetItem => 
+    superset.some(supersetItem => 
+      subsetItem.id === supersetItem.id
+    )
+  );  
+};
+
+const isSubsetByElem = (subset, superset) => {
+  return subset.every(subsetItem => 
+    superset.some(supersetItem => 
+      subsetItem === supersetItem
+    )
+  );  
+};
 
 export class EvidenceChain {
   static trace1 = true;
@@ -49,7 +66,9 @@ export class EvidenceChain {
       console.log('EvidenceChain::tryMergeStoredDidDocument::topProof=<',topProof,'>');
     }
     if(topProof.length > 0) {
-      this.tryMergeTopStoredDidDocument(topProof[0]);
+      return this.tryMergeTopStoredDidDocument(topProof[0]);
+    } else {
+      return false;
     }
   }
   tryMergeTopStoredDidDocument(topEvidence) {
@@ -60,6 +79,23 @@ export class EvidenceChain {
     const proof = this.calcDidAuthInternal_(topEvidence);
     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::tryMergeTopStoredDidDocument::proof=<',proof,'>');
+    }
+    const allVMethodInNew = isSubsetById(this.docTop_.verificationMethod,topEvidence.verificationMethod);
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::tryMergeTopStoredDidDocument::allVMethodInNew=<',allVMethodInNew,'>');
+    }
+    const allAuthInNew = isSubsetByElem(this.docTop_.authentication,topEvidence.authentication);
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::tryMergeTopStoredDidDocument::allAuthInNew=<',allAuthInNew,'>');
+    }
+    const allCapabilityInNew = isSubsetByElem(this.docTop_.capabilityInvocation,topEvidence.capabilityInvocation);
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::tryMergeTopStoredDidDocument::allCapabilityInNew=<',allCapabilityInNew,'>');
+    }
+    if(allVMethodInNew && allAuthInNew && allCapabilityInNew) {
+      return topEvidence;
+    } else {
+      return false;
     }
   }
   

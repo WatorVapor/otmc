@@ -6,9 +6,10 @@ import { EvidenceChain } from './did/evidence.js';
 import { StoreKey } from './otmc.const.js';
 import { 
   DIDSeedDocument,
-  DIDGuestDocument, 
+  DIDGuestDocument,
   DIDExpandDocument,
-  DIDAscentDocument 
+  DIDAscentDocument,
+  DIDMergeDocument
 } from './did/document.js';
 import {DidDocStateMachine} from './otmc.did.stm.docstate.js';
 import {DidRuntimeStateMachine} from './otmc.did.stm.runtime.js';
@@ -23,6 +24,7 @@ console.log('::::jsDiff=:<',jsDiff,'>')
 
 
 
+const includesAnyByCreator = (setArr,value ) => setArr.some(attr => value === attr.creator);
 
 
 const LEVEL_OPT = {
@@ -119,6 +121,12 @@ export class DidDocument {
       setTimeout(()=>{
         self.syncDidDocument_();
       },1);
+    });
+    this.ee.on('did.document.merge',(evt)=>{
+      if(this.trace) {
+        console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.mergeDidDocument(evt);
     });
   }
 
@@ -262,6 +270,30 @@ export class DidDocument {
     const documentObj = this.guest.document();
     if(this.trace) {
       console.log('DidDocument::createJoinAsAuth::documentObj=:<',documentObj,'>');
+    }
+    localStorage.setItem(StoreKey.didDoc,JSON.stringify(documentObj));
+    return documentObj;
+  }
+  mergeDidDocument(newDoc) {
+    if(this.trace) {
+      console.log('DidDocument::mergeDidDocument::newDoc=:<',newDoc,'>');
+    }
+    const creator = `${newDoc.id}#${this.auth.address()}`;
+    const proofed = includesAnyByCreator(newDoc.proof,creator);
+    if(this.trace) {
+      console.log('DIDMergeDocument::mergeDidDocument:proofed=<',proofed,'>');
+    }
+    if(proofed) {
+      return ;
+    }
+    const nextDid = JSON.parse(JSON.stringify(newDoc));
+    this.merge = new DIDMergeDocument(nextDid,this.auth);
+    if(this.trace) {
+      console.log('DidDocument::mergeDidDocument::this.merge:=<',this.merge,'>');
+    }
+    const documentObj = this.merge.document();
+    if(this.trace) {
+      console.log('DidDocument::mergeDidDocument::documentObj=:<',documentObj,'>');
     }
     localStorage.setItem(StoreKey.didDoc,JSON.stringify(documentObj));
     return documentObj;

@@ -85,6 +85,9 @@ const didRuntimeStateTable = {
   evidenceChainAuthPass: {
     entry:['chainAuthPass'],
     on: {
+      'did.merge.document': {
+        actions: ['mergeDidDocument']
+      }
     } 
   },
 }
@@ -117,6 +120,22 @@ const didRuntimeActionTable = {
       console.log('DidRuntimeStateMachine::didRuntimeActionTable::chainAuthPass:ee=:<',ee,'>');
       console.log('DidRuntimeStateMachine::didRuntimeActionTable::chainAuthPass:chain=:<',chain,'>');
     }
-    chain.tryMergeStoredDidDocument();
+    const didDocMerge = chain.tryMergeStoredDidDocument();
+    if(LOG.trace) {
+      console.log('DidRuntimeStateMachine::didRuntimeActionTable::chainAuthPass:didDocMerge=:<',didDocMerge,'>');
+    }
+    if(didDocMerge) {
+      ee.emit('did.document.merge',didDocMerge);
+    }
+  },
+  mergeDidDocument:(context, evt) => {
+    const ee = context.context.ee;
+    const chain = context.context.chain;
+    if(LOG.trace) {
+      console.log('DidRuntimeStateMachine::didRuntimeActionTable::mergeDidDocument:evt=:<',evt,'>');
+      console.log('DidRuntimeStateMachine::didRuntimeActionTable::mergeDidDocument:context=:<',context,'>');
+      console.log('DidRuntimeStateMachine::didRuntimeActionTable::mergeDidDocument:ee=:<',ee,'>');
+      console.log('DidRuntimeStateMachine::didRuntimeActionTable::mergeDidDocument:chain=:<',chain,'>');
+    }
   },
 };

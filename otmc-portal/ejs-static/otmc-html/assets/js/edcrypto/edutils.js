@@ -1,4 +1,3 @@
-import nacl from 'https://cdn.jsdelivr.net/npm/tweetnacl-es6@1.0.3/nacl-fast-es.min.js';
 const iConstLengAddress = 32;
 const iConstLengMessage = 32;
 export class EdUtil {

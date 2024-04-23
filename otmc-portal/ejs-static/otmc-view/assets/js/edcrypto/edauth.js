@@ -1,4 +1,3 @@
-import { default as nacl } from 'nacl';
 const strConstAddressPrefix = 'otm';
 export class EdAuth {
   constructor(edKey,util) {
@@ -39,6 +38,7 @@ export class EdAuth {
     if(this.trace) {
       console.log('EdAuth::signWithoutTS::msgOrig=<',msgOrig,'>');
       console.log('EdAuth::signWithoutTS::edKey=<',edKey,'>');
+      console.log('EdAuth::signWithoutTS::nacl=<',nacl,'>');
     }
     let signkey = this.edKey_;
     if(edKey) {

@@ -1,4 +1,3 @@
-import nacl from 'https://cdn.jsdelivr.net/npm/tweetnacl-es6@1.0.3/nacl-fast-es.min.js';
 export class EdDsaKey {
   constructor(util) {
     this.trace = false;

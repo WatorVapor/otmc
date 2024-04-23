@@ -31,24 +31,28 @@ const onOtmcViewChanged = (evt, pathWatch) => {
   //console.log('onOtmcViewChanged::viewFiles:=<',viewFiles ,'>');
   for(const viewFile of viewFiles) {
     if(viewFile.length > 0) {
-      const fileStats = fs.lstatSync(`${viewFile}`);
-      //console.log('onOtmcViewChanged::fileStats:=<',fileStats ,'>');
-      if(fileStats.isFile()){
-        const fileExt = path.extname(`${viewFile}`);
-        //console.log('onOtmcViewChanged::fileExt:=<',fileExt ,'>');
-        const fileBasename = path.basename(`${viewFile}`);
-        //console.log('onOtmcViewChanged::fileBasename:=<',fileBasename ,'>');
-        if(fileExt === '.ejs') {
-          if(!fileBasename.startsWith('_')) {
-            //console.log('onOtmcViewChanged::viewFile:=<',viewFile ,'>');
-            onOtmcViewCompile(viewFile);
+      try {
+        const fileStats = fs.lstatSync(`${viewFile}`);
+        //console.log('onOtmcViewChanged::fileStats:=<',fileStats ,'>');
+        if(fileStats.isFile()){
+          const fileExt = path.extname(`${viewFile}`);
+          //console.log('onOtmcViewChanged::fileExt:=<',fileExt ,'>');
+          const fileBasename = path.basename(`${viewFile}`);
+          //console.log('onOtmcViewChanged::fileBasename:=<',fileBasename ,'>');
+          if(fileExt === '.ejs') {
+            if(!fileBasename.startsWith('_')) {
+              //console.log('onOtmcViewChanged::viewFile:=<',viewFile ,'>');
+              onOtmcViewCompile(viewFile);
+            } else {
+              console.log('onOtmcViewChanged::skip viewFile:=<',viewFile ,'>');            
+            }
           } else {
-            console.log('onOtmcViewChanged::skip viewFile:=<',viewFile ,'>');            
+            //console.log('onOtmcViewChanged::viewFile:=<',viewFile ,'>');
+            onOtmcViewCopy(viewFile);
           }
-        } else {
-          //console.log('onOtmcViewChanged::viewFile:=<',viewFile ,'>');
-          onOtmcViewCopy(viewFile);
         }
+      } catch (err) {
+        console.log('onOtmcViewChanged::err:=<',err ,'>');
       }
     }
   }

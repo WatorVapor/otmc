@@ -32,15 +32,33 @@ export class DidDocStateMachine {
       if(this.trace) {
         console.log('DidDocStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      self.chain = new EvidenceChain(evt.didDoc);
-      self.chain.loadEvidenceChain();
+      self.chain = new EvidenceChain(evt.didDoc.auth,evt.didDoc.didDoc_);
       if(self.trace) {
         console.log('DidDocStateMachine::ListenEventEmitter_::this.stm=:<',this.stm,'>');
         console.log('DidDocStateMachine::ListenEventEmitter_::this.stm.config.context=:<',this.stm.config.context,'>');
       }
       this.stm.config.context.chain = self.chain;
-      self.ee.emit('did.stm.runtime.chain',{chain:self.chain});
+      self.ee.emit('did.evidence.load.storage',{chain:self.chain});
     });
+    this.ee.on('did:document:evidence',(evt)=>{
+      if(this.trace) {
+        console.log('DidDocStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      if(!evt.manifest) {
+        self.actor.send({type:'manifest.lack'});
+        return;
+      }
+      self.chain.buildEvidenceProofChain(evt);
+      self.ee.emit('did.stm.runtime.chain',{chain:self.chain});
+      self.actor.send({type:'chain.load'});
+    });
+    this.ee.on('did.stm.docstate.internal.proof',(evt)=>{
+      if(this.trace) {
+        console.log('DidDocStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.actor.send({type:evt.proof});
+    });
+
   }
   
   createStateMachine_() {
@@ -141,7 +159,11 @@ const didDocActionTable = {
       console.log('DidDocStateMachine::didDocActionTable::chainReady:ee=:<',ee,'>');
       console.log('DidDocStateMachine::didDocActionTable::chainReady:chain=:<',chain,'>');
     }
-    chain.calcDidAuth();
+    const proof = chain.calcDidAuth();
+    if(LOG.trace) {
+      console.log('DidDocStateMachine::didDocActionTable::chainReady:proof=:<',proof,'>');
+    }
+    ee.emit('did.stm.docstate.internal.proof',{proof:proof});
   },
   chainFail:(context, evt) => {
     const ee = context.context.ee;

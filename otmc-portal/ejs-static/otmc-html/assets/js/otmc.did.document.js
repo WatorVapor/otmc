@@ -2,7 +2,6 @@ import { Base32 } from './edcrypto/base32.js';
 import { EdUtil } from './edcrypto/edutils.js';
 import { EdAuth } from './edcrypto/edauth.js';
 import { DIDManifest } from './did/manifest.js';
-import { EvidenceChain } from './did/evidence.js';
 import { StoreKey } from './otmc.const.js';
 import { 
   DIDSeedDocument,
@@ -95,6 +94,25 @@ export class DidDocument {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
       self.loadDocument();
+    });
+    this.ee.on('did.evidence.load.storage',async (evt)=>{
+      if(this.trace) {
+        console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      const manifest = await self.loadDidRuleFromManifest_();
+      if(this.trace) {
+        console.log('DidDocument::ListenEventEmitter_::manifest=:<',manifest,'>');
+      }
+      const evidence = await self.loadEvidenceChain_();
+      if(this.trace) {
+        console.log('DidDocument::ListenEventEmitter_::evidence=:<',evidence,'>');
+      }
+      const evidenceChain = {
+        manifest:manifest,
+        evidence:evidence,
+      };
+      self.ee.emit('did:document:evidence',evidenceChain);
+
     });
     this.ee.on('did.evidence.auth',(evt)=>{
       if(this.trace) {
@@ -848,135 +866,50 @@ export class DidDocument {
   }
   
   
-  async checkDidEvidence_() {
-    if(this.trace) {
-      console.log('DidDocument::checkDidEvidence_::this.dbDocument=<',this.dbDocument,'>');
+  async loadDidRuleFromManifest_() {
+    const manifests = await this.dbManifest.values().all();
+    if(this.trace5) {
+      console.log('DidDocument::loadDidRuleFromManifest_::manifests=<',manifests,'>');
     }
+    const manifestsJson = [];
+    for(const manifest of manifests) {
+      if(this.trace5) {
+        console.log('DidDocument::loadDidRuleFromManifest_::manifest=<',manifest,'>');
+      }
+      const manifestJson = JSON.parse(manifest);
+      if(this.trace5) {
+        console.log('DidDocument::loadDidRuleFromManifest_::manifestJson=<',manifestJson,'>');
+      }
+      manifestsJson.push(manifestJson);
+    }
+    if(this.trace5) {
+      console.log('DidDocument::loadDidRuleFromManifest_::manifestsJson=<',manifestsJson,'>');
+    }
+    if(manifestsJson.length > 0) {
+      return manifestsJson[0].diddoc;
+    }
+    return false;
+  }
+  async loadEvidenceChain_() {
     const evidences = await this.dbDocument.values().all();
-    if(this.trace) {
-      console.log('DidDocument::checkDidEvidence_::evidences=<',evidences,'>');
+    if(this.trace2) {
+      console.log('DidDocument::loadEvidenceChain_::evidences=<',evidences,'>');
     }
     const evidencesJson = [];
     for(const evidence of evidences) {
-      if(this.trace) {
-        console.log('DidDocument::checkDidEvidence_::evidence=<',evidence,'>');
+      if(this.trace2) {
+        console.log('DidDocument::loadEvidenceChain_::evidence=<',evidence,'>');
       }
       const evidenceJson = JSON.parse(evidence);
-      if(this.trace) {
-        console.log('DidDocument::checkDidEvidence_::evidenceJson=<',evidenceJson,'>');
-      }
-      const results = this.auth.verifyDid(evidenceJson);
-      if(this.trace) {
-        console.log('DidDocument::checkDidEvidence_::results=<',results,'>');
-      }
-      let roleEvidence = false;
-      if(this.didManifest_) {
-        roleEvidence = this.judgeDidProofChain(results.proofList,evidenceJson.id,this.didManifest_.diddoc);
-      } else {
-        roleEvidence = this.judgeDidProofChain(results.proofList,evidenceJson.id);      
-      }
-      if(this.trace) {
-        console.log('DidDocument::checkDidEvidence_::roleEvidence:=<',roleEvidence,'>');
-      }
-      if(roleEvidence === 'auth.proof.by.seed') {
-        this.tryExtendDid_(evidenceJson);
-      }
-      if(roleEvidence === 'auth.proof.is.seed') {
-        this.tryExtendDid_(evidenceJson);
+      if(this.trace2) {
+        console.log('DidDocument::loadEvidenceChain_::evidenceJson=<',evidenceJson,'>');
       }
       evidencesJson.push(evidenceJson);
     }
-  }
-  tryExtendDid_(evidenceJson) {
-    if(this.trace) {
-      console.log('DidDocument::tryExtendDid_::evidenceJson=<',evidenceJson,'>');
-      console.log('DidDocument::tryExtendDid_::this.didDoc_=<',this.didDoc_,'>');
+    if(this.trace2) {
+      console.log('DidDocument::loadEvidenceChain_::evidencesJson=<',evidencesJson,'>');
     }
-    const myRole = this.getDidRole_();
-    if(this.trace) {
-      console.log('DidDocument::tryExtendDid_::myRole=<',myRole,'>');
-    }
-    const myAddress = this.auth.address();
-    if(myRole === 'invitation') {
-      for(const authentication of evidenceJson.authentication) {
-        if(this.trace) {
-          console.log('DidDocument::tryExtendDid_::authentication=<',authentication,'>');
-        }
-        if(authentication.endsWith(myAddress)) {
-          this.upgradeDidDocumentOnInvitation_(evidenceJson);
-        }
-      }
-    }
-    if(myRole === 'seed') {
-      for(const authentication of evidenceJson.authentication) {
-        if(this.trace) {
-          console.log('DidDocument::tryExtendDid_::authentication=<',authentication,'>');
-        }
-        if(authentication.endsWith(myAddress)) {
-          this.raiseDidDocument_(evidenceJson);
-        }
-      }
-    }
-  }
-  upgradeDidDocumentOnInvitation_(evidenceJson) {
-    if(this.trace) {
-      console.log('DidDocument::upgradeDidDocumentOnInvitation_::evidenceJson=<',evidenceJson,'>');
-    }
-    const ascentDocument = new DIDAscentDocument(evidenceJson,this.auth);
-    const documentObj = ascentDocument.document();
-    if(this.trace) {
-      console.log('DidDocument::upgradeDidDocumentOnInvitation_::documentObj=<',documentObj,'>');
-    }
-    localStorage.setItem(StoreKey.didDoc,JSON.stringify(documentObj));
-    this.otmc.mqtt.freshMqttJwt();
-    this.loadDocument();
-  }
-  raiseDidDocument_(evidenceJson) {
-    if(this.trace) {
-      console.log('DidDocument::raiseDidDocument_::evidenceJson=<',evidenceJson,'>');
-      console.log('DidDocument::raiseDidDocument_::this.didDoc_=<',this.didDoc_,'>');
-    }
-    const diffDid = jsDiff.diff(this.didDoc_,evidenceJson);
-    if(this.trace) {
-      console.log('DidDocument::raiseDidDocument_::diffDid=<',diffDid,'>');
-    }
-    if(diffDid) {
-      this.CheckDidDocumentDiff_(diffDid,evidenceJson);
-    }
-  }
-  CheckDidDocumentDiff_(diffDid,evidenceJson) {
-    if(this.trace) {
-      console.log('DidDocument::CheckDidDocumentDiff_::diffDid=<',diffDid,'>');
-      console.log('DidDocument::CheckDidDocumentDiff_::evidenceJson=<',evidenceJson,'>');
-      console.log('DidDocument::CheckDidDocumentDiff_::this.didDoc_=<',this.didDoc_,'>');
-    }
-    for(const diffKey of Object.keys(diffDid)) {
-      if(this.trace) {
-        console.log('DidDocument::CheckDidDocumentDiff_::diffKey=<',diffKey,'>');
-      }
-    }
-    
-    /*
-    if(evidenceJson.authentication.length > this.didDoc_.authentication.length
-      || evidenceJson.verificationMethod.length > this.didDoc_.verificationMethod.length
-      || evidenceJson.capabilityInvocation.length > this.didDoc_.capabilityInvocation.length
-      || evidenceJson.proof.length > this.didDoc_.proof.length
-    ) {
-      const nextUpdate = new Date(evidenceJson.updated);
-      const myUpdate = new Date(this.didDoc_.updated);
-      const escape_ms = nextUpdate - myUpdate;
-      if(this.trace) {
-        console.log('DidDocument::raiseDidDocument_::escape_ms=<',escape_ms,'>');
-      }
-      this.topdressDidDocument_(evidenceJson);
-    }
-    */
+    return evidencesJson;
   }
 
-  topdressDidDocument_(fertiliserJson) {
-    if(this.trace) {
-      console.log('DidDocument::topdressDidDocument_::fertiliserJson=<',fertiliserJson,'>');
-      console.log('DidDocument::topdressDidDocument_::this.didDoc_=<',this.didDoc_,'>');
-    }
-  }
 }

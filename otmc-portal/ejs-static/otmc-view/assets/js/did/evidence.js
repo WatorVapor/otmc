@@ -1,24 +1,3 @@
-import * as jsDiff  from 'jsDiff';
-console.log('::::jsDiff=:<',jsDiff,'>');
-
-const includesAny = (arr, values) => values.some(v => arr.includes(v));
-
-const isSubsetById = (subset, superset) => {
-  return subset.every(subsetItem => 
-    superset.some(supersetItem => 
-      subsetItem.id === supersetItem.id
-    )
-  );  
-};
-
-const isSubsetByElem = (subset, superset) => {
-  return subset.every(subsetItem => 
-    superset.some(supersetItem => 
-      subsetItem === supersetItem
-    )
-  );  
-};
-
 export class EvidenceChain {
   static trace1 = true;
   static trace2 = true;
@@ -27,19 +6,15 @@ export class EvidenceChain {
   static trace5 = true;
   static trace = true;
   static debug = true;
-  constructor(didMgr) {
-    if(EvidenceChain.trace1) {
-      console.log('EvidenceChain::constructor::didMgr=<',didMgr,'>');
-    }
-    this.auth_ = didMgr.auth;
-    this.docTop_ = JSON.parse(JSON.stringify(didMgr.didDoc_));
-    this.docDB_ = didMgr.dbDocument;
-    this.manifestDb_ = didMgr.dbManifest;
-    this.actor_ = didMgr.docState.actor;
+
+  constructor(auth,docTop) {
+    this.auth_ = auth;
+    this.docTop_ = JSON.parse(JSON.stringify(docTop));
     this.tree_ = {};
     this.seed_ = {};
     this.didRule_ = {};
   }
+  
   tryMergeStoredDidDocument() {
     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::tryMergeStoredDidDocument::this.docTop_=<',this.docTop_,'>');
@@ -147,7 +122,7 @@ export class EvidenceChain {
     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::calcDidAuth::proof=<',proof,'>');
     }
-    this.actor_.send({type:proof});
+    return proof;
   }
 
   calcDidAuthInternal_(didDoc) {
@@ -289,56 +264,26 @@ export class EvidenceChain {
   }
 
 
-  async loadEvidenceChain() {
-    const didRule = await this.loadDidRuleFromManifest_();
-    if(EvidenceChain.trace2) {
-      console.log('EvidenceChain::loadEvidenceChain::didRule=<',didRule,'>');
-    }
-    if(!didRule) {
-      this.actor_.send({type:'manifest.lack'});
-      return;
-    }
-    this.didRule_ = didRule;
-    const evidences = await this.docDB_.values().all();
-    if(EvidenceChain.trace2) {
-      console.log('EvidenceChain::loadEvidenceChain::evidences=<',evidences,'>');
-    }
-    const evidencesJson = [];
-    for(const evidence of evidences) {
-      if(EvidenceChain.trace2) {
-        console.log('EvidenceChain::loadEvidenceChain::evidence=<',evidence,'>');
-      }
-      const evidenceJson = JSON.parse(evidence);
-      if(EvidenceChain.trace2) {
-        console.log('EvidenceChain::loadEvidenceChain::evidenceJson=<',evidenceJson,'>');
-      }
-      evidencesJson.push(evidenceJson);
-    }
-    if(EvidenceChain.trace2) {
-      console.log('EvidenceChain::loadEvidenceChain::evidencesJson=<',evidencesJson,'>');
-    }
-    this.calacEvidenceProofChainDB(evidencesJson);
-    if(EvidenceChain.trace2) {
-      console.log('EvidenceChain::loadEvidenceChain::this.tree_=<',this.tree_,'>');
-    }
-    this.evidencesJson_ = evidencesJson;
-    this.actor_.send({type:'chain.load'});
-  }
-  calacEvidenceProofChainDB(evidenceDids) {
+
+  
+  buildEvidenceProofChain(evidenceChain) {
     if(EvidenceChain.trace1) {
-      console.log('EvidenceChain::calacEvidenceProofChainDB::evidenceDids=<',evidenceDids,'>');
+      console.log('EvidenceChain::buildEvidenceProofChain::evidenceChain=<',evidenceChain,'>');
     }
-    for(const evidenceDid of evidenceDids) {
+    this.didRule_ = evidenceChain.manifest;
+    this.evidencesJson_ = evidenceChain.evidence;
+    
+    for(const evidenceDid of evidenceChain.evidence) {
       if(EvidenceChain.trace1) {
-        console.log('EvidenceChain::calacEvidenceProofChainDB::evidenceDid=<',evidenceDid,'>');
+        console.log('EvidenceChain::buildEvidenceProofChain::evidenceDid=<',evidenceDid,'>');
       }
       const seedKeyId = evidenceDid.id.replace('did:otmc:','');
       if(EvidenceChain.trace1) {
-        console.log('EvidenceChain::calacEvidenceProofChainDB::seedKeyId=<',seedKeyId,'>');
+        console.log('EvidenceChain::buildEvidenceProofChain::seedKeyId=<',seedKeyId,'>');
       }
       const isGoodDid = this.auth_.verifyDid(evidenceDid);
       if(EvidenceChain.trace1) {
-        console.log('EvidenceChain::calacEvidenceProofChainDB::isGoodDid=<',isGoodDid,'>');
+        console.log('EvidenceChain::buildEvidenceProofChain::isGoodDid=<',isGoodDid,'>');
       }
       if(isGoodDid && isGoodDid.proofList){
         const authedList = [];
@@ -347,12 +292,12 @@ export class EvidenceChain {
           authedList.push(authId);
         }
         if(EvidenceChain.trace3) {
-          console.log('EvidenceChain::calacEvidenceProofChainDB::authedList=<',authedList,'>');
+          console.log('EvidenceChain::buildEvidenceProofChain::authedList=<',authedList,'>');
         }
         if(isGoodDid.proofList && isGoodDid.proofList.authProof && isGoodDid.proofList.authProof.length > 0){
           for(const authProof of isGoodDid.proofList.authProof) {
             if(EvidenceChain.trace3) {
-              console.log('EvidenceChain::calacEvidenceProofChainDB::evidenceDid=<',evidenceDid,'>');
+              console.log('EvidenceChain::buildEvidenceProofChain::evidenceDid=<',evidenceDid,'>');
             }
             if(seedKeyId === authProof) {
               this.trySaveSeedEvidenceTree(evidenceDid,seedKeyId,authedList);
@@ -487,31 +432,21 @@ export class EvidenceChain {
       console.log('EvidenceChain::trySaveSeedEvidenceTree::this.tree_=<',this.tree_,'>');
     }
   }
-
-
-  async loadDidRuleFromManifest_() {
-    const manifests = await this.manifestDb_.values().all();
-    if(EvidenceChain.trace5) {
-      console.log('EvidenceChain::loadDidRuleFromManifest_::manifests=<',manifests,'>');
-    }
-    const manifestsJson = [];
-    for(const manifest of manifests) {
-      if(EvidenceChain.trace5) {
-        console.log('EvidenceChain::loadDidRuleFromManifest_::manifest=<',manifest,'>');
-      }
-      const manifestJson = JSON.parse(manifest);
-      if(EvidenceChain.trace5) {
-        console.log('EvidenceChain::loadDidRuleFromManifest_::manifestJson=<',manifestJson,'>');
-      }
-      manifestsJson.push(manifestJson);
-    }
-    if(EvidenceChain.trace5) {
-      console.log('EvidenceChain::loadDidRuleFromManifest_::manifestsJson=<',manifestsJson,'>');
-    }
-    if(manifestsJson.length > 0) {
-      return manifestsJson[0].diddoc;
-    }
-    return false;
-  }
-
 }
+
+const includesAny = (arr, values) => values.some(v => arr.includes(v));
+const isSubsetById = (subset, superset) => {
+  return subset.every(subsetItem => 
+    superset.some(supersetItem => 
+      subsetItem.id === supersetItem.id
+    )
+  );  
+};
+
+const isSubsetByElem = (subset, superset) => {
+  return subset.every(subsetItem => 
+    superset.some(supersetItem => 
+      subsetItem === supersetItem
+    )
+  );  
+};

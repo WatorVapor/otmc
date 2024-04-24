@@ -1,10 +1,24 @@
 const iConstLengAddress = 32;
 const iConstLengMessage = 32;
 export class EdUtil {
-  constructor(base32) {
+  constructor(base32,nacl) {
     this.trace = false;
     this.debug = true;
+    if(this.trace) {
+      console.log('EdUtil::constructor:base32=<',base32,'>');
+      console.log('EdUtil::constructor:nacl=<',nacl,'>');
+    }
     this.base32 = base32;
+    if(nacl) {
+      if(nacl.default) {
+        this.nacl = nacl.default;
+      } else {
+        this.nacl = nacl;
+      }
+    }
+    if(this.trace) {
+      console.log('EdUtil::constructor:this.nacl=<',this.nacl,'>');
+    }
   } 
   calcAddress(textMsg) {
     const shaS1 = this.sha2b32_(textMsg);
@@ -56,7 +70,7 @@ export class EdUtil {
   sha2b32_(textMsg,typeFn) {
     const encoder = new TextEncoder();
     const data = encoder.encode(textMsg);
-    const hash = nacl.hash(data);
+    const hash = this.nacl.hash(data);
     const hashArray = Array.from(new Uint8Array(hash)); 
     const b32Hash = this.base32.encode(hashArray);
     if(this.trace) {
@@ -68,7 +82,7 @@ export class EdUtil {
   sha2b64_(textMsg,typeFn) {
     const encoder = new TextEncoder();
     const data = encoder.encode(textMsg);
-    const hash = nacl.hash(data);
+    const hash = this.nacl.hash(data);
     const hashArray = Array.from(new Uint8Array(hash)); 
     if(this.trace) {
       console.log('EdUtil::sha2b64_:hashArray=<',hashArray,'>');

@@ -14,12 +14,14 @@ import {DidDocStateMachine} from './otmc.did.stm.docstate.js';
 import {DidRuntimeStateMachine} from './otmc.did.stm.runtime.js';
 
 
+import * as nacl  from 'nacl';
+//console.log('::::nacl=:<',nacl,'>');
 import * as Level  from 'level';
 //console.log('::::Level=:<',Level,'>');
 import * as diff  from 'diff';
 //console.log('::::diff=:<',diff,'>')
 import * as jsDiff  from 'jsDiff';
-console.log('::::jsDiff=:<',jsDiff,'>')
+//console.log('::::jsDiff=:<',jsDiff,'>')
 
 
 
@@ -42,7 +44,7 @@ export class DidDocument {
     this.dbDocument = new Level.Level('did.document.history',LEVEL_OPT);
     this.dbManifest = new Level.Level('did.manifest.history',LEVEL_OPT);
     this.base32 = new Base32();
-    this.util = new EdUtil(this.base32);
+    this.util = new EdUtil(this.base32,nacl);
     this.ListenEventEmitter_();
     this.mqttOption = {
       qos:0,

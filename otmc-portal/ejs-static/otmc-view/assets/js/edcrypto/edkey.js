@@ -3,6 +3,16 @@ export class EdDsaKey {
     this.trace = false;
     this.debug = true;
     this.util = util;
+    if(util.nacl) {
+      if(util.nacl.default) {
+        this.nacl = util.nacl.default;
+      } else {
+        this.nacl = util.nacl;
+      }
+    }
+    if(this.trace) {
+      console.log('EdDsaKey::constructor:this.nacl=<',this.nacl,'>');
+    }
   }
   id() {
     return this.keyJson.idOfKey;
@@ -11,7 +21,7 @@ export class EdDsaKey {
     if(this.trace) {
       console.log('EdDsaKey::createKeys:nacl=<',nacl,'>');
     }
-    let keyPair = nacl.sign.keyPair();
+    let keyPair = this.nacl.sign.keyPair();
     if(this.trace) {
       console.log('EdDsaKey::createKeys:keyPair=<',keyPair,'>');
     }

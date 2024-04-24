@@ -46,14 +46,18 @@ const onMiningCmd = async (msg) => {
   }
   const { EdDsaKey } = await import(modulePath.edkey)
   if(self.trace) {
-  console.log('otmc.worker.edcrypt::onMiningCmd::EdDsaKey=:<',EdDsaKey,'>');
+    console.log('otmc.worker.edcrypt::onMiningCmd::EdDsaKey=:<',EdDsaKey,'>');
   }
   const { EdUtil } = await import(modulePath.edutils)
   if(self.trace) {
-  console.log('otmc.worker.edcrypt::onMiningCmd::EdUtil=:<',EdUtil,'>');
+    console.log('otmc.worker.edcrypt::onMiningCmd::EdUtil=:<',EdUtil,'>');
+  }
+  const nacl = await import('https://cdn.jsdelivr.net/npm/tweetnacl-es6@1.0.3/nacl-fast-es.js');
+  if(self.trace) {
+    console.log('otmc.worker.edcrypt::onMiningCmd::nacl=:<',nacl,'>');
   }
   const base32 = new Base32();
-  const util = new EdUtil(base32);
+  const util = new EdUtil(base32,nacl);
   const edKey = new EdDsaKey(util);
   if(self.trace) {
   console.log('otmc.worker.edcrypt::onMiningCmd::edKey=:<',edKey,'>');

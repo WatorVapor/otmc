@@ -5,6 +5,16 @@ export class EdAuth {
     this.debug = true;
     this.edKey_ = edKey;
     this.util_ = util;
+    if(util.nacl) {
+      if(util.nacl.default) {
+        this.nacl = util.nacl.default;
+      } else {
+        this.nacl = util.nacl;
+      }
+    }
+    if(this.trace) {
+      console.log('EdAuth::constructor:this.nacl=<',this.nacl,'>');
+    }
   }
   
   
@@ -57,7 +67,7 @@ export class EdAuth {
     if(this.trace) {
       console.log('EdAuth::signWithoutTS::secretKeyBin=<',secretKeyBin,'>');
     }
-    const signed = nacl.sign(hashMsgBin,secretKeyBin);
+    const signed = this.nacl.sign(hashMsgBin,secretKeyBin);
     if(this.trace) {
       console.log('EdAuth::signWithoutTS::signed=<',signed,'>');
     }
@@ -144,7 +154,7 @@ export class EdAuth {
       console.log('EdAuth::verifyWithoutTS::publicKey=<',publicKey,'>');
       console.log('EdAuth::verifyWithoutTS::signMsg=<',signMsg,'>');
     }
-    const signedHash = nacl.sign.open(signMsg,publicKey);
+    const signedHash = this.nacl.sign.open(signMsg,publicKey);
     if(!signedHash) {
       console.log('EdAuth::verifyWithoutTS::signedHash=<',signedHash,'>');
       return false;
@@ -242,12 +252,12 @@ export class EdAuth {
       console.log('EdAuth::verifyWeak::publicKey=<',publicKey,'>');
       console.log('EdAuth::verifyWeak::signMsg=<',signMsg,'>');
     }
-    const signedHash = nacl.sign.open(signMsg,publicKey);
+    const signedHash = this.nacl.sign.open(signMsg,publicKey);
     if(!signedHash) {
       console.log('EdAuth::verifyWeak::signedHash=<',signedHash,'>');
       return false;
     }
-    const signedHashB64 = nacl.util.encodeBase64(signedHash);
+    const signedHashB64 = this.nacl.util.encodeBase64(signedHash);
     if(this.trace) {
       console.log('EdAuth::verifyWeak::signedHashB64=<',signedHashB64,'>');
     }
@@ -266,14 +276,14 @@ export class EdAuth {
   }
   
   randomAddress() {
-    const randomHex = nacl.randomBytes(1024);
+    const randomHex = this.nacl.randomBytes(1024);
     if(this.trace) {
       console.log('EdAuth::randomAddress:randomHex=<',randomHex,'>');
     }
     return this.util_.calcAddress(randomHex);
   }
   randomPassword() {
-    const randomHex = nacl.randomBytes(1024);
+    const randomHex = this.nacl.randomBytes(1024);
     if(this.trace) {
       console.log('EdAuth::randomAddress:randomHex=<',randomHex,'>');
     }
@@ -348,7 +358,7 @@ export class EdAuth {
       console.log('EdAuth::verificationProof_::publicKey=<',publicKey,'>');
       console.log('EdAuth::verificationProof_::signMsg=<',signMsg,'>');
     }
-    const signedHash = nacl.sign.open(signMsg,publicKey);
+    const signedHash = this.nacl.sign.open(signMsg,publicKey);
     if(!signedHash) {
       console.log('EdAuth::verificationProof_::signedHash=<',signedHash,'>');
       return false;

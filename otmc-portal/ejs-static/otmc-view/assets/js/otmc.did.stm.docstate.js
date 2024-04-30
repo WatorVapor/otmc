@@ -112,6 +112,9 @@ const didDocStateTable = {
       'auth.proof.by.seed':'authBySeed',
       'auth.proof.by.auth':'authByAuth',
       'auth.proof.by.none':'authByNone',
+      'capability.proof.by.seed':'capabilityBySeed',
+      'capability.proof.by.auth':'capabilityByAuth',
+      'capability.proof.by.none':'capabilityByNone',
     } 
   },
   evidenceChainFail: {
@@ -136,6 +139,21 @@ const didDocStateTable = {
   },
   authByNone: {
     entry:['authByNone'],
+    on: {
+    }
+  },
+  capabilityBySeed: {
+    entry:['capabilityBySeed'],
+    on: {
+    }
+  },
+  capabilityByAuth: {
+    entry:['capabilityByAuth'],
+    on: {
+    }
+  },
+  capabilityByNone: {
+    entry:['capabilityByNone'],
     on: {
     }
   },
@@ -226,4 +244,44 @@ const didDocActionTable = {
     };
     ee.emit('did.evidence.auth',notify);
   },
+  capabilityBySeed:(context, evt) => {
+    const ee = context.context.ee;
+    const chain = context.context.chain;
+    if(LOG.trace) {
+      console.log('DidDocStateMachine::didDocActionTable::capabilityBySeed:context=:<',context,'>');
+      console.log('DidDocStateMachine::didDocActionTable::capabilityBySeed:ee=:<',ee,'>');
+      console.log('DidDocStateMachine::didDocActionTable::capabilityBySeed:chain=:<',chain,'>');
+    }
+    const notify = {
+      bySeed:true,
+    };
+    ee.emit('did.evidence.capability',notify);
+  },
+  capabilityByAuth:(context, evt) => {
+    const ee = context.context.ee;
+    const chain = context.context.chain;
+    if(LOG.trace) {
+      console.log('DidDocStateMachine::didDocActionTable::capabilityByAuth:context=:<',context,'>');
+      console.log('DidDocStateMachine::didDocActionTable::capabilityByAuth:ee=:<',ee,'>');
+      console.log('DidDocStateMachine::didDocActionTable::capabilityByAuth:chain=:<',chain,'>');
+    }
+    const notify = {
+      byAuth:true,
+    };
+    ee.emit('did.evidence.capability',notify);
+  },
+  capabilityByNone:(context, evt) => {
+    const ee = context.context.ee;
+    const chain = context.context.chain;
+    if(LOG.trace) {
+      console.log('DidDocStateMachine::didDocActionTable::capabilityByNone:context=:<',context,'>');
+      console.log('DidDocStateMachine::didDocActionTable::capabilityByNone:ee=:<',ee,'>');
+      console.log('DidDocStateMachine::didDocActionTable::capabilityByNone:chain=:<',chain,'>');
+    }
+    const notify = {
+      byNone:true,
+    };
+    ee.emit('did.evidence.capability',notify);
+  },
+
 };

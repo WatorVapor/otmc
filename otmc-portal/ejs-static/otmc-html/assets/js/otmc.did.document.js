@@ -53,6 +53,7 @@ export class DidDocument {
     this.docState = new DidDocStateMachine(this.ee);
     this.rtState = new DidRuntimeStateMachine(this.ee);
     this.evidenceAuth = {};
+    this.evidenceCapability = {};
   }
   
   ListenEventEmitter_() {
@@ -228,16 +229,6 @@ export class DidDocument {
       if(this.trace) {
         console.log('DidDocument::loadDocument::results=:<',results,'>');
       }
-      let role = false;
-      if(this.didManifest_) {
-        role = this.judgeDidProofChain(results.proofList,this.didDoc_.id,this.didManifest_.diddoc);
-      } else {
-        role = this.judgeDidProofChain(results.proofList,this.didDoc_.id);
-      }
-      if(this.trace) {
-        console.log('DidDocument::loadDocument::role=:<',role,'>');
-      }
-      this.role_ = role;
       const joinStr = localStorage.getItem(StoreKey.invitation.join);
       if(joinStr) {
         const joinList = JSON.parse(joinStr);
@@ -537,15 +528,6 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::acceptInvitation::results=:<',results,'>');
     }
-    let roleInvitation = false;
-    if(this.didManifest_) {
-      roleInvitation = this.judgeDidProofChain(results.proofList,joinInvitation.id,this.didManifest_.diddoc);
-    } else {
-      roleInvitation = this.judgeDidProofChain(results.proofList,joinInvitation.id);
-    }
-    if(this.trace) {
-      console.log('DidDocument::acceptInvitation::roleInvitation:=<',roleInvitation,'>');
-    }
     const nextDid = JSON.parse(JSON.stringify(this.didDoc_));
     if(this.trace) {
       console.log('DidDocument::acceptInvitation::nextDid:=<',nextDid,'>');
@@ -554,34 +536,15 @@ export class DidDocument {
     if(joinInvitation.verificationMethod && joinInvitation.verificationMethod.length > 0) {
       nextDid.verificationMethod.push(joinInvitation.verificationMethod[0]);
     }
-    switch (roleInvitation) {
-      case 'auth.proof.by.seed':
-        {
-        }
-        break;
-      case 'auth.proof.by.none':
-        {
-          if(joinInvitation.authentication && joinInvitation.authentication.length > 0) {
-            nextDid.authentication.push(joinInvitation.authentication[0]);
-          }
-        }
-        break;
-      case 'capability.proof.by.seed':
-        {
-        }
-        break;
-      case 'capability.proof.by.none':
-        {
-          if(joinInvitation.capabilityInvocation && joinInvitation.capabilityInvocation.length > 0) {
-            nextDid.capabilityInvocation.push(joinInvitation.capabilityInvocation[0]);
-          }        
-        }
-        break;
-      default:
-        {
-          console.log('DidDocument::acceptInvitation::roleInvitation:=<',roleInvitation,'>');
-        }
-        break;
+    if(this.evidenceAuth.byNone) {
+      if(joinInvitation.authentication && joinInvitation.authentication.length > 0) {
+        nextDid.authentication.push(joinInvitation.authentication[0]);
+      }
+    }
+    if(this.evidenceCapability.byNone) {
+      if(joinInvitation.capabilityInvocation && joinInvitation.capabilityInvocation.length > 0) {
+        nextDid.capabilityInvocation.push(joinInvitation.capabilityInvocation[0]);
+      }
     }
     if(nextDid.verificationMethod) {
       nextDid.verificationMethod = this.removeDuplicates(nextDid.verificationMethod);
@@ -686,16 +649,6 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::onDidDocumentStore::results=:<',results,'>');
     }
-    let roleInclome = false;
-    if(this.didManifest_) {
-      roleInclome = this.judgeDidProofChain(results.proofList,inclomeDidClone.id,this.didManifest_.diddoc);
-    } else {
-      roleInclome = this.judgeDidProofChain(results.proofList,inclomeDidClone.id);      
-    }
-    if(this.trace) {
-      console.log('DidDocument::onDidDocumentStore::roleInclome:=<',roleInclome,'>');
-    }
-    
   }
   
   storeDidDocumentHistory(historyDid,uploadAddress) {
@@ -778,59 +731,6 @@ export class DidDocument {
       console.log('DidDocument::createMoudles_::this.otmc.edcrypt=:<',this.otmc.edcrypt,'>');
       return;
     }
-  }
-  
-  judgeDidProofChain(proofList,did,manifest) {
-    const myAddress = this.auth.address();
-    if(this.trace) {
-      console.log('DidDocument::judgeDidProofChain::proofList=<',proofList,'>');
-      console.log('DidDocument::judgeDidProofChain::did=<',did,'>');
-      console.log('DidDocument::judgeDidProofChain::myAddress=<',myAddress,'>');
-      console.log('DidDocument::judgeDidProofChain::manifest=<',manifest,'>');
-    }
-    let proof = 'none.proof';
-    const didAddress = did.replace('did:otmc:','');
-    if(this.trace) {
-      console.log('DidDocument::judgeDidProofChain::didAddress=<',didAddress,'>');
-    }
-    if(proofList.authProof && proofList.authProof.length > 0) {
-      if(proofList.authProof.includes(didAddress)) {
-        proof = 'auth.proof.by.seed';
-        if(myAddress === didAddress) {
-          proof = 'auth.proof.is.seed';
-        }
-      } else if(proofList.authProof.includes(myAddress)) {
-        proof = this.judgeDidProofChainDeep(proofList,did,manifest);
-      }
-      else {
-        proof = 'auth.proof.by.none';
-      }
-    }
-    if(proofList.capabilityProof && proofList.capabilityProof.length > 0) {
-      if(proofList.capabilityProof.includes(didAddress)) {
-        proof = 'capability.proof.by.seed';
-      } else if(proofList.capabilityProof.includes(myAddress)) {
-        proof = 'capability.proof.by.auth';
-      } else {
-        proof = 'capability.proof.by.none';
-      }
-    }
-    if(this.trace) {
-      console.log('DidDocument::judgeDidProofChain::proof=<',proof,'>');
-    }
-    return proof;
-  }
-  judgeDidProofChainDeep(proofList,did,manifest) {
-    if(this.trace) {
-      console.log('DidDocument::judgeDidProofChainDeep::proofList=<',proofList,'>');
-      console.log('DidDocument::judgeDidProofChainDeep::manifest=<',manifest,'>');
-    }
-    //let proof = 'auth.proof.by.auth';
-    let proof = 'auth.proof.by.invitation';
-    if(this.trace) {
-      console.log('DidDocument::judgeDidProofChainDeep::proof=<',proof,'>');
-    }
-    return proof;
   }
   
   removeDuplicates(arrObject) {

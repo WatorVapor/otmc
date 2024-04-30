@@ -48,7 +48,7 @@ export class EdAuth {
     if(this.trace) {
       console.log('EdAuth::signWithoutTS::msgOrig=<',msgOrig,'>');
       console.log('EdAuth::signWithoutTS::edKey=<',edKey,'>');
-      console.log('EdAuth::signWithoutTS::nacl=<',nacl,'>');
+      console.log('EdAuth::signWithoutTS::this.nacl=<',this.nacl,'>');
     }
     let signkey = this.edKey_;
     if(edKey) {
@@ -111,7 +111,7 @@ export class EdAuth {
       console.log('EdAuth::verify::publicKey=<',publicKey,'>');
       console.log('EdAuth::verify::signMsg=<',signMsg,'>');
     }
-    const signedHash = nacl.sign.open(signMsg,publicKey);
+    const signedHash = this.nacl.sign.open(signMsg,publicKey);
     if(!signedHash) {
       console.log('EdAuth::verify::signedHash=<',signedHash,'>');
       return false;
@@ -246,8 +246,8 @@ export class EdAuth {
     if(this.trace) {
       console.log('EdAuth::verifyWeak::calcAddress=<',calcAddress,'>');
     }
-    const publicKey = nacl.util.decodeBase64(msg.auth.pub);
-    const signMsg = nacl.util.decodeBase64(msg.auth.sign);
+    const publicKey = this.nacl.util.decodeBase64(msg.auth.pub);
+    const signMsg = this.nacl.util.decodeBase64(msg.auth.sign);
     if(this.trace) {
       console.log('EdAuth::verifyWeak::publicKey=<',publicKey,'>');
       console.log('EdAuth::verifyWeak::signMsg=<',signMsg,'>');

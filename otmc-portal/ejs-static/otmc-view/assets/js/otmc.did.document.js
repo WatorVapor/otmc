@@ -541,7 +541,7 @@ export class DidDocument {
     if(this.didManifest_) {
       roleInvitation = this.judgeDidProofChain(results.proofList,joinInvitation.id,this.didManifest_.diddoc);
     } else {
-      roleInvitation = this.judgeDidProofChain(results.proofList,joinInvitation.id);      
+      roleInvitation = this.judgeDidProofChain(results.proofList,joinInvitation.id);
     }
     if(this.trace) {
       console.log('DidDocument::acceptInvitation::roleInvitation:=<',roleInvitation,'>');
@@ -660,12 +660,6 @@ export class DidDocument {
     localStorage.setItem(StoreKey.didDoc,JSON.stringify(documentObj));
     this.otmc.mqtt.freshMqttJwt();
     this.loadDocument();
-    
-    const self = this;
-    setTimeout(() => {
-      self.syncAscentDid_(documentObj);
-    },1000);
-
   }
   
   onDidDocumentStore(incomeDid,acceptAddress) {
@@ -761,22 +755,7 @@ export class DidDocument {
     });
   }  
   
-  
-  syncAscentDid_(documentObj,acceptAddress) {
-    const role = 'invitation';
-    const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
-    const syncDid = {
-      topic:`${prefixDidToTopic}/${acceptAddress}/sys/did/${role}/sync`,
-      did:documentObj,
-    };
-    if(this.trace) {
-      console.log('DidDocument::syncAscentDid_::syncDid=:<',syncDid,'>');
-    }
-    const syncDidSigned = this.auth.sign(syncDid);
-    if(this.trace) {
-      console.log('DidDocument::syncAscentDid_::syncDidSigned=:<',syncDidSigned,'>');
-    }    
-  }
+
 
 
   

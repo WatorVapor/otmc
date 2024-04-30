@@ -1,7 +1,10 @@
+const LOG = {
+  trace:true,
+  debug:true,
+};
 import * as xstate  from 'xstate';
 console.log('::::xstate=:<',xstate,'>');
 import { createMachine, createActor, assign  }  from 'xstate';
-
 
 /**
 *
@@ -12,23 +15,27 @@ export class OtmcStateMachine {
   constructor(ee) {
     this.trace = true;
     this.debug = true;
-    OtmcStateMachine.ee = ee;
     this.ee = ee;
     this.createStateMachine_();
     this.ListenEventEmitter_();
   }
   
   createStateMachine_() {
-    const otmcStateMachine = {
+    const stmConfig = {
       id: 'otmc',
       initial: 'genesis',
-      context: {},
+      context: {
+        ee:this.ee,
+      },
       states: otmcStateTable,
     }
     if(this.trace) {
-      console.log('OtmcStateMachine::createStateMachine_::otmcStateMachine=:<',otmcStateMachine,'>');
+      console.log('OtmcStateMachine::createStateMachine_::stmConfig=:<',stmConfig,'>');
     }
-    const stateMachine = createMachine(otmcStateMachine);
+    const stmOption = {
+      actions:otmcActionTable,
+    }
+    const stateMachine = createMachine(stmConfig,stmOption);
     this.actor = createActor(stateMachine);
     this.actor.subscribe((state) => {
       console.log('OtmcStateMachine::createStateMachine_::state.value=:<',state.value,'>');
@@ -58,40 +65,72 @@ const otmcStateTable = {
   genesis: {
     on: {
       'init': { 
-        actions: assign({ otmc: () => {
-          OtmcStateMachine.ee.emit('edcrypt.loadKey',{});
-        }})
+        actions: ['init']
       },
       'edcrypt:address': 'edKeyReady',
     } 
   },
   edKeyReady: {
-    entry:assign({ otmc: () => {
-      OtmcStateMachine.ee.emit('did.loadDocument',{});
-    }}),
+    entry:['edKeyReady'],
     on: {
       'did:document_manifest': 'didReady',
       'did:document': 'didReady'
     } 
   },
   didReady: {
-    entry:assign({ otmc: () => {
-      OtmcStateMachine.ee.emit('mqtt.validateMqttJwt',{});
-    }}),
+    entry:['didReady'],
     on: { 'mqtt:jwt': 'jwtReady' } 
   },
   jwtReady: {
-    entry:assign({ otmc: () => {
-      OtmcStateMachine.ee.emit('mqtt.connectMqtt',{});
-    }}),
+    entry:['jwtReady'],
     on: { 'mqtt:connected': 'mqttService' } 
   },
   mqttService: {
-    entry:assign({ otmc: () => {
-      OtmcStateMachine.ee.emit('otmc.did.client.storage',{});
-    }}),
+    entry:['mqttService'],
   },
 }
 
 
+const otmcActionTable = {
+  init: (context, evt) => {
+    const ee = context.context.ee;
+    if(LOG.trace) {
+      console.log('OtmcStateMachine::otmcActionTable::init:context=:<',context,'>');
+      console.log('OtmcStateMachine::otmcActionTable::init:ee=:<',ee,'>');
+    }
+    ee.emit('edcrypt.loadKey',{});
+  },
+  edKeyReady:(context, evt) => {
+    const ee = context.context.ee;
+    if(LOG.trace) {
+      console.log('OtmcStateMachine::otmcActionTable::edKeyReady:context=:<',context,'>');
+      console.log('OtmcStateMachine::otmcActionTable::edKeyReady:ee=:<',ee,'>');
+    }
+    ee.emit('did.loadDocument',{});
+  },
+  didReady:(context, evt) => {
+    const ee = context.context.ee;
+    if(LOG.trace) {
+      console.log('OtmcStateMachine::otmcActionTable::didReady:context=:<',context,'>');
+      console.log('OtmcStateMachine::otmcActionTable::didReady:ee=:<',ee,'>');
+    }
+    ee.emit('mqtt.validateMqttJwt',{});
+  },
+  jwtReady:(context, evt) => {
+    const ee = context.context.ee;
+    if(LOG.trace) {
+      console.log('OtmcStateMachine::otmcActionTable::jwtReady:context=:<',context,'>');
+      console.log('OtmcStateMachine::otmcActionTable::jwtReady:ee=:<',ee,'>');
+    }
+    ee.emit('mqtt.connectMqtt',{});
+  },
+  mqttService:(context, evt) => {
+    const ee = context.context.ee;
+    if(LOG.trace) {
+      console.log('OtmcStateMachine::otmcActionTable::mqttService:context=:<',context,'>');
+      console.log('OtmcStateMachine::otmcActionTable::mqttService:ee=:<',ee,'>');
+    }
+    ee.emit('otmc.did.client.storage',{});
+  },
+};
 

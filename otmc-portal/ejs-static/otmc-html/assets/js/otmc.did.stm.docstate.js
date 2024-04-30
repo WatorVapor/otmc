@@ -72,7 +72,7 @@ export class DidDocStateMachine {
     }
     const stmOption = {
       actions:didDocActionTable,
-    }    
+    }
     if(this.trace) {
       console.log('DidDocStateMachine::createStateMachine_::stmConfig=:<',stmConfig,'>');
     }

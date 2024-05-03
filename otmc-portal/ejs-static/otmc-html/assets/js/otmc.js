@@ -117,20 +117,34 @@ class EdcryptWorker {
   }
 
   runWorker() {
-    this.cryptWorker = new Worker(`${this.otmc.scriptPath}/otmc.worker.edcrypt.js`);
-    if(this.trace) {
-      console.log('EdcryptWorker::constructor::this.cryptWorker=:<',this.cryptWorker,'>');
-    }
     const self = this;
-    this.cryptWorker.onmessage = (e) => {
-      self.onEdCryptMessage_(e.data);
-    }
-    const initMsg = {
-      init:{
-        path:this.otmc.scriptPath,
+    fetch(`${this.otmc.scriptPath}/otmc.worker.edcrypt.js`)
+    .then((response) => response.blob())
+    .then((blob) => {
+      const url = URL.createObjectURL(blob);
+      if(self.trace) {
+        console.log('EdcryptWorker::runWorker::url=:<',url,'>');
       }
-    };    
-    this.cryptWorker.postMessage(initMsg);
+      self.cryptWorker = new Worker(url);
+      if(self.trace) {
+        console.log('EdcryptWorker::runWorker::self.cryptWorker=:<',self.cryptWorker,'>');
+      }
+      self.cryptWorker.onmessage = (e) => {
+        self.onEdCryptMessage_(e.data);
+      }
+      self.cryptWorker.onerror = (err) => {
+        console.log('EdcryptWorker::runWorker::err=:<',err,'>');
+      }
+      const initMsg = {
+        init:{
+          path:self.otmc.scriptPath,
+        }
+      };    
+      self.cryptWorker.postMessage(initMsg);
+      if(self.trace) {
+        console.log('EdcryptWorker::runWorker::self.cryptWorker=:<',self.cryptWorker,'>');
+      }
+    });
   }
 
   postMessage(data) {

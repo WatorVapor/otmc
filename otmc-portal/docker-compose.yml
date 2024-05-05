@@ -4,8 +4,6 @@ services:
     volumes:
       - ./ejs-static/otmc-html:/www
       - ../otmc-package:/www/assets/js
-      - ./ejs-static/otmc-view/assets/js/lang.js:/www/assets/js/lang.js
-      - ./ejs-static/otmc-view/assets/js/const.js:/www/assets/js/const.js
       - ./ejs-static/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
       - /dev/shm/:/dev/shm/
     network_mode : 'none'

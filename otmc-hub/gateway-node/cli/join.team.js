@@ -1,9 +1,11 @@
-const fs = require('fs');
-const execSync = require('child_process').execSync
-const EdAuth = require('../edcrypto/edauth.js');
-const DidDoc = require('../did/document.js');
+//const fs = require('fs');
+import fs from 'fs';
+import { parseArgs } from 'node:util';
+import { execSync } from 'child_process';
+import { EdAuth } from '../otmc/edcrypto/edauth.js';
+import { DidDoc } from '../../did/document.js';
 console.log('::::DidDoc=<',DidDoc,'>');
-const {Manifest} = require('../did/manifest.js');
+import {Manifest} from '../did/manifest.js';
 console.log('::::DidDoc=<',DidDoc,'>');
 
 const secretKeyPath = '../.store//secretKey/auth.json';
@@ -22,6 +24,19 @@ const recoveryAuth = new EdAuth(secretRecoveryKey);
 const strConstDidPath = `../.store/didteam/${secretKey.idOfKey}`
 
 fs.mkdirSync(strConstDidPath, { recursive: true },);
+
+const options = {
+  address: {
+    type: "string",
+    short: "a",
+    multiple: false,
+  },
+};
+
+const args = process.argv.slice(2);
+const parsedArgs = parseArgs({ options, args });
+console.log('::::parsedArgs=<',parsedArgs,'>');
+
 (async ()=> {
   /*
   const seed = new DidDoc.SeedDocument(primaryAuth,recoveryAuth);

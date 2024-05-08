@@ -2,11 +2,12 @@
 import fs from 'fs';
 import { parseArgs } from 'node:util';
 import { execSync } from 'child_process';
-import { EdAuth } from '../otmc/edcrypto/edauth.js';
-import { DidDoc } from '../../did/document.js';
-console.log('::::DidDoc=<',DidDoc,'>');
-import {Manifest} from '../did/manifest.js';
-console.log('::::DidDoc=<',DidDoc,'>');
+import  EdAuth from 'otmc-client/edcrypto/edauth.js';
+console.log('::::EdAuth=<',EdAuth,'>');
+import DIDDocument from 'otmc-client/did/document.js';
+console.log('::::DIDDocument=<',DIDDocument,'>');
+import Manifest from 'otmc-client/did/manifest.js';
+console.log('::::Manifest=<',Manifest,'>');
 
 const secretKeyPath = '../.store//secretKey/auth.json';
 const secretText = fs.readFileSync(secretKeyPath);

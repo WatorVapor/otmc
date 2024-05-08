@@ -12,10 +12,11 @@
   "dependencies": {
     "base32.js": "^0.1.0",
     "crypto-js": "^4.2.0",
-    "mqtt": "^5.1.4",
-    "otmc-client": "^1.0.2",
+    "mqtt": "^5.5.5",
+    "otmc-client": "^1.0.3",
     "tweetnacl": "^1.0.3",
+    "tweetnacl-es6": "^1.0.3",
     "tweetnacl-util": "^0.15.1",
-    "ws": "^8.14.2"
+    "ws": "^8.17.0"
   }
 }

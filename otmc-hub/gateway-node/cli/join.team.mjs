@@ -2,12 +2,18 @@
 import fs from 'fs';
 import { parseArgs } from 'node:util';
 import { execSync } from 'child_process';
-import  EdAuth from 'otmc-client/edcrypto/edauth.js';
+
+import nacl from 'tweetnacl-es6/nacl-fast-es.js';
+import  { Base32 } from 'otmc-client/edcrypto/base32.js';
+console.log('::::Base32=<',Base32,'>');
+import  { EdUtil } from 'otmc-client/edcrypto/edutils.js';
+console.log('::::EdUtil=<',EdUtil,'>');
+import  { EdAuth } from 'otmc-client/edcrypto/edauth.js';
 console.log('::::EdAuth=<',EdAuth,'>');
-import DIDDocument from 'otmc-client/did/document.js';
-console.log('::::DIDDocument=<',DIDDocument,'>');
-import Manifest from 'otmc-client/did/manifest.js';
-console.log('::::Manifest=<',Manifest,'>');
+import { DIDGuestDocument } from 'otmc-client/did/document.js';
+console.log('::::DIDGuestDocument=<',DIDGuestDocument,'>');
+import { DIDManifest } from 'otmc-client/did/manifest.js';
+console.log('::::DIDManifest=<',DIDManifest,'>');
 
 const secretKeyPath = '../.store//secretKey/auth.json';
 const secretText = fs.readFileSync(secretKeyPath);
@@ -19,8 +25,10 @@ const secretRecoveryKey = JSON.parse(secretRecoveryText);
 console.log('::::secretRecoveryKey=<',secretRecoveryKey,'>');
 
 
-const primaryAuth = new EdAuth(secretKey);
-const recoveryAuth = new EdAuth(secretRecoveryKey);
+const base64 = new Base32();
+const util = new EdUtil(base64,nacl);
+const primaryAuth = new EdAuth(secretKey,util);
+const recoveryAuth = new EdAuth(secretRecoveryKey,util);
 
 const strConstDidPath = `../.store/didteam/${secretKey.idOfKey}`
 

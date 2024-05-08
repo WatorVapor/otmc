@@ -30,9 +30,6 @@ const util = new EdUtil(base64,nacl);
 const primaryAuth = new EdAuth(secretKey,util);
 const recoveryAuth = new EdAuth(secretRecoveryKey,util);
 
-const strConstDidPath = `../.store/didteam/${secretKey.idOfKey}`
-
-fs.mkdirSync(strConstDidPath, { recursive: true },);
 
 const options = {
   address: {
@@ -43,21 +40,23 @@ const options = {
 };
 
 const args = process.argv.slice(2);
-const parsedArgs = parseArgs({ options, args });
-console.log('::::parsedArgs=<',parsedArgs,'>');
+const {
+  values,
+  positionals,
+} = parseArgs({ options, args });
+console.log('::::values=<',values,'>');
+const guestAddress = values.address.replace('did:otmc:','');
+const strConstDidPath = `../.store/didteam/${guestAddress}`
+fs.mkdirSync(strConstDidPath, { recursive: true },);
+
 
 (async ()=> {
-  /*
-  const seed = new DidDoc.SeedDocument(primaryAuth,recoveryAuth);
-  console.log('::::seed=<',seed,'>');
-  const seedDoc = seed.document();
-  console.log('::::seedDoc=<',seedDoc,'>');
-  const manifest = Manifest.rule(seedDoc.id);
-  const strConstTopDidDocPath = `${strConstDidPath}/seedDocument.json`;
-  fs.writeFileSync(strConstTopDidDocPath, JSON.stringify(seedDoc,undefined,2));
-  execSync(`cd ${strConstDidPath} && ln -sf ./seedDocument.json ./topDocument.json`);
-  const strConstTopDidManifestPath = `${strConstDidPath}/manifest.json`;
-  fs.writeFileSync(strConstTopDidManifestPath, JSON.stringify(manifest,undefined,2));
-  */
+  const guest = new DIDGuestDocument(values.address,primaryAuth);
+  console.log('::::guest=<',guest,'>');
+  const guestDoc = guest.document();
+  console.log('::::guestDoc=<',guestDoc,'>');
+  const strConstTopDidDocPath = `${strConstDidPath}/guestDocument.json`;
+  fs.writeFileSync(strConstTopDidDocPath, JSON.stringify(guestDoc,undefined,2));
+  execSync(`cd ${strConstDidPath} && ln -sf ./guestDocument.json ./topDocument.json`);
 })();
 

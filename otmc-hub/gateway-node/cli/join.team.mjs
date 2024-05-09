@@ -1,8 +1,6 @@
-//const fs = require('fs');
 import fs from 'fs';
 import { parseArgs } from 'node:util';
 import { execSync } from 'child_process';
-
 import nacl from 'tweetnacl-es6/nacl-fast-es.js';
 import  { Base32 } from 'otmc-client/edcrypto/base32.js';
 console.log('::::Base32=<',Base32,'>');
@@ -28,7 +26,6 @@ console.log('::::secretRecoveryKey=<',secretRecoveryKey,'>');
 const base64 = new Base32();
 const util = new EdUtil(base64,nacl);
 const primaryAuth = new EdAuth(secretKey,util);
-const recoveryAuth = new EdAuth(secretRecoveryKey,util);
 
 
 const options = {

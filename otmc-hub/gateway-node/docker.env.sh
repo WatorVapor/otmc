@@ -22,6 +22,6 @@ docker run -it
   --memory=256M 
   --cpu-shares=128 
   --name ${DOCKER_MAME} 
-  node:lts
+  node:22
 EOF
 

@@ -1,9 +1,9 @@
+import fs from 'fs';
 import nacl from 'tweetnacl-es6/nacl-fast-es.js';
 import  { Base32 } from 'otmc-client/edcrypto/base32.js';
 console.log('::::Base32=<',Base32,'>');
 import  { EdUtil } from 'otmc-client/edcrypto/edutils.js';
 console.log('::::EdUtil=<',EdUtil,'>');
-import fs from 'fs';
 import  { EdDsaKey } from 'otmc-client/edcrypto/edkey.js';
 const base64 = new Base32();
 const util = new EdUtil(base64,nacl);

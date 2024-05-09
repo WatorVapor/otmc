@@ -1,5 +1,6 @@
-const fs = require('fs');
-const MqttJWTDidTeam = require('./mqtt/did_team.js');
+import fs from 'fs';
+import  { Otmc } from 'otmc-client/otmc.js';
+//const MqttJWTDidTeam = require('./mqtt/did_team.js');
 const secretKeyPath = './.store//secretKey/auth.json';
 const strConstMqttJwtPath = './.store/mqtt/jwt_cached.json';
 

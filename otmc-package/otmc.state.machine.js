@@ -1,8 +1,8 @@
+import * as xstate  from 'xstate';
 const LOG = {
   trace:true,
   debug:true,
 };
-import * as xstate  from 'xstate';
 console.log('::::xstate=:<',xstate,'>');
 import { createMachine, createActor, assign  }  from 'xstate';
 

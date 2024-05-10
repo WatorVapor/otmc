@@ -1,11 +1,14 @@
 {
   "name": "otmc-client",
   "type": "module",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "exports": {
+     ".": "./otmc.js"
   },
   "author": "",
   "license": "ISC",

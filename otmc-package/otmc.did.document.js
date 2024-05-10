@@ -1,3 +1,7 @@
+import nacl from 'tweetnacl-es6';
+import * as Level from 'level';
+import * as jsDiff from 'json-diff';
+
 import { Base32 } from './edcrypto/base32.js';
 import { EdUtil } from './edcrypto/edutils.js';
 import { EdAuth } from './edcrypto/edauth.js';

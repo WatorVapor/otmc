@@ -1,8 +1,10 @@
 import fs from 'fs';
-import  Otmc from 'otmc-client';
-import nacl from 'tweetnacl-es6/nacl-fast-es.js';
+import * as Otmc from 'otmc-client';
+/*
 import * as Level from 'level';
 import * as jsDiff from 'json-diff';
+import * as xstate from 'xstate';
+*/
 
 
 //const MqttJWTDidTeam = require('./mqtt/did_team.js');

@@ -1,5 +1,10 @@
 import fs from 'fs';
-import  { Otmc } from 'otmc-client/otmc.js';
+import  Otmc from 'otmc-client';
+import nacl from 'tweetnacl-es6/nacl-fast-es.js';
+import * as Level from 'level';
+import * as jsDiff from 'json-diff';
+
+
 //const MqttJWTDidTeam = require('./mqtt/did_team.js');
 const secretKeyPath = './.store//secretKey/auth.json';
 const strConstMqttJwtPath = './.store/mqtt/jwt_cached.json';

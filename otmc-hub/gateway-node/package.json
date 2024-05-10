@@ -7,15 +7,14 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "imports": {
-    
-  },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "base32.js": "^0.1.0",
     "crypto-js": "^4.2.0",
     "eventemitter3": "^5.0.1",
+    "json-diff": "^1.0.6",
+    "level": "^8.0.1",
     "mqtt": "^5.5.5",
     "otmc-client": "^1.0.3",
     "tweetnacl": "^1.0.3",

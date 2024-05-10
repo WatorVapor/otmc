@@ -14,16 +14,6 @@ import {DidDocStateMachine} from './otmc.did.stm.docstate.js';
 import {DidRuntimeStateMachine} from './otmc.did.stm.runtime.js';
 
 
-import * as nacl  from 'nacl';
-//console.log('::::nacl=:<',nacl,'>');
-import * as Level  from 'level';
-//console.log('::::Level=:<',Level,'>');
-import * as diff  from 'diff';
-//console.log('::::diff=:<',diff,'>')
-import * as jsDiff  from 'jsDiff';
-//console.log('::::jsDiff=:<',jsDiff,'>')
-
-
 
 const includesAnyByCreator = (setArr,value ) => setArr.some(attr => value === attr.creator);
 

@@ -1,5 +1,5 @@
 import fs from 'fs';
-import nacl from 'tweetnacl-es6/nacl-fast-es.js';
+import nacl from 'tweetnacl-es6';
 import  { Base32 } from 'otmc-client/edcrypto/base32.js';
 console.log('::::Base32=<',Base32,'>');
 import  { EdUtil } from 'otmc-client/edcrypto/edutils.js';

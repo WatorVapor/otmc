@@ -1,9 +1,10 @@
 import { EventEmitter } from 'eventemitter3';
+import { default as mqtt } from 'mqtt';
+
 import { MqttMessager } from './otmc.mqtt.message.js';
 import { DidDocument } from './otmc.did.document.js';
 import { OtmcStateMachine } from './otmc.state.machine.js';
 import { StoreKey } from './otmc.const.js';
-import { default as mqtt } from 'mqtt';
 
 /**
 *

@@ -200,7 +200,10 @@ export class DidDocument {
 
   
   async loadDocument() {
-    const fs = await import('fs');
+    let fs = false;
+    if(this.otmc.isNode) {
+      fs = await import('fs');
+    }
     if(this.trace0) {
       console.log('EdcryptWithNode::loadKey::fs=:<',fs,'>');
     }

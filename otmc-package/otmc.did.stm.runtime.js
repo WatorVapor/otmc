@@ -12,9 +12,11 @@ import { EvidenceChain } from './did/evidence.js';
 export class DidRuntimeStateMachine {
   static otmc = false;
   constructor(ee) {
-    this.trace = true;
+    this.trace = false;
     this.debug = true;
-    console.log('DidRuntimeStateMachine::constructor::ee=:<',ee,'>');
+    if(this.trace) {
+      console.log('DidRuntimeStateMachine::constructor::ee=:<',ee,'>');
+    }
     this.ee = ee;
     this.createStateMachine_();
     this.ListenEventEmitter_();
@@ -59,7 +61,7 @@ export class DidRuntimeStateMachine {
       self.actor.send({type:'chain.load'});
     });
     this.ee.on('did.evidence.auth',(evt)=>{
-      if(this.trace) {
+      if(self.trace) {
         console.log('DidRuntimeStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
       }      
       self.actor.send({type:'chain.pass.auth.proof'});

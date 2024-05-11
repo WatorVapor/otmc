@@ -8,7 +8,7 @@ import { MqttJWTAgent } from './otmc.mqtt.jwt.js';
 */
 export class MqttMessager {
   constructor(ee) {
-    this.trace = true;
+    this.trace = false;
     this.debug = true;
     this.isRequestingJwt = false;
     this.ee = ee;

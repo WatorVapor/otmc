@@ -13,7 +13,7 @@ import { EvidenceChain } from './did/evidence.js';
 
 export class DidDocStateMachine {
   constructor(ee) {
-    this.trace = true;
+    this.trace = false;
     this.debug = true;
     if(this.trace) {
       console.log('DidDocStateMachine::constructor::ee=:<',ee,'>');
@@ -82,13 +82,15 @@ export class DidDocStateMachine {
     }
     this.actor = createActor(this.stm);
     
+    const self = this;
     this.actor.subscribe((state) => {
-      console.log('DidDocStateMachine::createStateMachine_::state=:<',state,'>');
-      console.log('DidDocStateMachine::createStateMachine_::state.value=:<',state.value,'>');
-      console.log('DidDocStateMachine::createStateMachine_::this.stm=:<',this.stm,'>');
+      if(self.trace) {
+        console.log('DidDocStateMachine::createStateMachine_::state=:<',state,'>');
+        console.log('DidDocStateMachine::createStateMachine_::state.value=:<',state.value,'>');
+        console.log('DidDocStateMachine::createStateMachine_::self.stm=:<',self.stm,'>');
+      }
     });
     this.actor.start();
-    const self = this;
     setTimeout(()=>{
       self.actor.send({type:'init'});
     },1);

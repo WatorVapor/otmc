@@ -276,6 +276,7 @@ const getScriptPath = () => {
 */
 class EdcryptWithNode {
   constructor(ee) {
+    this.trace0 = false;
     this.trace = true;
     this.debug = true;
     this.otmc = false;
@@ -302,7 +303,7 @@ class EdcryptWithNode {
 
   async loadKey() {
     const fs = await import('fs');
-    if(this.trace) {
+    if(this.trace0) {
       console.log('EdcryptWithNode::loadKey::this=:<',this,'>');
     }
     try {

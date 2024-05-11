@@ -3,7 +3,9 @@ const LOG = {
   trace:false,
   debug:true,
 };
-console.log('::::xstate=:<',xstate,'>');
+if(LOG.trace) {
+  console.log('::::xstate=:<',xstate,'>');
+}
 import { createMachine, createActor, assign  }  from 'xstate';
 
 /**
@@ -13,7 +15,7 @@ export class OtmcStateMachine {
   static ee = false;
   static instances = {};
   constructor(ee) {
-    this.trace = true;
+    this.trace = false;
     this.debug = true;
     this.ee = ee;
     this.createStateMachine_();

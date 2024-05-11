@@ -50,6 +50,10 @@ const documentHistoryPath = './.store/didteam/document.history';
 const manifestHistoryPath = './.store/didteam/manifest.history';
 
 const strConstMqttJwtPath = './.store/mqtt/jwt_cached.json';
+const topTeamPath = './.store/didteam/topTeam.json';
+
+
+
 
 
 const otmcConfig = {
@@ -60,16 +64,35 @@ const otmcConfig = {
   docHistotry:documentHistoryPath,
   manifestHistotry:manifestHistoryPath,
 }
+
+try {
+  const authKeyStr = fs.readFileSync(authKeyPath);
+  const authKey = JSON.parse(authKeyStr);
+  console.log('::::authKey=:<',authKey,'>');
+  if(authKey&& authKey.idOfKey) {
+    otmcConfig.topDoc = `./.store/didteam/${authKey.idOfKey}/topDocument.json`;
+    otmcConfig.topManifest = `./.store/didteam/${authKey.idOfKey}/topManifest.json`;
+    otmcConfig.invitation = `./.store/didteam/${authKey.idOfKey}/invitation.json`;
+  }
+} catch(err) {
+  console.error('::::err=:<',err,'>');
+}
+
+try {
+  const topTeamStr = fs.readFileSync(topTeamPath);
+  const topTeam = JSON.parse(topTeamStr);
+  console.log('::::topTeam=:<',topTeam,'>');
+  if(topTeam&& topTeam.did) {
+    otmcConfig.topDoc = `./.store/didteam/${topTeam.did}/topDocument.json`;
+    otmcConfig.topManifest = `./.store/didteam/${topTeam.did}/topManifest.json`;
+    otmcConfig.invitation = `./.store/didteam/${topTeam.did}/invitation.json`;
+  }
+} catch(err) {
+  console.error('::::err=:<',err,'>');
+}
+
 console.log('::::otmcConfig=<',otmcConfig,'>');
 const otmc = new Otmc(otmcConfig);
-console.log('::::otmc=<',otmc,'>');
-/*
-const team = new MqttJWTDidTeam(jwtCached,topDidDoc,didManifest,secretKey,(jwtRcv) => {
-  onRecvedJwtReply(jwtRcv);
-});
+//console.log('::::otmc=<',otmc,'>');
 
-const onRecvedJwtReply = (jwtRcv) => {
-  fs.writeFileSync(strConstMqttJwtPath, JSON.stringify(jwtRcv,undefined,2));  
-}
-*/
 

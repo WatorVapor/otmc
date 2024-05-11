@@ -4,7 +4,7 @@ import { StoreKey, OtmcPortal } from './otmc.const.js';
 */
 export class MqttJWTAgent {
   constructor(ee) {
-    this.trace = true;
+    this.trace = false;
     this.debug = true;
     this.ee = ee;
     this.otmc = false;

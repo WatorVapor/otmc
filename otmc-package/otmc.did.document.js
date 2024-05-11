@@ -32,6 +32,7 @@ const LEVEL_OPT = {
 */
 export class DidDocument {
   constructor(ee) {
+    this.trace0 = false;
     this.trace = true;
     this.debug = true;
     this.ee = ee;
@@ -49,7 +50,7 @@ export class DidDocument {
   }
   
   ListenEventEmitter_() {
-    if(this.trace) {
+    if(this.trace0) {
       console.log('DidDocument::ListenEventEmitter_::this.ee=:<',this.ee,'>');
     }
     const self = this;
@@ -58,7 +59,7 @@ export class DidDocument {
         console.log('DidDocument::ListenEventEmitter_::authKey=:<',authKey,'>');
       }
       self.auth = new EdAuth(authKey,self.util);
-      if(self.trace) {
+      if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::self.auth=:<',self.auth,'>');
       }
       const evt = {
@@ -75,7 +76,7 @@ export class DidDocument {
         console.log('DidDocument::ListenEventEmitter_::recoveryKey=:<',recoveryKey,'>');
       }
       self.recovery = new EdAuth(recoveryKey,self.util);
-      if(self.trace) {
+      if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::self.recovery=:<',self.recovery,'>');
       }
       const evt = {
@@ -88,7 +89,7 @@ export class DidDocument {
       if(this.trace) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      if(this.trace) {
+      if(this.trace0) {
         console.log('DidDocument::ListenEventEmitter_::self.otmc=:<',self.otmc,'>');
       }
       if(self.otmc.isNode) {
@@ -198,14 +199,26 @@ export class DidDocument {
   }
 
   
-  loadDocument() {
-    if(this.trace) {
+  async loadDocument() {
+    const fs = await import('fs');
+    if(this.trace0) {
+      console.log('EdcryptWithNode::loadKey::fs=:<',fs,'>');
+    }
+    if(this.trace0) {
       console.log('DidDocument::loadDocument::this.ee=:<',this.ee,'>');
       console.log('DidDocument::loadDocument::this.otmc=:<',this.otmc,'>');
     }
+    if(this.trace) {
+      console.log('DidDocument::loadDocument::this.otmc.config=:<',this.otmc.config,'>');
+    }
     this.checkEdcrypt_();
     try {
-      const didDocStr = localStorage.getItem(StoreKey.didDoc);
+      let didDocStr = false;
+      if(this.otmc.isNode) {
+        didDocStr = fs.readFileSync(this.otmc.config.topDoc);
+      } else {
+        didDocStr = localStorage.getItem(StoreKey.didDoc);
+      }
       if(didDocStr) {
         const didDoc = JSON.parse(didDocStr);
         if(this.trace) {
@@ -215,7 +228,12 @@ export class DidDocument {
         this.didDoc_ = didDoc;
         this.ee.emit('did:document',{didDoc:this});
       }
-      const manifestStr = localStorage.getItem(StoreKey.manifest);
+      let manifestStr = false;
+      if(this.otmc.isNode) {
+        didDocStr = fs.readFileSync(this.otmc.config.topManifest);
+      } else {
+        manifestStr = localStorage.getItem(StoreKey.manifest);
+      }
       if(manifestStr) {
         const manifest = JSON.parse(manifestStr);
         if(this.trace) {
@@ -231,7 +249,12 @@ export class DidDocument {
       if(this.trace) {
         console.log('DidDocument::loadDocument::results=:<',results,'>');
       }
-      const joinStr = localStorage.getItem(StoreKey.invitation.join);
+      let joinStr = false;
+      if(this.otmc.isNode) {
+        joinStr = fs.readFileSync(this.otmc.config.invitation);
+      } else {
+        joinStr = localStorage.getItem(StoreKey.invitation.join);
+      }
       if(joinStr) {
         const joinList = JSON.parse(joinStr);
         this.joinList_ = JSON.parse(joinStr);
@@ -243,7 +266,7 @@ export class DidDocument {
     } catch(err) {
       console.error('DidDocument::loadDocument::err=:<',err,'>');
     }
-    if(this.trace) {
+    if(this.trace0) {
       console.log('DidDocument::loadDocument::this.dbDocument=:<',this.dbDocument,'>');
       console.log('DidDocument::loadDocument::this.dbManifest=:<',this.dbManifest,'>');
     }

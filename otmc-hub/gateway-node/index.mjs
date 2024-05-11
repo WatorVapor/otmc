@@ -82,10 +82,10 @@ try {
   const topTeamStr = fs.readFileSync(topTeamPath);
   const topTeam = JSON.parse(topTeamStr);
   console.log('::::topTeam=:<',topTeam,'>');
-  if(topTeam&& topTeam.did) {
-    otmcConfig.topDoc = `./.store/didteam/${topTeam.did}/topDocument.json`;
-    otmcConfig.topManifest = `./.store/didteam/${topTeam.did}/topManifest.json`;
-    otmcConfig.invitation = `./.store/didteam/${topTeam.did}/invitation.json`;
+  if(topTeam&& topTeam.address) {
+    otmcConfig.topDoc = `./.store/didteam/${topTeam.address}/topDocument.json`;
+    otmcConfig.topManifest = `./.store/didteam/${topTeam.address}/topManifest.json`;
+    otmcConfig.invitation = `./.store/didteam/${topTeam.address}/invitation.json`;
   }
 } catch(err) {
   console.error('::::err=:<',err,'>');

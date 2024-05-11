@@ -1,10 +1,10 @@
 import fs from 'fs';
 import nacl from 'tweetnacl-es6';
-import  { Base32 } from 'otmc-client/edcrypto/base32.js';
+import  { Base32 } from 'otmc-client/edcrypto/base32';
 console.log('::::Base32=<',Base32,'>');
-import  { EdUtil } from 'otmc-client/edcrypto/edutils.js';
+import  { EdUtil } from 'otmc-client/edcrypto/edutils';
 console.log('::::EdUtil=<',EdUtil,'>');
-import  { EdDsaKey } from 'otmc-client/edcrypto/edkey.js';
+import  { EdDsaKey } from 'otmc-client/edcrypto/edkey';
 const base64 = new Base32();
 const util = new EdUtil(base64,nacl);
 const edkey = new EdDsaKey(util);

@@ -1,15 +1,15 @@
 import fs from 'fs';
 import { execSync } from 'child_process';
 import nacl from 'tweetnacl-es6';
-import  { Base32 } from 'otmc-client/edcrypto/base32.js';
+import  { Base32 } from 'otmc-client/edcrypto/base32';
 console.log('::::Base32=<',Base32,'>');
-import  { EdUtil } from 'otmc-client/edcrypto/edutils.js';
+import  { EdUtil } from 'otmc-client/edcrypto/edutils';
 console.log('::::EdUtil=<',EdUtil,'>');
-import  { EdAuth } from 'otmc-client/edcrypto/edauth.js';
+import  { EdAuth } from 'otmc-client/edcrypto/edauth';
 console.log('::::EdAuth=<',EdAuth,'>');
-import { DIDSeedDocument } from 'otmc-client/did/document.js';
+import { DIDSeedDocument } from 'otmc-client/did/document';
 console.log('::::DIDSeedDocument=<',DIDSeedDocument,'>');
-import { DIDManifest } from 'otmc-client/did/manifest.js';
+import { DIDManifest } from 'otmc-client/did/manifest';
 console.log('::::DIDManifest=<',DIDManifest,'>');
 
 
@@ -41,7 +41,8 @@ fs.mkdirSync(strConstDidPath, { recursive: true },);
   const strConstTopDidDocPath = `${strConstDidPath}/seedDocument.json`;
   fs.writeFileSync(strConstTopDidDocPath, JSON.stringify(seedDoc,undefined,2));
   execSync(`cd ${strConstDidPath} && ln -sf ./seedDocument.json ./topDocument.json`);
-  const strConstTopDidManifestPath = `${strConstDidPath}/manifest.json`;
+  const strConstTopDidManifestPath = `${strConstDidPath}/seedManifest.json`;
   fs.writeFileSync(strConstTopDidManifestPath, JSON.stringify(manifest,undefined,2));
+  execSync(`cd ${strConstDidPath} && ln -sf ./seedManifest.json ./topManifest.json`);
 })();
 

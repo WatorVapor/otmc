@@ -4,7 +4,8 @@ import { StoreKey, OtmcPortal } from './otmc.const.js';
 */
 export class MqttJWTAgent {
   constructor(ee) {
-    this.trace = false;
+    this.trace0 = false;
+    this.trace = true;
     this.debug = true;
     this.ee = ee;
     this.otmc = false;
@@ -33,6 +34,8 @@ export class MqttJWTAgent {
   request() {
     if(this.trace) {
       console.log('MqttJWTAgent::request::this.socket.readyState=:<',this.socket.readyState,'>');
+    }
+    if(this.trace0) {
       console.log('MqttJWTAgent::request::this.otmc=:<',this.otmc,'>');
       console.log('MqttJWTAgent::request::this.otmc.isNode=:<',this.otmc.isNode,'>');
     }

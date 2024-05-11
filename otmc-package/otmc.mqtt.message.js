@@ -52,12 +52,21 @@ export class MqttMessager {
       this.publish(evt.msg.topic,evt.msg,evt.option);
     });
   }
-  validateMqttJwt() {
+  async validateMqttJwt() {
+    let fs = false;
+    if(this.otmc.isNode) {
+      fs = await import('fs');
+    }
     if(this.trace) {
       console.log('MqttMessager::validateMqttJwt::this.otmc=:<',this.otmc,'>');
     }
     try {
-      const mqttJwtStr = localStorage.getItem(StoreKey.mqttJwt);
+      let mqttJwtStr =  false;
+      if(this.otmc.isNode) {
+        mqttJwtStr = fs.readFileSync(this.otmc.config.mqttJwt);
+      } else {
+        mqttJwtStr = localStorage.getItem(StoreKey.mqttJwt);
+      }
       if(mqttJwtStr) {
         this.mqttJwt = JSON.parse(mqttJwtStr);
         if(this.trace) {
@@ -86,12 +95,21 @@ export class MqttMessager {
       this.jwt.request();
     }
   }
-  freshMqttJwt() {
+  async freshMqttJwt() {
+    let execSync = false;
+    if(this.otmc.isNode) {
+      execSync = await import('child_process');
+    }
     if(this.trace) {
       console.log('MqttMessager::freshMqttJwt::this.otmc=:<',this.otmc,'>');
     }
     try {
-      localStorage.removeItem(StoreKey.mqttJwt);
+      if(this.otmc.isNode) {
+        localStorage.removeItem(StoreKey.mqttJwt);
+        execSync(`rm -f ${this.otmc.config.mqttJwt}`);
+      } else {
+        localStorage.removeItem(StoreKey.mqttJwt);
+      }
     } catch(err) {
       console.log('MqttMessager::freshMqttJwt::err=:<',err,'>');
     }

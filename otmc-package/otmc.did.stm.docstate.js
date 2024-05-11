@@ -1,6 +1,6 @@
 import * as xstate  from 'xstate';
 const LOG = {
-  trace:true,
+  trace:false,
   debug:true,
 };
 if(LOG.trace) {

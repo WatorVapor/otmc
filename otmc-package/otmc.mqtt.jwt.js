@@ -34,6 +34,7 @@ export class MqttJWTAgent {
     if(this.trace) {
       console.log('MqttJWTAgent::request::this.socket.readyState=:<',this.socket.readyState,'>');
       console.log('MqttJWTAgent::request::this.otmc=:<',this.otmc,'>');
+      console.log('MqttJWTAgent::request::this.otmc.isNode=:<',this.otmc.isNode,'>');
     }
     const jwtReq = {
       jwt:{
@@ -43,6 +44,10 @@ export class MqttJWTAgent {
         did:this.otmc.did.didDoc_,
         manifest:this.otmc.did.didManifest_,
       },
+    }
+    if(this.otmc.isNode) {
+      delete jwtReq.jwt.browser;
+      jwtReq.jwt.node = true;
     }
     if(this.trace) {
       console.log('MqttJWTAgent::request::jwtReq=<',jwtReq,'>');

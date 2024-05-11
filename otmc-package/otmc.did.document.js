@@ -35,8 +35,6 @@ export class DidDocument {
     this.trace = true;
     this.debug = true;
     this.ee = ee;
-    this.dbDocument = new Level.Level('did.document.history',LEVEL_OPT);
-    this.dbManifest = new Level.Level('did.manifest.history',LEVEL_OPT);
     this.base32 = new Base32();
     this.util = new EdUtil(this.base32,nacl);
     this.ListenEventEmitter_();
@@ -89,6 +87,16 @@ export class DidDocument {
     this.ee.on('did.loadDocument',(evt)=>{
       if(this.trace) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      if(this.trace) {
+        console.log('DidDocument::ListenEventEmitter_::self.otmc=:<',self.otmc,'>');
+      }
+      if(self.otmc.isNode) {
+        self.dbDocument = new Level.Level(self.otmc.config.docHistotry,LEVEL_OPT);
+        self.dbManifest = new Level.Level(self.otmc.config.manifestHistotry,LEVEL_OPT);
+      } else {
+        self.dbDocument = new Level.Level('did.document.history',LEVEL_OPT);
+        self.dbManifest = new Level.Level('did.manifest.history',LEVEL_OPT);
       }
       self.loadDocument();
     });

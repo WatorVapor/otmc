@@ -1,16 +1,11 @@
 import fs from 'fs';
-import * as Otmc from 'otmc-client';
+//import * as Otmc from 'otmc-client';
+import { Otmc } from '../../otmc-package/otmc.js';
+console.log('::::Otmc=<',Otmc,'>');
+
+
+
 /*
-import * as Level from 'level';
-import * as jsDiff from 'json-diff';
-import * as xstate from 'xstate';
-*/
-
-
-//const MqttJWTDidTeam = require('./mqtt/did_team.js');
-const secretKeyPath = './.store//secretKey/auth.json';
-const strConstMqttJwtPath = './.store/mqtt/jwt_cached.json';
-
 let secretKey = null;
 try {
   const secretText = fs.readFileSync(secretKeyPath);
@@ -46,7 +41,29 @@ try {
   console.log('::::err=<',err,'>');    
 }
 //console.log('::::jwtCached=<',jwtCached,'>');
+*/
 
+const authKeyPath = './.store/secretKey/auth.json';
+const recoveryKeyPath = './.store/secretKey/recovery.json';
+
+const documentHistoryPath = './.store/didteam/document.history';
+const manifestHistoryPath = './.store/didteam/manifest.history';
+
+const strConstMqttJwtPath = './.store/mqtt/jwt_cached.json';
+
+
+const otmcConfig = {
+  node:true,
+  authKey:authKeyPath,
+  recoveryKey:recoveryKeyPath,
+  mqttJwt:strConstMqttJwtPath,
+  docHistotry:documentHistoryPath,
+  manifestHistotry:manifestHistoryPath,
+}
+console.log('::::otmcConfig=<',otmcConfig,'>');
+const otmc = new Otmc(otmcConfig);
+console.log('::::otmc=<',otmc,'>');
+/*
 const team = new MqttJWTDidTeam(jwtCached,topDidDoc,didManifest,secretKey,(jwtRcv) => {
   onRecvedJwtReply(jwtRcv);
 });
@@ -54,3 +71,5 @@ const team = new MqttJWTDidTeam(jwtCached,topDidDoc,didManifest,secretKey,(jwtRc
 const onRecvedJwtReply = (jwtRcv) => {
   fs.writeFileSync(strConstMqttJwtPath, JSON.stringify(jwtRcv,undefined,2));  
 }
+*/
+

@@ -8,11 +8,16 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "exports": {
-     ".": "./otmc.js"
+    ".": "./otmc.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "eventemitter3": "^5.0.1"
+    "eventemitter3": "^5.0.1",
+    "json-diff": "^1.0.6",
+    "level": "^8.0.1",
+    "mqtt": "^5.5.5",
+    "tweetnacl-es6": "^1.0.3",
+    "xstate": "^5.13.0"
   }
 }

@@ -15,7 +15,7 @@ export class OtmcStateMachine {
   static ee = false;
   static instances = {};
   constructor(ee) {
-    this.trace = false;
+    this.trace = true;
     this.debug = true;
     this.ee = ee;
     this.createStateMachine_();

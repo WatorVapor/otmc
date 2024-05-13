@@ -218,7 +218,11 @@ export class DidDocument {
     try {
       let didDocStr = false;
       if(this.otmc.isNode) {
-        didDocStr = fs.readFileSync(this.otmc.config.topDoc);
+        try {
+          didDocStr = fs.readFileSync(this.otmc.config.topDoc);
+        } catch ( err ) {
+          console.error('DidDocument::loadDocument::err=:<',err,'>');
+        }
       } else {
         didDocStr = localStorage.getItem(StoreKey.didDoc);
       }
@@ -233,7 +237,11 @@ export class DidDocument {
       }
       let manifestStr = false;
       if(this.otmc.isNode) {
-        didDocStr = fs.readFileSync(this.otmc.config.topManifest);
+        try {
+          didDocStr = fs.readFileSync(this.otmc.config.topManifest);
+        } catch ( err ) {
+          console.error('DidDocument::loadDocument::err=:<',err,'>');
+        }
       } else {
         manifestStr = localStorage.getItem(StoreKey.manifest);
       }
@@ -243,10 +251,12 @@ export class DidDocument {
           console.log('DidDocument::loadDocument::manifest=:<',manifest,'>');
         }
         this.otmc.emit('did:manifest',manifest);
-        this.otmc.sm.actor.send({type:'did:document_manifest'});
+        //this.otmc.sm.actor.send({type:'did:document_manifest'});
+        this.ee.emit('OtmcStateMachine.actor.send',{type:'did:document_manifest'});
         this.didManifest_ = manifest;
       } else {
-        this.otmc.sm.actor.send({type:'did:document'});
+        //this.otmc.sm.actor.send({type:'did:document'});
+        this.ee.emit('OtmcStateMachine.actor.send',{type:'did:document'});
       }
       const results = this.auth.verifyDid(this.didDoc_);
       if(this.trace) {
@@ -254,7 +264,11 @@ export class DidDocument {
       }
       let joinStr = false;
       if(this.otmc.isNode) {
-        joinStr = fs.readFileSync(this.otmc.config.invitation);
+        try {
+          joinStr = fs.readFileSync(this.otmc.config.invitation);
+        } catch ( err ) {
+          console.error('DidDocument::loadDocument::err=:<',err,'>');
+        }
       } else {
         joinStr = localStorage.getItem(StoreKey.invitation.join);
       }

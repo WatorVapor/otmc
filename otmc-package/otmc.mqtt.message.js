@@ -8,7 +8,8 @@ import { MqttJWTAgent } from './otmc.mqtt.jwt.js';
 */
 export class MqttMessager {
   constructor(ee) {
-    this.trace = false;
+    this.trace0 = false;
+    this.trace = true;
     this.debug = true;
     this.isRequestingJwt = false;
     this.ee = ee;
@@ -39,6 +40,12 @@ export class MqttMessager {
       }
       self.validateMqttJwt();
     });
+    this.ee.on('mqtt:jwt.rental',(evt)=>{
+      if(self.trace) {
+        console.log('MqttMessager::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.storeMqttJwt(evt);
+    });
     this.ee.on('mqtt.connectMqtt',(evt)=>{
       if(self.trace) {
         console.log('MqttMessager::ListenEventEmitter_::evt=:<',evt,'>');
@@ -57,7 +64,7 @@ export class MqttMessager {
     if(this.otmc.isNode) {
       fs = await import('fs');
     }
-    if(this.trace) {
+    if(this.trace0) {
       console.log('MqttMessager::validateMqttJwt::this.otmc=:<',this.otmc,'>');
     }
     try {
@@ -95,6 +102,26 @@ export class MqttMessager {
       this.jwt.request();
     }
   }
+  async storeMqttJwt(jwtData) {
+    let fs = false;
+    if(this.otmc.isNode) {
+      fs = await import('fs');
+    }
+    if(this.trace) {
+      console.log('MqttMessager::storeMqttJwt::jwtData=:<',jwtData,'>');
+    }
+    try {
+      if(this.otmc.isNode) {
+        fs.writeFileSync(this.otmc.config.mqttJwt,JSON.stringify(jwtData));
+      } else {
+        localStorage.setItem(StoreKey.mqttJwt,JSON.stringify(jwtData));
+      }
+    } catch(err) {
+      console.error('MqttMessager::storeMqttJwt::err=:<',err,'>');
+    }
+    this.mqttJwt = JSON.parse(JSON.stringify(jwtData));
+    this.otmc.emit('mqtt:jwt',this.mqttJwt);
+  }
   async freshMqttJwt() {
     let execSync = false;
     if(this.otmc.isNode) {
@@ -116,7 +143,7 @@ export class MqttMessager {
     this.validateMqttJwt();
   }
   connectMqtt() {
-    if(this.trace) {
+    if(this.trace0) {
       console.log('MqttMessager::connectMqtt::this.otmc=:<',this.otmc,'>');
     }
     if(!this.mqttJwt) {
@@ -147,7 +174,7 @@ export class MqttMessager {
   }
   
   createMqttConnection_(jwt,payload) {
-    if(this.trace) {
+    if(this.trace0) {
       console.log('MqttMessager::createMqttConnection_:jwt=<',jwt,'>');
       console.log('MqttMessager::createMqttConnection_:this.jwt=<',this.jwt,'>');
     }
@@ -169,7 +196,15 @@ export class MqttMessager {
     if(this.trace) {
       console.log('MqttMessager::createMqttConnection_:options=<',options,'>');
     }
-    const srvUrl = payload.mqtt.portal.wss;
+    let srvUrl = false;
+    if(this.otmc.isNode) {
+      srvUrl = payload.mqtt.portal.tls;
+    } else {
+      srvUrl = payload.mqtt.portal.wss;
+    }
+    if(this.trace) {
+      console.log('MqttMessager::createMqttConnection_:srvUrl=<',srvUrl,'>');
+    }
     const mqttClient = mqtt.connect(srvUrl,options);
     const self = this;
     mqttClient.on('connect', (connack) => {

@@ -77,8 +77,10 @@ export class MqttJWTAgent {
       console.log('MqttJWTAgent::onMsg_::msgData=:<',msgData,'>');
     }
     if(msgData.jwt && msgData.payload) {
-      localStorage.setItem(StoreKey.mqttJwt,JSON.stringify(msgData));
-      this.otmc.emit('mqtt:jwt',msgData);
+      if(this.trace) {
+        console.log('MqttJWTAgent::onMsg_::msgData.payload=:<',msgData.payload,'>');
+      }
+      this.ee.emit('mqtt:jwt.rental',msgData);
     }
   }
   connectOtmcPortal_() {

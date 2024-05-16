@@ -59,9 +59,17 @@ export class EvidenceChain {
     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::tryMergeTopStoredDidDocument::allVMethodInNew=<',allVMethodInNew,'>');
     }
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::tryMergeTopStoredDidDocument::this.docTop_.authentication=<',this.docTop_.authentication,'>');
+      console.log('EvidenceChain::tryMergeTopStoredDidDocument::topEvidence.authentication=<',topEvidence.authentication,'>');
+    }
     const allAuthInNew = isSubsetByElem(this.docTop_.authentication,topEvidence.authentication);
     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::tryMergeTopStoredDidDocument::allAuthInNew=<',allAuthInNew,'>');
+    }
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::tryMergeTopStoredDidDocument::this.docTop_.capabilityInvocation=<',this.docTop_.capabilityInvocation,'>');
+      console.log('EvidenceChain::tryMergeTopStoredDidDocument::topEvidence.capabilityInvocation=<',topEvidence.capabilityInvocation,'>');
     }
     const allCapabilityInNew = isSubsetByElem(this.docTop_.capabilityInvocation,topEvidence.capabilityInvocation);
     if(EvidenceChain.trace1) {
@@ -198,7 +206,7 @@ export class EvidenceChain {
       if(EvidenceChain.trace1) {
         console.log('EvidenceChain::collectSeedTracedKeyIdFromLeaf_::this.didRule_=<',this.didRule_,'>');
       }
-      if(proof !== seedKeyId) {
+      if(proof !== seedKeyId && !tracedIds.includes(seedKeyId)) {
         this.collectSeedTracedKeyIdFromLeaf_(this.tree_[proof],tracedIds);
       }
     }
@@ -439,6 +447,9 @@ export class EvidenceChain {
 
 const includesAny = (arr, values) => values.some(v => arr.includes(v));
 const isSubsetById = (subset, superset) => {
+  if(!subset || !superset) {
+    return false;
+  }
   return subset.every(subsetItem => 
     superset.some(supersetItem => 
       subsetItem.id === supersetItem.id
@@ -447,6 +458,9 @@ const isSubsetById = (subset, superset) => {
 };
 
 const isSubsetByElem = (subset, superset) => {
+  if(!subset || !superset) {
+    return false;
+  }
   return subset.every(subsetItem => 
     superset.some(supersetItem => 
       subsetItem === supersetItem

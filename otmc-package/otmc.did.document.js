@@ -142,6 +142,9 @@ export class DidDocument {
       if(this.trace) {
         console.log('DidDocument::ListenEventEmitter_::self.evidenceAuth=:<',self.evidenceAuth,'>');
       }
+      setTimeout(()=>{
+        self.syncDidDocument_();
+      },1);
     });
     this.ee.on('did.evidence.capability',(evt)=>{
       if(this.trace) {
@@ -151,14 +154,14 @@ export class DidDocument {
       if(this.trace) {
         console.log('DidDocument::ListenEventEmitter_::self.evidenceCapability=:<',self.evidenceCapability,'>');
       }
+      setTimeout(()=>{
+        self.syncDidDocument_();
+      },1);
     });
     this.ee.on('otmc.did.client.storage',(evt)=>{
       if(this.trace) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      setTimeout(()=>{
-        self.syncDidDocument_();
-      },1);
     });
     this.ee.on('did.document.merge',(evt)=>{
       if(this.trace) {
@@ -708,17 +711,19 @@ export class DidDocument {
   }
   
   storeDidDocumentHistory(historyDid,uploadAddress) {
-    if(this.trace) {
+    if(this.trace0) {
       console.log('DidDocument::storeDidDocumentHistory::this.otmc=:<',this.otmc,'>');
+    }    
+    if(this.trace) {
       console.log('DidDocument::storeDidDocumentHistory::historyDid=:<',historyDid,'>');
       console.log('DidDocument::storeDidDocumentHistory::uploadAddress=:<',uploadAddress,'>');
     }    
-    if(this.trace) {
+    if(this.trace0) {
       console.log('DidDocument::storeDidDocumentHistory::this.dbDocument=:<',this.dbDocument,'>');
       //console.log('DidDocument::storeDidDocumentHistory::this.dbManifest=:<',this.dbManifest,'>');
     }
     this.checkEdcrypt_();
-    if(this.trace) {
+    if(this.trace0) {
       console.log('DidDocument::storeDidDocumentHistory::this.util=:<',this.util,'>');
     }
     const historyStr = JSON.stringify(historyDid);

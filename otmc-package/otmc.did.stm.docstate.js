@@ -13,7 +13,8 @@ import { EvidenceChain } from './did/evidence.js';
 
 export class DidDocStateMachine {
   constructor(ee) {
-    this.trace = false;
+    this.trace0 = false;
+    this.trace = true;
     this.debug = true;
     if(this.trace) {
       console.log('DidDocStateMachine::constructor::ee=:<',ee,'>');
@@ -24,7 +25,7 @@ export class DidDocStateMachine {
     this.ListenEventEmitter_();
   }
   ListenEventEmitter_() {
-    if(this.trace) {
+    if(this.trace0) {
       console.log('DidDocStateMachine::ListenEventEmitter_::this.ee=:<',this.ee,'>');
     }
     const self = this;
@@ -33,8 +34,10 @@ export class DidDocStateMachine {
         console.log('DidDocStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
       }
       self.chain = new EvidenceChain(evt.didDoc.auth,evt.didDoc.didDoc_);
-      if(self.trace) {
+      if(self.trace0) {
         console.log('DidDocStateMachine::ListenEventEmitter_::this.stm=:<',this.stm,'>');
+      }
+      if(self.trace0) {
         console.log('DidDocStateMachine::ListenEventEmitter_::this.stm.config.context=:<',this.stm.config.context,'>');
       }
       this.stm.config.context.chain = self.chain;
@@ -77,17 +80,19 @@ export class DidDocStateMachine {
       console.log('DidDocStateMachine::createStateMachine_::stmConfig=:<',stmConfig,'>');
     }
     this.stm = createMachine(stmConfig,stmOption);
-    if(this.trace) {
+    if(this.trace0) {
       console.log('DidDocStateMachine::createStateMachine_::this.stm=:<',this.stm,'>');
     }
     this.actor = createActor(this.stm);
     
     const self = this;
     this.actor.subscribe((state) => {
-      if(self.trace) {
+      if(self.trace0) {
         console.log('DidDocStateMachine::createStateMachine_::state=:<',state,'>');
-        console.log('DidDocStateMachine::createStateMachine_::state.value=:<',state.value,'>');
         console.log('DidDocStateMachine::createStateMachine_::self.stm=:<',self.stm,'>');
+      }
+      if(self.trace) {
+        console.log('DidDocStateMachine::createStateMachine_::state.value=:<',state.value,'>');
       }
     });
     this.actor.start();
@@ -122,6 +127,8 @@ const didDocStateTable = {
   evidenceChainFail: {
     entry:['chainFail'],
     on: {
+      'auth.proof.by.none':'authByNone',
+      'capability.proof.by.none':'capabilityByNone',
     }
   },
   authIsSeed: {
@@ -193,6 +200,11 @@ const didDocActionTable = {
       console.log('DidDocStateMachine::didDocActionTable::chainFail:ee=:<',ee,'>');
       console.log('DidDocStateMachine::didDocActionTable::chainFail:chain=:<',chain,'>');
     }
+    const proof = chain.calcDidAuth();
+    if(LOG.trace) {
+      console.log('DidDocStateMachine::didDocActionTable::chainFail:proof=:<',proof,'>');
+    }
+    ee.emit('did.stm.docstate.internal.proof',{proof:proof});
   },
   authIsSeed:(context, evt) => {
     const ee = context.context.ee;

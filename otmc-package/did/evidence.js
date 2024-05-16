@@ -165,6 +165,9 @@ export class EvidenceChain {
     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::collectSeedTracedKeyId_::seedAuthed=<',seedAuthed,'>');
     }
+    if(!seedAuthed) {
+      return [];
+    }
     const tracedIds = [];
     for(const proof of seedAuthed.proof) {
       if(EvidenceChain.trace1) {

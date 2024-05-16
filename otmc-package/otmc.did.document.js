@@ -1,6 +1,15 @@
 import nacl from 'tweetnacl-es6';
 import * as Level from 'level';
 import * as jsDiff from 'json-diff';
+import {
+  base58xmr,
+  base58xrp,
+  base32hex,
+  base32crockford,
+  base64nopad,
+  base64url,
+  base64urlnopad,
+} from '@scure/base';
 
 import { Base32 } from './edcrypto/base32.js';
 import { EdUtil } from './edcrypto/edutils.js';
@@ -50,6 +59,11 @@ export class DidDocument {
   }
   
   ListenEventEmitter_() {
+    if(this.trace) {
+      console.log('DidDocument::ListenEventEmitter_::base58xmr=:<',base58xmr,'>');
+      console.log('DidDocument::ListenEventEmitter_::base32crockford=:<',base32crockford,'>');
+      console.log('DidDocument::ListenEventEmitter_::base64urlnopad=:<',base64urlnopad,'>');
+    }
     if(this.trace0) {
       console.log('DidDocument::ListenEventEmitter_::this.ee=:<',this.ee,'>');
     }

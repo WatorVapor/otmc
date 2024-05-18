@@ -142,9 +142,6 @@ export class DidDocument {
       if(this.trace) {
         console.log('DidDocument::ListenEventEmitter_::self.evidenceAuth=:<',self.evidenceAuth,'>');
       }
-      setTimeout(()=>{
-        self.syncDidDocument_();
-      },1);
     });
     this.ee.on('did.evidence.capability',(evt)=>{
       if(this.trace) {
@@ -154,14 +151,14 @@ export class DidDocument {
       if(this.trace) {
         console.log('DidDocument::ListenEventEmitter_::self.evidenceCapability=:<',self.evidenceCapability,'>');
       }
-      setTimeout(()=>{
-        self.syncDidDocument_();
-      },1);
     });
     this.ee.on('otmc.did.client.storage',(evt)=>{
       if(this.trace) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
+      setTimeout(()=>{
+        self.syncDidDocument_();
+      },1);
     });
     this.ee.on('did.document.merge',(evt)=>{
       if(this.trace) {
@@ -547,15 +544,27 @@ export class DidDocument {
     }
     return joinDidSigned;
   }
-  onInvitationJoinRequest(joinDid,joinAddress) {
+  async onInvitationJoinRequest(joinDid,joinAddress) {
     if(this.trace) {
       console.log('DidDocument::onInvitationJoinRequest::this.otmc=:<',this.otmc,'>');
       console.log('DidDocument::onInvitationJoinRequest::joinDid=:<',joinDid,'>');
       console.log('DidDocument::onInvitationJoinRequest::joinAddress=:<',joinAddress,'>');
     }
     this.checkEdcrypt_();
-    
-    const joinStr = localStorage.getItem(StoreKey.invitation.join);
+    let fs = false;
+    if(this.otmc.isNode) {
+      fs = await import('fs');
+    }
+    let joinStr = false;
+    if(this.otmc.isNode) {
+      try {
+        joinStr = fs.readFileSync(this.otmc.config.invitation);
+      } catch ( err ) {
+        console.error('DidDocument::onInvitationJoinRequest::err=:<',err,'>');
+      }
+    } else {
+      joinStr = localStorage.getItem(StoreKey.invitation.join);
+    }
     let joinList = {};
     if(joinStr) {
       joinList = JSON.parse(joinStr);
@@ -564,17 +573,25 @@ export class DidDocument {
       }
     }
     joinList[joinAddress] = joinDid;
-    localStorage.setItem(StoreKey.invitation.join,JSON.stringify(joinList,undefined,2));
+    if(this.otmc.isNode) {
+      fs.writeFileSync(this.otmc.config.invitation,JSON.stringify(joinList,undefined,2));
+    } else {
+      localStorage.setItem(StoreKey.invitation.join,JSON.stringify(joinList,undefined,2));
+    }
     this.joinList_ = JSON.parse(JSON.stringify(joinList));    
     this.otmc.emit('didteam:joinLoaded',joinList);
   }
-  acceptInvitation(address) {
+  async acceptInvitation(address) {
     if(this.trace) {
       console.log('DidDocument::acceptInvitation::this.otmc=:<',this.otmc,'>');
       console.log('DidDocument::acceptInvitation::this.joinList_=:<',this.joinList_,'>');
       console.log('DidDocument::acceptInvitation::address=:<',address,'>');
     }
     this.checkEdcrypt_();
+    let fs = false;
+    if(this.otmc.isNode) {
+      fs = await import('fs');
+    }
     const joinInvitation = JSON.parse(JSON.stringify(this.joinList_[address]));
     if(!joinInvitation) {
       return false;
@@ -620,7 +637,11 @@ export class DidDocument {
       console.log('DidDocument::acceptInvitation::this.expand:=<',this.expand,'>');
     }
     const documentObj = this.expand.document();
-    localStorage.setItem(StoreKey.didDoc,JSON.stringify(documentObj));
+    if(this.otmc.isNode) {
+      fs.writeFileSync(this.otmc.config.topDoc,JSON.stringify(documentObj));
+    } else {
+      localStorage.setItem(StoreKey.didDoc,JSON.stringify(documentObj));
+    }
 
     const role = 'invitation';
     const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
@@ -662,7 +683,7 @@ export class DidDocument {
     return rejectDidSigned;
   }
 
-  onInvitationAcceptReply(acceptDid,acceptAddress) {
+  async onInvitationAcceptReply(acceptDid,acceptAddress) {
     if(this.trace) {
       console.log('DidDocument::onInvitationAcceptReply::this.otmc=:<',this.otmc,'>');
       console.log('DidDocument::onInvitationAcceptReply::acceptDid=:<',acceptDid,'>');
@@ -678,8 +699,15 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::onInvitationAcceptReply::documentObj:=<',documentObj,'>');
     }
-
-    localStorage.setItem(StoreKey.didDoc,JSON.stringify(documentObj));
+    let fs = false;
+    if(this.otmc.isNode) {
+      fs = await import('fs');
+    }
+    if(this.otmc.isNode) {
+      fs.writeFileSync(this.otmc.config.topDoc,JSON.stringify(documentObj));
+    } else {
+      localStorage.setItem(StoreKey.didDoc,JSON.stringify(documentObj));
+    }
     this.otmc.mqtt.freshMqttJwt();
     this.loadDocument();
   }

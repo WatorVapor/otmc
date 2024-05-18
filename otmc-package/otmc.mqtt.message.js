@@ -121,6 +121,7 @@ export class MqttMessager {
     }
     this.mqttJwt = JSON.parse(JSON.stringify(jwtData));
     this.otmc.emit('mqtt:jwt',this.mqttJwt);
+    this.ee.emit('OtmcStateMachine.actor.send',{type:'mqtt:jwt'});
   }
   async freshMqttJwt() {
     let execSync = false;
@@ -215,7 +216,7 @@ export class MqttMessager {
         console.log('MqttMessager::createMqttConnection_::mqttClient.connected=<',mqttClient.connected,'>');
       }
       self.isRequestingJwt = false;
-      if(!self.firstConnected) {      
+      if(!self.firstConnected) { 
         this.otmc.emit('mqtt:connected');
         this.otmc.sm.actor.send({type:'mqtt:connected'});
         setTimeout(() => {
@@ -439,6 +440,10 @@ export class MqttMessager {
         break;
       case 'sys/did/manifest/auth/store': 
         this.otmc.did.storeDidManifestHistory(msgJson.manifest,msgJson.auth_address);
+        break;
+      case 'sys/did/invitation/store':
+        this.otmc.emit('didteam:joinLoaded',msgJson);
+        this.otmc.did.onInvitationJoinRequest(msgJson.did,msgJson.auth_address);
         break;
       case 'sys/did/invitation/join':
         this.otmc.emit('didteam:joinLoaded',msgJson);

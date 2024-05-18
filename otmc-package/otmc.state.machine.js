@@ -69,6 +69,12 @@ const otmcStateTable = {
       'init': { 
         actions: ['init']
       },
+      'did:module_ready': 'moduleReady',
+    } 
+  },
+  moduleReady: {
+    entry:['moduleReady'],
+    on: {
       'edcrypt:address': 'edKeyReady',
     } 
   },
@@ -99,6 +105,14 @@ const otmcActionTable = {
     if(LOG.trace) {
       console.log('OtmcStateMachine::otmcActionTable::init:context=:<',context,'>');
       console.log('OtmcStateMachine::otmcActionTable::init:ee=:<',ee,'>');
+    }
+    ee.emit('did.module.load',{});
+  },
+  moduleReady:(context, evt) => {
+    const ee = context.context.ee;
+    if(LOG.trace) {
+      console.log('OtmcStateMachine::otmcActionTable::moduleReady:context=:<',context,'>');
+      console.log('OtmcStateMachine::otmcActionTable::moduleReady:ee=:<',ee,'>');
     }
     ee.emit('edcrypt.loadKey',{});
   },

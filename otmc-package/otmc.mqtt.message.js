@@ -342,6 +342,8 @@ export class MqttMessager {
     if(this.trace) {
       console.log('MqttMessager::onMqttMessage_:topic=<',topic,'>');
       console.log('MqttMessager::onMqttMessage_:msgJson=<',msgJson,'>');
+    }
+    if(this.trace0) {
       console.log('MqttMessager::onMqttMessage_:this.auth=<',this.auth,'>');
     }
     let goodMsg = this.auth.verify(msgJson);

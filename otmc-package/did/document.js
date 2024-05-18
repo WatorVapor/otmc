@@ -204,7 +204,7 @@ export class DIDMergeDocument {
     }
     const proof = {
       type:'ed25519',
-      creator:creator,
+      creator:`${this.address_}#${this.auth_.address()}`,
       signatureValue:signedMsg.auth.sign,
     };
     proofs.push(proof);    

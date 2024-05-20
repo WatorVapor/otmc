@@ -40,9 +40,9 @@ fs.mkdirSync(strConstDidPath, { recursive: true },);
   const manifest = DIDManifest.ruleChain(seedDoc.id);
   const strConstTopDidDocPath = `${strConstDidPath}/seedDocument.json`;
   fs.writeFileSync(strConstTopDidDocPath, JSON.stringify(seedDoc,undefined,2));
-  execSync(`cd ${strConstDidPath} && ln -sf ./seedDocument.json ./topDocument.json`);
+  execSync(`cd ${strConstDidPath} && cp -f ./seedDocument.json ./topDocument.json`);
   const strConstTopDidManifestPath = `${strConstDidPath}/seedManifest.json`;
   fs.writeFileSync(strConstTopDidManifestPath, JSON.stringify(manifest,undefined,2));
-  execSync(`cd ${strConstDidPath} && ln -sf ./seedManifest.json ./topManifest.json`);
+  execSync(`cd ${strConstDidPath} && cp -f ./seedManifest.json ./topManifest.json`);
 })();
 

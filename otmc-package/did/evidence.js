@@ -198,6 +198,9 @@ export class EvidenceChain {
       console.log('EvidenceChain::collectSeedTracedKeyIdFromLeaf_::leafProof=<',leafProof,'>');
       console.log('EvidenceChain::collectSeedTracedKeyIdFromLeaf_::tracedIds=<',tracedIds,'>');
     }
+    if(!leafProof) {
+      return;
+    }
     for(const proof of leafProof.proof) {
       if(EvidenceChain.trace1) {
         console.log('EvidenceChain::collectSeedTracedKeyIdFromLeaf_::proof=<',proof,'>');

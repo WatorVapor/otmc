@@ -54,6 +54,6 @@ fs.mkdirSync(strConstDidPath, { recursive: true },);
   console.log('::::guestDoc=<',guestDoc,'>');
   const strConstTopDidDocPath = `${strConstDidPath}/guestDocument.json`;
   fs.writeFileSync(strConstTopDidDocPath, JSON.stringify(guestDoc,undefined,2));
-  execSync(`cd ${strConstDidPath} && ln -sf ./guestDocument.json ./topDocument.json`);
+  execSync(`cd ${strConstDidPath} && cp -f ./guestDocument.json ./topDocument.json`);
 })();
 

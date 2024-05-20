@@ -13,3 +13,19 @@ services:
         limits:
           cpus: '1.0'
           memory: 64M
+  gateway:
+    image: node:22
+    network_mode: 'none'
+    environment:
+      TZ: Asia/Tokyo
+    volumes:
+      - ./gateway-node:/otmc/otmc-hub/gateway-node
+      - ../otmc-package:/otmc/otmc-package
+      - /dev/shm/:/dev/shm/
+    working_dir: '/otmc-hub/gateway-node'
+    command: node ./index.mjs
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 256M

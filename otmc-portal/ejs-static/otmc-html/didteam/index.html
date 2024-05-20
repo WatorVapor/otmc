@@ -15,8 +15,8 @@
     <script type="importmap">
       {
         "imports": {
-          "otmc": "/otmc/assets/js/otmc.js",
-          "####otmc": "https://cdn.jsdelivr.net/npm/otmc-client@1.0.10/otmc.js",
+          "####otmc": "/otmc/assets/js/otmc.js",
+          "otmc": "https://cdn.jsdelivr.net/npm/otmc-client@1.0.10/otmc.js",
           "tweetnacl-es6": "https://cdn.jsdelivr.net/npm/tweetnacl-es6@1.0.3/nacl-fast-es.min.js",
           "@scure/base": "https://cdn.jsdelivr.net/npm/@scure/base@1.1.6/+esm",
           "mqtt": "https://cdn.jsdelivr.net/npm/mqtt@5.5.2/+esm",
@@ -184,10 +184,10 @@
               <span class="input-group-text w-25">Team Details</span>
               <span class="input-group-text w-75">
                 <div class="d-grid gap-2 col-6 mx-auto">
-                  <a class="btn btn-success" href="/otmc/didteam/document/" role="button">
+                  <a class="btn btn-success" href="/otmc/didteam/document/" role="button" target="_blank">
                     Did Document
                   </a> 
-                  <a class="btn btn-success" href="/otmc/didteam/manifest/" role="button">
+                  <a class="btn btn-success" href="/otmc/didteam/manifest/" role="button" target="_blank">
                     Did Team Manifest
                   </a>
                   <button class="btn btn-danger" @click="clickCheckEvidenceChain()" role="button">

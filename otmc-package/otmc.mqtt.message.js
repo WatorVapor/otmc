@@ -112,9 +112,9 @@ export class MqttMessager {
     }
     try {
       if(this.otmc.isNode) {
-        fs.writeFileSync(this.otmc.config.mqttJwt,JSON.stringify(jwtData));
+        fs.writeFileSync(this.otmc.config.mqttJwt,JSON.stringify(jwtData,undefined,2));
       } else {
-        localStorage.setItem(StoreKey.mqttJwt,JSON.stringify(jwtData));
+        localStorage.setItem(StoreKey.mqttJwt,JSON.stringify(jwtData,undefined,2));
       }
     } catch(err) {
       console.error('MqttMessager::storeMqttJwt::err=:<',err,'>');

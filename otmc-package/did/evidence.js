@@ -321,7 +321,10 @@ export class EvidenceChain {
           }
         }
       }
-    }  
+    }
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::buildEvidenceProofChain::this.tree_=<',this.tree_,'>');
+    }
   }
 
   collectAllAuthedKeyId(did,nodeId) {
@@ -406,7 +409,7 @@ export class EvidenceChain {
     if(EvidenceChain.trace3) {
       console.log('EvidenceChain::trySaveLeafEvidenceTree::authedList=<',authedList,'>');
     }
-    const allAuthedKeyIds = this.collectAllAuthedKeyId(evidenceDid.id);
+    const allAuthedKeyIds = this.collectAllAuthedKeyId(evidenceDid.id,leafKeyId);
     if(EvidenceChain.trace3) {
       console.log('EvidenceChain::trySaveLeafEvidenceTree::allAuthedKeyIds=<',allAuthedKeyIds,'>');
     }
@@ -443,7 +446,7 @@ export class EvidenceChain {
     }
     this.tree_[leafKeyId] = newNode;
     if(EvidenceChain.trace5) {
-      console.log('EvidenceChain::trySaveSeedEvidenceTree::this.tree_=<',this.tree_,'>');
+      console.log('EvidenceChain::trySaveLeafEvidenceTree::this.tree_=<',this.tree_,'>');
     }
   }
 }

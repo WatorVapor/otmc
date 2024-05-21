@@ -15,14 +15,13 @@ services:
           memory: 64M
   gateway:
     image: node:22
-    network_mode: 'none'
     environment:
       TZ: Asia/Tokyo
     volumes:
       - ./gateway-node:/otmc/otmc-hub/gateway-node
       - ../otmc-package:/otmc/otmc-package
       - /dev/shm/:/dev/shm/
-    working_dir: '/otmc-hub/gateway-node'
+    working_dir: '/otmc/otmc-hub/gateway-node'
     command: node ./index.mjs
     deploy:
       resources:

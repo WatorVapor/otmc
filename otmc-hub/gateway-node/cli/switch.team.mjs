@@ -45,9 +45,5 @@ try {
 } catch(err) {
   //console.error('::::err=:<',err,'>');
 }
-
 console.log('::::targetJson=<',targetJson,'>');
-
-
 fs.writeFileSync(topTeamPath, JSON.stringify(targetJson,undefined,2));
-

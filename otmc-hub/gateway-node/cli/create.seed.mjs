@@ -14,11 +14,11 @@ console.log('::::DIDManifest=<',DIDManifest,'>');
 
 
 
-const secretKeyPath = '../.store//secretKey/auth.json';
+const secretKeyPath = '../.store/secretKey/auth.json';
 const secretText = fs.readFileSync(secretKeyPath);
 const secretKey = JSON.parse(secretText);
 console.log('::::secretKey=<',secretKey,'>');
-const secretRecoveryKeyPath = '../.store//secretKey/recovery.json';
+const secretRecoveryKeyPath = '../.store/secretKey/recovery.json';
 const secretRecoveryText = fs.readFileSync(secretRecoveryKeyPath);
 const secretRecoveryKey = JSON.parse(secretRecoveryText);
 console.log('::::secretRecoveryKey=<',secretRecoveryKey,'>');

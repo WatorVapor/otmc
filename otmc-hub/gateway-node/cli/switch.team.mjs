@@ -1,24 +1,12 @@
 import fs from 'fs';
 import { parseArgs } from 'node:util';
-const options = {
-  target: {
-    type: "string",
-    short: "t",
-    multiple: false,
-  },
-};
-const topTeamPath = '../.store/didteam/topTeam.json';
 
-const args = process.argv.slice(2);
-const {
+import {
   values,
-  positionals,
-} = parseArgs({ options, args });
-console.log('::::values=<',values,'>');
+  topTeamPath,
+} from '../cli.parser.mjs';
+console.log('::join.cap::topTeamPath=<',topTeamPath,'>');
 const targetAddress = values.target.replace('did:otmc:','');
-
-const strConstDidPath = `../.store/didteam/`
-fs.mkdirSync(strConstDidPath, { recursive: true },);
 
 const targetJson = {
   did:values.target,

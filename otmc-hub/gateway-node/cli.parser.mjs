@@ -21,6 +21,7 @@ try {
   console.error('::cli.parser::err=<',err,'>');
 }
 
+
 const secretKeyPath = `${gConf.store}/secretKey/auth.json`;
 const secretText = fs.readFileSync(secretKeyPath);
 const secretKey = JSON.parse(secretText);
@@ -35,12 +36,19 @@ const util = new EdUtil(base64,nacl);
 export const primaryAuth = new EdAuth(secretKey,util);
 
 
+export const topTeamPath = `${gConf.store}/didteam/topTeam.json`;
+
 const options = {
   address: {
     type: "string",
     short: "a",
     multiple: false,
   },
+  target: {
+    type: "string",
+    short: "t",
+    multiple: false,
+  },  
 };
 
 const args = process.argv.slice(2);
@@ -49,6 +57,6 @@ export const {
   positionals,
 } = parseArgs({ options, args });
 console.log('::cli.parser::values=<',values,'>');
-export const guestAddress = values.address.replace('did:otmc:','');
+export const guestAddress = values.address ? values.address.replace('did:otmc:','') : '';
 export const strConstDidPath = `${gConf.store}/didteam/${guestAddress}`
 fs.mkdirSync(strConstDidPath, { recursive: true },);

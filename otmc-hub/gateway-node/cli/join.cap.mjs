@@ -1,8 +1,7 @@
 import fs from 'fs';
 import { parseArgs } from 'node:util';
 import { execSync } from 'child_process';
-//import { DIDGuestCapabilityDocument } from 'otmc-client/did/document';
-import { DIDGuestCapabilityDocument } from '../../../otmc-package/did/document';
+import { DIDGuestCapabilityDocument } from 'otmc-client/did/document';
 console.log('::::DIDGuestCapabilityDocument=<',DIDGuestCapabilityDocument,'>');
 import { DIDManifest } from 'otmc-client/did/manifest';
 console.log('::::DIDManifest=<',DIDManifest,'>');

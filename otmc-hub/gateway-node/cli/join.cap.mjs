@@ -1,54 +1,24 @@
 import fs from 'fs';
 import { parseArgs } from 'node:util';
 import { execSync } from 'child_process';
-import nacl from 'tweetnacl-es6';
-import  { Base32 } from 'otmc-client/edcrypto/base32';
-console.log('::::Base32=<',Base32,'>');
-import  { EdUtil } from 'otmc-client/edcrypto/edutils';
-console.log('::::EdUtil=<',EdUtil,'>');
-import  { EdAuth } from 'otmc-client/edcrypto/edauth';
-console.log('::::EdAuth=<',EdAuth,'>');
-import { DIDGuestDocument } from 'otmc-client/did/document';
-console.log('::::DIDGuestDocument=<',DIDGuestDocument,'>');
+//import { DIDGuestCapabilityDocument } from 'otmc-client/did/document';
+import { DIDGuestCapabilityDocument } from '../../../otmc-package/did/document';
+console.log('::::DIDGuestCapabilityDocument=<',DIDGuestCapabilityDocument,'>');
 import { DIDManifest } from 'otmc-client/did/manifest';
 console.log('::::DIDManifest=<',DIDManifest,'>');
 
-const secretKeyPath = '../.store//secretKey/auth.json';
-const secretText = fs.readFileSync(secretKeyPath);
-const secretKey = JSON.parse(secretText);
-console.log('::::secretKey=<',secretKey,'>');
-const secretRecoveryKeyPath = '../.store//secretKey/recovery.json';
-const secretRecoveryText = fs.readFileSync(secretRecoveryKeyPath);
-const secretRecoveryKey = JSON.parse(secretRecoveryText);
-console.log('::::secretRecoveryKey=<',secretRecoveryKey,'>');
-
-
-const base64 = new Base32();
-const util = new EdUtil(base64,nacl);
-const primaryAuth = new EdAuth(secretKey,util);
-
-
-const options = {
-  address: {
-    type: "string",
-    short: "a",
-    multiple: false,
-  },
-};
-
-const args = process.argv.slice(2);
-const {
+import {
   values,
-  positionals,
-} = parseArgs({ options, args });
-console.log('::::values=<',values,'>');
-const guestAddress = values.address.replace('did:otmc:','');
-const strConstDidPath = `../.store/didteam/${guestAddress}`
-fs.mkdirSync(strConstDidPath, { recursive: true },);
-
+  guestAddress,
+  strConstDidPath,
+  primaryAuth,
+} from '../cli.parser.mjs';
+console.log('::join.cap::guestAddress=<',guestAddress,'>');
+console.log('::join.cap::strConstDidPath=<',strConstDidPath,'>');
+console.log('::join.cap::strConstDidPath=<',primaryAuth,'>');
 
 (async ()=> {
-  const guest = new DIDGuestDocument(values.address,primaryAuth);
+  const guest = new DIDGuestCapabilityDocument(values.address,primaryAuth);
   console.log('::::guest=<',guest,'>');
   const guestDoc = guest.document();
   console.log('::::guestDoc=<',guestDoc,'>');
@@ -56,4 +26,5 @@ fs.mkdirSync(strConstDidPath, { recursive: true },);
   fs.writeFileSync(strConstTopDidDocPath, JSON.stringify(guestDoc,undefined,2));
   execSync(`cd ${strConstDidPath} && cp -f ./guestDocument.json ./topDocument.json`);
 })();
+
 

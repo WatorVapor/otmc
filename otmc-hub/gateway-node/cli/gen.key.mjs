@@ -9,13 +9,24 @@ const base64 = new Base32();
 const util = new EdUtil(base64,nacl);
 const edkey = new EdDsaKey(util);
 const addressPrefix = 'otm';
-fs.mkdirSync('../.store/secretKey', { recursive: true },);
+
+const gConf = {};
+try {
+  const configPath = '../config.json';
+  const configText = fs.readFileSync(configPath);
+  const config = JSON.parse(configText);
+  console.log('::::config=<',config,'>');
+  gConf.store = config.store;
+  fs.mkdirSync(`${gConf.store}/secretKey`, { recursive: true },);
+} catch ( err ) {
+  console.error('::::err=<',err,'>');
+}
+
 
 const secretKeyPaths = {
-  auth: '../.store/secretKey/auth.json',
-  recovery:'../.store/secretKey/recovery.json',
+  auth: `${gConf.store}/secretKey/auth.json`,
+  recovery: `${gConf.store}//secretKey/recovery.json`,
 };
-const secretKeyPath = '../.store/secretKey.json';
 console.log('::::edkey=<',edkey,'>');
 const iConstReprotInMilliSec = 10 * 1000;
 

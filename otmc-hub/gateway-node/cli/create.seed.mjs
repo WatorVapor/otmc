@@ -13,25 +13,40 @@ import { DIDManifest } from 'otmc-client/did/manifest';
 console.log('::::DIDManifest=<',DIDManifest,'>');
 
 
-
-const secretKeyPath = '../.store/secretKey/auth.json';
-const secretText = fs.readFileSync(secretKeyPath);
-const secretKey = JSON.parse(secretText);
-console.log('::::secretKey=<',secretKey,'>');
-const secretRecoveryKeyPath = '../.store/secretKey/recovery.json';
-const secretRecoveryText = fs.readFileSync(secretRecoveryKeyPath);
-const secretRecoveryKey = JSON.parse(secretRecoveryText);
-console.log('::::secretRecoveryKey=<',secretRecoveryKey,'>');
+const gConf = {};
+try {
+  const configPath = '../config.json';
+  const configText = fs.readFileSync(configPath);
+  const config = JSON.parse(configText);
+  console.log('::::config=<',config,'>');
+  gConf.store = config.store;
 
 
-const base64 = new Base32();
-const util = new EdUtil(base64,nacl);
-const primaryAuth = new EdAuth(secretKey,util);
-const recoveryAuth = new EdAuth(secretRecoveryKey,util);
+  const secretKeyPath = '../.store/secretKey/auth.json';
+  const secretText = fs.readFileSync(secretKeyPath);
+  const secretKey = JSON.parse(secretText);
+  console.log('::::secretKey=<',secretKey,'>');
+  const secretRecoveryKeyPath = '../.store/secretKey/recovery.json';
+  const secretRecoveryText = fs.readFileSync(secretRecoveryKeyPath);
+  const secretRecoveryKey = JSON.parse(secretRecoveryText);
+  console.log('::::secretRecoveryKey=<',secretRecoveryKey,'>');
 
-const strConstDidPath = `../.store/didteam/${secretKey.idOfKey}`
 
-fs.mkdirSync(strConstDidPath, { recursive: true },);
+  const base64 = new Base32();
+  const util = new EdUtil(base64,nacl);
+  const primaryAuth = new EdAuth(secretKey,util);
+  const recoveryAuth = new EdAuth(secretRecoveryKey,util);
+
+  const strConstDidPath = `../.store/didteam/${secretKey.idOfKey}`
+
+  fs.mkdirSync(strConstDidPath, { recursive: true });
+} catch ( err ) {
+  console.error('::::err=<',err,'>');
+}
+
+console.log('::::gConf=<',gConf,'>');
+
+
 (async ()=> {
   const seed = new DIDSeedDocument(primaryAuth,recoveryAuth);
   console.log('::::seed=<',seed,'>');

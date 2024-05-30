@@ -34,6 +34,7 @@ console.log('::cli.parser::secretRecoveryKey=<',secretRecoveryKey,'>');
 const base64 = new Base32();
 const util = new EdUtil(base64,nacl);
 export const primaryAuth = new EdAuth(secretKey,util);
+export const recoveryAuth = new EdAuth(secretRecoveryKey,util);
 
 
 export const topTeamPath = `${gConf.store}/didteam/topTeam.json`;
@@ -58,5 +59,6 @@ export const {
 } = parseArgs({ options, args });
 console.log('::cli.parser::values=<',values,'>');
 export const guestAddress = values.address ? values.address.replace('did:otmc:','') : '';
-export const strConstDidPath = `${gConf.store}/didteam/${guestAddress}`
+export const seedAddress = values.address ? '' : primaryAuth.address();
+export const strConstDidPath = values.address ? `${gConf.store}/didteam/${guestAddress}`:`${gConf.store}/didteam/${seedAddress}`
 fs.mkdirSync(strConstDidPath, { recursive: true },);

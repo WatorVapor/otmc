@@ -4,14 +4,26 @@ import { Otmc } from '../../otmc-package/otmc.js';
 console.log('::::Otmc=<',Otmc,'>');
 
 
-const authKeyPath = './.store/secretKey/auth.json';
-const recoveryKeyPath = './.store/secretKey/recovery.json';
+const gConf = {};
+try {
+  const configPath = './config.json';
+  const configText = fs.readFileSync(configPath);
+  const config = JSON.parse(configText);
+  console.log('::::config=<',config,'>');
+  gConf.store = config.store;
+  fs.mkdirSync(`${gConf.store}/secretKey`, { recursive: true },);
+} catch ( err ) {
+  console.error('::::err=<',err,'>');
+}
 
-const documentHistoryPath = './.store/didteam/document.history';
-const manifestHistoryPath = './.store/didteam/manifest.history';
+const authKeyPath = `${gConf.store}/secretKey/auth.json`;
+const recoveryKeyPath = `${gConf.store}/secretKey/recovery.json`;
 
-const strConstMqttJwtPath = './.store/mqtt/jwt_cached.json';
-const topTeamPath = './.store/didteam/topTeam.json';
+const documentHistoryPath = `${gConf.store}/didteam/document.history`;
+const manifestHistoryPath = `${gConf.store}/didteam/manifest.history`;
+
+const strConstMqttJwtPath = `${gConf.store}/mqtt/jwt_cached.json`;
+const topTeamPath = `${gConf.store}/didteam/topTeam.json`;
 
 
 
@@ -31,9 +43,9 @@ try {
   const authKey = JSON.parse(authKeyStr);
   console.log('::::authKey=:<',authKey,'>');
   if(authKey&& authKey.idOfKey) {
-    otmcConfig.topDoc = `./.store/didteam/${authKey.idOfKey}/topDocument.json`;
-    otmcConfig.topManifest = `./.store/didteam/${authKey.idOfKey}/topManifest.json`;
-    otmcConfig.invitation = `./.store/didteam/${authKey.idOfKey}/invitation.json`;
+    otmcConfig.topDoc = `${gConf.store}/didteam/${authKey.idOfKey}/topDocument.json`;
+    otmcConfig.topManifest = `${gConf.store}/didteam/${authKey.idOfKey}/topManifest.json`;
+    otmcConfig.invitation = `${gConf.store}/didteam/${authKey.idOfKey}/invitation.json`;
   }
 } catch(err) {
   console.error('::::err=:<',err,'>');
@@ -44,9 +56,9 @@ try {
   const topTeam = JSON.parse(topTeamStr);
   console.log('::::topTeam=:<',topTeam,'>');
   if(topTeam&& topTeam.address) {
-    otmcConfig.topDoc = `./.store/didteam/${topTeam.address}/topDocument.json`;
-    otmcConfig.topManifest = `./.store/didteam/${topTeam.address}/topManifest.json`;
-    otmcConfig.invitation = `./.store/didteam/${topTeam.address}/invitation.json`;
+    otmcConfig.topDoc = `${gConf.store}/didteam/${topTeam.address}/topDocument.json`;
+    otmcConfig.topManifest = `${gConf.store}/didteam/${topTeam.address}/topManifest.json`;
+    otmcConfig.invitation = `${gConf.store}/didteam/${topTeam.address}/invitation.json`;
   }
 } catch(err) {
   console.error('::::err=:<',err,'>');

@@ -1,18 +1,21 @@
 import fs from 'fs';
 import { execSync } from 'child_process';
-import nacl from 'tweetnacl-es6';
-import  { Base32 } from 'otmc-client/edcrypto/base32';
-console.log('::::Base32=<',Base32,'>');
-import  { EdUtil } from 'otmc-client/edcrypto/edutils';
-console.log('::::EdUtil=<',EdUtil,'>');
-import  { EdAuth } from 'otmc-client/edcrypto/edauth';
-console.log('::::EdAuth=<',EdAuth,'>');
 import { DIDSeedDocument } from 'otmc-client/did/document';
 console.log('::::DIDSeedDocument=<',DIDSeedDocument,'>');
 import { DIDManifest } from 'otmc-client/did/manifest';
 console.log('::::DIDManifest=<',DIDManifest,'>');
 
+import {
+  values,
+  strConstDidPath,
+  primaryAuth,
+  recoveryAuth
+} from '../cli.parser.mjs';
+console.log('::create.seed::strConstDidPath=<',strConstDidPath,'>');
+console.log('::create.seed::strConstDidPath=<',primaryAuth,'>');
+console.log('::create.seed::recoveryAuth=<',recoveryAuth,'>');
 
+/*
 const gConf = {};
 try {
   const configPath = '../config.json';
@@ -45,6 +48,7 @@ try {
 }
 
 console.log('::::gConf=<',gConf,'>');
+*/
 
 
 (async ()=> {

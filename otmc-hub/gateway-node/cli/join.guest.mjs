@@ -3,8 +3,6 @@ import { parseArgs } from 'node:util';
 import { execSync } from 'child_process';
 import { DIDGuestGuestDocument } from 'otmc-client/did/document';
 console.log('::::DIDGuestGuestDocument=<',DIDGuestGuestDocument,'>');
-import { DIDManifest } from 'otmc-client/did/manifest';
-console.log('::::DIDManifest=<',DIDManifest,'>');
 
 import {
   values,
@@ -12,9 +10,9 @@ import {
   strConstDidPath,
   primaryAuth,
 } from '../cli.parser.mjs';
-console.log('::join.cap::guestAddress=<',guestAddress,'>');
-console.log('::join.cap::strConstDidPath=<',strConstDidPath,'>');
-console.log('::join.cap::strConstDidPath=<',primaryAuth,'>');
+console.log('::join.guest::guestAddress=<',guestAddress,'>');
+console.log('::join.guest::strConstDidPath=<',strConstDidPath,'>');
+console.log('::join.guest::strConstDidPath=<',primaryAuth,'>');
 
 (async ()=> {
   const guest = new DIDGuestGuestDocument(values.address,primaryAuth);

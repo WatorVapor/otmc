@@ -18,7 +18,9 @@ import { DIDManifest } from './did/manifest.js';
 import { StoreKey } from './otmc.const.js';
 import { 
   DIDSeedDocument,
-  DIDGuestDocument,
+  DIDGuestGuestDocument,
+  DIDGuestAuthDocument,
+  DIDGuestCapabilityDocument,
   DIDExpandDocument,
   DIDAscentDocument,
   DIDMergeDocument
@@ -356,7 +358,7 @@ export class DidDocument {
       console.log('DidDocument::createJoinAsAuth::this.otmc=:<',this.otmc,'>');
     }
     this.checkEdcrypt_();
-    this.guest = new DIDGuestDocument(id,this.auth);
+    this.guest = new DIDGuestAuthDocument(id,this.auth);
     if(this.trace) {
       console.log('DidDocument::createJoinAsAuth::this.guest=:<',this.guest,'>');
     }

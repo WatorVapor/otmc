@@ -16,7 +16,7 @@ export class DidDocStateMachine {
     this.trace0 = false;
     this.trace = true;
     this.debug = true;
-    if(this.trace) {
+    if(this.trace0) {
       console.log('DidDocStateMachine::constructor::ee=:<',ee,'>');
     }
     this.ee = ee;
@@ -30,7 +30,7 @@ export class DidDocStateMachine {
     }
     const self = this;
     this.ee.on('did:document',(evt)=>{
-      if(this.trace) {
+      if(this.trace0) {
         console.log('DidDocStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
       }
       self.chain = new EvidenceChain(evt.didDoc.auth,evt.didDoc.didDoc_);

@@ -22,11 +22,9 @@ const recoveryKeyPath = `${gConf.store}/secretKey/recovery.json`;
 const documentHistoryPath = `${gConf.store}/didteam/document.history`;
 const manifestHistoryPath = `${gConf.store}/didteam/manifest.history`;
 
+fs.mkdirSync(`${gConf.store}/mqtt`, { recursive: true });
 const strConstMqttJwtPath = `${gConf.store}/mqtt/jwt_cached.json`;
 const topTeamPath = `${gConf.store}/didteam/topTeam.json`;
-
-
-
 
 
 const otmcConfig = {

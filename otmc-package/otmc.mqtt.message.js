@@ -21,12 +21,12 @@ export class MqttMessager {
     this.ListenEventEmitter_();
   }
   ListenEventEmitter_() {
-    if(this.trace) {
+    if(this.trace0) {
       console.log('MqttMessager::ListenEventEmitter_::this.ee=:<',this.ee,'>');
     }
     const self = this;
     this.ee.on('sys.authKey.ready',(evt)=>{
-      if(self.trace) {
+      if(self.trace0) {
         console.log('MqttMessager::ListenEventEmitter_::evt=:<',evt,'>');
       }
       self.otmc = evt.otmc;

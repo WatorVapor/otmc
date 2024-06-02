@@ -69,7 +69,7 @@ export class DidDocument {
     } else {
       this.fs = false;
     }
-    if(this.trace) {
+    if(this.trace0) {
       console.log('DidDocument::createModule_::this.fs=:<',this.fs,'>');
     }
     this.ee.emit('OtmcStateMachine.actor.send',{type:'did:module_ready'});
@@ -424,6 +424,7 @@ export class DidDocument {
     this.checkEdcrypt_();
     if(this.trace) {
       console.log('DidDocument::createSyncUploadDid::this.evidenceAuth=:<',this.evidenceAuth,'>');
+      console.log('DidDocument::createSyncUploadDid::this.evidenceCapability=:<',this.evidenceCapability,'>');
     }
     const role = this.getDidRole_();
     if(this.trace) {
@@ -547,6 +548,7 @@ export class DidDocument {
     let role = 'guest';
     if(this.trace) {
       console.log('DidDocument::getDidRole_::this.evidenceAuth=:<',this.evidenceAuth,'>');
+      console.log('DidDocument::getDidRole_::this.evidenceCapability=:<',this.evidenceCapability,'>');
     }
     if(this.evidenceAuth.isSeed) {
       role = 'seed';
@@ -555,6 +557,14 @@ export class DidDocument {
     } else if(this.evidenceAuth.byAuth) {
       role = 'auth';
     } else if(this.evidenceAuth.byNone) {
+      role = 'invitation';
+    } else {
+    }
+    if(this.evidenceCapability.bySeed) {
+      role = 'capability';
+    } else if(this.evidenceCapability.byAuth) {
+      role = 'capability';
+    } else if(this.evidenceCapability.byNone) {
       role = 'invitation';
     } else {
     }
@@ -646,17 +656,23 @@ export class DidDocument {
     }
     if(this.trace) {
       console.log('DidDocument::acceptInvitation::this.evidenceAuth:=<',this.evidenceAuth,'>');
+      console.log('DidDocument::acceptInvitation::this.evidenceCapability:=<',this.evidenceCapability,'>');
     }
     if(this.evidenceAuth.isSeed || this.evidenceAuth.byAuth) {
       if(joinInvitation.authentication && joinInvitation.authentication.length > 0) {
         nextDid.authentication.push(joinInvitation.authentication[0]);
       }
+      if(joinInvitation.capabilityInvocation && joinInvitation.capabilityInvocation.length > 0) {
+        nextDid.capabilityInvocation.push(joinInvitation.capabilityInvocation[0]);
+      }
     }
+    /*
     if(this.evidenceCapability.byNone) {
       if(joinInvitation.capabilityInvocation && joinInvitation.capabilityInvocation.length > 0) {
         nextDid.capabilityInvocation.push(joinInvitation.capabilityInvocation[0]);
       }
     }
+    */
     if(nextDid.verificationMethod) {
       nextDid.verificationMethod = this.removeDuplicates(nextDid.verificationMethod);
     }
@@ -666,12 +682,17 @@ export class DidDocument {
     if(nextDid.capabilityInvocation) {
       nextDid.capabilityInvocation = this.removeDuplicates(nextDid.capabilityInvocation);
     }
-
+    if(this.trace) {
+      console.log('DidDocument::acceptInvitation::nextDid:=<',nextDid,'>');
+    }
     this.expand = new DIDExpandDocument(nextDid,this.auth);
     if(this.trace) {
       console.log('DidDocument::acceptInvitation::this.expand:=<',this.expand,'>');
     }
     const documentObj = this.expand.document();
+    if(this.trace) {
+      console.log('DidDocument::acceptInvitation::documentObj:=<',documentObj,'>');
+    }
     if(this.otmc.isNode) {
       fs.writeFileSync(this.otmc.config.topDoc,JSON.stringify(documentObj,undefined,2));
     } else {

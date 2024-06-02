@@ -15,6 +15,7 @@ export class OtmcStateMachine {
   static ee = false;
   static instances = {};
   constructor(ee) {
+    this.trace0 = false;
     this.trace = true;
     this.debug = true;
     this.ee = ee;
@@ -49,7 +50,7 @@ export class OtmcStateMachine {
     },1)
   }
   ListenEventEmitter_() {
-    if(this.trace) {
+    if(this.trace0) {
       console.log('OtmcStateMachine::ListenEventEmitter_::this.ee=:<',this.ee,'>');
     }
     const self = this;

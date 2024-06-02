@@ -15,12 +15,12 @@ export class MqttJWTAgent {
     this.ListenEventEmitter_();
   }
   ListenEventEmitter_() {
-    if(this.trace) {
+    if(this.trace0) {
       console.log('MqttJWTAgent::ListenEventEmitter_::this.ee=:<',this.ee,'>');
     }
     const self = this;
     this.ee.on('sys.authKey.ready',(evt)=>{
-      if(self.trace) {
+      if(self.trace0) {
         console.log('MqttJWTAgent::ListenEventEmitter_::evt=:<',evt,'>');
       }
       self.otmc = evt.otmc;
@@ -85,7 +85,7 @@ export class MqttJWTAgent {
   }
   connectOtmcPortal_() {
     this.socket = new WebSocket(OtmcPortal.jwt.did.wss);
-    if(this.trace) {
+    if(this.trace0) {
       console.log('MqttJWTAgent::connectOtmcPortal_::this.socket=:<',this.socket,'>');
     }
     const self = this;

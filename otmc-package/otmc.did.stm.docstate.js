@@ -30,7 +30,7 @@ export class DidDocStateMachine {
     }
     const self = this;
     this.ee.on('did:document',(evt)=>{
-      if(this.trace0) {
+      if(self.trace0) {
         console.log('DidDocStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
       }
       self.chain = new EvidenceChain(evt.didDoc.auth,evt.didDoc.didDoc_);
@@ -44,7 +44,7 @@ export class DidDocStateMachine {
       self.ee.emit('did.evidence.load.storage',{chain:self.chain});
     });
     this.ee.on('did:document:evidence',(evt)=>{
-      if(this.trace) {
+      if(self.trace0) {
         console.log('DidDocStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
       }
       if(!evt.manifest) {
@@ -56,7 +56,7 @@ export class DidDocStateMachine {
       self.actor.send({type:'chain.load'});
     });
     this.ee.on('did.stm.docstate.internal.proof',(evt)=>{
-      if(this.trace) {
+      if(self.trace0) {
         console.log('DidDocStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
       }
       self.actor.send({type:evt.proof});

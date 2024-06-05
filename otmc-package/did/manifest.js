@@ -37,6 +37,11 @@ export class DIDManifest {
           action: 'all',
           topic:'${did.id}/${key.id}/sys/did/capability/#'
         },
+        {
+          permission: 'allow',
+          action: 'all',
+          topic:'${did.id}/${key.id}/capability/#'
+        },
       ],
       invitation: [
         {
@@ -94,6 +99,11 @@ export class DIDManifest {
           permission: 'allow',
           action: 'all',
           topic:'${did.id}/${key.id}/sys/did/capability/#'
+        },
+        {
+          permission: 'allow',
+          action: 'all',
+          topic:'${did.id}/${key.id}/capability/#'
         },
       ],
       invitation: [

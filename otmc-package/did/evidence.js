@@ -1,9 +1,10 @@
+const includesAnyByDidKey = (setArr,value ) => setArr.some(attr => attr.endsWith(value));
 export class EvidenceChain {
-  static trace1 = true;
-  static trace2 = true;
-  static trace3 = true;
-  static trace4 = true;
-  static trace5 = true;
+  static trace1 = false;
+  static trace2 = false;
+  static trace3 = false;
+  static trace4 = false;
+  static trace5 = false;
   static trace = true;
   static debug = true;
 
@@ -126,9 +127,25 @@ export class EvidenceChain {
     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::calcDidAuth::this.docTop_=<',this.docTop_,'>');
     }
-    const proof = this.calcDidAuthInternal_(this.docTop_);
+    const roleProof = this.calcDidAuthInternal_(this.docTop_);
+    if(EvidenceChain.trace) {
+      console.log('EvidenceChain::calcDidAuth::roleProof=<',roleProof,'>');
+    }
+    const auth_address = this.auth_.address();
     if(EvidenceChain.trace1) {
-      console.log('EvidenceChain::calcDidAuth::proof=<',proof,'>');
+      console.log('EvidenceChain::calcDidAuth::auth_address=<',auth_address,'>');
+    }
+    const inAuth = includesAnyByDidKey(this.docTop_.authentication,auth_address);
+    const inCapability = includesAnyByDidKey(this.docTop_.capabilityInvocation,auth_address);
+    if(EvidenceChain.trace) {
+      console.log('EvidenceChain::calcDidAuth::inAuth=<',inAuth,'>');
+      console.log('EvidenceChain::calcDidAuth::inCapability=<',inCapability,'>');
+    }
+    if(inAuth) {
+      return roleProof.auth;
+    }
+    if(inCapability) {
+      return roleProof.capability;
     }
     return proof;
   }
@@ -215,18 +232,21 @@ export class EvidenceChain {
     }
   }
   searchProofFromChain_(proofList,didAddress,myAddress,seedTracedIds) {
-    if(EvidenceChain.trace1) {
+    if(EvidenceChain.trace) {
       console.log('EvidenceChain::searchProofFromChain_::proofList=<',proofList,'>');
       console.log('EvidenceChain::searchProofFromChain_::didAddress=<',didAddress,'>');
       console.log('EvidenceChain::searchProofFromChain_::myAddress=<',myAddress,'>');
       console.log('EvidenceChain::searchProofFromChain_::seedTracedIds=<',seedTracedIds,'>');
     }
-    let proof = 'none.proof';
+    let proof = {
+      auth:'auth.none.proof',
+      capability:'capability.none.proof',
+    };
     if(proofList.authProof && proofList.authProof.length > 0) {
       if(proofList.authProof.includes(didAddress)) {
-        proof = 'auth.proof.by.seed';
+        proof.auth = 'auth.proof.by.seed';
         if(myAddress === didAddress) {
-          proof = 'auth.proof.is.seed';
+          proof.auth = 'auth.proof.is.seed';
         }
       } else if(proofList.authProof.includes(myAddress)) {
         const poofHint = includesAny(proofList.authProof,seedTracedIds);
@@ -234,9 +254,9 @@ export class EvidenceChain {
           console.log('EvidenceChain::searchProofFromChain_::poofHint=<',poofHint,'>');
         }
         if(poofHint) {
-          proof = 'auth.proof.by.auth';
+          proof.auth = 'auth.proof.by.auth';
         } else {
-          proof = 'auth.proof.by.none';
+          proof.auth = 'auth.proof.by.none';
         }
       } else {
         const poofHint = includesAny(proofList.authProof,seedTracedIds);
@@ -244,30 +264,22 @@ export class EvidenceChain {
           console.log('EvidenceChain::searchProofFromChain_::poofHint=<',poofHint,'>');
         }
         if(poofHint) {
-          proof = 'auth.proof.by.auth';
+          proof.auth = 'auth.proof.by.auth';
         } else {
-          proof = 'auth.proof.by.none';
+          proof.auth = 'auth.proof.by.none';
         }
       }
-    } else {
-      if(proofList.capabilityProof && proofList.capabilityProof.length > 0) {
-        if(proofList.capabilityProof.includes(didAddress)) {
-          proof = 'capability.proof.by.seed';
-          if(myAddress === didAddress) {
-            proof = 'capability.proof.is.seed';
-          }
-        } else if(proofList.capabilityProof.includes(myAddress)) {
-          const poofHintCapability = includesAny(proofList.capabilityProof,seedTracedIds);
-          if(EvidenceChain.trace1) {
-            console.log('EvidenceChain::searchProofFromChain_::poofHintCapability=<',poofHintCapability,'>');
-          }
-          if(poofHintCapability) {
-            proof = 'capability.proof.by.auth';
-          } else {
-            proof = 'capability.proof.by.none';
-          }
-        } else {
-          proof = 'capability.proof.by.none';
+    }
+    if(proofList.capabilityProof && proofList.capabilityProof.length > 0) {
+      if(proofList.capabilityProof.includes(myAddress)) {
+        if(proof.auth === 'auth.proof.is.seed') {
+          proof.capability = 'capability.proof.by.seed';
+        }
+        if(proof.auth === 'auth.proof.by.seed') {
+          proof.capability = 'capability.proof.by.seed';
+        }
+        if(proof.auth === 'auth.proof.by.auth') {
+          proof.capability = 'capability.proof.by.auth';
         }
       }
     }

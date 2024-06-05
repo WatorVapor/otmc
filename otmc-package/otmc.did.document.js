@@ -110,7 +110,7 @@ export class DidDocument {
       self.createModule_();
     });
     this.ee.on('did.edcrypt.recoveryKey',(recoveryKey)=>{
-      if(this.trace) {
+      if(self.trace) {
         console.log('DidDocument::ListenEventEmitter_::recoveryKey=:<',recoveryKey,'>');
       }
       self.recovery = new EdAuth(recoveryKey,self.util);
@@ -124,10 +124,10 @@ export class DidDocument {
       self.ee.emit('mqtt.jwt.agent.recoveryKey.ready',evt);
     });
     this.ee.on('did.loadDocument',(evt)=>{
-      if(this.trace) {
+      if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      if(this.trace0) {
+      if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::self.otmc=:<',self.otmc,'>');
       }
       if(self.otmc.isNode) {
@@ -140,15 +140,15 @@ export class DidDocument {
       self.loadDocument();
     });
     this.ee.on('did.evidence.load.storage',async (evt)=>{
-      if(this.trace) {
+      if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
       const manifest = await self.loadDidRuleFromManifest_();
-      if(this.trace) {
+      if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::manifest=:<',manifest,'>');
       }
       const evidence = await self.loadEvidenceChain_();
-      if(this.trace) {
+      if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::evidence=:<',evidence,'>');
       }
       const evidenceChain = {
@@ -159,25 +159,25 @@ export class DidDocument {
 
     });
     this.ee.on('did.evidence.auth',(evt)=>{
-      if(this.trace) {
+      if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
       self.evidenceAuth = Object.assign({}, evt);
-      if(this.trace) {
+      if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::self.evidenceAuth=:<',self.evidenceAuth,'>');
       }
     });
     this.ee.on('did.evidence.capability',(evt)=>{
-      if(this.trace) {
+      if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
       self.evidenceCapability = Object.assign({}, evt);
-      if(this.trace) {
+      if(this.trace0) {
         console.log('DidDocument::ListenEventEmitter_::self.evidenceCapability=:<',self.evidenceCapability,'>');
       }
     });
     this.ee.on('otmc.did.client.storage',(evt)=>{
-      if(this.trace) {
+      if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
       setTimeout(()=>{
@@ -185,7 +185,7 @@ export class DidDocument {
       },1);
     });
     this.ee.on('did.document.merge',(evt)=>{
-      if(this.trace) {
+      if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
       self.mergeDidDocument(evt);
@@ -376,6 +376,7 @@ export class DidDocument {
   mergeDidDocument(newDoc) {
     if(this.trace) {
       console.log('DidDocument::mergeDidDocument::newDoc=:<',newDoc,'>');
+      console.log('DidDocument::mergeDidDocument::this.didDoc_=:<',this.didDoc_,'>');
     }
     const docDiff = jsDiff.diff(newDoc,this.didDoc_);
     if(this.trace) {
@@ -460,6 +461,9 @@ export class DidDocument {
     };
     if(role === 'invitation') {
       syncDownload.topic = `${prefixDidToTopic}/${this.auth.address()}/sys/did/invitation/document/request`;
+    }
+    if(role === 'capability') {
+      syncDownload.topic = `${prefixDidToTopic}/${this.auth.address()}/sys/did/capability/document/request`;
     }
     if(this.trace) {
       console.log('DidDocument::createSyncDownloadDid::syncDownload=:<',syncDownload,'>');

@@ -3,10 +3,12 @@ SCRIPT_DIR=$(cd $(dirname $0); pwd)
 PARENT_DIR=$(dirname $SCRIPT_DIR)
 GPARENT_DIR=$(dirname $PARENT_DIR)
 BASE_NAME=$(basename $SCRIPT_DIR)
+PARENT_NAME=$(basename $PARENT_DIR)
+GPARENT_NAME=$(basename $GPARENT_DIR)
 echo "SCRIPT_DIR:=${SCRIPT_DIR}"
 echo "PARENT_DIR:=${PARENT_DIR}"
 echo "GPARENT_DIR:=${GPARENT_DIR}"
-DOCKER_MAME=${BASE_NAME}-unix
+DOCKER_MAME=${GPARENT_NAME}-${PARENT_NAME}-${BASE_NAME}
 docker stop ${DOCKER_MAME}
 docker rm ${DOCKER_MAME}
 read -d ''  DOCKER_NODE << EOF

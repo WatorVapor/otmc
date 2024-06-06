@@ -21,15 +21,24 @@ try {
   console.error('::cli.parser::err=<',err,'>');
 }
 
-
-const secretKeyPath = `${gConf.store}/secretKey/auth.json`;
-const secretText = fs.readFileSync(secretKeyPath);
-const secretKey = JSON.parse(secretText);
-console.log('::cli.parser::secretKey=<',secretKey,'>');
-const secretRecoveryKeyPath = `${gConf.store}/secretKey/recovery.json`;
-const secretRecoveryText = fs.readFileSync(secretRecoveryKeyPath);
-const secretRecoveryKey = JSON.parse(secretRecoveryText);
-console.log('::cli.parser::secretRecoveryKey=<',secretRecoveryKey,'>');
+let secretKey = false;
+try {
+  const secretKeyPath = `${gConf.store}/secretKey/auth.json`;
+  const secretText = fs.readFileSync(secretKeyPath);
+  secretKey = JSON.parse(secretText);
+  console.log('::cli.parser::secretKey=<',secretKey,'>');
+} catch ( err ) {
+  console.error('::cli.parser::err=<',err,'>');
+}
+let secretRecoveryKey = false;
+try {
+  const secretRecoveryKeyPath = `${gConf.store}/secretKey/recovery.json`;
+  const secretRecoveryText = fs.readFileSync(secretRecoveryKeyPath);
+  secretRecoveryKey = JSON.parse(secretRecoveryText);
+  console.log('::cli.parser::secretRecoveryKey=<',secretRecoveryKey,'>');
+} catch ( err ) {
+  console.error('::cli.parser::err=<',err,'>');
+}
 
 const base64 = new Base32();
 const util = new EdUtil(base64,nacl);

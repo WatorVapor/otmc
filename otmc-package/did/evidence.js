@@ -147,7 +147,7 @@ export class EvidenceChain {
     if(inCapability) {
       return roleProof.capability;
     }
-    return proof;
+    return 'guest.none.proof';
   }
 
   calcDidAuthInternal_(didDoc) {

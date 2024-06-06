@@ -66,6 +66,12 @@ export class DidRuntimeStateMachine {
       }      
       self.actor.send({type:'chain.pass.auth.proof'});
     });
+    this.ee.on('did.evidence.capability',(evt)=>{
+      if(self.trace) {
+        console.log('DidRuntimeStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
+      }      
+      self.actor.send({type:'chain.pass.capability.proof'});
+    });
   }
 }
 
@@ -82,6 +88,7 @@ const didRuntimeStateTable = {
     entry:['chainReady'],
     on: {
       'chain.pass.auth.proof':'evidenceChainAuthPass',
+      'chain.pass.capability.proof':'evidenceChainAuthPass',
     } 
   },
   evidenceChainAuthPass: {

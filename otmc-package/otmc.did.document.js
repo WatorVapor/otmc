@@ -344,7 +344,7 @@ export class DidDocument {
     } else {
       localStorage.setItem(StoreKey.didDoc,JSON.stringify(documentObj));
     }
-    const manifest = DIDManifest.ruleChain();
+    const manifest = DIDManifest.ruleChainGuestOpen();
     if(this.otmc.isNode) {
       this.fs.writeFileSync(this.otmc.config.topManifest,JSON.stringify(manifest,undefined,2));
     } else {

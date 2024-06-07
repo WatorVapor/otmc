@@ -1,2 +1,2 @@
 #!/bin/bash
-./join.cap.sh --address 'did:otmc:otmsnaftnd45lzlcdrsqpr73zzst3okf'
+cd ../bin && ./join.cap.sh --address 'did:otmc:otmsnaftnd45lzlcdrsqpr73zzst3okf'

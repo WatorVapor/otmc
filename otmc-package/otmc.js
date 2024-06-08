@@ -95,6 +95,12 @@ export class Otmc extends EventEmitter {
     }
     this.did.checkDidEvidence_();
   }
+  updateManifest(manifest){
+    if(this.trace) {
+      console.log('Otmc::updateManifest::manifest=:<',manifest,'>');
+    }
+    this.did.updateManifest(manifest);
+  }
 }
 
 

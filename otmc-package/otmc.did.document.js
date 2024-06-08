@@ -419,7 +419,13 @@ export class DidDocument {
       return documentObj;      
     }
   }
-  
+  updateManifest(manifest) {
+    if(this.otmc.isNode) {
+      this.fs.writeFileSync(this.otmc.config.topManifest,JSON.stringify(manifest,undefined,2));
+    } else {
+      localStorage.setItem(StoreKey.manifest,JSON.stringify(manifest));
+    }
+  }
   
   createSyncUploadDid() {
     this.checkEdcrypt_();

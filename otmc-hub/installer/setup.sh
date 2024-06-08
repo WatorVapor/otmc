@@ -1,6 +1,8 @@
 #!/bin/bash
-sudo apt-get update && sudo apt-get install -y docker.io docker-compose
-sudo usermod -aG docker $USER
+
+
+#sudo apt-get update && sudo apt-get install -y docker.io docker-compose
+#sudo usermod -aG docker $USER
 
 TTY_TMP_CONF=./tmp.override.conf
 touch ${TTY_TMP_CONF}

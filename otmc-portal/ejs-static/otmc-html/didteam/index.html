@@ -32,8 +32,14 @@
       }
     </script>
     <script type="module">
+      const LOG = {
+        trace:false,
+        debug:true
+      };
       import * as bootstrap from 'bootstrap';
-      console.log('::bootstrap=<',bootstrap,'>');
+      if(LOG.trace) {
+        console.log('::bootstrap=<',bootstrap,'>');
+      }
       const collapseElementList = document.querySelectorAll('.collapse');
       const collapseList = [...collapseElementList].map(collapseEl => new bootstrap.Collapse(collapseEl));
       const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');

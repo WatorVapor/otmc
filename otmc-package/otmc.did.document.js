@@ -578,6 +578,9 @@ export class DidDocument {
       role = 'invitation';
     } else {
     }
+    if(this.trace) {
+      console.log('DidDocument::getDidRole_::role=:<',role,'>');
+    }
     return role;
   }
 

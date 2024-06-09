@@ -1,6 +1,6 @@
 import * as xstate  from 'xstate';
 const LOG = {
-  trace:false,
+  trace:true,
   debug:true,
 };
 if(LOG.trace) {
@@ -13,7 +13,7 @@ import { EvidenceChain } from './did/evidence.js';
 
 export class DidDocStateMachine {
   constructor(ee) {
-    this.trace0 = false;
+    this.trace0 = true;
     this.trace = true;
     this.debug = true;
     if(this.trace0) {

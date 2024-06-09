@@ -13,7 +13,8 @@ import { EvidenceChain } from './did/evidence.js';
 
 export class DidDocStateMachine {
   constructor(ee) {
-    this.trace0 = true;
+    this.trace0 = false;
+    this.trace1 = true;
     this.trace = true;
     this.debug = true;
     if(this.trace0) {
@@ -56,7 +57,7 @@ export class DidDocStateMachine {
       self.actor.send({type:'chain.load'});
     });
     this.ee.on('did.stm.docstate.internal.proof',(evt)=>{
-      if(self.trace0) {
+      if(self.trace1) {
         console.log('DidDocStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
       }
       self.actor.send({type:evt.proof});
@@ -122,6 +123,7 @@ const didDocStateTable = {
       'capability.proof.by.seed':'capabilityBySeed',
       'capability.proof.by.auth':'capabilityByAuth',
       'capability.proof.by.none':'capabilityByNone',
+      'capability.none.proof':'capabilityByNone',
     } 
   },
   evidenceChainFail: {
@@ -129,6 +131,7 @@ const didDocStateTable = {
     on: {
       'auth.proof.by.none':'authByNone',
       'capability.proof.by.none':'capabilityByNone',
+      'capability.none.proof':'capabilityByNone',
     }
   },
   authIsSeed: {

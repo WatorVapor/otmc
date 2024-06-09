@@ -239,8 +239,8 @@ export class EvidenceChain {
       console.log('EvidenceChain::searchProofFromChain_::seedTracedIds=<',seedTracedIds,'>');
     }
     let proof = {
-      auth:'auth.none.proof',
-      capability:'capability.none.proof',
+      auth:'auth.proof.by.none',
+      capability:'capability.proof.by.none',
     };
     if(proofList.authProof && proofList.authProof.length > 0) {
       if(proofList.authProof.includes(didAddress)) {

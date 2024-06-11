@@ -437,6 +437,9 @@ export class MqttMessager {
       case 'sys/did/document/auth/store': 
         this.otmc.did.storeDidDocumentHistory(msgJson.did,msgJson.auth_address);
         break;
+      case 'sys/did/document/capability/store': 
+        this.otmc.did.storeDidDocumentHistory(msgJson.did,msgJson.auth_address);
+        break;
       case 'sys/did/manifest/seed/store': 
         this.otmc.did.storeDidManifestHistory(msgJson.manifest,msgJson.auth_address);
         break;

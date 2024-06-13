@@ -217,8 +217,8 @@ export class MqttMessager {
       }
       self.isRequestingJwt = false;
       if(!self.firstConnected) { 
-        this.otmc.emit('mqtt:connected');
-        this.otmc.sm.actor.send({type:'mqtt:connected'});
+        self.otmc.emit('mqtt:connected');
+        self.ee.emit('OtmcStateMachine.actor.send',{type:'mqtt:connected'});
         setTimeout(() => {
           self.runSubscriber_();
         },1);
@@ -269,7 +269,7 @@ export class MqttMessager {
       }
     });
     mqttClient.on('message', (topic, message, packet) => {
-      if(this.trace) {
+      if(self.trace) {
         console.log('MqttMessager::createMqttConnection_::message topic=<',topic,'>');
         console.log('MqttMessager::createMqttConnection_::message message=<',message,'>');
       }
@@ -285,7 +285,7 @@ export class MqttMessager {
       //console.log('MqttMessager::createMqttConnection_::packetsend packet=<',packet,'>');
     });
     mqttClient.on('packetreceive', (packet) => {
-      if(this.trace) {
+      if(self.trace) {
         console.log('MqttMessager::createMqttConnection_::packetreceive packet=<',packet,'>');
       }
     });
@@ -298,8 +298,9 @@ export class MqttMessager {
       console.log('MqttMessager::runSubscriber_:this.payload_=<',this.payload_,'>');
     }
     const subOpt = {qos: 0,nl:true};
+    const self = this;
     const subCallBack = (err, granted) => {
-      if(this.trace) {
+      if(self.trace) {
         console.log('MqttMessager::runSubscriber_:err=<',err,'>');
         console.log('MqttMessager::runSubscriber_:granted=<',granted,'>');
       }
@@ -420,8 +421,10 @@ export class MqttMessager {
         this.otmc.did.onInvitationAcceptReply(msgJson.did,msgJson.auth_address);
         break;
       default:
+        this.otmc.emit('otmc.mqtt.application',msgJson);
         break;
     }
+    this.otmc.emit('otmc.mqtt.all',msgJson);
   }
   
   dispatchMessageHistory_(featureTopic,fullTopic,msgJson) {

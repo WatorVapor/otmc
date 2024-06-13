@@ -781,6 +781,28 @@ export class DidDocument {
     //this.otmc.mqtt.freshMqttJwt();
     //this.loadDocument();
   }
+
+  packMessage(rawMsg) {
+    if(this.trace) {
+      console.log('DidDocument::packMessage::this.otmc=:<',this.otmc,'>');
+      console.log('DidDocument::packMessage::rawMsg=:<',rawMsg,'>');
+    }
+    this.checkEdcrypt_();
+
+    const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
+    const packRawMsg = {
+      topic:`${prefixDidToTopic}/${this.auth.address()}/${rawMsg.topic}`,
+      payload:rawMsg.payload
+    };
+    if(this.trace) {
+      console.log('DidDocument::packMessage::packRawMsg=:<',packRawMsg,'>');
+    }
+    const msgSigned = this.auth.sign(packRawMsg);
+    if(this.trace) {
+      console.log('DidDocument::packMessage::msgSigned=:<',msgSigned,'>');
+    }
+    return msgSigned;
+  }
   
   onDidDocumentStore(incomeDid,acceptAddress) {
     if(this.trace) {

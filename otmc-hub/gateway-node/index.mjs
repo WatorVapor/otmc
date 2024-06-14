@@ -71,12 +71,14 @@ otmc.on('otmc:mqtt:all',(mqttMsg)=>{
   console.log('::otmc.mqtt.all::mqttMsg=<',mqttMsg,'>');
 });
 
+/*
 const testMsg = {
-  topic:'broadcast/rtk-gnss/rtcm/3.0/base64',
+  topic:'rtk-gnss/rtcm/3.0/base64',
   payload:{
     base64:'base64'
   }
 };
 setTimeout(()=>{
-  otmc.publishMsg(testMsg);
-},5000);
+  otmc.broadcastMsg(testMsg);
+},10000);
+*/

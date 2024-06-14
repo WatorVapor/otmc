@@ -803,6 +803,27 @@ export class DidDocument {
     }
     return msgSigned;
   }
+  packBroadcastMessage(rawMsg) {
+    if(this.trace) {
+      console.log('DidDocument::packBroadcastMessage::this.otmc=:<',this.otmc,'>');
+      console.log('DidDocument::packBroadcastMessage::rawMsg=:<',rawMsg,'>');
+    }
+    this.checkEdcrypt_();
+
+    const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
+    const packRawMsg = {
+      topic:`${prefixDidToTopic}/broadcast/${this.auth.address()}/${rawMsg.topic}`,
+      payload:rawMsg.payload
+    };
+    if(this.trace) {
+      console.log('DidDocument::packBroadcastMessage::packRawMsg=:<',packRawMsg,'>');
+    }
+    const msgSigned = this.auth.sign(packRawMsg);
+    if(this.trace) {
+      console.log('DidDocument::packBroadcastMessage::msgSigned=:<',msgSigned,'>');
+    }
+    return msgSigned;
+  }
   
   onDidDocumentStore(incomeDid,acceptAddress) {
     if(this.trace) {

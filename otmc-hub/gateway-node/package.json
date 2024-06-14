@@ -17,6 +17,7 @@
     "level": "^8.0.1",
     "mqtt": "^5.7.0",
     "otmc-client": "^1.0.15",
+    "redis": "^4.6.14",
     "tweetnacl": "^1.0.3",
     "tweetnacl-es6": "^1.0.3",
     "tweetnacl-util": "^0.15.1",

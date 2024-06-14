@@ -111,6 +111,16 @@ export class Otmc extends EventEmitter {
     }
     this.mqtt.publish(msgPack.topic,msgPack,this.mqttOption);
   }
+  broadcastMsg(mqttMsg){
+    if(this.trace) {
+      console.log('Otmc::publishMsg::mqttMsg=:<',mqttMsg,'>');
+    }
+    const msgPack = this.did.packBroadcastMessage(mqttMsg);
+    if(this.trace) {
+      console.log('Otmc::publishMsg::msgPack=:<',msgPack,'>');
+    }
+    this.mqtt.publish(msgPack.topic,msgPack,this.mqttOption);
+  }
 }
 
 

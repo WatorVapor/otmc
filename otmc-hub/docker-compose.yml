@@ -6,6 +6,7 @@ services:
       TZ: Asia/Tokyo
     volumes:
       - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./redis/run:/var/run
       - /dev/shm:/dev/shm
     command: redis-server /usr/local/etc/redis/redis.conf
     deploy:

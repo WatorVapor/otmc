@@ -1,4 +1,8 @@
 import fs from 'fs';
+
+import { RedisRelay } from './redisRelay.mjs';
+console.log('::::RedisRelay=<',RedisRelay,'>');
+
 //import * as Otmc from 'otmc-client';
 import { Otmc } from '../../otmc-package/otmc.js';
 console.log('::::Otmc=<',Otmc,'>');
@@ -66,6 +70,10 @@ console.log('::::otmcConfig=<',otmcConfig,'>');
 const otmc = new Otmc(otmcConfig);
 //console.log('::::otmc=<',otmc,'>');
 
+setTimeout(()=>{
+  const redis = new RedisRelay(gConf);
+  console.log('::::redis=<',redis,'>');
+},3000);
 
 otmc.on('otmc:mqtt:all',(mqttMsg)=>{
   console.log('::otmc.mqtt.all::mqttMsg=<',mqttMsg,'>');

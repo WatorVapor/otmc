@@ -273,7 +273,7 @@ export class MqttMessager {
       }
     });
     mqttClient.on('message', (topic, message, packet) => {
-      if(self.trace) {
+      if(self.trace0) {
         console.log('MqttMessager::createMqttConnection_::message topic=<',topic,'>');
         console.log('MqttMessager::createMqttConnection_::message message=<',message,'>');
       }
@@ -289,7 +289,7 @@ export class MqttMessager {
       //console.log('MqttMessager::createMqttConnection_::packetsend packet=<',packet,'>');
     });
     mqttClient.on('packetreceive', (packet) => {
-      if(self.trace) {
+      if(self.trace0) {
         console.log('MqttMessager::createMqttConnection_::packetreceive packet=<',packet,'>');
       }
     });
@@ -344,7 +344,7 @@ export class MqttMessager {
     }    
   }
   onMqttMessage_(topic, msgJson) {
-    if(this.trace) {
+    if(this.trace0) {
       console.log('MqttMessager::onMqttMessage_:topic=<',topic,'>');
       console.log('MqttMessager::onMqttMessage_:msgJson=<',msgJson,'>');
     }
@@ -352,7 +352,7 @@ export class MqttMessager {
       console.log('MqttMessager::onMqttMessage_:this.auth=<',this.auth,'>');
     }
     let goodMsg = this.auth.verify(msgJson);
-    if(this.trace) {
+    if(this.trace0) {
       console.log('MqttMessager::onMqttMessage_:goodMsg=<',goodMsg,'>');
     }
     if(!goodMsg) {
@@ -384,22 +384,29 @@ export class MqttMessager {
       return;
     }
     const featureTopic = this.getFeatureTopic_(topic);
-    if(this.trace) {
+    if(this.trace0) {
       console.log('MqttMessager::onMqttMessage_:featureTopic=<',featureTopic,'>');
     }
     this.dispatchMessage_(featureTopic,topic,msgJson);
   }
   
   getFeatureTopic_(fullTopic) {
-    if(this.trace) {
+    if(this.trace0) {
       console.log('MqttMessager::getFeatureTopic_:fullTopic=<',fullTopic,'>');
     }
     const featureTopics = fullTopic.split('/');
-    if(this.trace) {
+    if(this.trace0) {
       console.log('MqttMessager::getFeatureTopic_:featureTopics=<',featureTopics,'>');
     }
+    if(featureTopics.length > 4 && featureTopics[3] === 'broadcast') {
+      const featureTopic = 'broadcast/' + featureTopics.slice(5).join('/');
+      if(this.trace0) {
+        console.log('MqttMessager::getFeatureTopic_:featureTopic=<',featureTopic,'>');
+      }
+      return featureTopic;
+    }
     const featureTopic = featureTopics.slice(4).join('/');
-    if(this.trace) {
+    if(this.trace0) {
       console.log('MqttMessager::getFeatureTopic_:featureTopic=<',featureTopic,'>');
     }
     return featureTopic;
@@ -425,10 +432,10 @@ export class MqttMessager {
         this.otmc.did.onInvitationAcceptReply(msgJson.did,msgJson.auth_address);
         break;
       default:
-        this.otmc.emit('otmc.mqtt.application',msgJson);
+        this.otmc.emit('otmc:mqtt:app',msgJson);
         break;
     }
-    this.otmc.emit('otmc.mqtt.all',msgJson);
+    this.otmc.emit('otmc:mqtt:all',msgJson);
   }
   
   dispatchMessageHistory_(featureTopic,fullTopic,msgJson) {

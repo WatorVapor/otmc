@@ -151,7 +151,14 @@ const loadDidTeamApps = (evt) => {
     }
     apps.invitation.invitations = invitationJoin;
   });
-
+  otmc.on('otmc:mqtt:app',(appMsg) => {
+    console.log('loadDidTeamApps::appMsg=:<',appMsg,'>');
+  });
+  /*
+  otmc.on('otmc:mqtt:all',(mqttMsg) => {
+    console.log('loadDidTeamApps::mqttMsg=:<',mqttMsg,'>');
+  });
+  */
   
   edcryptKeyVM.otmc = otmc;
   appDidVM.otmc = otmc;

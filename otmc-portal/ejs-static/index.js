@@ -2,6 +2,7 @@ LOG = {
   trace:false
 };
 const fs = require('fs');
+const gaze = require('gaze');
 const path = require('path');
 const execSync = require('child_process').execSync;
 const ejs = require('ejs');
@@ -14,16 +15,32 @@ const ejsViewRoot = './otmc-view';
 const htmlViewRoot = './otmc-html';
 const htmlViewPrefix = '/otmc';
 
-
+/*
 fs.watch(ejsViewRoot, watchOption, (eventType, filename) => {
   onOtmcViewChanged(eventType, filename);
 });
+*/
 setTimeout(() => {
   onOtmcViewChanged();
 },100);
+ gaze('otmc-view/**/*.js', (err, watcher) => {
+  console.log('gaze::watcher:=<',watcher ,'>');
+  watcher.on('changed', (filename) => {
+    console.log('gaze::filename:=<',filename ,'>');
+    onOtmcViewChanged(undefined, filename);
+  })
+ });
+ gaze('otmc-view/**/*.ejs', (err, watcher) => {
+  console.log('gaze::watcher:=<',watcher ,'>');
+  watcher.on('changed', (filename) => {
+    console.log('gaze::filename:=<',filename ,'>');
+    onOtmcViewChanged(undefined, filename);
+  })
+ });
+
 
 const onOtmcViewChanged = (evt, pathWatch) => {
-  //console.log('onOtmcViewChanged::evt:=<',evt ,'>');
+  console.log('onOtmcViewChanged::evt:=<',evt ,'>');
   //console.log('onOtmcViewChanged::pathWatch:=<',pathWatch ,'>');
   const ejsIndexs = execSync(`find ${ejsViewRoot}`).toString('utf-8');
   //console.log('onOtmcViewChanged::ejsIndexs:=<',ejsIndexs ,'>');

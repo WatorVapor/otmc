@@ -81,11 +81,11 @@ export class RedisRelay {
     const listener = (message, channel) => {
       self.onRedisBroadcast_(channel,message);
     };
-    this.subscriber.pSubscribe('/omtc/2/broadcast/*', listener);
+    this.subscriber.pSubscribe('/omtc/4/broadcast/*', listener);
     const listener2 = (message, channel) => {
       self.onRedisAddress_(channel,message);
     };
-    this.subscriber.pSubscribe('/omtc/2/address/*', listener2);
+    this.subscriber.pSubscribe('/omtc/4/address/*', listener2);
     this.subscriber.connect();
   }
   onRedisBroadcast_(topic,message) {

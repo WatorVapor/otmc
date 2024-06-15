@@ -14,6 +14,7 @@ export class Otmc extends EventEmitter {
   static debug = true;
   constructor(config) {
     super();
+    this.trace0 = false;
     this.trace = true;
     this.debug = true;
     if(config) {
@@ -102,21 +103,21 @@ export class Otmc extends EventEmitter {
     this.did.updateManifest(manifest);
   }
   publishMsg(mqttMsg){
-    if(this.trace) {
+    if(this.trace0) {
       console.log('Otmc::publishMsg::mqttMsg=:<',mqttMsg,'>');
     }
     const msgPack = this.did.packMessage(mqttMsg);
-    if(this.trace) {
+    if(this.trace0) {
       console.log('Otmc::publishMsg::msgPack=:<',msgPack,'>');
     }
     this.mqtt.publish(msgPack.topic,msgPack,this.mqttOption);
   }
   broadcastMsg(mqttMsg){
-    if(this.trace) {
+    if(this.trace0) {
       console.log('Otmc::publishMsg::mqttMsg=:<',mqttMsg,'>');
     }
     const msgPack = this.did.packBroadcastMessage(mqttMsg);
-    if(this.trace) {
+    if(this.trace0) {
       console.log('Otmc::publishMsg::msgPack=:<',msgPack,'>');
     }
     this.mqtt.publish(msgPack.topic,msgPack,this.mqttOption);

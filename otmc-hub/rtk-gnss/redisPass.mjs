@@ -1,5 +1,5 @@
 import { createClient } from 'redis';
-export class RedisRelay {
+export class RedisPass {
   constructor(config,readyCB) {
     this.trace0 = false;
     this.trace = true;
@@ -7,40 +7,40 @@ export class RedisRelay {
     this.redisUnxiPath = `${config.store}/redis/redis.otmc.hub.sock`;
     this.readyCB_ = readyCB;
     if(this.trace) {
-      console.log('RedisRelay::constructor::this.redisUnxiPath=<',this.redisUnxiPath,'>');
+      console.log('RedisPass::constructor::this.redisUnxiPath=<',this.redisUnxiPath,'>');
     }
     this.createRedisClient_();
   }
   async pubBroadcast(topic,payload) {
     if(this.trace) {
-      console.log('RedisRelay::pubBroadcast::topic=<',topic,'>');
-      console.log('RedisRelay::pubBroadcast::payload=<',payload,'>');
+      console.log('RedisPass::pubBroadcast::topic=<',topic,'>');
+      console.log('RedisPass::pubBroadcast::payload=<',payload,'>');
     }
-    const topicOut = `/omtc/2/broadcast/${topic}`;
+    const topicOut = `/to/omtc/broadcast/${topic}`;
     if(this.trace) {
-      console.log('RedisRelay::pubBroadcast::topicOut=<',topicOut,'>');
+      console.log('RedisPass::pubBroadcast::topicOut=<',topicOut,'>');
     }
     if(this.trace0) {
-      console.log('RedisRelay::pubBroadcast::this.client=<',this.client,'>');
+      console.log('RedisPass::pubBroadcast::this.client=<',this.client,'>');
     }
     await this.client.publish(topicOut,JSON.stringify(payload),(err)=>{
       if(this.trace) {
-        console.log('RedisRelay::pubBroadcast::err=<',err,'>');
+        console.log('RedisPass::pubBroadcast::err=<',err,'>');
       }
     });
   }
   pubAddress(topic,payload) {
     if(this.trace) {
-      console.log('RedisRelay::pubAddress::topic=<',topic,'>');
-      console.log('RedisRelay::pubAddress::payload=<',payload,'>');
+      console.log('RedisPass::pubAddress::topic=<',topic,'>');
+      console.log('RedisPass::pubAddress::payload=<',payload,'>');
     }
-    const topicOut = `/omtc/2/address/${topic}`;
+    const topicOut = `/to/omtc/address/${topic}`;
     if(this.trace) {
-      console.log('RedisRelay::pubAddress::topicOut=<',topicOut,'>');
+      console.log('RedisPass::pubAddress::topicOut=<',topicOut,'>');
     }
     this.client.publish(topicOut,JSON.stringify(payload),(err)=>{
       if(this.trace) {
-        console.log('RedisRelay::pubAddress::err=<',err,'>');
+        console.log('RedisPass::pubAddress::err=<',err,'>');
       }
     });
   }
@@ -53,39 +53,39 @@ export class RedisRelay {
       }
     };
     if(this.trace) {
-      console.log('RedisRelay::createRedisClient_::clientOpt=<',clientOpt,'>');
+      console.log('RedisPass::createRedisClient_::clientOpt=<',clientOpt,'>');
     }
     this.client = createClient(clientOpt);
     const self = this;
     this.client.on('error', err => {
       if(self.trace) {
-        console.log('RedisRelay::createRedisClient_::err=<',err,'>');
+        console.log('RedisPass::createRedisClient_::err=<',err,'>');
       }
     });
     this.client.on('connect', evtConnect => {
       if(self.trace) {
-        console.log('RedisRelay::createRedisClient_::evtConnect=<',evtConnect,'>');
+        console.log('RedisPass::createRedisClient_::evtConnect=<',evtConnect,'>');
       }
     });
     this.client.on('ready', evtReady => {
       if(self.trace) {
-        console.log('RedisRelay::createRedisClient_::evtReady=<',evtReady,'>');
+        console.log('RedisPass::createRedisClient_::evtReady=<',evtReady,'>');
       }
       self.createRedisSubscriber_();
     });
     this.client.on('end', evtEnd => {
       if(self.trace) {
-        console.log('RedisRelay::createRedisClient_::evtEnd=<',evtEnd,'>');
+        console.log('RedisPass::createRedisClient_::evtEnd=<',evtEnd,'>');
       }
     });
     this.client.on('reconnecting', evtReconnecting => {
       if(self.trace) {
-        console.log('RedisRelay::createRedisClient_::evtReconnecting=<',evtReconnecting,'>');
+        console.log('RedisPass::createRedisClient_::evtReconnecting=<',evtReconnecting,'>');
       }
     });
     this.client.connect();
     if(this.trace0) {
-      console.log('RedisRelay::createRedisClient_::this.client=<',this.client,'>');
+      console.log('RedisPass::createRedisClient_::this.client=<',this.client,'>');
     }
   }
   createRedisSubscriber_() {
@@ -93,17 +93,17 @@ export class RedisRelay {
     const self = this;
     this.subscriber.on('error', errSub => {
       if(self.trace) {
-        console.log('RedisRelay::createRedisSubscriber_::errSub=<',errSub,'>');
+        console.log('RedisPass::createRedisSubscriber_::errSub=<',errSub,'>');
       }
     });
     this.subscriber.on('connect', evtConnectSub => {
       if(self.trace) {
-        console.log('RedisRelay::createRedisSubscriber_::evtConnectSub=<',evtConnectSub,'>');
+        console.log('RedisPass::createRedisSubscriber_::evtConnectSub=<',evtConnectSub,'>');
       }
     });
     this.subscriber.on('ready', evtReadySub => {
       if(self.trace) {
-        console.log('RedisRelay::createRedisSubscriber_::evtReadySub=<',evtReadySub,'>');
+        console.log('RedisPass::createRedisSubscriber_::evtReadySub=<',evtReadySub,'>');
       }
       if(self.readyCB_) {
         self.ready = true;
@@ -112,12 +112,12 @@ export class RedisRelay {
     });
     this.subscriber.on('end', evtEndSub => {
       if(self.trace) {
-        console.log('RedisRelay::createRedisSubscriber_::evtEndSub=<',evtEndSub,'>');
+        console.log('RedisPass::createRedisSubscriber_::evtEndSub=<',evtEndSub,'>');
       }
     });
     this.subscriber.on('reconnecting', evtReconnectingSub => {
       if(self.trace) {
-        console.log('RedisRelay::createRedisSubscriber_::evtReconnectingSub=<',evtReconnectingSub,'>');
+        console.log('RedisPass::createRedisSubscriber_::evtReconnectingSub=<',evtReconnectingSub,'>');
       }
     });
     const listener = (message, channel) => {
@@ -130,21 +130,21 @@ export class RedisRelay {
     this.subscriber.pSubscribe('/from/omtc/address/*', listener2);
     this.subscriber.connect();
     if(this.trace0) {
-      console.log('RedisRelay::createRedisSubscriber_::this.subscriber=<',this.subscriber,'>');
+      console.log('RedisPass::createRedisSubscriber_::this.subscriber=<',this.subscriber,'>');
     }
   }
 
 
   onRedisBroadcast_(topic,message) {
     if(this.trace) {
-      console.log('RedisRelay::onRedisBroadcast_::topic=<',topic,'>');
-      console.log('RedisRelay::onRedisBroadcast_::message=<',message,'>');
+      console.log('RedisPass::onRedisBroadcast_::topic=<',topic,'>');
+      console.log('RedisPass::onRedisBroadcast_::message=<',message,'>');
     }
   }
   onRedisAddress_(topic,message) {
     if(this.trace) {
-      console.log('RedisRelay::onRedisAddress_::topic=<',topic,'>');
-      console.log('RedisRelay::onRedisAddress_::message=<',message,'>');
+      console.log('RedisPass::onRedisAddress_::topic=<',topic,'>');
+      console.log('RedisPass::onRedisAddress_::message=<',message,'>');
     }
   }
 }

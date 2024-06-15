@@ -21,6 +21,7 @@ services:
     volumes:
       - ./gateway-node:/otmc/otmc-hub/gateway-node
       - ../otmc-package:/otmc/otmc-package
+      - /opt/otmc/:/opt/otmc/
       - /dev/shm/:/dev/shm/
     working_dir: '/otmc/otmc-hub/gateway-node'
     command: node ./index.mjs

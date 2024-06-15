@@ -6,9 +6,9 @@ const LOG = {
 import fs from 'fs';
 import { SerialPort } from 'serialport'
 import { RtcmTransport } from '@gnss/rtcm'
-import { RedisRelay } from './redisRelay.mjs';
+import { RedisPass } from './redisPass.mjs';
 if(LOG.trace0) {
-  console.log('::::RedisRelay=<',RedisRelay,'>');
+  console.log('::::RedisPass=<',RedisPass,'>');
 }
 
 const gConf = {};
@@ -25,12 +25,14 @@ try {
   console.error('::::err=<',err,'>');
 }
 
-const redis = new RedisRelay(gConf,()=>{
+const redis = new RedisPass(gConf,()=>{
   if(LOG.trace0) {
     console.log('::::redis.ready=<',redis.ready,'>');
   }
 });
-//console.log('::::redis=<',redis,'>');
+if(LOG.trace0) {
+  console.log('::::redis=<',redis,'>');
+}
 /*
 SerialPort.list((err, ports)=>{
   console.log('::::ports=<',ports,'>');  
@@ -50,21 +52,6 @@ const LC29H = {
     confirm:'$PQTMSAVEPAR*5A\r\n'
   }
 };
-/*
-setTimeout(()=>{
-  port.write(LC29H.Base.confirm,(err) => {
-    if(LOG.trace0) {
-      console.log('::write::err=<',err,'>');
-    }
-    setTimeout(()=>{
-      const result = port.read(1024);
-      if(LOG.trace0) {
-        console.log('::read::result=<',result,'>');
-      }
-    },2000)
-  });
-},3000)
-*/
 
 const cutBadHead = () => {
   let count = 0;

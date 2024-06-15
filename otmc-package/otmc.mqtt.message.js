@@ -157,13 +157,17 @@ export class MqttMessager {
     this.createMqttConnection_(this.mqttJwt.jwt,this.mqttJwt.payload);
   }
   publish(topic,msgData,option) {
-    if(this.trace) {
+    if(this.trace0) {
       console.log('MqttMessager::publish::topic=:<',topic,'>');
       console.log('MqttMessager::publish::msgData=:<',msgData,'>');
     }
-    this.mqttClient_.publish(topic,JSON.stringify(msgData),option,(err) => {
-      console.log('MqttMessager::publish::err=:<',err,'>');
-    });
+    if(this.mqttClient_ && this.mqttClient_.connected) {
+      this.mqttClient_.publish(topic,JSON.stringify(msgData),option,(err) => {
+        if(err) {
+          console.log('MqttMessager::publish::err=:<',err,'>');
+        }
+      });
+    }
   }
   
   

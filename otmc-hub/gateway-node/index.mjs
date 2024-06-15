@@ -70,14 +70,14 @@ console.log('::::otmcConfig=<',otmcConfig,'>');
 const otmc = new Otmc(otmcConfig);
 //console.log('::::otmc=<',otmc,'>');
 
-setTimeout(()=>{
-  const redis = new RedisRelay(gConf);
-  console.log('::::redis=<',redis,'>');
-},3000);
-
 otmc.on('otmc:mqtt:all',(mqttMsg)=>{
   console.log('::otmc.mqtt.all::mqttMsg=<',mqttMsg,'>');
 });
+
+const redis = new RedisRelay(gConf,otmc,()=>{
+  console.log('::::redis.ready=<',redis.ready,'>');
+});
+
 
 /*
 const testMsg = {

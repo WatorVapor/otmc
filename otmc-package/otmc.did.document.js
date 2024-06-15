@@ -783,7 +783,7 @@ export class DidDocument {
   }
 
   packMessage(rawMsg) {
-    if(this.trace) {
+    if(this.trace0) {
       console.log('DidDocument::packMessage::this.otmc=:<',this.otmc,'>');
       console.log('DidDocument::packMessage::rawMsg=:<',rawMsg,'>');
     }
@@ -794,17 +794,17 @@ export class DidDocument {
       topic:`${prefixDidToTopic}/${this.auth.address()}/${rawMsg.topic}`,
       payload:rawMsg.payload
     };
-    if(this.trace) {
+    if(this.trace0) {
       console.log('DidDocument::packMessage::packRawMsg=:<',packRawMsg,'>');
     }
     const msgSigned = this.auth.sign(packRawMsg);
-    if(this.trace) {
+    if(this.trace0) {
       console.log('DidDocument::packMessage::msgSigned=:<',msgSigned,'>');
     }
     return msgSigned;
   }
   packBroadcastMessage(rawMsg) {
-    if(this.trace) {
+    if(this.trace0) {
       console.log('DidDocument::packBroadcastMessage::this.otmc=:<',this.otmc,'>');
       console.log('DidDocument::packBroadcastMessage::rawMsg=:<',rawMsg,'>');
     }
@@ -815,11 +815,11 @@ export class DidDocument {
       topic:`${prefixDidToTopic}/broadcast/${this.auth.address()}/${rawMsg.topic}`,
       payload:rawMsg.payload
     };
-    if(this.trace) {
+    if(this.trace0) {
       console.log('DidDocument::packBroadcastMessage::packRawMsg=:<',packRawMsg,'>');
     }
     const msgSigned = this.auth.sign(packRawMsg);
-    if(this.trace) {
+    if(this.trace0) {
       console.log('DidDocument::packBroadcastMessage::msgSigned=:<',msgSigned,'>');
     }
     return msgSigned;

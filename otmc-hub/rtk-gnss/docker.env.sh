@@ -22,6 +22,27 @@ docker run -it
   -u $(id -u $USER):$(id -g $USER) 
   -w ${SCRIPT_DIR} 
   --net host 
+  --privileged
+  --group-add dialout
+  --memory=256M 
+  --cpu-shares=128 
+  --name ${DOCKER_MAME} 
+  node:22
+EOF
+
+read -d ''  DOCKER_NODE_BG << EOF
+docker run -d
+  -v /etc/group:/etc/group:ro 
+  -v /etc/passwd:/etc/passwd:ro 
+  -v /dev/shm/:/dev/shm/ 
+  -v /opt/otmc/:/opt/otmc/
+  -v ${GPARENT_DIR}:${GPARENT_DIR} 
+  -v ${HOME}:${HOME} 
+  -u $(id -u $USER):$(id -g $USER) 
+  -w ${SCRIPT_DIR} 
+  --net host 
+  --privileged
+  --group-add dialout
   --memory=256M 
   --cpu-shares=128 
   --name ${DOCKER_MAME} 

@@ -1,12 +1,15 @@
 import * as Vue from 'vue';
-import * as GPS from 'gps';
 import { Otmc } from 'otmc';
 const LOG = {
   trace:true,
   debug:false,
 };
+Cesium.Ion.defaultAccessToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJjMWM0MTFlOC04OTljLTQyZDEtOGRkYS00M2EyMWY1MDRhY2UiLCJpZCI6MTAxNzk1LCJpYXQiOjE2NTgyNzk5ODF9.wS71k-QxR6CLoJ5l3VuJeb07sE3qOkkSgy2MbmuLFWg`;
+
+
 document.addEventListener('DOMContentLoaded', async (evt) => {
   loadRtkGnssApps(evt);
+  createMapView(139.72861126666666,35.81373336666667);
 });
 const apps = {};
 
@@ -181,7 +184,7 @@ const readSerialRtkDevice = async (reader) => {
   }
 }
 
-const gGps = new GPS.default.GPS();
+const gGps = new GPS();
 gGps.on('data', (parsed) => {
   onGPSData(parsed);
 });
@@ -200,3 +203,29 @@ const onGGAData = (ggaData) => {
     console.log('RTK-GNSS::onGGAData::ggaData=:<',ggaData,'>');
   }
 }
+
+let gGPSMap = false;
+const createMapView = async (lat,lon) => {
+  const options = {
+    terrain: Cesium.Terrain.fromWorldTerrain(),
+    baseLayerPicker: true,
+    timeline : false,
+    animation : false,
+    homeButton: false,
+    vrButton: false,
+    geocoder:false,
+    sceneModePicker:false,
+    navigationHelpButton:false,
+  };
+  gGPSMap = new Cesium.Viewer('view_map', options);
+  const buildingTileset = await Cesium.createOsmBuildingsAsync();
+  gGPSMap.camera.flyTo({
+    destination : Cesium.Cartesian3.fromDegrees(lat, lon, 80),
+    orientation : {
+      heading : Cesium.Math.toRadians(0.0),
+      pitch : Cesium.Math.toRadians(-90.0),
+    }
+  });
+  gGPSMap.scene.primitives.add(buildingTileset);
+}
+

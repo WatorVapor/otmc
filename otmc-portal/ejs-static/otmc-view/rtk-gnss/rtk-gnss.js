@@ -9,7 +9,7 @@ Cesium.Ion.defaultAccessToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOi
 
 document.addEventListener('DOMContentLoaded', async (evt) => {
   loadRtkGnssApps(evt);
-  createMapView(139.72861126666666,35.81373336666667);
+  createMapView(35.81373336666667,139.72861126666666);
 });
 const apps = {};
 
@@ -198,34 +198,46 @@ const onGPSData = (gpsData) => {
   }
 }
 
+let prevPosition = false;
 const onGGAData = (ggaData) => {
   if(LOG.trace) {
     console.log('RTK-GNSS::onGGAData::ggaData=:<',ggaData,'>');
   }
+  if(apps.mapView && apps.mapPoints) {
+    const entity = {
+      position: Cesium.Cartesian3.fromDegrees(ggaData.lon,ggaData.lat,ggaData.alt),
+      color : Cesium.Color.RED,
+    };
+    apps.mapPoints.add(entity);
+    if(LOG.trace) {
+      console.log('RTK-GNSS::onGGAData::apps.mapPoints=:<',apps.mapPoints,'>');
+    }
+  }
+  if(prevPosition) {
+    const now = Cesium.Cartesian3.fromDegrees(ggaData.lon,ggaData.lat,ggaData.alt);
+    const prev = Cesium.Cartesian3.fromDegrees(prevPosition.lon,prevPosition.lat,prevPosition.alt);
+    const distance = Cesium.Cartesian3.distance(now,prev);
+    if(LOG.trace) {
+      console.log('RTK-GNSS::onGGAData::distance=:<',distance,'>');
+    }
+  }
+  prevPosition = ggaData;
 }
 
-let gGPSMap = false;
 const createMapView = async (lat,lon) => {
   const options = {
     terrain: Cesium.Terrain.fromWorldTerrain(),
-    baseLayerPicker: true,
-    timeline : false,
-    animation : false,
-    homeButton: false,
-    vrButton: false,
-    geocoder:false,
-    sceneModePicker:false,
-    navigationHelpButton:false,
   };
-  gGPSMap = new Cesium.Viewer('view_map', options);
+  apps.mapView = new Cesium.Viewer('view_map', options);
   const buildingTileset = await Cesium.createOsmBuildingsAsync();
-  gGPSMap.camera.flyTo({
-    destination : Cesium.Cartesian3.fromDegrees(lat, lon, 80),
+  apps.mapView.camera.flyTo({
+    destination : Cesium.Cartesian3.fromDegrees(lon,lat,80),
     orientation : {
       heading : Cesium.Math.toRadians(0.0),
       pitch : Cesium.Math.toRadians(-90.0),
     }
   });
-  gGPSMap.scene.primitives.add(buildingTileset);
+  apps.mapView.scene.primitives.add(buildingTileset);
+  apps.mapPoints = apps.mapView.scene.primitives.add(new Cesium.PointPrimitiveCollection());
 }
 

@@ -413,7 +413,7 @@ export class MqttMessager {
   }
 
   dispatchMessage_(featureTopic,fullTopic,msgJson) {
-    if(this.trace) {
+    if(this.trace0) {
       console.log('MqttMessager::dispatchMessage_:featureTopic=<',featureTopic,'>');
       console.log('MqttMessager::dispatchMessage_:fullTopic=<',fullTopic,'>');
       console.log('MqttMessager::dispatchMessage_:msgJson=<',msgJson,'>');

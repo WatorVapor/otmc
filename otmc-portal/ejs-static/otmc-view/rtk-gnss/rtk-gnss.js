@@ -196,7 +196,16 @@ const onGPSData = (gpsData) => {
   if(gpsData.type === 'GGA') {
     onGGAData(gpsData);
   }
+  /*
+  if(gpsData.type === 'GSA') {
+    if(LOG.trace) {
+      console.log('RTK-GNSS::onGPSData::gpsData=:<',gpsData,'>');
+    }
+  }
+  */
 }
+
+const fConstGgaHeightOffset = 35.0
 
 let prevPosition = false;
 const onGGAData = (ggaData) => {
@@ -205,11 +214,11 @@ const onGGAData = (ggaData) => {
   }
   if(apps.mapView && apps.mapPoints) {
     const entity = {
-      position: Cesium.Cartesian3.fromDegrees(ggaData.lon,ggaData.lat,ggaData.alt),
+      position: Cesium.Cartesian3.fromDegrees(ggaData.lon,ggaData.lat,ggaData.alt + fConstGgaHeightOffset),
       color : Cesium.Color.RED,
     };
     apps.mapPoints.add(entity);
-    if(LOG.trace) {
+    if(LOG.trace0) {
       console.log('RTK-GNSS::onGGAData::apps.mapPoints=:<',apps.mapPoints,'>');
     }
   }
@@ -217,7 +226,7 @@ const onGGAData = (ggaData) => {
     const now = Cesium.Cartesian3.fromDegrees(ggaData.lon,ggaData.lat,ggaData.alt);
     const prev = Cesium.Cartesian3.fromDegrees(prevPosition.lon,prevPosition.lat,prevPosition.alt);
     const distance = Cesium.Cartesian3.distance(now,prev);
-    if(LOG.trace) {
+    if(LOG.trace0) {
       console.log('RTK-GNSS::onGGAData::distance=:<',distance,'>');
     }
   }
@@ -229,15 +238,15 @@ const createMapView = async (lat,lon) => {
     terrain: Cesium.Terrain.fromWorldTerrain(),
   };
   apps.mapView = new Cesium.Viewer('view_map', options);
-  const buildingTileset = await Cesium.createOsmBuildingsAsync();
   apps.mapView.camera.flyTo({
-    destination : Cesium.Cartesian3.fromDegrees(lon,lat,80),
+    destination : Cesium.Cartesian3.fromDegrees(lon,lat,100),
     orientation : {
       heading : Cesium.Math.toRadians(0.0),
       pitch : Cesium.Math.toRadians(-90.0),
     }
   });
-  apps.mapView.scene.primitives.add(buildingTileset);
+  //const buildingTileset = await Cesium.createOsmBuildingsAsync();
+  //apps.mapView.scene.primitives.add(buildingTileset);
   apps.mapPoints = apps.mapView.scene.primitives.add(new Cesium.PointPrimitiveCollection());
 }
 

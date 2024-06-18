@@ -196,13 +196,18 @@ const onGPSData = (gpsData) => {
   if(gpsData.type === 'GGA') {
     onGGAData(gpsData);
   }
-  /*
   if(gpsData.type === 'GSA') {
-    if(LOG.trace) {
+    if(LOG.trace0) {
       console.log('RTK-GNSS::onGPSData::gpsData=:<',gpsData,'>');
     }
+    onGSAData(gpsData);
   }
-  */
+  if(gpsData.type === 'GSV') {
+    if(LOG.trace0) {
+      console.log('RTK-GNSS::onGPSData::gpsData=:<',gpsData,'>');
+    }
+    onGSVData(gpsData);
+  }
 }
 
 const fConstGgaHeightOffset = 35.0
@@ -231,6 +236,18 @@ const onGGAData = (ggaData) => {
     }
   }
   prevPosition = ggaData;
+}
+
+const onGSAData = (gsaData) => {
+  if(LOG.trace) {
+    console.log('RTK-GNSS::onGSAData::gsaData=:<',gsaData,'>');
+  }
+}
+
+const onGSVData = (gsvData) => {
+  if(LOG.trace) {
+    console.log('RTK-GNSS::onGSVData::gsvData=:<',gsvData,'>');
+  }
 }
 
 const createMapView = async (lat,lon) => {

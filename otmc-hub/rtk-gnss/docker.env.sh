@@ -40,6 +40,7 @@ docker run -d
   -v ${HOME}:${HOME} 
   -u $(id -u $USER):$(id -g $USER) 
   -w ${SCRIPT_DIR} 
+  --restart always
   --net host 
   --privileged
   --group-add dialout

@@ -1,9 +1,10 @@
-import * as Vue from 'vue';
-import { Otmc } from 'otmc';
 const LOG = {
   trace:true,
   debug:false,
 };
+import * as Vue from 'vue';
+import { Otmc } from 'otmc';
+
 Cesium.Ion.defaultAccessToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJjMWM0MTFlOC04OTljLTQyZDEtOGRkYS00M2EyMWY1MDRhY2UiLCJpZCI6MTAxNzk1LCJpYXQiOjE2NTgyNzk5ODF9.wS71k-QxR6CLoJ5l3VuJeb07sE3qOkkSgy2MbmuLFWg`;
 
 
@@ -100,6 +101,13 @@ const onOTMCAppData = (appMsg) => {
     }
     transferRtcm(payload)
   }
+  if(appMsg.topic && appMsg.topic.endsWith('rtk-gnss/rtcm/3/rtcmMsg')) {
+    const payload = appMsg.payload;
+    if(LOG.trace0) {
+      console.log('RTK-GNSS::onOTMCAppData::payload=:<',payload,'>');
+    }
+    analyzeRtcm(payload)
+  }
 }
 
 const transferRtcm = (rtcmMsg) => {
@@ -126,6 +134,29 @@ const transferRtcm = (rtcmMsg) => {
     }
   }
 }
+
+const analyzeRtcm = (rtcmMsg) => {
+  if(LOG.trace0) {
+    console.log('RTK-GNSS::analyzeRtcm::rtcmMsg=:<',rtcmMsg,'>');
+  }
+  if(typeof rtcmMsg === 'string') {
+    rtcmMsg = JSON.parse(rtcmMsg);
+  }
+  if(LOG.trace0) {
+    console.log('RTK-GNSS::analyzeRtcm::rtcmMsg=:<',rtcmMsg,'>');
+  }
+  if(rtcmMsg.rtcmMsg) {
+    const rtcm = rtcmMsg.rtcmMsg;
+    if(LOG.trace) {
+      console.log('RTK-GNSS::analyzeRtcm::rtcm=:<',rtcm,'>');
+    }
+    const position = Cesium.Cartesian3.fromElements(rtcm.arpEcefX,rtcm.arpEcefY,rtcm.arpEcefZ)
+    if(LOG.trace) {
+      console.log('RTK-GNSS::analyzeRtcm::position=:<',position,'>');
+    }
+  }
+}
+
 
 const base64ToUint8Array = (base64Str) => {
   const raw = atob(base64Str);

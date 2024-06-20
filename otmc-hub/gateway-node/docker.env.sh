@@ -38,6 +38,7 @@ docker run -d
   -v ${HOME}:${HOME} 
   -u $(id -u $USER):$(id -g $USER) 
   -w ${SCRIPT_DIR} 
+  --restart always
   --net host 
   --memory=256M 
   --cpu-shares=128 

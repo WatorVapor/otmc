@@ -104,27 +104,36 @@ const onRtcmOneFrame = (rtcmFrame) => {
   }
   try {
     const [ rtcmMsg, length ]= RtcmTransport.decode(rtcmFrame);
-    if(LOG.trace0) {
+    if(LOG.trace) {
       console.log('::onRtcmOneFrame::rtcmMsg=<',rtcmMsg,'>');
     }
     if(LOG.trace0) {
       console.log('::onRtcmOneFrame::length=<',length,'>');
     }
+    const rtcmBase64 = rtcmFrame.toString('base64'); 
+    if(LOG.trace0) {
+      console.log('::onRtcmOneFrame::rtcmBase64=<',rtcmBase64,'>');
+    }
+    if(redis.ready) {
+      const payload = {
+        base64:rtcmBase64
+      };
+      if(LOG.trace0) {
+        console.log('::onRtcmOneFrame::payload=<',payload,'>');
+      }
+      redis.pubBroadcast('rtk-gnss/rtcm/3/base64',payload);
+      if(rtcmMsg.gpsIndicator) {
+        const payload2 = {
+          rtcmMsg:rtcmMsg
+        };
+        if(LOG.trace0) {
+          console.log('::onRtcmOneFrame::payload2=<',payload2,'>');
+        }
+        redis.pubBroadcast('rtk-gnss/rtcm/3/rtcmMsg',payload2);
+      }
+    }
   } catch (err) {
     console.log('::onRtcmOneFrame::err=<',err,'>');
-  }
-  const rtcmBase64 = rtcmFrame.toString('base64'); 
-  if(LOG.trace0) {
-    console.log('::onRtcmOneFrame::rtcmBase64=<',rtcmBase64,'>');
-  }
-  if(redis.ready) {
-    const payload = {
-      base64:rtcmBase64
-    };
-    if(LOG.trace0) {
-      console.log('::onRtcmOneFrame::payload=<',payload,'>');
-    }
-    redis.pubBroadcast('rtk-gnss/rtcm/3/base64',payload);
   }
 };
 

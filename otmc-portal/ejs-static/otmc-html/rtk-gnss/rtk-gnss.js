@@ -150,9 +150,12 @@ const analyzeRtcm = (rtcmMsg) => {
     if(LOG.trace) {
       console.log('RTK-GNSS::analyzeRtcm::rtcm=:<',rtcm,'>');
     }
-    const position = Cesium.Cartesian3.fromElements(rtcm.arpEcefX,rtcm.arpEcefY,rtcm.arpEcefZ)
+    //const position = Cesium.Cartesian3.fromElements(rtcm.arpEcefX,rtcm.arpEcefY,rtcm.arpEcefZ)
+    const position = new Cesium.Cartesian3(rtcm.arpEcefX,rtcm.arpEcefY,rtcm.arpEcefZ)
     if(LOG.trace) {
       console.log('RTK-GNSS::analyzeRtcm::position=:<',position,'>');
+      console.log('RTK-GNSS::analyzeRtcm::position.longitude=:<',position.longitude,'>');
+      console.log('RTK-GNSS::analyzeRtcm::position.latitude=:<',position.latitude,'>');
     }
   }
 }

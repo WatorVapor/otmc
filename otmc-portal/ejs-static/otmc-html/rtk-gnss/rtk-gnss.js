@@ -145,18 +145,12 @@ const analyzeRtcm = (rtcmMsg) => {
   if(LOG.trace0) {
     console.log('RTK-GNSS::analyzeRtcm::rtcmMsg=:<',rtcmMsg,'>');
   }
-  if(rtcmMsg.rtcmMsg) {
-    const rtcm = rtcmMsg.rtcmMsg;
-    if(LOG.trace) {
-      console.log('RTK-GNSS::analyzeRtcm::rtcm=:<',rtcm,'>');
+  if(rtcmMsg.lla) {
+    const lla = rtcmMsg.lla;
+    if(LOG.trace0) {
+      console.log('RTK-GNSS::analyzeRtcm::lla=:<',lla,'>');
     }
-    //const position = Cesium.Cartesian3.fromElements(rtcm.arpEcefX,rtcm.arpEcefY,rtcm.arpEcefZ)
-    const position = new Cesium.Cartesian3(rtcm.arpEcefX,rtcm.arpEcefY,rtcm.arpEcefZ)
-    if(LOG.trace) {
-      console.log('RTK-GNSS::analyzeRtcm::position=:<',position,'>');
-      console.log('RTK-GNSS::analyzeRtcm::position.longitude=:<',position.longitude,'>');
-      console.log('RTK-GNSS::analyzeRtcm::position.latitude=:<',position.latitude,'>');
-    }
+    onArpLla(lla[0],lla[1],lla[2]);
   }
 }
 
@@ -244,6 +238,8 @@ const onGPSData = (gpsData) => {
   }
 }
 
+
+
 const fConstGgaHeightOffset = 35.0
 
 let prevPosition = false;
@@ -272,6 +268,28 @@ const onGGAData = (ggaData) => {
   prevPosition = ggaData;
 }
 
+const fConstArpHeightOffset = 5.0
+
+const onArpLla = (latArp,lonArp,altArp) => {
+  if(LOG.trace) {
+    console.log('RTK-GNSS::onArpLla::latArp=:<',latArp,'>');
+    console.log('RTK-GNSS::onArpLla::lonArp=:<',lonArp,'>');
+    console.log('RTK-GNSS::onArpLla::altArp=:<',altArp,'>');
+  }
+  if(apps.mapView && apps.anchorLabels) {
+    const entity = {
+      position: Cesium.Cartesian3.fromDegrees(lonArp,latArp,altArp + fConstArpHeightOffset),
+      text  : 'A-x.x',
+      fillColor : Cesium.Color.GREEN,
+    };
+    apps.anchorLabels.add(entity);
+    if(LOG.trace0) {
+      console.log('RTK-GNSS::onArpLla::apps.anchorLabels=:<',apps.anchorLabels,'>');
+    }
+  }
+}
+
+
 const onGSAData = (gsaData) => {
   if(LOG.trace) {
     console.log('RTK-GNSS::onGSAData::gsaData=:<',gsaData,'>');
@@ -299,5 +317,6 @@ const createMapView = async (lat,lon) => {
   //const buildingTileset = await Cesium.createOsmBuildingsAsync();
   //apps.mapView.scene.primitives.add(buildingTileset);
   apps.mapPoints = apps.mapView.scene.primitives.add(new Cesium.PointPrimitiveCollection());
+  apps.anchorLabels = apps.mapView.scene.primitives.add(new Cesium.LabelCollection());
 }
 

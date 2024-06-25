@@ -12,35 +12,35 @@ export class RedisPass {
     this.createRedisClient_();
   }
   async pubBroadcast(topic,payload) {
-    if(this.trace) {
+    if(this.trace0) {
       console.log('RedisPass::pubBroadcast::topic=<',topic,'>');
       console.log('RedisPass::pubBroadcast::payload=<',payload,'>');
     }
     const topicOut = `/to/omtc/broadcast/${topic}`;
-    if(this.trace) {
+    if(this.trace0) {
       console.log('RedisPass::pubBroadcast::topicOut=<',topicOut,'>');
     }
     if(this.trace0) {
       console.log('RedisPass::pubBroadcast::this.client=<',this.client,'>');
     }
     await this.client.publish(topicOut,JSON.stringify(payload),(err)=>{
-      if(this.trace) {
-        console.log('RedisPass::pubBroadcast::err=<',err,'>');
+      if(err) {
+        console.error('RedisPass::pubBroadcast::err=<',err,'>');
       }
     });
   }
   pubAddress(topic,payload) {
-    if(this.trace) {
+    if(this.trace0) {
       console.log('RedisPass::pubAddress::topic=<',topic,'>');
       console.log('RedisPass::pubAddress::payload=<',payload,'>');
     }
     const topicOut = `/to/omtc/address/${topic}`;
-    if(this.trace) {
+    if(this.trace0) {
       console.log('RedisPass::pubAddress::topicOut=<',topicOut,'>');
     }
     this.client.publish(topicOut,JSON.stringify(payload),(err)=>{
-      if(this.trace) {
-        console.log('RedisPass::pubAddress::err=<',err,'>');
+      if(err) {
+        console.error('RedisPass::pubAddress::err=<',err,'>');
       }
     });
   }

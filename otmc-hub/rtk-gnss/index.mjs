@@ -6,6 +6,7 @@ const LOG = {
 import fs from 'fs';
 import { SerialPort } from 'serialport'
 import { RtcmTransport } from '@gnss/rtcm'
+import Projector from 'ecef-projector';
 import { RedisPass } from './redisPass.mjs';
 if(LOG.trace0) {
   console.log('::::RedisPass=<',RedisPass,'>');
@@ -95,6 +96,7 @@ const onRTCRawData = (rawData) => {
     //console.log('::onRTCRawData::err=<',err,'>');
   }
 }
+const fConstUnitArpEcef = parseFloat(10000.0);
 const onRtcmOneFrame = (rtcmFrame) => {
   if(LOG.trace0) {
     console.log('::onRtcmOneFrame::rtcmFrame=<',rtcmFrame,'>');
@@ -104,8 +106,9 @@ const onRtcmOneFrame = (rtcmFrame) => {
   }
   try {
     const [ rtcmMsg, length ]= RtcmTransport.decode(rtcmFrame);
-    if(LOG.trace) {
+    if(LOG.trace0) {
       console.log('::onRtcmOneFrame::rtcmMsg=<',rtcmMsg,'>');
+      console.log('::onRtcmOneFrame::typeof rtcmMsg=<',typeof rtcmMsg,'>');
     }
     if(LOG.trace0) {
       console.log('::onRtcmOneFrame::length=<',length,'>');
@@ -123,8 +126,25 @@ const onRtcmOneFrame = (rtcmFrame) => {
       }
       redis.pubBroadcast('rtk-gnss/rtcm/3/base64',payload);
       if(rtcmMsg.gpsIndicator) {
+        const ecefX = parseFloat(rtcmMsg.arpEcefX/fConstUnitArpEcef);
+        const ecefY = parseFloat(rtcmMsg.arpEcefY/fConstUnitArpEcef);
+        const ecefZ = parseFloat(rtcmMsg.arpEcefZ/fConstUnitArpEcef);
+        const lla = Projector.unproject(ecefX, ecefY, ecefZ);
+        if(LOG.trace0) {
+          console.log('::onRtcmOneFrame::rtcmMsg=<',rtcmMsg,'>');
+          console.log('::onRtcmOneFrame::lla=<',lla,'>');
+        }
+        /*
+        const xyz = Projector.project(lla[0], lla[1], lla[2]);
+        const xyzFix = Projector.project(35.828769,139.720766, 50.0);
+        if(LOG.trace) {
+          console.log('::onRtcmOneFrame::xyz=<',xyz,'>');
+          console.log('::onRtcmOneFrame::xyzFix=<',xyzFix,'>');
+        }
+        */
         const payload2 = {
-          rtcmMsg:rtcmMsg
+          rtcmMsg:rtcmMsg,
+          lla:lla
         };
         if(LOG.trace0) {
           console.log('::onRtcmOneFrame::payload2=<',payload2,'>');

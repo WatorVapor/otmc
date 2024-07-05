@@ -97,6 +97,7 @@ const otmcStateTable = {
   },
   mqttService: {
     entry:['mqttService'],
+    on: { 'mqtt:jwt': 'jwtReady' } 
   },
 }
 

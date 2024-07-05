@@ -279,7 +279,7 @@ const onArpLla = (latArp,lonArp,altArp) => {
   if(apps.mapView && apps.anchorLabels) {
     const entity = {
       position: Cesium.Cartesian3.fromDegrees(lonArp,latArp,altArp + fConstArpHeightOffset),
-      text  : 'A-x.x',
+      text  : `${lonArp.toFixed(4)}\n${latArp.toFixed(4)}`,
       fillColor : Cesium.Color.GREEN,
     };
     apps.anchorLabels.add(entity);
@@ -287,17 +287,31 @@ const onArpLla = (latArp,lonArp,altArp) => {
       console.log('RTK-GNSS::onArpLla::apps.anchorLabels=:<',apps.anchorLabels,'>');
     }
   }
+  if(apps.mapView && apps.billboards) {
+    const entity = {
+      position: Cesium.Cartesian3.fromDegrees(lonArp,latArp,altArp + fConstArpHeightOffset),
+      image : 'https://raw.githubusercontent.com/FortAwesome/Font-Awesome/6.x/svgs/solid/tower-cell.svg',
+      scale : 0.25,
+    };
+    apps.billboards.add(entity);
+    if(LOG.trace0) {
+      console.log('RTK-GNSS::onArpLla::apps.billboards=:<',apps.billboards,'>');
+    }
+  }
 }
 
 
+//https://raw.githubusercontent.com/FortAwesome/Font-Awesome/6.x/svgs/solid/tower-cell.svg
+
+
 const onGSAData = (gsaData) => {
-  if(LOG.trace) {
+  if(LOG.trace0) {
     console.log('RTK-GNSS::onGSAData::gsaData=:<',gsaData,'>');
   }
 }
 
 const onGSVData = (gsvData) => {
-  if(LOG.trace) {
+  if(LOG.trace0) {
     console.log('RTK-GNSS::onGSVData::gsvData=:<',gsvData,'>');
   }
 }
@@ -318,5 +332,6 @@ const createMapView = async (lat,lon) => {
   //apps.mapView.scene.primitives.add(buildingTileset);
   apps.mapPoints = apps.mapView.scene.primitives.add(new Cesium.PointPrimitiveCollection());
   apps.anchorLabels = apps.mapView.scene.primitives.add(new Cesium.LabelCollection());
+  apps.billboards = apps.mapView.scene.primitives.add(new Cesium.BillboardCollection());
 }
 

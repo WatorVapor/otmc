@@ -154,7 +154,7 @@ export class MqttMessager {
     if(this.trace) {
       console.log('MqttMessager::connectMqtt::this.mqttJwt=:<',this.mqttJwt,'>');
     }
-    this.createMqttConnection_(this.mqttJwt.jwt,this.mqttJwt.payload);
+    this.createMqttConnection_();
   }
   publish(topic,msgData,option) {
     if(this.trace0) {
@@ -178,21 +178,25 @@ export class MqttMessager {
     }
   }
   
-  createMqttConnection_(jwt,payload) {
+  createMqttConnection_() {
     if(this.trace0) {
-      console.log('MqttMessager::createMqttConnection_:jwt=<',jwt,'>');
-      console.log('MqttMessager::createMqttConnection_:this.jwt=<',this.jwt,'>');
     }
-    this.mqttjwt_ = jwt;
-    this.payload_ = payload;
+    this.isRequestingJwt = false;
+    if(this.mqttClient_) {
+      if(this.debug) {
+        console.log('MqttMessager::createMqttConnection_:this.mqttClient_=<',this.mqttClient_,'>');
+      }
+      return;
+    }
+    const self = this;
     const options = {
       // Authentication
-      //clientId: `${this.util.randomAddress()}@${payload.clientid}`,
-      clientId: `${payload.clientid}`,
-      username: payload.username,
-      password: jwt,
+      //clientId: `${this.util.randomAddress()}@${this.mqttJwt.payload.clientid}`,
+      clientId: `${this.mqttJwt.payload.clientid}`,
+      username: this.mqttJwt.payload.username,
+      password: this.mqttJwt.jwt,
       protocolVersion:5,
-      reconnectPeriod:1000*2,
+      reconnectPeriod:1000*5,
       keepalive: 60*30,
       connectTimeout: 4000,
       clean: true,
@@ -203,15 +207,23 @@ export class MqttMessager {
     }
     let srvUrl = false;
     if(this.otmc.isNode) {
-      srvUrl = payload.mqtt.portal.tls;
+      srvUrl = this.mqttJwt.payload.mqtt.portal.tls;
     } else {
-      srvUrl = payload.mqtt.portal.wss;
+      srvUrl = this.mqttJwt.payload.mqtt.portal.wss;
+      options.transformWsUrl =(url, options, client) => {
+        if(self.trace) {
+          console.log('MqttMessager::transformWsUrl::url=<',url,'>');
+          console.log('MqttMessager::transformWsUrl::options=<',options,'>');
+          console.log('MqttMessager::transformWsUrl::client=<',client,'>');
+        }
+        client.options.password = self.mqttJwt.jwt;
+        return url;
+      }
     }
     if(this.trace) {
       console.log('MqttMessager::createMqttConnection_:srvUrl=<',srvUrl,'>');
     }
     const mqttClient = mqtt.connect(srvUrl,options);
-    const self = this;
     mqttClient.on('connect', (connack) => {
       if(self.trace) {
         console.log('MqttMessager::createMqttConnection_::connect connack=<',connack,'>');
@@ -219,10 +231,9 @@ export class MqttMessager {
       if(self.trace) {
         console.log('MqttMessager::createMqttConnection_::mqttClient.connected=<',mqttClient.connected,'>');
       }
-      self.isRequestingJwt = false;
+      self.otmc.emit('mqtt:connected');
+      self.ee.emit('OtmcStateMachine.actor.send',{type:'mqtt:connected'});
       if(!self.firstConnected) { 
-        self.otmc.emit('mqtt:connected');
-        self.ee.emit('OtmcStateMachine.actor.send',{type:'mqtt:connected'});
         setTimeout(() => {
           self.runSubscriber_();
         },1);
@@ -241,21 +252,12 @@ export class MqttMessager {
       if(self.trace) {
         console.log('MqttMessager::createMqttConnection_ reconnect');
       }
+      this.mqttClient_.options.password = self.mqttJwt.jwt;
     });
     mqttClient.on('error', (err) => {
-      self.mqttClient_ = null;
-      self.firstConnected = false;
       console.log('MqttMessager::createMqttConnection_::err.message=<',err.message,'>');
       console.log('MqttMessager::createMqttConnection_::err.name=<',err.name,'>');
       console.log('MqttMessager::createMqttConnection_::err.code=<',err.code,'>');
-      const isJwtWrong = (err.name === 'ErrorWithReasonCode' && err.code === 134 
-                          && err.message === 'Connection refused: Bad User Name or Password' );
-      console.log('MqttMessager::createMqttConnection_::isJwtWrong=<',isJwtWrong,'>');
-      if(isJwtWrong && self.isRequestingJwt === false) {
-        self.isRequestingJwt = true;
-        self.jwt.request();
-      }
-      mqttClient.end();
     });
     mqttClient.on('offline', () => {
       if(self.trace) {
@@ -266,6 +268,7 @@ export class MqttMessager {
       if(self.trace) {
         console.log('MqttMessager::createMqttConnection_::close new Date()=<',new Date(),'>');
       }
+      self.validateMqttJwt();
     });
     mqttClient.on('end', () => {
       if(self.trace) {
@@ -299,7 +302,7 @@ export class MqttMessager {
   runSubscriber_() {
     if(this.trace) {
       console.log('MqttMessager::runSubscriber_::this.mqttClient_.connected=<',this.mqttClient_.connected,'>');
-      console.log('MqttMessager::runSubscriber_:this.payload_=<',this.payload_,'>');
+      console.log('MqttMessager::runSubscriber_:this.mqttJwt.payload=<',this.mqttJwt.payload,'>');
     }
     const subOpt = {qos: 0,nl:true};
     const self = this;
@@ -313,15 +316,15 @@ export class MqttMessager {
         console.log('MqttMessager::runSubscriber_:granted=<',granted,'>');
       }
     }
-    if(this.payload_ && this.payload_.acl.all && this.payload_.acl.all.length > 0 ) {
-      this.mqttClient_.subscribe(this.payload_.acl.all,subOpt,subCallBack);
+    if(this.mqttJwt.payload && this.mqttJwt.payload.acl.all && this.mqttJwt.payload.acl.all.length > 0 ) {
+      this.mqttClient_.subscribe(this.mqttJwt.payload.acl.all,subOpt,subCallBack);
     }
-    if(this.payload_ && this.payload_.acl.sub && this.payload_.acl.sub.length > 0 ) {
-      this.mqttClient_.subscribe(this.payload_.acl.sub,subOpt,subCallBack);
+    if(this.mqttJwt.payload && this.mqttJwt.payload.acl.sub && this.mqttJwt.payload.acl.sub.length > 0 ) {
+      this.mqttClient_.subscribe(this.mqttJwt.payload.acl.sub,subOpt,subCallBack);
     }
     
-    if(this.payload_ && this.payload_.acl && this.payload_.acl.length > 0 ) {
-      for(const aclPart of this.payload_.acl) {
+    if(this.mqttJwt.payload && this.mqttJwt.payload.acl && this.mqttJwt.payload.acl.length > 0 ) {
+      for(const aclPart of this.mqttJwt.payload.acl) {
         if(this.trace) {
           console.log('MqttMessager::runSubscriber_:aclPart=<',aclPart,'>');
         }

@@ -1,7 +1,7 @@
 class DIDConfig {
   static method = 'otmc';
-  static context = 'https://www.wator.xyz/otmc/';
-  static end_point = 'wss://mqtt.wator.xyz:8084/jwt/mqtt/otmc/public/ws';
+  static context = 'https://otmc.wator.xyz';
+  static end_point = 'https://otmc.wator.xyz/mqtt/jwt/public';
   static version = '1.0';
   constructor() {
   }

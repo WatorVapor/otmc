@@ -49,11 +49,13 @@ const teamOption = {
 
 const createTopNavBar_ = async ()=> {
   const app = Vue.createApp(appOption);
+  if(NAVBAR.trace) {
+    console.log('w-navbar::createTopNavBar_::app=<',app,'>');
+  }
   const vmApp = app.mount('#vue-ui-navbar-top-app');  
   if(NAVBAR.trace) {
     console.log('w-navbar::createTopNavBar_::vmApp=<',vmApp,'>');
   }
-
   const lang = Vue.createApp(langOption);
   const vmLang = lang.mount('#vue-ui-navbar-top-lang');  
   if(NAVBAR.trace) {

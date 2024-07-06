@@ -13,6 +13,12 @@ export class MqttJWTAgent {
     this.base32 = false;
     this.util = false;
     this.ListenEventEmitter_();
+    if(OtmcPortal && OtmcPortal.jwt && OtmcPortal.jwt.did && OtmcPortal.jwt.did.wss) {
+      this.wss = true;
+    }
+    if(OtmcPortal && OtmcPortal.jwt && OtmcPortal.jwt.did && OtmcPortal.jwt.did.rest) {
+      this.rest = true;
+    }
   }
   ListenEventEmitter_() {
     if(this.trace0) {
@@ -32,9 +38,6 @@ export class MqttJWTAgent {
   }
   
   request() {
-    if(this.trace) {
-      console.log('MqttJWTAgent::request::this.socket.readyState=:<',this.socket.readyState,'>');
-    }
     if(this.trace0) {
       console.log('MqttJWTAgent::request::this.otmc=:<',this.otmc,'>');
       console.log('MqttJWTAgent::request::this.otmc.isNode=:<',this.otmc.isNode,'>');
@@ -62,13 +65,18 @@ export class MqttJWTAgent {
     this.retryRequest_(signedJwtReq);
   }
   retryRequest_(signedJwtReq) {
-    if(this.socket && this.socket.readyState ) {
-      this.socket.send(JSON.stringify(signedJwtReq));
-    } else {
-      const self = this;
-      setTimeout(() => {
-        self.retryRequest_(signedJwtReq);
-      },1000)
+    if(this.wss) {
+      if(this.socket && this.socket.readyState ) {
+        this.socket.send(JSON.stringify(signedJwtReq));
+      } else {
+        const self = this;
+        setTimeout(() => {
+          self.retryRequest_(signedJwtReq);
+        },1000)
+      }
+    }
+    if(this.rest) {
+      this.requestOtmcJWTRestApi_(OtmcPortal.jwt.did.rest,signedJwtReq);
     }
   }
   
@@ -84,27 +92,68 @@ export class MqttJWTAgent {
     }
   }
   connectOtmcPortal_() {
-    this.socket = new WebSocket(OtmcPortal.jwt.did.wss);
+    if(this.wss) {
+      this.connectOtmcPortalWss_(OtmcPortal.jwt.did.wss);
+    }
+    if(this.rest) {
+      this.ee.emit('sys.mqtt.jwt.agent.restapi');
+    }
+  }
+  connectOtmcPortalWss_(wssUrl) {
+    this.socket = new WebSocket(wssUrl);
     if(this.trace0) {
-      console.log('MqttJWTAgent::connectOtmcPortal_::this.socket=:<',this.socket,'>');
+      console.log('MqttJWTAgent::connectOtmcPortalWss_::this.socket=:<',this.socket,'>');
     }
     const self = this;
     this.socket.addEventListener('open', (evt) => {
       if(this.trace) {
-        console.log('MqttJWTAgent::connectOtmcPortal_::evt=:<',evt,'>');
+        console.log('MqttJWTAgent::connectOtmcPortalWss_::evt=:<',evt,'>');
       }
       this.ee.emit('sys.mqtt.jwt.agent.wsready',evt);
     });
     this.socket.addEventListener('message', (evt) => {
       if(this.trace) {
-        console.log('MqttJWTAgent::connectOtmcPortal_::evt=:<',evt,'>');
+        console.log('MqttJWTAgent::connectOtmcPortalWss_::evt=:<',evt,'>');
       }
       try {
         const msgJson = JSON.parse(evt.data);
         self.onMsg_(msgJson);
       } catch (err) {
-        console.log('MqttJWTAgent::connectOtmcPortal_::evt=:<',evt,'>');
+        console.log('MqttJWTAgent::connectOtmcPortalWss_::evt=:<',evt,'>');
       }
-    })    
+    })
+  }
+  requestOtmcJWTRestApi_(apiUrl,request) {
+    if(this.trace) {
+      console.log('MqttJWTAgent::requestOtmcJWTRestApi_::apiUrl=:<',apiUrl,'>');
+      console.log('MqttJWTAgent::requestOtmcJWTRestApi_::request=:<',request,'>');
+    }
+    const encoder = new TextEncoder();
+    const reqStr = JSON.stringify(request);
+    if(this.trace) {
+      console.log('MqttJWTAgent::requestOtmcJWTRestApi_::reqStr=:<',reqStr,'>');
+    }
+    const reqBin = encoder.encode(reqStr);
+    if(this.trace) {
+      console.log('MqttJWTAgent::requestOtmcJWTRestApi_::reqBin=:<',reqBin,'>');
+    }
+    const reqB32 = this.base32.encode(reqBin).toLowerCase();
+    if(this.trace) {
+      console.log('MqttJWTAgent::requestOtmcJWTRestApi_::reqB32=:<',reqB32,'>');
+    }
+    const fetchURl = `${apiUrl}/${reqB32}`;
+    if(this.trace) {
+      console.log('MqttJWTAgent::requestOtmcJWTRestApi_::fetchURl=:<',fetchURl,'>');
+    }
+    const self = this;
+    fetch(fetchURl,{})
+    .then(response => {
+    })
+    .catch(err => {
+      if(self.trace) {
+        console.log('MqttJWTAgent::requestOtmcJWTRestApi_::err=:<',err,'>');
+      }
+    });
+  
   }
 }

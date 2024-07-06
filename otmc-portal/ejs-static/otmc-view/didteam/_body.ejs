@@ -16,7 +16,7 @@
               <input type="text" class="form-control" id="edcrypt-auth-key-address" placeholder="otm" readonly v-model="address.auth">
               <span class="input-group-text" v-if="hasAddress === false">
                 <button class="btn btn-primary" type="button" @click="clickStartMining()" :disabled="isMining == true">
-                  <i class="material-icons">add_circle</i>
+                  <i class="fa-solid fa-circle-plus"></i>
                 </button>
               </span>
               <span class="input-group-text" v-if="isMining">

@@ -40,6 +40,12 @@ export class MqttMessager {
       }
       self.validateMqttJwt();
     });
+    this.ee.on('sys.mqtt.jwt.agent.restapi',(evt)=>{
+      if(self.trace) {
+        console.log('MqttMessager::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.validateMqttJwt();
+    });
     this.ee.on('mqtt:jwt.rental',(evt)=>{
       if(self.trace) {
         console.log('MqttMessager::ListenEventEmitter_::evt=:<',evt,'>');
@@ -98,7 +104,7 @@ export class MqttMessager {
         this.jwt.request();
       }
     } catch(err) {
-      console.log('MqttMessager::validateMqttJwt::err=:<',err,'>');
+      console.error('MqttMessager::validateMqttJwt::err=:<',err,'>');
       this.jwt.request();
     }
   }
@@ -139,7 +145,7 @@ export class MqttMessager {
         localStorage.removeItem(StoreKey.mqttJwt);
       }
     } catch(err) {
-      console.log('MqttMessager::freshMqttJwt::err=:<',err,'>');
+      console.error('MqttMessager::freshMqttJwt::err=:<',err,'>');
     }
     this.validateMqttJwt();
   }
@@ -164,7 +170,7 @@ export class MqttMessager {
     if(this.mqttClient_ && this.mqttClient_.connected) {
       this.mqttClient_.publish(topic,JSON.stringify(msgData),option,(err) => {
         if(err) {
-          console.log('MqttMessager::publish::err=:<',err,'>');
+          console.error('MqttMessager::publish::err=:<',err,'>');
         }
       });
     }

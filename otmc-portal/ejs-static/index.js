@@ -13,7 +13,7 @@ const watchOption = {
 console.log('::watchOption:=<',watchOption ,'>');
 const ejsViewRoot = './otmc-view';
 const htmlViewRoot = './otmc-html';
-const htmlViewPrefix = '/otmc';
+const htmlViewPrefix = '';
 
 /*
 fs.watch(ejsViewRoot, watchOption, (eventType, filename) => {

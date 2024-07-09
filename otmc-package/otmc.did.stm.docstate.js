@@ -110,10 +110,23 @@ const didDocStateTable = {
         actions: ['init']
       },
       'chain.load':'evidenceChainReady',
-      'manifest.lack':'evidenceChainFail',
+      'manifest.lack':'evidenceChainWithoutManifest',
     } 
   },
   evidenceChainReady: {
+    entry:['chainReady'],
+    on: {
+      'auth.proof.is.seed':'authIsSeed',
+      'auth.proof.by.seed':'authBySeed',
+      'auth.proof.by.auth':'authByAuth',
+      'auth.proof.by.none':'authByNone',
+      'capability.proof.by.seed':'capabilityBySeed',
+      'capability.proof.by.auth':'capabilityByAuth',
+      'capability.proof.by.none':'capabilityByNone',
+      'capability.none.proof':'capabilityByNone',
+    } 
+  },
+  evidenceChainWithoutManifest: {
     entry:['chainReady'],
     on: {
       'auth.proof.is.seed':'authIsSeed',

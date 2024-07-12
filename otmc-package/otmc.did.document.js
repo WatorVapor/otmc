@@ -44,7 +44,9 @@ const LEVEL_OPT = {
 export class DidDocument {
   constructor(ee) {
     this.trace0 = false;
-    this.trace = true;
+    this.trace1 = false;
+    this.trace2 = false;
+    this.trace = true;;
     this.debug = true;
     this.ee = ee;
     this.base32 = new Base32();
@@ -987,7 +989,12 @@ export class DidDocument {
       if(this.trace2) {
         console.log('DidDocument::loadEvidenceChain_::evidenceJson=<',evidenceJson,'>');
       }
-      evidencesJson.push(evidenceJson);
+      if(this.trace2) {
+        console.log('DidDocument::loadEvidenceChain_::this.didDoc_.id=<',this.didDoc_.id,'>');
+      }
+      if(this.didDoc_.id === evidenceJson.id) {
+        evidencesJson.push(evidenceJson);
+      }
     }
     if(this.trace2) {
       console.log('DidDocument::loadEvidenceChain_::evidencesJson=<',evidencesJson,'>');

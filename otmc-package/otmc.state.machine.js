@@ -33,7 +33,7 @@ export class OtmcStateMachine {
       },
       states: otmcStateTable,
     }
-    if(this.trace) {
+    if(this.trace0) {
       console.log('OtmcStateMachine::createStateMachine_::stmConfig=:<',stmConfig,'>');
     }
     const stmOption = {
@@ -56,7 +56,7 @@ export class OtmcStateMachine {
     }
     const self = this;
     this.ee.on('OtmcStateMachine.actor.send',(evt)=>{
-      if(self.trace) {
+      if(self.trace0) {
         console.log('OtmcStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
       }
       self.actor.send(evt);
@@ -105,7 +105,7 @@ const otmcStateTable = {
 const otmcActionTable = {
   init: (context, evt) => {
     const ee = context.context.ee;
-    if(LOG.trace) {
+    if(LOG.trace0) {
       console.log('OtmcStateMachine::otmcActionTable::init:context=:<',context,'>');
       console.log('OtmcStateMachine::otmcActionTable::init:ee=:<',ee,'>');
     }
@@ -113,7 +113,7 @@ const otmcActionTable = {
   },
   moduleReady:(context, evt) => {
     const ee = context.context.ee;
-    if(LOG.trace) {
+    if(LOG.trace0) {
       console.log('OtmcStateMachine::otmcActionTable::moduleReady:context=:<',context,'>');
       console.log('OtmcStateMachine::otmcActionTable::moduleReady:ee=:<',ee,'>');
     }
@@ -121,7 +121,7 @@ const otmcActionTable = {
   },
   edKeyReady:(context, evt) => {
     const ee = context.context.ee;
-    if(LOG.trace) {
+    if(LOG.trace0) {
       console.log('OtmcStateMachine::otmcActionTable::edKeyReady:context=:<',context,'>');
       console.log('OtmcStateMachine::otmcActionTable::edKeyReady:ee=:<',ee,'>');
     }
@@ -129,7 +129,7 @@ const otmcActionTable = {
   },
   didReady:(context, evt) => {
     const ee = context.context.ee;
-    if(LOG.trace) {
+    if(LOG.trace0) {
       console.log('OtmcStateMachine::otmcActionTable::didReady:context=:<',context,'>');
       console.log('OtmcStateMachine::otmcActionTable::didReady:ee=:<',ee,'>');
     }
@@ -137,7 +137,7 @@ const otmcActionTable = {
   },
   jwtReady:(context, evt) => {
     const ee = context.context.ee;
-    if(LOG.trace) {
+    if(LOG.trace0) {
       console.log('OtmcStateMachine::otmcActionTable::jwtReady:context=:<',context,'>');
       console.log('OtmcStateMachine::otmcActionTable::jwtReady:ee=:<',ee,'>');
     }
@@ -145,7 +145,7 @@ const otmcActionTable = {
   },
   mqttService:(context, evt) => {
     const ee = context.context.ee;
-    if(LOG.trace) {
+    if(LOG.trace0) {
       console.log('OtmcStateMachine::otmcActionTable::mqttService:context=:<',context,'>');
       console.log('OtmcStateMachine::otmcActionTable::mqttService:ee=:<',ee,'>');
     }

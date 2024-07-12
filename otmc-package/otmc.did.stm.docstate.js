@@ -14,7 +14,7 @@ import { EvidenceChain } from './did/evidence.js';
 export class DidDocStateMachine {
   constructor(ee) {
     this.trace0 = false;
-    this.trace1 = true;
+    this.trace1 = false;
     this.trace = true;
     this.debug = true;
     if(this.trace0) {

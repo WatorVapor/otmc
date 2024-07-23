@@ -1,4 +1,17 @@
 services:
+  out-nginx:
+    image: nginx:stable
+    volumes:
+      - ./out-nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
+      - /dev/shm/:/dev/shm/
+      - /watorvapor/ecdsa-cert/certbot/etc:/etc/cert
+      - /watorvapor/log/nginx:/log
+    network_mode : 'host'
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 64M
   ejs-nginx:
     image: nginx:stable
     volumes:

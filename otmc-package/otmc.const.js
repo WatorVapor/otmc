@@ -12,7 +12,7 @@ export const StoreKey = {
 export const OtmcPortal = {
   jwt:{
     did:{
-      wss:'wss://mqtt.wator.xyz/jwt/mqtt/otmc/public/ws',
+      wss:'wss://mqtt.wator.xyz/jwt/mqtt/otmc/wss/public',
     }
   }
 }

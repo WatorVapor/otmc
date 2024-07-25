@@ -69,10 +69,17 @@ export class MqttJWTAgent {
       if(this.socket && this.socket.readyState ) {
         this.socket.send(JSON.stringify(signedJwtReq));
       } else {
+        if(this.trace) {
+          console.log('MqttJWTAgent::retryRequest_:this.socket.readyState=<',this.socket.readyState,'>');
+        }
         const self = this;
         setTimeout(() => {
           self.retryRequest_(signedJwtReq);
         },1000)
+      }
+    } else {
+      if(this.trace) {
+        console.log('MqttJWTAgent::retryRequest_:this.socket=<',this.socket,'>');
       }
     }
     if(this.rest) {
@@ -122,6 +129,14 @@ export class MqttJWTAgent {
         console.log('MqttJWTAgent::connectOtmcPortalWss_::evt=:<',evt,'>');
       }
     })
+    this.socket.addEventListener('error', (err) => {
+      if(this.trace) {
+        console.log('MqttJWTAgent::connectOtmcPortalWss_::err=:<',err,'>');
+      }
+      setTimeout(()=>{
+        self.connectOtmcPortal_();
+      },5*1000)
+    });
   }
   requestOtmcJWTRestApi_(apiUrl,request) {
     if(this.trace) {

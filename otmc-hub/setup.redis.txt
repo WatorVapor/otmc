@@ -1,5 +1,5 @@
 setup manual
-docker exec -it otmc-hub-redis-1 /bin/bas
+docker exec -it otmc-hub-redis-1 /bin/bash
 
 
 redis-cli -s /var/run/redis.otmc.hub.sock

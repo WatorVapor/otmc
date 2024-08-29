@@ -2,10 +2,10 @@
   "name": "11ty-static",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "index.mjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "serve": "eleventy --serve"
+    "serve": "eleventy --watch --serve"
   },
   "author": "",
   "license": "ISC",

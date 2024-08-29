@@ -67,6 +67,9 @@ export class MqttJWTAgent {
   retryRequest_(signedJwtReq) {
     if(this.wss) {
       if(this.socket && this.socket.readyState ) {
+        if(this.trace) {
+          console.log('MqttJWTAgent::retryRequest_:this.socket.readyState=<',this.socket.readyState,'>');
+        }
         this.socket.send(JSON.stringify(signedJwtReq));
       } else {
         if(this.trace) {

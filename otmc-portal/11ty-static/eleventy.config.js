@@ -2,7 +2,8 @@ module.exports = function(eleventyConfig) {
 	eleventyConfig.setEjsOptions({
 		delimiter: '%',
 	});
-  //console.log('eleventyConfig:=<',eleventyConfig,'>');
+  eleventyConfig.addWatchTarget('templete_views/*');
+  eleventyConfig.setWatchThrottleWaitTime(100); // in milliseconds
   eleventyConfig.addPassthroughCopy('templete_views/**/*.js');
   const config = {
     dir: {

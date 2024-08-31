@@ -5,12 +5,14 @@
   "main": "index.mjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "eleventy",
     "watch": "eleventy --watch",
     "serve": "eleventy --serve"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@11ty/eleventy": "^2.0.1"
+    "@11ty/eleventy": "^2.0.1",
+    "chokidar": "^3.6.0"
   }
 }

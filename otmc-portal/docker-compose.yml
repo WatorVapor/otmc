@@ -12,10 +12,10 @@ services:
         limits:
           cpus: '2.0'
           memory: 64M
-  ejs-nginx:
+  11ty-nginx:
     image: nginx:stable
     volumes:
-      - ./ejs-static/otmc-html:/www
+      - ./11ty-static/site_dist:/www
       - ../otmc-package:/www/assets/js
       - ./ejs-static/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
       - /dev/shm/:/dev/shm/
@@ -25,21 +25,49 @@ services:
         limits:
           cpus: '2.0'
           memory: 64M
-  ejs-compiler:
+  11ty-ssg:
     image: node:lts
     network_mode: 'none'
     environment:
       TZ: Asia/Tokyo
     volumes:
-      - ./ejs-static:/ejs
+      - ./11ty-static:/11ty
       - /dev/shm/:/dev/shm/
-    working_dir: '/ejs'
+    working_dir: '/11ty'
     command: node ./index.js
     deploy:
       resources:
         limits:
           cpus: '1.0'
           memory: 256M
+#  ejs-nginx:
+#    image: nginx:stable
+#    volumes:
+#      - ./ejs-static/otmc-html:/www
+#      - ../otmc-package:/www/assets/js
+#      - ./ejs-static/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
+#      - /dev/shm/:/dev/shm/
+#    network_mode : 'none'
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: '2.0'
+#          memory: 64M
+#  ejs-compiler:
+#    image: node:lts
+#    network_mode: 'none'
+#    environment:
+#      TZ: Asia/Tokyo
+#    volumes:
+#      - ./ejs-static:/ejs
+#      - /dev/shm/:/dev/shm/
+#    working_dir: '/ejs'
+#    command: node ./index.js
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: '1.0'
+#          memory: 256M
   vp-nginx:
     image: nginx:stable
     volumes:

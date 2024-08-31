@@ -7,7 +7,7 @@ const execSync = require('child_process').execSync;
 const inputWatcher = chokidar.watch('./templete_views',{
   persistent: true,
   usePolling: true,
-  interval: 1000,
+  interval: 500,
 });
 inputWatcher.on('all', (event, path) => {
   onInputChanged(event, path);

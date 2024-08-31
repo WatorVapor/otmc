@@ -5,6 +5,8 @@ module.exports = function(eleventyConfig) {
   eleventyConfig.addWatchTarget('templete_views');
   eleventyConfig.setWatchThrottleWaitTime(100); // in milliseconds
   eleventyConfig.addPassthroughCopy('templete_views/**/*.js');
+  eleventyConfig.addPassthroughCopy('templete_views/favicon.ico');
+  eleventyConfig.addPassthroughCopy('templete_views/assets/**');
   eleventyConfig.addGlobalData('prefix', '');
   const config = {
     dir: {

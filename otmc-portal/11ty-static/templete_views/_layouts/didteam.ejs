@@ -50,6 +50,9 @@
         <a class="navbar-brand text-primary btn-lg" href="<%- `${prefix}/` %>" role="button">
           <i class="fa-solid fa-house"></i>
         </a>
+        <a class="navbar-brand text-primary btn-lg" href="<%- `${prefix}/` %>" role="button">
+          <i class="fa-solid fa-house"></i>
+        </a>
         
         <div class="collapse navbar-collapse d-flex justify-content-center" id="vue-ui-navbar-top-app">
           <ul class="navbar-nav">
@@ -94,8 +97,23 @@
         </div>
       </nav>
     </header>
-    <%- content %>    
+    <!-- Offcanvas Sidebar -->
+    <div class="offcanvas offcanvas-start" id="vue-ui-sidebar">
+      <div class="offcanvas-header">
+        <h1 class="offcanvas-title">Heading</h1>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"></button>
+      </div>
+      <div class="offcanvas-body">
+        <p>Some text lorem ipsum.</p>
+        <p>Some text lorem ipsum.</p>
+        <button class="btn btn-secondary" type="button">A Button</button>
+      </div>
+    </div>
+
+    <%- content %>
+    
     <script type="module" src="<%- `${prefix}/layout/navbar.js` %>"></script>
+    <script type="module" src="<%- `${prefix}/layout/sidebar.js` %>"></script>
     <script type="module" src="<%- `${prefix}/layout/lang.js` %>"></script>
   </body>
 </html>

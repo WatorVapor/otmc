@@ -50,6 +50,9 @@
         <a class="navbar-brand text-primary btn-lg" href="/" role="button">
           <i class="fa-solid fa-house"></i>
         </a>
+        <a class="navbar-brand text-primary btn-lg" href="/" role="button">
+          <i class="fa-solid fa-house"></i>
+        </a>
         
         <div class="collapse navbar-collapse d-flex justify-content-center" id="vue-ui-navbar-top-app">
           <ul class="navbar-nav">
@@ -94,6 +97,19 @@
         </div>
       </nav>
     </header>
+    <!-- Offcanvas Sidebar -->
+    <div class="offcanvas offcanvas-start" id="vue-ui-sidebar">
+      <div class="offcanvas-header">
+        <h1 class="offcanvas-title">Heading</h1>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"></button>
+      </div>
+      <div class="offcanvas-body">
+        <p>Some text lorem ipsum.</p>
+        <p>Some text lorem ipsum.</p>
+        <button class="btn btn-secondary" type="button">A Button</button>
+      </div>
+    </div>
+
     
     <div class="container text-center mt-3" id="vue-ui-app-did-manifest">     
       <div class="row justify-content-center">
@@ -139,8 +155,10 @@
     <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.31.2/src-min-noconflict/mode-json.js" integrity="sha256-AQ/qtz/XXPze4wzccb3Mho5PkURlpZpxQcXuSYOor+w=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.28.2/dist/editorjs.umd.js" integrity="sha256-jZHY2Vd0A1MWFmdaD2fySEIfAfKBUHiwWhLppacS24M=" crossorigin="anonymous"></script>
     <script src="./manifest.js" type="module"></script>
+
     
     <script type="module" src="/layout/navbar.js"></script>
+    <script type="module" src="/layout/sidebar.js"></script>
     <script type="module" src="/layout/lang.js"></script>
   </body>
 </html>

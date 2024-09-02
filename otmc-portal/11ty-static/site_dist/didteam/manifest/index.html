@@ -50,9 +50,6 @@
         <a class="navbar-brand text-primary btn-lg" href="/" role="button">
           <i class="fa-solid fa-house"></i>
         </a>
-        <a class="navbar-brand text-primary btn-lg" href="/" role="button">
-          <i class="fa-solid fa-house"></i>
-        </a>
         
         <div class="collapse navbar-collapse d-flex justify-content-center" id="vue-ui-navbar-top-app">
           <ul class="navbar-nav">
@@ -97,20 +94,78 @@
         </div>
       </nav>
     </header>
-    <!-- Offcanvas Sidebar -->
-    <div class="offcanvas offcanvas-start" id="vue-ui-sidebar">
-      <div class="offcanvas-header">
-        <h1 class="offcanvas-title">Heading</h1>
-        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"></button>
-      </div>
-      <div class="offcanvas-body">
-        <p>Some text lorem ipsum.</p>
-        <p>Some text lorem ipsum.</p>
-        <button class="btn btn-secondary" type="button">A Button</button>
-      </div>
-    </div>
-
-    
+    <div class="container-fluid">
+      <div class="row flex-nowrap">
+        <div class="col-2 px-sm-2 px-0 bg-dark">
+          <div class="d-flex flex-column align-items-center align-items-sm-start px-3 pt-2 text-white min-vh-100">
+            <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start" id="vue-ui-sidebar">
+              <li v-for="menu in menuTree">
+                <a :href="menu.href" class="nav-link px-0 align-middle">
+                  <i class="fs-4 bi-table"></i> <span class="ms-1 d-none d-sm-inline">{{menu.title}}</span>
+                </a>
+              </li>
+              <!--
+              <li>
+                <a href="#submenu1" data-bs-toggle="collapse" class="nav-link px-0 align-middle">
+                  <i class="fs-4 bi-speedometer2"></i> <span class="ms-1 d-none d-sm-inline">Dashboard</span>
+                </a>
+                <ul class="collapse show nav flex-column ms-1" id="submenu1" data-bs-parent="#menu">
+                  <li class="w-100">
+                    <a href="#" class="nav-link px-0"> <span class="d-none d-sm-inline">Item</span> 1 </a>
+                  </li>
+                  <li>
+                    <a href="#" class="nav-link px-0"> <span class="d-none d-sm-inline">Item</span> 2 </a>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <a href="#" class="nav-link px-0 align-middle">
+                  <i class="fs-4 bi-table"></i> <span class="ms-1 d-none d-sm-inline">Orders</span>
+                </a>
+              </li>
+              <li>
+                <a href="#submenu2" data-bs-toggle="collapse" class="nav-link px-0 align-middle ">
+                  <i class="fs-4 bi-bootstrap"></i> <span class="ms-1 d-none d-sm-inline">Bootstrap</span>
+                </a>
+                <ul class="collapse nav flex-column ms-1" id="submenu2" data-bs-parent="#menu">
+                  <li class="w-100">
+                    <a href="#" class="nav-link px-0"> <span class="d-none d-sm-inline">Item</span> 1</a>
+                  </li>
+                  <li>
+                    <a href="#" class="nav-link px-0"> <span class="d-none d-sm-inline">Item</span> 2</a>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <a href="#submenu3" data-bs-toggle="collapse" class="nav-link px-0 align-middle">
+                  <i class="fs-4 bi-grid"></i> <span class="ms-1 d-none d-sm-inline">Products</span>
+                </a>
+                <ul class="collapse nav flex-column ms-1" id="submenu3" data-bs-parent="#menu">
+                  <li class="w-100">
+                    <a href="#" class="nav-link px-0"> <span class="d-none d-sm-inline">Product</span> 1</a>
+                  </li>
+                  <li>
+                    <a href="#" class="nav-link px-0"> <span class="d-none d-sm-inline">Product</span> 2</a>
+                  </li>
+                  <li>
+                    <a href="#" class="nav-link px-0"> <span class="d-none d-sm-inline">Product</span> 3</a>
+                  </li>
+                  <li>
+                    <a href="#" class="nav-link px-0"> <span class="d-none d-sm-inline">Product</span> 4</a>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <a href="#" class="nav-link px-0 align-middle">
+                  <i class="fs-4 bi-people"></i> <span class="ms-1 d-none d-sm-inline">Customers</span>
+                </a>
+              </li>
+              -->
+            </ul>
+          </div>
+        </div>
+        <div class="col-10">
+          
     <div class="container text-center mt-3" id="vue-ui-app-did-manifest">     
       <div class="row justify-content-center">
 
@@ -155,6 +210,10 @@
     <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.31.2/src-min-noconflict/mode-json.js" integrity="sha256-AQ/qtz/XXPze4wzccb3Mho5PkURlpZpxQcXuSYOor+w=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.28.2/dist/editorjs.umd.js" integrity="sha256-jZHY2Vd0A1MWFmdaD2fySEIfAfKBUHiwWhLppacS24M=" crossorigin="anonymous"></script>
     <script src="./manifest.js" type="module"></script>
+
+        </div>
+      </div>
+    </div>
 
     
     <script type="module" src="/layout/navbar.js"></script>

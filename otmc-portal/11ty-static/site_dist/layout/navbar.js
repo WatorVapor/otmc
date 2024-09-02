@@ -6,16 +6,19 @@ const NAVBAR = {
 window.addEventListener('DOMContentLoaded', async (evt) => {
   createTopNavBar_();
 });
+
+const appsData = [
+  {
+    href:'rtk-gnss/',
+    icon1:'fa-solid fa-satellite',
+    icon2:'fa-solid fa-tower-broadcast',
+    icon3:'fa-regular fa-compass',
+  },
+];
 const appOption = {
   data() {
     return {
-      apps:[{
-          href:'rtk-gnss/',
-          icon1:'fa-solid fa-satellite',
-          icon2:'fa-solid fa-tower-broadcast',
-          icon3:'fa-regular fa-compass',
-        },
-      ]
+      apps:appsData
     };
   },
 }

@@ -7,7 +7,7 @@ export const SideMenuItems = [
     subMenu : []
   },
   {
-    href:'/rtk-gnss/base/',
+    href:'/rtk-gnss/base-station/',
     title:'rtk-base',
     id:'menu-item-id-rtk-gnss-base',
     icons:[ 'fa-solid fa-map-pin' ],

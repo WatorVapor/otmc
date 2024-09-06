@@ -9,6 +9,7 @@ module.exports = function(eleventyConfig) {
   eleventyConfig.addPassthroughCopy('templete_views/favicon.ico');
   eleventyConfig.addPassthroughCopy('templete_views/assets/**');
   eleventyConfig.addGlobalData('prefix', '');
+  eleventyConfig.ignores.add('templete_views/**/_*.ejs');
   const config = {
     dir: {
       input: 'templete_views',

@@ -31,6 +31,10 @@ const onInputChanged = (event, path) => {
 
 const execChangedEvt = (path) => {
   console.log('execChangedEvt::path:=<',path ,'>');
-  const result = execSync(`npm run build`);
-  console.log('execChangedEvt::result:=<',result.toString('utf-8') ,'>');
+  try {
+    const result = execSync(`npm run build`);
+    console.log('execChangedEvt::result:=<',result.toString('utf-8') ,'>');
+  } catch (err) {
+    console.log('execChangedEvt::err:=<',err ,'>');
+  }
 }

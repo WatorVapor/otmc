@@ -133,6 +133,41 @@
     <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.28.2/dist/editorjs.umd.js" integrity="sha256-jZHY2Vd0A1MWFmdaD2fySEIfAfKBUHiwWhLppacS24M=" crossorigin="anonymous"></script> 
     <script src="./document.js" type="module"></script>
 
+        <script>
+      window.otmc ||= {}
+      window.otmc.SideMenuItems = [
+        {
+          href:'/didteam/',
+          title:'Team',
+          id:'menu-item-id-top',
+          icons:[ 'fa-solid fa-user' ],
+          subMenu : [],
+        },
+        {
+          href:'/didteam/document/',
+          title:'Document',
+          id:'menu-item-id-top-sub',
+          icons:[ 'fa-solid fa-file' ],
+          subMenu : [],
+        },
+        {
+          href:'/didteam/manifest/',
+          title:'Manifest',
+          id:'menu-item-id-top-sub',
+          icons:[ 'fa-solid fa-comments' ],
+          subMenu : [],
+        },
+        {
+          href:'/didteam/validate/',
+          title:'Validate',
+          id:'menu-item-id-top-sub',
+          icons:[ 'fa-solid fa-list-check' ],
+          subMenu : [],
+        },
+      ];
+    </script>
+
+
         </div>
       </div>
     </div>

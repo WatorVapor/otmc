@@ -8,6 +8,7 @@ window.addEventListener('DOMContentLoaded', async (evt) => {
   createSideBar_();
 });
 
+/*
 const readMenuItemFromApp = async () => {
   let goodPath = document.location.pathname;
   if(goodPath === '/') {
@@ -32,8 +33,27 @@ const readMenuItemFromApp = async () => {
   }
   return sideMenuData;
 }
+*/
+
+const readMenuItemFromApp = async () => {
+  if(SIDEBAR.trace) {
+    console.log('w-sidebar::readMenuItemFromApp::window.otmc=<',window.otmc,'>');
+  }
+  let sideMenuData = [];
+  try {
+    if(window.otmc && window.otmc.SideMenuItems) {
+      sideMenuData = window.otmc.SideMenuItems;
+    }
+  } catch {
+    
+  }
+  return sideMenuData;
+}
 
 const createSideBar_ = async ()=> {
+  if(SIDEBAR.trace) {
+    console.log('w-sidebar::createSideBar_::window.otmc=<',window.otmc,'>');
+  }
   const sideMenuData = await readMenuItemFromApp();
   const sbOption = {
     data() {

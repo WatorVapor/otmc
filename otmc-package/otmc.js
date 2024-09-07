@@ -5,6 +5,7 @@ import { MqttMessager } from './otmc.mqtt.message.js';
 import { DidDocument } from './otmc.did.document.js';
 import { OtmcStateMachine } from './otmc.state.machine.js';
 import { StoreKey } from './otmc.const.js';
+import * as Level from 'level';
 
 /**
 *

@@ -17,6 +17,15 @@ layout: didteam.sidebar.ejs
         <div class="col-8" id="vue-ui-app-edcrypt-key">
           <div class="collapse multi-collapse" id="edcrypt-key">
             <div class="input-group mb-1">
+              <label class="input-group-text">Exist Did Keys:</label>
+              <select class="form-select">
+                <option :selected="" v-for="didKey in didKeyList">Choose...</option>
+              </select>
+              <button class="btn btn-primary" type="button" @click="clickStartMining()">
+                <i class="fa-solid fa-circle-plus"></i>
+              </button>
+            </div>
+            <div class="input-group mb-1">
               <span class="input-group-text w-25">Auth Key Address</span>
               <input type="text" class="form-control" id="edcrypt-auth-key-address" placeholder="otm" readonly v-model="address.auth">
               <span class="input-group-text" v-if="hasAddress === false">

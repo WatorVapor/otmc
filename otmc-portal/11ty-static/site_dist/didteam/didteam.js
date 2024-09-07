@@ -11,6 +11,8 @@ const edcryptKeyOption = {
   data() {
     return {
       hasAddress: false,
+      didKeyList:[
+      ],
       address:{
         auth:'',
         recovery:'',

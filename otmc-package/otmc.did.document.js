@@ -287,11 +287,9 @@ export class DidDocument {
           console.log('DidDocument::loadDocument::manifest=:<',manifest,'>');
         }
         this.otmc.emit('did:manifest',manifest);
-        //this.otmc.sm.actor.send({type:'did:document_manifest'});
         this.ee.emit('OtmcStateMachine.actor.send',{type:'did:document_manifest'});
         this.didManifest_ = manifest;
       } else {
-        //this.otmc.sm.actor.send({type:'did:document'});
         this.ee.emit('OtmcStateMachine.actor.send',{type:'did:document'});
       }
       const results = this.auth.verifyDid(this.didDoc_);

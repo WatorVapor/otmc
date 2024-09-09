@@ -121,13 +121,13 @@ const loadDidTeamApps = (evt) => {
   
   const otmc = new Otmc();
   console.log('loadDidTeamApps::otmc=:<',otmc,'>');
-  otmc.on('edcrypt:address',(address)=>{
-    onAddressRefreshKeyApp(address,edcryptKeyVM);
-    onAddressRefreshTeamApp(address,appDidVM);
-  });
   otmc.on('edcrypt:didKeyList',(didKeyList)=>{
     onDidKeyRefreshKeyApp(didKeyList,edcryptKeyVM);
     onDidKeyRefreshTeamApp(didKeyList,appDidVM);
+  });
+  otmc.on('edcrypt:address',(address)=>{
+    onAddressRefreshKeyApp(address,edcryptKeyVM);
+    onAddressRefreshTeamApp(address,appDidVM);
   });
   otmc.on('edcrypt:mining',(mining)=>{
     console.log('loadDidTeamApps::mining=:<',mining,'>');
@@ -190,13 +190,16 @@ const onAddressRefreshTeamApp = (address,app) => {
   app.edKeyReady = true;
 };
 
+
 const onDidKeyRefreshKeyApp = (didKeys,app) => {
   console.log('onDidKeyRefreshKeyApp::didKeys=:<',didKeys,'>');  
   console.log('onDidKeyRefreshKeyApp::app=:<',app,'>');
+  app.didKeyList = didKeys;
+  app.isMining = false;
 };
 
-const onAddressRefreshTeamApp = (didKeys,app) => {
-  console.log('onAddressRefreshTeamApp::didKeys=:<',didKeys,'>');  
-  console.log('onAddressRefreshTeamApp::app=:<',app,'>');
-  app.edKeyReady = true;
+const onDidKeyRefreshTeamApp = (didKeys,app) => {
+  console.log('onDidKeyRefreshTeamApp::didKeys=:<',didKeys,'>');  
+  console.log('onDidKeyRefreshTeamApp::app=:<',app,'>');
 };
+

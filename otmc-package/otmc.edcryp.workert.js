@@ -34,9 +34,9 @@ const onInitCmd = async (initMsg) => {
   }
 }
 
-const addressPrefix = 'otm';
+//const addressPrefix = 'otm';
 //const addressPrefix = 'ot';
-//const addressPrefix = 'o';
+const addressPrefix = 'o';
 
 const onMiningCmd = async (msg) => {
 

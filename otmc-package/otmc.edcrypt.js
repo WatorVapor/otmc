@@ -123,11 +123,16 @@ export class EdcryptBrowserWorker {
       this.ee.emit('OtmcStateMachine.actor.send',{type:'edcrypt:address'});
       */
       try {
-        const didKeyList = await this.didKeyStore.get(StoreKey.didList);
+        const didKeyListStr = await this.didKeyStore.get(StoreKey.didList);
         if(this.trace) {
-          console.log('EdcryptBrowserWorker::loadKey::didKeyList=:<',didKeyList,'>');
+          console.log('EdcryptBrowserWorker::loadKey::didKeyListStr=:<',didKeyListStr,'>');
         }
-        this.otmc.emit('edcrypt:didKeyList',didKeyList);
+        if(didKeyListStr) {
+          const didKeyList = JSON.parse(didKeyListStr);
+          this.otmc.emit('edcrypt:didKeyList',didKeyList);
+        } else {
+          this.otmc.emit('edcrypt:didKeyList',[]);
+        }
       } catch(errDidKey) {
         if(this.trace) {
           console.error('EdcryptBrowserWorker::loadKey::errDidKey.message=:<',errDidKey.message,'>');
@@ -142,10 +147,11 @@ export class EdcryptBrowserWorker {
       console.error('EdcryptBrowserWorker::loadKey::err=:<',err,'>');
     }
   }
-  onEdCryptMessage_(msg) {
+  async onEdCryptMessage_(msg) {
     if(this.trace) {
       console.log('EdcryptBrowserWorker::onEdCryptMessage_::msg=:<',msg,'>');
     }
+    /*
     if(msg.auth && msg.recovery) {
       localStorage.setItem(StoreKey.auth,JSON.stringify(msg.auth));
       localStorage.setItem(StoreKey.recovery,JSON.stringify(msg.recovery));
@@ -156,6 +162,32 @@ export class EdcryptBrowserWorker {
         recovery:this.recoveryKey.idOfKey,
       };
       this.otmc.emit('edcrypt:address',addressMsg);
+    }
+    */
+    if(msg.auth && msg.recovery) {
+      let didKeyList = [];
+      try {
+        const didKeyListStr = await this.didKeyStore.get(StoreKey.didList);
+        if(this.trace) {
+          console.log('EdcryptBrowserWorker::loadKey::didKeyListStr=:<',didKeyListStr,'>');
+        }
+        if(didKeyListStr) {
+          didKeyList = JSON.parse(didKeyListStr);
+        }
+      } catch(errDidKey) {
+        if(this.trace) {
+          console.error('EdcryptBrowserWorker::loadKey::errDidKey.message=:<',errDidKey.message,'>');
+        }
+      }
+      if(this.trace) {
+        console.log('EdcryptBrowserWorker::loadKey::didKeyList=:<',didKeyList,'>');
+      }
+      didKeyList.push(msg);
+      if(this.trace) {
+        console.log('EdcryptBrowserWorker::loadKey::didKeyList=:<',didKeyList,'>');
+      }
+      const result = await this.didKeyStore.put(StoreKey.didList,JSON.stringify(didKeyList));
+      this.otmc.emit('edcrypt:didKeyList',didKeyList);
     }
     if(msg.mining) {
       this.otmc.emit('edcrypt:mining',msg.mining);

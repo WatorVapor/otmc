@@ -55,7 +55,7 @@ export class Otmc extends EventEmitter {
         start:true,
       }
     }
-    self.ee.emit('edcrypt.mining',{});
+    this.ee.emit('edcrypt.mining',data);
   }
   createDidTeamFromSeed() {
     return this.did.createSeed();

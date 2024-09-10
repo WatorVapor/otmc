@@ -17,9 +17,9 @@ layout: didteam.sidebar.ejs
         <div class="col-8" id="vue-ui-app-edcrypt-key">
           <div class="collapse multi-collapse" id="edcrypt-key">
             <div class="input-group mb-1">
-              <label class="input-group-text">Exist Did Keys:</label>
-              <select class="form-select">
-                <option :selected="" v-for="didKey in didKeyList">{{didKey.auth.idOfKey}}</option>
+              <label class="input-group-text">Did Keys:</label>
+              <select class="form-select" v-model="didKeySelected">
+                <option v-for="didKey in didKeyList" :selected="didKeySelected === didKey.auth.idOfKey">{{didKey.auth.idOfKey}}</option>
               </select>
               <button class="btn btn-primary" type="button" @click="clickStartMining()">
                 <i class="fa-solid fa-circle-plus"></i>

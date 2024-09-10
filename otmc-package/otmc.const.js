@@ -1,5 +1,6 @@
 export const StoreKey = {
-  didList:'otmc/did/list',
+  didKeyList:'otmc/didkey/list',
+  didKeySelected:'otmc/didkey/selected',
   auth:'otmc/auth/key',
   recovery:'otmc/recovery/key',
   didDoc:'otmc/did/document',

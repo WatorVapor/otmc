@@ -10,9 +10,10 @@ const apps = {};
 const edcryptKeyOption = {
   data() {
     return {
-      hasAddress: false,
       didKeyList:[
       ],
+      didKeySelected: '',
+      hasAddress: false,
       address:{
         auth:'',
         recovery:'',

@@ -55,6 +55,12 @@ export class EdcryptBrowserWorker {
       }
       self.loadKey();
     });
+    this.ee.on('edcrypt.switchKey',(evt)=>{
+      if(this.trace) {
+        console.log('EdcryptBrowserWorker::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.switchKey(evt.keyId);
+    });
     this.ee.on('edcrypt.mining',(evt)=>{
       if(this.trace) {
         console.log('EdcryptBrowserWorker::ListenEventEmitter_::evt=:<',evt,'>');
@@ -98,31 +104,9 @@ export class EdcryptBrowserWorker {
     this.cryptWorker.postMessage(data);
   }
   async loadKey() {
+    let didKeySelected = false;
     try {
-      /*
-      const authKeyStr = localStorage.getItem(StoreKey.didKeySelected);
-      this.authKey = JSON.parse(authKeyStr);
-      if(this.trace) {
-        console.log('EdcryptBrowserWorker::loadKey::this.authKey=:<',this.authKey,'>');
-      }
-      this.ee.emit('did.edcrypt.authKey',this.authKey);
-      const recoveryKeyStr = localStorage.getItem(StoreKey.recovery);
-      this.recoveryKey = JSON.parse(recoveryKeyStr);
-      if(this.trace) {
-        console.log('EdcryptBrowserWorker::loadKey::this.recoveryKey=:<',this.recoveryKey,'>');
-      }
-      this.ee.emit('did.edcrypt.recoveryKey',this.recoveryKey);
-      const addressMsg = {
-        auth:this.authKey.idOfKey,
-        recovery:this.recoveryKey.idOfKey,
-      };
-      if(this.trace) {
-        console.log('EdcryptBrowserWorker::loadKey::addressMsg=:<',addressMsg,'>');
-      }
-      this.otmc.emit('edcrypt:address',addressMsg);
-      this.ee.emit('OtmcStateMachine.actor.send',{type:'edcrypt:address'});
-      */
-      const didKeySelected = localStorage.getItem(StoreKey.didKeySelected);
+      didKeySelected = localStorage.getItem(StoreKey.didKeySelected);
       if(this.trace) {
         console.log('EdcryptBrowserWorker::loadKey::didKeySelected=:<',didKeySelected,'>');
       }
@@ -155,7 +139,60 @@ export class EdcryptBrowserWorker {
         console.error('EdcryptBrowserWorker::loadKey::errDidKey=:<',errDidKey,'>');
       }
     }
+    if(didKeySelected) {
+      this.switchKey(didKeySelected);
+    }
   }
+  async switchKey(keyId) {
+    try {
+      const resultLS = localStorage.setItem(StoreKey.didKeySelected,keyId);
+      if(this.trace) {
+        console.log('EdcryptBrowserWorker::switchKey::resultLS=:<',resultLS,'>');
+      }
+    } catch(err) {
+      console.error('EdcryptBrowserWorker::switchKey::err=:<',err,'>');
+    }
+    try {
+      const didKeyListStr = await this.didKeyStore.get(StoreKey.didKeyList);
+      if(this.trace) {
+        console.log('EdcryptBrowserWorker::switchKey::didKeyListStr=:<',didKeyListStr,'>');
+      }
+      if(didKeyListStr) {
+        const didKeyList = JSON.parse(didKeyListStr);
+        if(this.trace) {
+          console.log('EdcryptBrowserWorker::switchKey::didKeyList=:<',didKeyList,'>');
+          for(const didKey of didKeyList) {
+            if(didKey.auth.idOfKey === keyId) {
+              console.log('EdcryptBrowserWorker::switchKey::didKey=:<',didKey,'>');
+              this.authKey = didKey.auth;
+              this.recoveryKey = didKey.recovery;
+              const addressMsg = {
+                auth:this.authKey.idOfKey,
+                recovery:this.recoveryKey.idOfKey,
+              };
+              if(this.trace) {
+                console.log('EdcryptBrowserWorker::switchKey::addressMsg=:<',addressMsg,'>');
+              }
+              this.otmc.emit('edcrypt:address',addressMsg);
+              this.ee.emit('OtmcStateMachine.actor.send',{type:'edcrypt:address'});
+              break;
+            }
+          }
+        }
+      } else {
+      }
+    } catch(errDidKey) {
+      if(this.trace) {
+        console.error('EdcryptBrowserWorker::switchKey::errDidKey.message=:<',errDidKey.message,'>');
+      }
+      if(errDidKey.message === 'Entry not found') {
+      } else {
+        console.error('EdcryptBrowserWorker::switchKey::errDidKey=:<',errDidKey,'>');
+      }
+    }
+  }
+
+
   async onEdCryptMessage_(msg) {
     if(this.trace) {
       console.log('EdcryptBrowserWorker::onEdCryptMessage_::msg=:<',msg,'>');

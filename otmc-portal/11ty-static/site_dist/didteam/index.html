@@ -130,7 +130,7 @@
           <div class="collapse multi-collapse" id="edcrypt-key">
             <div class="input-group mb-1">
               <label class="input-group-text">Did Keys:</label>
-              <select class="form-select" v-model="didKeySelected">
+              <select class="form-select" v-model="didKeySelected" @change="changeDidKeySelected()">
                 <option v-for="didKey in didKeyList" :selected="didKeySelected === didKey.auth.idOfKey">{{didKey.auth.idOfKey}}</option>
               </select>
               <button class="btn btn-primary" type="button" @click="clickStartMining()">

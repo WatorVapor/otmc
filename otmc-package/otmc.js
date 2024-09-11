@@ -49,6 +49,12 @@ export class Otmc extends EventEmitter {
       nl:true
     };
   }
+  switchDidKey(didKey) {
+    const data = {
+      keyId:didKey
+    }
+    this.ee.emit('edcrypt.switchKey',data);
+  }
   startMining() {
     const data = {
       mine:{

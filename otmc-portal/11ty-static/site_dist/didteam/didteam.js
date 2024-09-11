@@ -32,6 +32,12 @@ const edcryptKeyOption = {
       console.log('clickStartMining::otmc=:<',otmc,'>');
       otmc.startMining();
     },
+    changeDidKeySelected(evt) {
+      console.log('changeDidKeySelected::this.didKeySelected=:<',this.didKeySelected,'>');
+      const otmc = this.otmc;
+      console.log('changeDidKeySelected::otmc=:<',otmc,'>');
+      otmc.switchDidKey(this.didKeySelected);
+    },
   }  
 }
 
@@ -125,6 +131,9 @@ const loadDidTeamApps = (evt) => {
   otmc.on('edcrypt:didKeyList',(didKeyList)=>{
     onDidKeyRefreshKeyApp(didKeyList,edcryptKeyVM);
     onDidKeyRefreshTeamApp(didKeyList,appDidVM);
+  });
+  otmc.on('edcrypt:didKeySelected',(didKeySelected)=>{
+    edcryptKeyVM.didKeySelected = didKeySelected;
   });
   otmc.on('edcrypt:address',(address)=>{
     onAddressRefreshKeyApp(address,edcryptKeyVM);

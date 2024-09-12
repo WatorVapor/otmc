@@ -115,91 +115,85 @@
         </div>
         <div class="col-10">
           
-     <div class="container text-center mt-3">
-      <div class="row justify-content-center">
-        <div class="col-8">
-          <p class="d-inline-flex gap-1">
-            <a class="btn btn-primary" data-bs-toggle="collapse" href="#edcrypt-key" role="button" aria-expanded="true" aria-controls="edcrypt-key">
-              edcrypt authentication key
-            </a>
-          </p>
-        </div>
-      </div>
-      <div class="row justify-content-center">
-        <div class="col-8" id="vue-ui-app-edcrypt-key">
-          <div class="collapse multi-collapse" id="edcrypt-key">
-            <div class="input-group mb-1">
-              <label class="input-group-text">Did Keys:</label>
+     <div class="container text-start mt-3">
+      <div class="row justify-content-start">
+        <div class="col-10" id="vue-ui-app-edcrypt-key">
+          <div class="input-group mb-1">
+            <span class="input-group-text w-25">Did Keys Id</span>
+            <span class="input-group-text w-50">
               <select class="form-select" v-model="didKeySelected" @change="changeDidKeySelected()">
                 <option v-for="didKey in didKeyList" :selected="didKeySelected === didKey.auth.idOfKey">{{didKey.auth.idOfKey}}</option>
               </select>
+            </span>
+            <span class="input-group-text">
               <button class="btn btn-primary" type="button" @click="clickStartMining()">
                 <i class="fa-solid fa-circle-plus"></i>
               </button>
-              <span class="input-group-text" v-if="isMining">
-                <div class="spinner-border text-primary"  role="status">
-                  <span class="visually-hidden"><i class="material-icons">refresh</i></span>
-                </div>
-                <span class="badge bg-success">{{mining.counter}}</span>
-              </span>
-            </div>
-            <div class="input-group mb-1">
-              <span class="input-group-text w-25">Auth Key Address</span>
-              <input type="text" class="form-control" id="edcrypt-auth-key-address" placeholder="otm" readonly v-model="address.auth">
-              <span class="input-group-text" v-if="hasAddress === false">
-                <button class="btn btn-primary" type="button" @click="clickStartMining()" :disabled="isMining == true">
-                  <i class="fa-solid fa-circle-plus"></i>
-                </button>
-              </span>
-            </div>
-            <div class="input-group mb-1">
-              <span class="input-group-text w-25">Recovery Key Address</span>
-              <input type="text" class="form-control" id="edcrypt-recovery-key-address" placeholder="otm" readonly v-model="address.recovery">
-            </div>
+            </span>
+            <span class="input-group-text" v-if="isMining">
+              <div class="spinner-border text-primary"  role="status">
+                <span class="visually-hidden"><i class="material-icons">refresh</i></span>
+              </div>
+              <span class="badge bg-success">{{mining.counter}}</span>
+            </span>
+          </div>
+          <div class="input-group mb-1">
+            <span class="input-group-text w-25">Auth Key Address</span>
+            <input type="text" class="form-control" id="edcrypt-auth-key-address" placeholder="otm" readonly v-model="address.auth">
+          </div>
+          <div class="input-group mb-1">
+            <span class="input-group-text w-25">Recovery Key Address</span>
+            <input type="text" class="form-control" id="edcrypt-recovery-key-address" placeholder="otm" readonly v-model="address.recovery">
           </div>
         </div>
       </div>
-      
-      <div class="row justify-content-center">
-        <div class="col-8">
-          <p class="d-inline-flex gap-1">
-            <a class="btn btn-primary" data-bs-toggle="collapse" href="#did-team-document" role="button" aria-expanded="true" aria-controls="did-team-document">
-              Did Team
-            </a>
-          </p>
-        </div>
-      </div>
-      <div class="row justify-content-center">
-        <div class="col-8" id="vue-ui-app-did-team">
-          <div class="collapse multi-collapse" id="did-team-document">
-            <div class="input-group mb-3">
-              <span class="input-group-text w-25">Team Address</span>
-              <input type="text" class="form-control" id="did-team-address" placeholder="did:otmc:" v-model="did.id">
-              <span class="input-group-text" v-if="hasAddress === false">
-                <button class="btn btn-primary" type="button" @click="clickCreateDidTeamSeed()" :disabled="edKeyReady == false" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create A New DidTeam">
-                  <i class="fa-solid fa-seedling"></i>
-                  <i class="fa-solid fa-user-gear"></i>
-                </button>
-              </span>
-              <span class="input-group-text" v-if="hasAddress === false">
-                <button class="btn btn-primary" type="button" @click="clickJoinDidTeam()" :disabled="edKeyReady == false" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Join An Exist DidTeam">
-                  <i class="fa-solid fa-plus"></i>
-                  <i class="fa-solid fa-link"></i>
-                  <i class="fa-solid fa-people-group"></i>
-                </button>
-              </span>
-              <span class="input-group-text" v-if="hasAddress === true">
-                <button class="btn btn-primary" type="button" @click="clickRequestJoinTeam()" :disabled="edKeyReady == false" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Join An Exist DidTeam">
-                  <i class="fa-solid fa-share"></i>
-                  <i class="fa-solid fa-people-group"></i>
-                </button>
-              </span>
-            </div>
+      <hr/>      
+      <div class="row justify-content-start">
+        <div class="col-10" id="vue-ui-app-did-team">
+          <div class="input-group mb-3">
+            <span class="input-group-text w-25">Team Address</span>
+            <input type="text" class="form-control" readonly placeholder="did:otmc: NOT in any team" v-model="did.id">
+            <span class="input-group-text w-25">
+              <button class="btn btn-primary" type="button" @click="clickRequestJoinTeam()" :disabled="isInTeam == false" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Join An Exist DidTeam">
+                <i class="fa-solid fa-share"></i>
+                <i class="fa-solid fa-people-group"></i>
+              </button>
+            </span>
+          </div>
+          <div class="input-group mb-3">
+            <span class="input-group-text w-25">
+              <input class="form-check-input mt-0" type="radio" value="create" :checked="teamType === 'create'" name="CreateOrJoinTeam" v-model="teamType">
+              Create a new team
+            </span>
+            <input type="text" class="form-control" placeholder="did:otmc: control" :disabled="teamType !== 'create' || isControlled === false" v-model="create.controll">
+            <span class="input-group-text w-25" v-if="hasAddress === false">
+              <input class="form-check-input mt-0" type="checkbox" value="" :disabled="teamType !== 'create'" v-model="isControlled">
+              Controlled
+              <button class="btn btn-primary" type="button" @click="clickCreateDidTeamSeed()" :disabled="teamType !== 'create' && isControlled === true" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create A New DidTeam">
+                <i class="fa-solid fa-seedling"></i>
+                <i class="fa-solid fa-user-gear"></i>
+              </button>
+            </span>
+          </div>
+
+          <div class="input-group mb-3">
+            <span class="input-group-text w-25">
+              <input class="form-check-input mt-0" type="radio" value="join" :checked="teamType === 'join'" name="CreateOrJoinTeam" v-model="teamType">
+              Join an exist team
+            </span>
+            <input type="text" class="form-control" placeholder="did:otmc: join" :disabled="teamType === 'create'" v-model="join.did">
+            <span class="input-group-text w-25" v-if="hasAddress === false">
+              <button class="btn btn-primary" type="button" @click="clickJoinDidTeam()" :disabled="teamType === 'create'" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Join An Exist DidTeam">
+                <i class="fa-solid fa-plus"></i>
+                <i class="fa-solid fa-link"></i>
+                <i class="fa-solid fa-people-group"></i>
+              </button>
+            </span>
           </div>
         </div>
       </div>
       <hr/>
-      <div class="row justify-content-center mt-3">
+      <div class="row justify-content-start mt-3">
         <div class="col-8">
           <p class="d-inline-flex gap-1">
             <a class="btn btn-primary" data-bs-toggle="collapse" href="#team-invitation-join" role="button" aria-expanded="true" aria-controls="team-invitation-join">

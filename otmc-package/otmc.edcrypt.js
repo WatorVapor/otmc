@@ -71,7 +71,7 @@ export class EdcryptBrowserWorker {
 
   runWorker() {
     const self = this;
-    fetch(`${this.scriptPath}/otmc.edcryp.workert.js`)
+    fetch(`${this.scriptPath}/otmc.edcrypt.workert.js`)
     .then((response) => response.blob())
     .then((blob) => {
       const url = URL.createObjectURL(blob);

@@ -46,9 +46,18 @@ const didTeamOption = {
     return {
       edKeyReady:false,
       hasAddress: false,
+      isInTeam:false,
+      teamType:'create',// 'create|join'
+      isControlled:true,
       did: {
         id:'',
         doc:'',
+      },
+      create: {
+        controll:'',// 'did'
+      },
+      join: {
+        did:'',
       },
     };
   },

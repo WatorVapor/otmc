@@ -32,6 +32,7 @@ const onInitCmd = async (initMsg) => {
   if(self.trace) {
     console.log('otmc.worker.edcrypt::onInitCmd::modulePath=:<',modulePath,'>');
   }
+  self.postMessage({ready:true});
 }
 
 //const addressPrefix = 'otm';

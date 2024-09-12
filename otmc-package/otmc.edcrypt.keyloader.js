@@ -104,20 +104,6 @@ export class EdcryptKeyLoaderBrowser {
     this.cryptWorker.postMessage(data);
   }
   async loadKey() {
-    let didKeySelected = false;
-    try {
-      didKeySelected = localStorage.getItem(StoreKey.didKeySelected);
-      if(this.trace) {
-        console.log('EdcryptKeyLoaderBrowser::loadKey::didKeySelected=:<',didKeySelected,'>');
-      }
-      if(didKeySelected) {
-        this.otmc.emit('edcrypt:didKeySelected',didKeySelected);
-      } else {
-        this.otmc.emit('edcrypt:didKeySelected','');
-      }
-    } catch(err) {
-      console.error('EdcryptKeyLoaderBrowser::loadKey::err=:<',err,'>');
-    }
     try {
       const didKeyListStr = await this.didKeyStore.get(StoreKey.didKeyList);
       if(this.trace) {
@@ -138,9 +124,6 @@ export class EdcryptKeyLoaderBrowser {
       } else {
         console.error('EdcryptKeyLoaderBrowser::loadKey::errDidKey=:<',errDidKey,'>');
       }
-    }
-    if(didKeySelected) {
-      this.switchKey(didKeySelected);
     }
   }
   async switchKey(keyId) {
@@ -197,19 +180,9 @@ export class EdcryptKeyLoaderBrowser {
     if(this.trace) {
       console.log('EdcryptKeyLoaderBrowser::onEdCryptMessage_::msg=:<',msg,'>');
     }
-    /*
-    if(msg.auth && msg.recovery) {
-      localStorage.setItem(StoreKey.auth,JSON.stringify(msg.auth));
-      localStorage.setItem(StoreKey.recovery,JSON.stringify(msg.recovery));
-      this.authKey = msg.auth;
-      this.recoveryKey = msg.recovery;
-      const addressMsg = {
-        auth:this.authKey.idOfKey,
-        recovery:this.recoveryKey.idOfKey,
-      };
-      this.otmc.emit('edcrypt:address',addressMsg);
+    if(msg.ready) {
+      this.ee.emit('edCryptKey.loader.loadKey',{});
     }
-    */
     if(msg.auth && msg.recovery) {
       let didKeyList = [];
       try {

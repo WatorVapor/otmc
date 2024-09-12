@@ -5,7 +5,7 @@ import { MqttMessager } from './otmc.mqtt.message.js';
 import { DidDocument } from './otmc.did.document.js';
 import { OtmcStateMachine } from './otmc.state.machine.js';
 import * as Level from 'level';
-import { EdcryptBrowserWorker,EdcryptWithNode } from './otmc.edcrypt.js';
+import { EdcryptKeyLoaderBrowser,EdcryptKeyLoaderNode } from './otmc.edcrypt.keyloader.js';
 
 
 /**
@@ -30,18 +30,18 @@ export class Otmc extends EventEmitter {
       console.log('Otmc::constructor::this.ee=:<',this.ee,'>');
     }
     if(this.isNode) {
-      this.edcrypt = new EdcryptWithNode(this.ee);
+      this.edCryptKey = new EdcryptKeyLoaderNode(this.ee);
     } else {
-      this.edcrypt = new EdcryptBrowserWorker(this.ee);
+      this.edCryptKey = new EdcryptKeyLoaderBrowser(this.ee);
     }
     this.did = new DidDocument(this.ee);
     this.mqtt = new MqttMessager(this.ee);
     const self = this;
     setTimeout(() => {
-      self.edcrypt.otmc = self;
+      self.edCryptKey.otmc = self;
       self.did.otmc = self;
       self.mqtt.otmc = self;
-      self.ee.emit('edcrypt.runWorker',{});
+      self.ee.emit('edCryptKey.loader.runWorker',{});
       self.sm = new OtmcStateMachine(this.ee);
     },1);
     this.mqttOption = {
@@ -53,7 +53,7 @@ export class Otmc extends EventEmitter {
     const data = {
       keyId:didKey
     }
-    this.ee.emit('edcrypt.switchKey',data);
+    this.ee.emit('edCryptKey.loader.switchKey',data);
   }
   startMining() {
     const data = {
@@ -61,7 +61,7 @@ export class Otmc extends EventEmitter {
         start:true,
       }
     }
-    this.ee.emit('edcrypt.mining',data);
+    this.ee.emit('edCryptKey.loader.mining',data);
   }
   createDidTeamFromSeed() {
     return this.did.createSeed();

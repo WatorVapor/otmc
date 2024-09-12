@@ -144,22 +144,24 @@ export class EdcryptKeyLoaderBrowser {
         const didKeyList = JSON.parse(didKeyListStr);
         if(this.trace) {
           console.log('EdcryptKeyLoaderBrowser::switchKey::didKeyList=:<',didKeyList,'>');
-          for(const didKey of didKeyList) {
-            if(didKey.auth.idOfKey === keyId) {
-              console.log('EdcryptKeyLoaderBrowser::switchKey::didKey=:<',didKey,'>');
-              this.authKey = didKey.auth;
-              this.recoveryKey = didKey.recovery;
-              const addressMsg = {
-                auth:this.authKey.idOfKey,
-                recovery:this.recoveryKey.idOfKey,
-              };
-              if(this.trace) {
-                console.log('EdcryptKeyLoaderBrowser::switchKey::addressMsg=:<',addressMsg,'>');
-              }
-              this.otmc.emit('edcrypt:address',addressMsg);
-              this.ee.emit('OtmcStateMachine.actor.send',{type:'edcrypt:address'});
-              break;
+        }
+        for(const didKey of didKeyList) {
+          if(didKey.auth.idOfKey === keyId) {
+            console.log('EdcryptKeyLoaderBrowser::switchKey::didKey=:<',didKey,'>');
+            this.authKey = didKey.auth;
+            this.recoveryKey = didKey.recovery;
+            const addressMsg = {
+              auth:this.authKey.idOfKey,
+              recovery:this.recoveryKey.idOfKey,
+            };
+            if(this.trace) {
+              console.log('EdcryptKeyLoaderBrowser::switchKey::addressMsg=:<',addressMsg,'>');
             }
+            this.ee.emit('did.edcrypt.authKey',this.authKey);
+            this.ee.emit('did.edcrypt.recoveryKey',this.recoveryKey);
+            this.otmc.emit('edcrypt:address',addressMsg);
+            this.ee.emit('OtmcStateMachine.actor.send',{type:'edcrypt:address'});
+            break;
           }
         }
       } else {

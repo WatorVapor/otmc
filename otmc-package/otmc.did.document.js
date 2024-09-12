@@ -43,7 +43,7 @@ const LEVEL_OPT = {
 */
 export class DidDocument {
   constructor(ee) {
-    this.trace0 = false;
+    this.trace0 = true;
     this.trace1 = false;
     this.trace2 = false;
     this.trace = true;;
@@ -240,7 +240,7 @@ export class DidDocument {
 
   
   loadDocument() {
-    if(this.trace0) {
+    if(this.trace0 && this.otmc.isNode) {
       console.log('EdcryptWithNode::loadKey::fs=:<',fs,'>');
     }
     if(this.trace0) {

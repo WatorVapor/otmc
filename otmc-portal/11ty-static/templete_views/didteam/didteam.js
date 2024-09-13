@@ -9,7 +9,7 @@ const TEAM = {
 };
 
 const apps = {};
-const appStoreDidKeySelected = 'otmc/didkey/selected';
+const appStoreDidKeySelected = 'otmc/team/didkey/selected';
 
 const loadLastSavedKeyIdSelection = () => {
   try {
@@ -54,6 +54,7 @@ const edcryptKeyOption = {
       console.log('changeDidKeySelected::this.didKeySelected=:<',this.didKeySelected,'>');
       const otmc = this.otmc;
       console.log('changeDidKeySelected::otmc=:<',otmc,'>');
+      localStorage.setItem(appStoreDidKeySelected,this.didKeySelected);
       otmc.switchDidKey(this.didKeySelected);
     },
   }  

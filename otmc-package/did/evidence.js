@@ -1,6 +1,6 @@
 const includesAnyByDidKey = (setArr,value ) => setArr.some(attr => attr.endsWith(value));
 export class EvidenceChain {
-  static trace1 = false;
+  static trace1 = true;
   static trace2 = false;
   static trace3 = false;
   static trace4 = false;

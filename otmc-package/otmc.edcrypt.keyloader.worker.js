@@ -35,9 +35,9 @@ const onInitCmd = async (initMsg) => {
   self.postMessage({ready:true});
 }
 
-//const addressPrefix = 'otm';
+const addressPrefix = 'otm';
 //const addressPrefix = 'ot';
-const addressPrefix = 'o';
+//const addressPrefix = 'o';
 
 const onMiningCmd = async (msg) => {
 

@@ -292,27 +292,29 @@ export class DidDocument {
       } else {
         this.ee.emit('OtmcStateMachine.actor.send',{type:'did:document'});
       }
-      const results = this.auth.verifyDid(this.didDoc_);
-      if(this.trace) {
-        console.log('DidDocument::loadDocument::results=:<',results,'>');
-      }
-      let joinStr = false;
-      if(this.otmc.isNode) {
-        try {
-          joinStr = this.fs.readFileSync(this.otmc.config.invitation);
-        } catch ( err ) {
-          console.error('DidDocument::loadDocument::err=:<',err,'>');
-        }
-      } else {
-        joinStr = localStorage.getItem(StoreKey.invitation.join);
-      }
-      if(joinStr) {
-        const joinList = JSON.parse(joinStr);
-        this.joinList_ = JSON.parse(joinStr);
+      if(this.didDoc_) {
+        const results = this.auth.verifyDid(this.didDoc_);
         if(this.trace) {
-          console.log('DidDocument::loadDocument::joinList=:<',joinList,'>');
+          console.log('DidDocument::loadDocument::results=:<',results,'>');
         }
-        this.otmc.emit('didteam:joinLoaded',joinList);
+        let joinStr = false;
+        if(this.otmc.isNode) {
+          try {
+            joinStr = this.fs.readFileSync(this.otmc.config.invitation);
+          } catch ( err ) {
+            console.error('DidDocument::loadDocument::err=:<',err,'>');
+          }
+        } else {
+          joinStr = localStorage.getItem(StoreKey.invitation.join);
+        }
+        if(joinStr) {
+          const joinList = JSON.parse(joinStr);
+          this.joinList_ = JSON.parse(joinStr);
+          if(this.trace) {
+            console.log('DidDocument::loadDocument::joinList=:<',joinList,'>');
+          }
+          this.otmc.emit('didteam:joinLoaded',joinList);
+        }
       }
     } catch(err) {
       console.error('DidDocument::loadDocument::err=:<',err,'>');

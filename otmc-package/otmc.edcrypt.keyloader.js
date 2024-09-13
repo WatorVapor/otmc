@@ -128,14 +128,6 @@ export class EdcryptKeyLoaderBrowser {
   }
   async switchKey(keyId) {
     try {
-      const resultLS = localStorage.setItem(StoreKey.didKeySelected,keyId);
-      if(this.trace) {
-        console.log('EdcryptKeyLoaderBrowser::switchKey::resultLS=:<',resultLS,'>');
-      }
-    } catch(err) {
-      console.error('EdcryptKeyLoaderBrowser::switchKey::err=:<',err,'>');
-    }
-    try {
       const didKeyListStr = await this.didKeyStore.get(StoreKey.didKeyList);
       if(this.trace) {
         console.log('EdcryptKeyLoaderBrowser::switchKey::didKeyListStr=:<',didKeyListStr,'>');

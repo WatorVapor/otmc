@@ -10,45 +10,51 @@ class DIDConfig {
 export class DIDSeedDocument {
   static trace = false;
   static debug = true;
-  constructor(auth,recovery) {
+  constructor(auth,recovery,controllerList) {
     this.auth_ = auth;
     this.recovery_ = recovery;
+    this.didCode_ = `did:${DIDConfig.method}:${auth.address()}`;;
+    if(controllerList) {
+      this.controllers_ = [controllerList].flat();
+    } else {
+      this.controllers_ = [this.didCode_];
+    }
   }
   address() {
     return `did:${DIDConfig.method}:${this.auth_.address()}`;
   }
   document() {
-    const didCode = `did:${DIDConfig.method}:${this.auth_.address()}`;
     const didDoc = {
       '@context':`${DIDConfig.context}`,
-      id:didCode,
+      id:this.didCode_,
+      controller:this.controllers_,
       version:`${DIDConfig.version}`,
       created:(new Date()).toISOString(),
       updated:(new Date()).toISOString(),
       verificationMethod:[
         {
-          id:`${didCode}#${this.auth_.address()}`,
+          id:`${this.didCode_}#${this.auth_.address()}`,
           type: 'ed25519',
-          controller:didCode,
+          controller:this.didCode_,
           publicKeyMultibase: this.auth_.pub(),
         },
         {
-          id:`${didCode}#${this.recovery_.address()}`,
+          id:`${this.didCode_}#${this.recovery_.address()}`,
           type: 'ed25519',
-          controller:didCode,
+          controller:this.didCode_,
           publicKeyMultibase: this.recovery_.pub(),
         },
       ],
       authentication:[
-        `${didCode}#${this.auth_.address()}`,
+        `${this.didCode_}#${this.auth_.address()}`,
       ],
       recovery:[
-       `${didCode}#${this.recovery_.address()}`,
+       `${this.didCode_}#${this.recovery_.address()}`,
       ],
       capabilityInvocation:[],
       service: [
         {
-          id:`${didCode}#${this.auth_.address()}`,
+          id:`${this.didCode_}#${this.auth_.address()}`,
           type: 'mqtt',
           serviceEndpoint: `${DIDConfig.end_point}`
         },
@@ -58,7 +64,7 @@ export class DIDSeedDocument {
     const signedMsg = this.auth_.signWithoutTS(didDoc);
     const proof = {
       type:'ed25519',
-      creator:`${didCode}#${this.auth_.address()}`,
+      creator:`${this.didCode_}#${this.auth_.address()}`,
       signatureValue:signedMsg.auth.sign,
     };
     proofs.push(proof);

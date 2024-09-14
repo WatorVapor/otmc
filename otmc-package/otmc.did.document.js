@@ -27,6 +27,7 @@ import {
 } from './did/document.js';
 import {DidDocStateMachine} from './otmc.did.stm.docstate.js';
 import {DidRuntimeStateMachine} from './otmc.did.stm.runtime.js';
+import { DidStore } from './otmc.did.document.store.js';
 
 
 
@@ -133,11 +134,11 @@ export class DidDocument {
         console.log('DidDocument::ListenEventEmitter_::self.otmc=:<',self.otmc,'>');
       }
       if(self.otmc.isNode) {
-        self.dbDocument = new Level.Level(self.otmc.config.docHistotry,LEVEL_OPT);
-        self.dbManifest = new Level.Level(self.otmc.config.manifestHistotry,LEVEL_OPT);
+        self.didDocStore = new DidStore(self.otmc.config.didDocument);
+        self.didManifestStore = new DidStore(self.otmc.config.didManifest);
       } else {
-        self.dbDocument = new Level.Level('did.document.history',LEVEL_OPT);
-        self.dbManifest = new Level.Level('did.manifest.history',LEVEL_OPT);
+        self.didDocStore = new DidStore('did.document');
+        self.didManifestStore = new DidStore('did.manifest');
       }
       self.loadDocument();
     });
@@ -239,53 +240,53 @@ export class DidDocument {
   }
 
   
-  loadDocument() {
+  async loadDocument() {
     if(this.trace0 && this.otmc.isNode) {
-      console.log('EdcryptWithNode::loadKey::fs=:<',fs,'>');
+      console.log('DidDocument::loadDocument::fs=:<',fs,'>');
     }
     if(this.trace0) {
       console.log('DidDocument::loadDocument::this.ee=:<',this.ee,'>');
       console.log('DidDocument::loadDocument::this.otmc=:<',this.otmc,'>');
+      console.log('DidDocument::loadDocument::this.auth=:<',this.auth,'>');
     }
     if(this.trace) {
       console.log('DidDocument::loadDocument::this.otmc.config=:<',this.otmc.config,'>');
     }
     this.checkEdcrypt_();
     try {
-      let didDocStr = false;
+      let didDoc = false;
       if(this.otmc.isNode) {
         try {
-          didDocStr = this.fs.readFileSync(this.otmc.config.topDoc);
+          const didDocStr = this.fs.readFileSync(this.otmc.config.topDoc);
+          didDoc = JSON.parse(didDocStr);
         } catch ( err ) {
           console.error('DidDocument::loadDocument::err=:<',err,'>');
         }
       } else {
-        didDocStr = localStorage.getItem(StoreKey.didDoc);
+        didDoc = await this.didDocStore.getTop(this.auth.address());
       }
-      if(didDocStr) {
-        const didDoc = JSON.parse(didDocStr);
-        if(this.trace) {
-          console.log('DidDocument::loadDocument::didDoc=:<',didDoc,'>');
-        }
-        this.otmc.emit('did:document',didDoc);
-        this.didDoc_ = didDoc;
-        this.ee.emit('did:document',{didDoc:this});
+      if(this.trace) {
+        console.log('DidDocument::loadDocument::didDoc=:<',didDoc,'>');
       }
-      let manifestStr = false;
+      this.otmc.emit('did:document',didDoc);
+      this.didDoc_ = didDoc;
+      this.ee.emit('did:document',{didDoc:this});
+
+      let manifest = false;
       if(this.otmc.isNode) {
         try {
-          didDocStr = this.fs.readFileSync(this.otmc.config.topManifest);
+          manifestStr = this.fs.readFileSync(this.otmc.config.topManifest);
+          manifest = JSON.parse(manifestStr);
         } catch ( err ) {
           console.error('DidDocument::loadDocument::err=:<',err,'>');
         }
       } else {
-        manifestStr = localStorage.getItem(StoreKey.manifest);
+        manifest = await this.didManifestStore.getTop(this.auth.address());;
       }
-      if(manifestStr) {
-        const manifest = JSON.parse(manifestStr);
-        if(this.trace) {
-          console.log('DidDocument::loadDocument::manifest=:<',manifest,'>');
-        }
+      if(this.trace) {
+        console.log('DidDocument::loadDocument::manifest=:<',manifest,'>');
+      }
+      if(manifest) {
         this.otmc.emit('did:manifest',manifest);
         this.ee.emit('OtmcStateMachine.actor.send',{type:'did:document_manifest'});
         this.didManifest_ = manifest;
@@ -320,8 +321,8 @@ export class DidDocument {
       console.error('DidDocument::loadDocument::err=:<',err,'>');
     }
     if(this.trace0) {
-      console.log('DidDocument::loadDocument::this.dbDocument=:<',this.dbDocument,'>');
-      console.log('DidDocument::loadDocument::this.dbManifest=:<',this.dbManifest,'>');
+      console.log('DidDocument::loadDocument::this.didDocStore=:<',this.didDocStore,'>');
+      console.log('DidDocument::loadDocument::this.didManifestStore=:<',this.didManifestStore,'>');
     }
   }
   createSeed() {
@@ -341,16 +342,31 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::createSeed::documentObj=:<',documentObj,'>');
     }
+    const documentStr = JSON.stringify(documentObj);
+    const storeKeyDid = `${this.seed.address()}.${this.util.calcAddress(documentStr)}`;
+    if(this.trace) {
+      console.log('DidDocument::createSeed::storeKeyDid=:<',storeKeyDid,'>');
+    }
     if(this.otmc.isNode) {
       this.fs.writeFileSync(this.otmc.config.topDoc,JSON.stringify(documentObj,undefined,2));
     } else {
-      localStorage.setItem(StoreKey.didDoc,JSON.stringify(documentObj));
+      this.didDocStore.put(storeKeyDid, documentStr, LEVEL_OPT,(err)=>{
+        if(this.trace) {
+          console.log('DidDocument::createSeed::err=:<',err,'>');
+        }
+      });
     }
     const manifest = DIDManifest.ruleChainGuestOpen();
+    const manifestStr = JSON.stringify(manifest);
+    const storeKeyManifest = `${this.seed.address()}.${this.util.calcAddress(manifestStr)}`;
     if(this.otmc.isNode) {
       this.fs.writeFileSync(this.otmc.config.topManifest,JSON.stringify(manifest,undefined,2));
     } else {
-      localStorage.setItem(StoreKey.manifest,JSON.stringify(manifest));
+      this.didManifestStore.put(storeKeyManifest, manifestStr, LEVEL_OPT,(err)=>{
+        if(this.trace) {
+          console.log('DidDocument::createSeed::err=:<',err,'>');
+        }
+      });
     }
     return documentObj;
   }
@@ -862,8 +878,8 @@ export class DidDocument {
       console.log('DidDocument::storeDidDocumentHistory::uploadAddress=:<',uploadAddress,'>');
     }    
     if(this.trace0) {
-      console.log('DidDocument::storeDidDocumentHistory::this.dbDocument=:<',this.dbDocument,'>');
-      //console.log('DidDocument::storeDidDocumentHistory::this.dbManifest=:<',this.dbManifest,'>');
+      console.log('DidDocument::storeDidDocumentHistory::this.didDocStore=:<',this.didDocStore,'>');
+      //console.log('DidDocument::storeDidDocumentHistory::this.didManifestStore=:<',this.didManifestStore,'>');
     }
     this.checkEdcrypt_();
     if(this.trace0) {
@@ -877,7 +893,7 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::storeDidDocumentHistory::historyAdd=:<',historyAdd,'>');
     }
-    this.dbDocument.put(historyAdd, historyStr, LEVEL_OPT,(err)=>{
+    this.didDocStore.put(historyAdd, historyStr, LEVEL_OPT,(err)=>{
       if(this.trace) {
         console.log('DidDocument::storeDidDocumentHistory::put err=:<',err,'>');
       }
@@ -891,7 +907,7 @@ export class DidDocument {
       console.log('DidDocument::storeDidManifestHistory::uploadAddress=:<',uploadAddress,'>');
     }    
     if(this.trace) {
-      console.log('DidDocument::storeDidManifestHistory::this.dbManifest=:<',this.dbManifest,'>');
+      console.log('DidDocument::storeDidManifestHistory::this.didManifestStore=:<',this.didManifestStore,'>');
     }
     this.checkEdcrypt_();
     if(this.trace) {
@@ -905,7 +921,7 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::storeDidManifestHistory::historyAdd=:<',historyAdd,'>');
     }
-    this.dbManifest.put(historyAdd, historyStr, LEVEL_OPT,(err)=>{
+    this.didManifestStore.put(historyAdd, historyStr, LEVEL_OPT,(err)=>{
       if(this.trace) {
         console.log('DidDocument::storeDidManifestHistory::put err=:<',err,'>');
       }
@@ -952,21 +968,7 @@ export class DidDocument {
   
   
   async loadDidRuleFromManifest_() {
-    const manifests = await this.dbManifest.values().all();
-    if(this.trace5) {
-      console.log('DidDocument::loadDidRuleFromManifest_::manifests=<',manifests,'>');
-    }
-    const manifestsJson = [];
-    for(const manifest of manifests) {
-      if(this.trace5) {
-        console.log('DidDocument::loadDidRuleFromManifest_::manifest=<',manifest,'>');
-      }
-      const manifestJson = JSON.parse(manifest);
-      if(this.trace5) {
-        console.log('DidDocument::loadDidRuleFromManifest_::manifestJson=<',manifestJson,'>');
-      }
-      manifestsJson.push(manifestJson);
-    }
+    const manifestsJson = await this.didManifestStore.getAll(this.auth.address());
     if(this.trace5) {
       console.log('DidDocument::loadDidRuleFromManifest_::manifestsJson=<',manifestsJson,'>');
     }
@@ -976,26 +978,7 @@ export class DidDocument {
     return false;
   }
   async loadEvidenceChain_() {
-    const evidences = await this.dbDocument.values().all();
-    if(this.trace2) {
-      console.log('DidDocument::loadEvidenceChain_::evidences=<',evidences,'>');
-    }
-    const evidencesJson = [];
-    for(const evidence of evidences) {
-      if(this.trace2) {
-        console.log('DidDocument::loadEvidenceChain_::evidence=<',evidence,'>');
-      }
-      const evidenceJson = JSON.parse(evidence);
-      if(this.trace2) {
-        console.log('DidDocument::loadEvidenceChain_::evidenceJson=<',evidenceJson,'>');
-      }
-      if(this.trace2) {
-        console.log('DidDocument::loadEvidenceChain_::this.didDoc_.id=<',this.didDoc_.id,'>');
-      }
-      if(this.didDoc_.id === evidenceJson.id) {
-        evidencesJson.push(evidenceJson);
-      }
-    }
+    const evidencesJson = await this.didDocStore.getAll(this.auth.address());
     if(this.trace2) {
       console.log('DidDocument::loadEvidenceChain_::evidencesJson=<',evidencesJson,'>');
     }

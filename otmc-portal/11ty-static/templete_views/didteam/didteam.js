@@ -176,6 +176,7 @@ const loadDidTeamApps = (evt) => {
     appDidVM.did.id = didDoc.id;
     appDidVM.did.doc = JSON.stringify(didDoc,undefined,2);
     appDidVM.hasAddress = true;
+    appDidVM.isInTeam = true;
   });
   otmc.on('didteam:join',(joinMsg) => {
     console.log('loadDidTeamApps::joinMsg=:<',joinMsg,'>');

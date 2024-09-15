@@ -8,6 +8,18 @@ export const StoreKey = {
   invitation:{
     join:'otmc/did/invitation/join',
   },
+  secret: {
+    authKey:'otmc/secret/did/authKey',
+    did: {
+      property:'otmc/secret/did/property',
+    },
+  },
+  open: {
+    did: {
+      document:'otmc/open/did/document',
+      manifest:'otmc/open/did/manifest',
+    }
+  },
 }
 
 export const OtmcPortal = {

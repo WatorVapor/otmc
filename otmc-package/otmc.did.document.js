@@ -137,8 +137,8 @@ export class DidDocument {
         self.didDocStore = new DidStore(self.otmc.config.didDocument);
         self.didManifestStore = new DidStore(self.otmc.config.didManifest);
       } else {
-        self.didDocStore = new DidStore('did.document');
-        self.didManifestStore = new DidStore('did.manifest');
+        self.didDocStore = new DidStore(StoreKey.open.did.document);
+        self.didManifestStore = new DidStore(StoreKey.open.did.manifest);
       }
       self.loadDocument();
     });

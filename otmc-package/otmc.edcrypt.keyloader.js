@@ -41,7 +41,7 @@ export class EdcryptKeyLoaderBrowser {
       if(this.otmc.isNode) {
         this.didKeyStore = new Level.Level(this.otmc.config.didKeys,LEVEL_OPT);
       } else {
-        this.didKeyStore = new Level.Level('did.keys',LEVEL_OPT);
+        this.didKeyStore = new Level.Level(StoreKey.secret.authKey,LEVEL_OPT);
       }
       if(this.trace) {
         console.log('EdcryptKeyLoaderBrowser::ListenEventEmitter_::this.didKeyStore=:<',this.didKeyStore,'>');

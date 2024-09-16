@@ -50,12 +50,12 @@ layout: didteam.sidebar.ejs
           </div>
           <div class="input-group mb-3">
             <span class="input-group-text w-25">
-              <input class="form-check-input mt-0" type="radio" value="create" :checked="teamType === 'create'" name="CreateOrJoinTeam" v-model="teamType">
+              <input class="form-check-input" type="radio" value="create" :checked="teamType === 'create'" name="CreateOrJoinTeam" v-model="teamType">
               Create a new team
             </span>
             <input type="text" class="form-control" placeholder="did:otmc: control" :disabled="teamType !== 'create' || isControlled === false" v-model="create.controll">
             <span class="input-group-text w-25">
-              <input class="form-check-input mt-0" type="checkbox" value="" :disabled="teamType !== 'create'" v-model="isControlled">
+              <input class="form-check-input" type="checkbox" value="" :disabled="teamType !== 'create'" v-model="isControlled">
               Controlled
               <button class="btn btn-primary" type="button" @click="clickCreateDidTeamSeed()" :disabled="teamType !== 'create' && isControlled === true" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create A New DidTeam">
                 <i class="fa-solid fa-seedling"></i>
@@ -66,7 +66,7 @@ layout: didteam.sidebar.ejs
 
           <div class="input-group mb-3">
             <span class="input-group-text w-25">
-              <input class="form-check-input mt-0" type="radio" value="join" :checked="teamType === 'join'" name="CreateOrJoinTeam" v-model="teamType">
+              <input class="form-check-input" type="radio" value="join" :checked="teamType === 'join'" name="CreateOrJoinTeam" v-model="teamType">
               Join an exist team
             </span>
             <input type="text" class="form-control" placeholder="did:otmc: join" :disabled="teamType === 'create'" v-model="join.did">

@@ -2,6 +2,12 @@ import { default as mqtt } from 'mqtt';
 //console.log('::::mqtt=:<',mqtt,'>');
 import { StoreKey, OtmcPortal } from './otmc.const.js';
 import { MqttJWTAgent } from './otmc.mqtt.jwt.js';
+import * as Level from 'level';
+
+const LEVEL_OPT = {
+  keyEncoding: 'utf8',
+  valueEncoding: 'utf8',
+};
 
 /**
 *
@@ -18,6 +24,7 @@ export class MqttMessager {
     this.auth = false;
     this.base32 = false;
     this.util = false;
+    this.store = new Level.Level(StoreKey.secret.mqtt.jwt,LEVEL_OPT);
     this.ListenEventEmitter_();
   }
   ListenEventEmitter_() {
@@ -78,7 +85,11 @@ export class MqttMessager {
       if(this.otmc.isNode) {
         mqttJwtStr = fs.readFileSync(this.otmc.config.mqttJwt);
       } else {
-        mqttJwtStr = localStorage.getItem(StoreKey.mqttJwt);
+        const keyJwt= `${this.auth.address()}.jwt`;
+        if(this.trace) {
+          console.log('MqttMessager::validateMqttJwt::keyJwt=:<',keyJwt,'>');
+        }
+        mqttJwtStr = await this.store.get(keyJwt,LEVEL_OPT);
       }
       if(mqttJwtStr) {
         this.mqttJwt = JSON.parse(mqttJwtStr);
@@ -120,7 +131,15 @@ export class MqttMessager {
       if(this.otmc.isNode) {
         fs.writeFileSync(this.otmc.config.mqttJwt,JSON.stringify(jwtData,undefined,2));
       } else {
-        localStorage.setItem(StoreKey.mqttJwt,JSON.stringify(jwtData,undefined,2));
+        const keyJwt= `${this.auth.address()}.jwt`;
+        if(this.trace) {
+          console.log('MqttMessager::storeMqttJwt::keyJwt=:<',keyJwt,'>');
+        }
+        const value = JSON.stringify(jwtData,undefined,2);
+        const putResult = await this.store.put(keyJwt,value,LEVEL_OPT);
+        if(this.trace) {
+          console.log('MqttMessager::storeMqttJwt::putResult=:<',putResult,'>');
+        }
       }
     } catch(err) {
       console.error('MqttMessager::storeMqttJwt::err=:<',err,'>');

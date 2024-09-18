@@ -34,15 +34,17 @@ export class DidDocStateMachine {
       if(self.trace0) {
         console.log('DidDocStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      self.chain = new EvidenceChain(evt.didDoc.auth,evt.didDoc.didDoc_);
-      if(self.trace0) {
-        console.log('DidDocStateMachine::ListenEventEmitter_::this.stm=:<',this.stm,'>');
+      if(evt.didDoc.auth && evt.didDoc.didDoc_) {
+        self.chain = new EvidenceChain(evt.didDoc.auth,evt.didDoc.didDoc_);
+        if(self.trace0) {
+          console.log('DidDocStateMachine::ListenEventEmitter_::this.stm=:<',this.stm,'>');
+        }
+        if(self.trace0) {
+          console.log('DidDocStateMachine::ListenEventEmitter_::this.stm.config.context=:<',this.stm.config.context,'>');
+        }
+        this.stm.config.context.chain = self.chain;
+        self.ee.emit('did.evidence.load.storage',{chain:self.chain});
       }
-      if(self.trace0) {
-        console.log('DidDocStateMachine::ListenEventEmitter_::this.stm.config.context=:<',this.stm.config.context,'>');
-      }
-      this.stm.config.context.chain = self.chain;
-      self.ee.emit('did.evidence.load.storage',{chain:self.chain});
     });
     this.ee.on('did:document:evidence',(evt)=>{
       if(self.trace0) {

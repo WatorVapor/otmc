@@ -95,7 +95,7 @@ const didTeamOption = {
       console.log('clickJoinDidTeam::this=:<',this,'>');
       const otmc = this.otmc;
       console.log('clickJoinDidTeam::otmc=:<',otmc,'>');
-      const didDoc = otmc.joinDidTeamAsAuth(this.did.id);
+      const didDoc = otmc.joinDidTeamAsAuth(this.join.did);
       console.log('clickJoinDidTeam::didDoc=:<',didDoc,'>');
       this.did.doc = JSON.stringify(didDoc,undefined,2);
       this.hasAddress = true;
@@ -173,10 +173,12 @@ const loadDidTeamApps = (evt) => {
   });
   otmc.on('did:document',(didDoc)=>{
     console.log('loadDidTeamApps::didDoc=:<',didDoc,'>');
-    appDidVM.did.id = didDoc.id;
-    appDidVM.did.doc = JSON.stringify(didDoc,undefined,2);
-    appDidVM.hasAddress = true;
-    appDidVM.isInTeam = true;
+    if(didDoc) {
+      appDidVM.did.id = didDoc.id;
+      appDidVM.did.doc = JSON.stringify(didDoc,undefined,2);
+      appDidVM.hasAddress = true;
+      appDidVM.isInTeam = true;
+    }
   });
   otmc.on('didteam:join',(joinMsg) => {
     console.log('loadDidTeamApps::joinMsg=:<',joinMsg,'>');

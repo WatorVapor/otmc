@@ -384,10 +384,19 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::createJoinAsAuth::documentObj=:<',documentObj,'>');
     }
+    const documentStr = JSON.stringify(documentObj);
+    const storeKeyDid = `${this.guest.address()}.${this.util.calcAddress(documentStr)}`;
+    if(this.trace) {
+      console.log('DidDocument::createJoinAsAuth::storeKeyDid=:<',storeKeyDid,'>');
+    }
     if(this.otmc.isNode) {
       this.fs.writeFileSync(this.otmc.config.topDoc,JSON.stringify(documentObj,undefined,2));
     } else {
-      localStorage.setItem(StoreKey.didDoc,JSON.stringify(documentObj));
+      this.didDocStore.put(storeKeyDid, documentStr, LEVEL_OPT,(err)=>{
+        if(this.trace) {
+          console.log('DidDocument::createJoinAsAuth::err=:<',err,'>');
+        }
+      });
     }
     return documentObj;
   }

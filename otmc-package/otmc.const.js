@@ -13,6 +13,7 @@ export const StoreKey = {
     did: {
       document:'otmc/open/did/document',
       manifest:'otmc/open/did/manifest',
+      joinReq:'otmc/open/did/joinRequest',
     }
   },
   /*

@@ -136,9 +136,11 @@ export class DidDocument {
       if(self.otmc.isNode) {
         self.didDocStore = new DidStore(self.otmc.config.didDocument);
         self.didManifestStore = new DidStore(self.otmc.config.didManifest);
+        self.didJoinReqStore = new DidStore(self.otmc.config.joinReq);
       } else {
         self.didDocStore = new DidStore(StoreKey.open.did.document);
         self.didManifestStore = new DidStore(StoreKey.open.did.manifest);
+        self.didJoinReqStore = new DidStore(StoreKey.open.did.joinReq);
       }
       self.loadDocument();
     });
@@ -634,37 +636,31 @@ export class DidDocument {
     }
     return joinDidSigned;
   }
-  onInvitationJoinRequest(joinDid,joinAddress) {
+  async onInvitationJoinRequest(joinDid,joinAddress) {
     if(this.trace) {
       console.log('DidDocument::onInvitationJoinRequest::this.otmc=:<',this.otmc,'>');
       console.log('DidDocument::onInvitationJoinRequest::joinDid=:<',joinDid,'>');
       console.log('DidDocument::onInvitationJoinRequest::joinAddress=:<',joinAddress,'>');
     }
     this.checkEdcrypt_();
-    let joinStr = false;
-    if(this.otmc.isNode) {
-      try {
-        joinStr = this.fs.readFileSync(this.otmc.config.invitation);
-      } catch ( err ) {
-        console.error('DidDocument::onInvitationJoinRequest::err=:<',err,'>');
-      }
-    } else {
-      joinStr = localStorage.getItem(StoreKey.invitation.join);
+    const documentStr = JSON.stringify(joinDid);
+    const storeKeyDid = `${joinAddress}.${this.util.calcAddress(documentStr)}`;
+    if(this.trace) {
+      console.log('DidDocument::onInvitationJoinRequest::storeKeyDid=:<',storeKeyDid,'>');
     }
-    let joinList = {};
-    if(joinStr) {
-      joinList = JSON.parse(joinStr);
-      if(this.trace) {
-        console.log('DidDocument::onInvitationJoinRequest::joinList=:<',joinList,'>');
-      }
-    }
-    joinList[joinAddress] = joinDid;
     if(this.otmc.isNode) {
       this.fs.writeFileSync(this.otmc.config.invitation,JSON.stringify(joinList,undefined,2));
     } else {
-      localStorage.setItem(StoreKey.invitation.join,JSON.stringify(joinList,undefined,2));
+      this.didJoinReqStore.put(storeKeyDid, documentStr, LEVEL_OPT,(err)=>{
+        if(this.trace) {
+          console.log('DidDocument::onInvitationJoinRequest::err=:<',err,'>');
+        }
+      });
     }
-    this.joinList_ = JSON.parse(JSON.stringify(joinList));    
+    let joinList = await this.didJoinReqStore.getAll(joinAddress);
+    if(this.trace) {
+      console.log('DidDocument::onInvitationJoinRequest::joinList=:<',joinList,'>');
+    }
     this.otmc.emit('didteam:joinLoaded',joinList);
   }
   acceptInvitation(address) {

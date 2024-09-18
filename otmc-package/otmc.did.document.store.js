@@ -23,6 +23,7 @@ export class DidStore {
     this.store.put(key,value,option,cb);
   }
   async getTop(address) {
+    /*
     const storeKeyPrefix = `did:otmc:${address}.`;
     if(this.trace) {
       console.log('DidStore::getTop::storeKeyPrefix=:<',storeKeyPrefix,'>');
@@ -49,9 +50,12 @@ export class DidStore {
       const didValueJson = JSON.parse(didValue);
       didValuesJson.push(didValueJson);
     }
+    */
+    const didValuesJson = this.getAll(address);
     if(this.trace) {
       console.log('DidStore::getTop::didValuesJson=:<',didValuesJson,'>');
     }
+    
     const sorted = didValuesJson.sort( this.compare_ );
     if(this.trace) {
       console.log('DidStore::getTop::sorted=:<',sorted,'>');
@@ -65,32 +69,32 @@ export class DidStore {
   async getAll(address) {
     const storeKeyPrefix = `did:otmc:${address}.`;
     if(this.trace) {
-      console.log('DidStore::getTop::storeKeyPrefix=:<',storeKeyPrefix,'>');
+      console.log('DidStore::getAll::storeKeyPrefix=:<',storeKeyPrefix,'>');
     }
     const storeKeys = await this.store.keys(LEVEL_OPT).all();
     if(this.trace) {
-      console.log('DidStore::getTop::storeKeys=:<',storeKeys,'>');
+      console.log('DidStore::getAll::storeKeys=:<',storeKeys,'>');
     }
-    const myDidKeys = [];
+    const didValuesJson = [];
     for(const storeKey of storeKeys) {
-      if(storeKey.startsWith(storeKeyPrefix)) {
-        myDidKeys.push(storeKey); 
+      const storeValueStr = await this.store.get(storeKey,LEVEL_OPT);
+      if(this.trace) {
+        console.log('DidStore::getAll::storeValueStr=:<',storeValueStr,'>');
+      }
+      const storeValue = JSON.parse(storeValueStr);
+      if(this.trace) {
+        console.log('DidStore::getAll::storeValue=:<',storeValue,'>');
+      }
+      const isMine = this.isAddressUsedDid_(storeValue,address);
+      if(this.trace) {
+        console.log('DidStore::getAll::isMine=:<',isMine,'>');
+      }
+      if(isMine) {
+        didValuesJson.push(storeValue);
       }
     }
     if(this.trace) {
-      console.log('DidStore::getTop::myDidKeys=:<',myDidKeys,'>');
-    }
-    const didValues = await this.store.getMany(myDidKeys,LEVEL_OPT);
-    if(this.trace) {
-      console.log('DidStore::getTop::didValues=:<',didValues,'>');
-    }
-    const didValuesJson = [];
-    for(const didValue of didValues) {
-      const didValueJson = JSON.parse(didValue);
-      didValuesJson.push(didValueJson);
-    }
-    if(this.trace) {
-      console.log('DidStore::getTop::didValuesJson=:<',didValuesJson,'>');
+      console.log('DidStore::getAll::didValuesJson=:<',didValuesJson,'>');
     }
     return didValuesJson;
   }
@@ -103,6 +107,26 @@ export class DidStore {
       return 1;
     }
     return 0;
+  }
+  
+  isAddressUsedDid_(didDoc,address) {
+    if(this.trace) {
+      console.log('DidStore::isAddressUsedDid_::didDoc=:<',didDoc,'>');
+      console.log('DidStore::isAddressUsedDid_::address=:<',address,'>');
+    }
+    const addressSuffix = `#${address}`;
+    if(this.trace) {
+      console.log('DidStore::isAddressUsedDid_::addressSuffix=:<',addressSuffix,'>');
+    }
+    for(const auth of didDoc.authentication) {
+      if(this.trace) {
+        console.log('DidStore::isAddressUsedDid_::auth=:<',auth,'>');
+      }
+      if(auth.endsWith(addressSuffix)) {
+        return true;
+      }
+    }
+    return false;
   }
 
 }

@@ -23,35 +23,7 @@ export class DidStore {
     this.store.put(key,value,option,cb);
   }
   async getTop(address) {
-    /*
-    const storeKeyPrefix = `did:otmc:${address}.`;
-    if(this.trace) {
-      console.log('DidStore::getTop::storeKeyPrefix=:<',storeKeyPrefix,'>');
-    }
-    const storeKeys = await this.store.keys(LEVEL_OPT).all();
-    if(this.trace) {
-      console.log('DidStore::getTop::storeKeys=:<',storeKeys,'>');
-    }
-    const myDidKeys = [];
-    for(const storeKey of storeKeys) {
-      if(storeKey.startsWith(storeKeyPrefix)) {
-        myDidKeys.push(storeKey); 
-      }
-    }
-    if(this.trace) {
-      console.log('DidStore::getTop::myDidKeys=:<',myDidKeys,'>');
-    }
-    const didValues = await this.store.getMany(myDidKeys,LEVEL_OPT);
-    if(this.trace) {
-      console.log('DidStore::getTop::didValues=:<',didValues,'>');
-    }
-    const didValuesJson = [];
-    for(const didValue of didValues) {
-      const didValueJson = JSON.parse(didValue);
-      didValuesJson.push(didValueJson);
-    }
-    */
-    const didValuesJson = this.getAll(address);
+    const didValuesJson = await this.getAll(address);
     if(this.trace) {
       console.log('DidStore::getTop::didValuesJson=:<',didValuesJson,'>');
     }

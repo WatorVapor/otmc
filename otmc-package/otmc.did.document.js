@@ -27,7 +27,11 @@ import {
 } from './did/document.js';
 import {DidDocStateMachine} from './otmc.did.stm.docstate.js';
 import {DidRuntimeStateMachine} from './otmc.did.stm.runtime.js';
-import { DidStore } from './otmc.did.document.store.js';
+import {
+  DidStoreDocument,
+  DidStoreManifest,
+  DidStoreJoin
+} from './otmc.did.document.store.js';
 
 
 
@@ -134,13 +138,13 @@ export class DidDocument {
         console.log('DidDocument::ListenEventEmitter_::self.otmc=:<',self.otmc,'>');
       }
       if(self.otmc.isNode) {
-        self.didDocStore = new DidStore(self.otmc.config.didDocument);
-        self.didManifestStore = new DidStore(self.otmc.config.didManifest);
-        self.didJoinReqStore = new DidStore(self.otmc.config.joinReq);
+        self.didDocStore = new DidStoreDocument(self.otmc.config.didDocument);
+        self.didManifestStore = new DidStoreManifest(self.otmc.config.didManifest);
+        self.didJoinStore = new DidStoreJoin(self.otmc.config.joinReq);
       } else {
-        self.didDocStore = new DidStore(StoreKey.open.did.document);
-        self.didManifestStore = new DidStore(StoreKey.open.did.manifest);
-        self.didJoinReqStore = new DidStore(StoreKey.open.did.joinReq);
+        self.didDocStore = new DidStoreDocument(StoreKey.open.did.document);
+        self.didManifestStore = new DidStoreManifest(StoreKey.open.did.manifest);
+        self.didJoinStore = new DidStoreJoin(StoreKey.open.did.joinReq);
       }
       self.loadDocument();
     });
@@ -274,33 +278,34 @@ export class DidDocument {
       this.didDoc_ = didDoc;
       this.ee.emit('did:document',{didDoc:this});
 
-      let manifest = false;
-      if(this.otmc.isNode) {
-        try {
-          manifestStr = this.fs.readFileSync(this.otmc.config.topManifest);
-          manifest = JSON.parse(manifestStr);
-        } catch ( err ) {
-          console.error('DidDocument::loadDocument::err=:<',err,'>');
-        }
-      } else {
-        manifest = await this.didManifestStore.getTop(this.auth.address());;
-      }
-      if(this.trace) {
-        console.log('DidDocument::loadDocument::manifest=:<',manifest,'>');
-      }
-      if(manifest) {
-        this.otmc.emit('did:manifest',manifest);
-        this.ee.emit('OtmcStateMachine.actor.send',{type:'did:document_manifest'});
-        this.didManifest_ = manifest;
-      } else {
-        this.ee.emit('OtmcStateMachine.actor.send',{type:'did:document'});
-      }
       if(this.didDoc_) {
+        let manifest = false;
+        if(this.otmc.isNode) {
+          try {
+            manifestStr = this.fs.readFileSync(this.otmc.config.topManifest);
+            manifest = JSON.parse(manifestStr);
+          } catch ( err ) {
+            console.error('DidDocument::loadDocument::err=:<',err,'>');
+          }
+        } else {
+          manifest = await this.didManifestStore.getTop(this.didDoc_.id);
+        }
+        if(this.trace) {
+          console.log('DidDocument::loadDocument::manifest=:<',manifest,'>');
+        }
+        if(manifest) {
+          this.otmc.emit('did:manifest',manifest);
+          this.ee.emit('OtmcStateMachine.actor.send',{type:'did:document_manifest'});
+          this.didManifest_ = manifest;
+        } else {
+          this.ee.emit('OtmcStateMachine.actor.send',{type:'did:document'});
+        }
         const results = this.auth.verifyDid(this.didDoc_);
         if(this.trace) {
           console.log('DidDocument::loadDocument::results=:<',results,'>');
         }
         let joinStr = false;
+        let joinList;
         if(this.otmc.isNode) {
           try {
             joinStr = this.fs.readFileSync(this.otmc.config.invitation);
@@ -308,11 +313,10 @@ export class DidDocument {
             console.error('DidDocument::loadDocument::err=:<',err,'>');
           }
         } else {
-          joinStr = localStorage.getItem(StoreKey.invitation.join);
+          joinList = await this.didJoinStore.getTop(this.didDoc_.id);
         }
         if(joinStr) {
-          const joinList = JSON.parse(joinStr);
-          this.joinList_ = JSON.parse(joinStr);
+          this.joinList_ = joinList;
           if(this.trace) {
             console.log('DidDocument::loadDocument::joinList=:<',joinList,'>');
           }
@@ -644,20 +648,24 @@ export class DidDocument {
     }
     this.checkEdcrypt_();
     const documentStr = JSON.stringify(joinDid);
-    const storeKeyDid = `${joinAddress}.${this.util.calcAddress(documentStr)}`;
+    const didAddress = joinDid.id;
+    if(this.trace) {
+      console.log('DidDocument::onInvitationJoinRequest::didAddress=:<',didAddress,'>');
+    }
+    const storeKeyDid = `${didAddress}.${this.util.calcAddress(documentStr)}`;
     if(this.trace) {
       console.log('DidDocument::onInvitationJoinRequest::storeKeyDid=:<',storeKeyDid,'>');
     }
     if(this.otmc.isNode) {
       this.fs.writeFileSync(this.otmc.config.invitation,JSON.stringify(joinList,undefined,2));
     } else {
-      this.didJoinReqStore.put(storeKeyDid, documentStr, LEVEL_OPT,(err)=>{
+      this.didJoinStore.put(storeKeyDid, documentStr, LEVEL_OPT,(err)=>{
         if(this.trace) {
           console.log('DidDocument::onInvitationJoinRequest::err=:<',err,'>');
         }
       });
     }
-    let joinList = await this.didJoinReqStore.getAll(joinAddress);
+    let joinList = await this.didJoinStore.getAll(storeKeyDid);
     if(this.trace) {
       console.log('DidDocument::onInvitationJoinRequest::joinList=:<',joinList,'>');
     }
@@ -973,7 +981,7 @@ export class DidDocument {
   
   
   async loadDidRuleFromManifest_() {
-    const manifestsJson = await this.didManifestStore.getAll(this.auth.address());
+    const manifestsJson = await this.didManifestStore.getAll(this.didDoc_.id);
     if(this.trace5) {
       console.log('DidDocument::loadDidRuleFromManifest_::manifestsJson=<',manifestsJson,'>');
     }

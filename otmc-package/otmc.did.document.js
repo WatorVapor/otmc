@@ -27,6 +27,7 @@ import {
 } from './did/document.js';
 import {DidDocStateMachine} from './otmc.did.stm.docstate.js';
 import {DidRuntimeStateMachine} from './otmc.did.stm.runtime.js';
+import { DidResolver } from './otmc.did.resolver.js';
 import {
   DidStoreDocument,
   DidStoreManifest,
@@ -63,6 +64,7 @@ export class DidDocument {
     };
     this.docState = new DidDocStateMachine(this.ee);
     this.rtState = new DidRuntimeStateMachine(this.ee);
+    this.resolver = new DidResolver(this.ee);
     this.evidenceAuth = {};
     this.evidenceCapability = {};
   }
@@ -304,18 +306,18 @@ export class DidDocument {
         if(this.trace) {
           console.log('DidDocument::loadDocument::results=:<',results,'>');
         }
-        let joinStr = false;
-        let joinList;
+        let joinList = false;
         if(this.otmc.isNode) {
           try {
-            joinStr = this.fs.readFileSync(this.otmc.config.invitation);
+            const joinStr = this.fs.readFileSync(this.otmc.config.invitation);
+            joinList = JSON.parse(joinStr);
           } catch ( err ) {
             console.error('DidDocument::loadDocument::err=:<',err,'>');
           }
         } else {
-          joinList = await this.didJoinStore.getTop(this.didDoc_.id);
+          joinList = await this.didJoinStore.getAll(this.didDoc_.id);
         }
-        if(joinStr) {
+        if(joinList) {
           this.joinList_ = joinList;
           if(this.trace) {
             console.log('DidDocument::loadDocument::joinList=:<',joinList,'>');
@@ -665,7 +667,7 @@ export class DidDocument {
         }
       });
     }
-    let joinList = await this.didJoinStore.getAll(storeKeyDid);
+    let joinList = await this.didJoinStore.getAll(didAddress);
     if(this.trace) {
       console.log('DidDocument::onInvitationJoinRequest::joinList=:<',joinList,'>');
     }

@@ -7,7 +7,6 @@ import { OtmcStateMachine } from './otmc.state.machine.js';
 import * as Level from 'level';
 import { EdcryptKeyLoaderBrowser,EdcryptKeyLoaderNode } from './otmc.edcrypt.keyloader.js';
 
-
 /**
 *
 */

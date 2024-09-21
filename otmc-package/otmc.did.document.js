@@ -487,6 +487,7 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::createSyncUploadDid::syncDidSigned=:<',syncDidSigned,'>');
     }
+    this.resolver.store(syncDidSigned);
     return syncDidSigned;
   }
 
@@ -513,6 +514,7 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::createSyncDownloadDid::syncDownloadSigned=:<',syncDownloadSigned,'>');
     }
+    this.resolver.resolver(this.didDoc_.id);
     return syncDownloadSigned;
   }
   createSyncDownloadInvitation() {

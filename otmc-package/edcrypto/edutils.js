@@ -54,6 +54,11 @@ export class EdUtil {
     }
     return address;
   }
+  encodeBase64Str(strMsg) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(strMsg);
+    return this.encodeBase64(data);
+  }
   encodeBase64(arr) {
     let i, s = [], len = arr.length;
     for (i = 0; i < len; i++) s.push(String.fromCharCode(arr[i]));

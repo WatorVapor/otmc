@@ -10,8 +10,8 @@ import { EdcryptKeyLoaderBrowser,EdcryptKeyLoaderNode } from './otmc.edcrypt.key
 /**
 *
 */
-export class Otmc extends EventEmitter {
-  static trace = false;
+export class OtmcTeam extends EventEmitter {
+  static trace = true;
   static debug = true;
   constructor(config) {
     super();
@@ -24,35 +24,29 @@ export class Otmc extends EventEmitter {
     } else {
       this.config = {};
     }
-    this.ee = new EventEmitter();
+    this.eeInternal = new EventEmitter();
     if(this.trace) {
-      console.log('Otmc::constructor::this.ee=:<',this.ee,'>');
+      console.log('OtmcTeam::constructor::this.eeInternal=:<',this.eeInternal,'>');
     }
     if(this.isNode) {
-      this.edCryptKey = new EdcryptKeyLoaderNode(this.ee);
+      this.edCryptKey = new EdcryptKeyLoaderNode(this.eeInternal);
     } else {
-      this.edCryptKey = new EdcryptKeyLoaderBrowser(this.ee);
+      this.edCryptKey = new EdcryptKeyLoaderBrowser(this.eeInternal);
     }
-    this.did = new DidDocument(this.ee);
-    this.mqtt = new MqttMessager(this.ee);
     const self = this;
     setTimeout(() => {
+      self.did = new DidDocument(this.eeInternal,this);
       self.edCryptKey.otmc = self;
       self.did.otmc = self;
-      self.mqtt.otmc = self;
-      self.ee.emit('edCryptKey.loader.runWorker',{});
-      self.sm = new OtmcStateMachine(this.ee);
+      self.eeInternal.emit('edCryptKey.loader.runWorker',{});
+      self.sm = new OtmcStateMachine(this.eeInternal);
     },1);
-    this.mqttOption = {
-      qos:0,
-      nl:true
-    };
   }
   switchDidKey(didKey) {
     const data = {
       keyId:didKey
     }
-    this.ee.emit('edCryptKey.loader.switchKey',data);
+    this.eeInternal.emit('edCryptKey.loader.switchKey',data);
   }
   startMining() {
     const data = {
@@ -60,69 +54,59 @@ export class Otmc extends EventEmitter {
         start:true,
       }
     }
-    this.ee.emit('edCryptKey.loader.mining',data);
+    this.eeInternal.emit('edCryptKey.loader.mining',data);
   }
   createDidTeamFromSeed() {
-    return this.did.createSeed();
+    if(this.trace) {
+      console.log('OtmcTeam::createDidTeamFromSeed::this.eeInternal=:<',this.eeInternal,'>');
+    }
+    this.eeInternal.emit('did.create.seed',{});
+    //return this.did.createSeed();
   }
   joinDidTeamAsAuth(id) {
-    return this.did.createJoinAsAuth(id);
+    this.eeInternal.emit('did.join.as.auth',{did:id});
+    //return this.did.createJoinAsAuth(id);
   }
   
   
   requestJoinDidTeam() {
-    const joinRequest = this.did.requestJoinDid();
-    if(this.trace) {
-      console.log('Otmc::requestJoinDidTeam::joinRequest=:<',joinRequest,'>');
-    }
-    this.mqtt.publish(joinRequest.topic,joinRequest,this.mqttOption);
+    this.eeInternal.emit('did.join.request',{});
+    //const joinRequest = this.did.requestJoinDid();
+    //if(this.trace) {
+    //  console.log('Otmc::requestJoinDidTeam::joinRequest=:<',joinRequest,'>');
+    //}
+    //this.mqtt.publish(joinRequest.topic,joinRequest,this.mqttOption);
   }
   acceptInvitation(address){
     if(this.trace) {
       console.log('Otmc::acceptInvitation::new Date()=:<',new Date(),'>');
       console.log('Otmc::acceptInvitation::address=:<',address,'>');
     }
-    const invitationReply = this.did.acceptInvitation(address);
-    this.mqtt.publish(invitationReply.topic,invitationReply,this.mqttOption);
+    this.eeInternal.emit('did.join.accept.request',{address:address});
+    //const invitationReply = this.did.acceptInvitation(address);
+    //this.mqtt.publish(invitationReply.topic,invitationReply,this.mqttOption);
   }
   rejectInvitation(address){
     if(this.trace) {
       console.log('Otmc::rejectInvitation::new Date()=:<',new Date(),'>');
       console.log('Otmc::rejectInvitation::address=:<',address,'>');
     }
-    const rejectInvitationReply = this.did.rejectInvitation(address);
-    this.mqtt.publish(invitationReply.topic,invitationReply,this.mqttOption);
+    this.eeInternal.emit('did.join.reject.request',{address:address});
+    //const rejectInvitationReply = this.did.rejectInvitation(address);
+    //this.mqtt.publish(invitationReply.topic,invitationReply,this.mqttOption);
   }
   checkEvidenceChain(){
     if(this.trace) {
       console.log('Otmc::checkEvidenceChain::new Date()=:<',new Date(),'>');
     }
-    this.did.checkDidEvidence_();
+    this.eeInternal.emit('did.check.evidence.chain',{});
+    //this.did.checkDidEvidence_();
   }
   updateManifest(manifest){
     if(this.trace) {
       console.log('Otmc::updateManifest::manifest=:<',manifest,'>');
     }
-    this.did.updateManifest(manifest);
-  }
-  publishMsg(mqttMsg){
-    if(this.trace0) {
-      console.log('Otmc::publishMsg::mqttMsg=:<',mqttMsg,'>');
-    }
-    const msgPack = this.did.packMessage(mqttMsg);
-    if(this.trace0) {
-      console.log('Otmc::publishMsg::msgPack=:<',msgPack,'>');
-    }
-    this.mqtt.publish(msgPack.topic,msgPack,this.mqttOption);
-  }
-  broadcastMsg(mqttMsg){
-    if(this.trace0) {
-      console.log('Otmc::publishMsg::mqttMsg=:<',mqttMsg,'>');
-    }
-    const msgPack = this.did.packBroadcastMessage(mqttMsg);
-    if(this.trace0) {
-      console.log('Otmc::publishMsg::msgPack=:<',msgPack,'>');
-    }
-    this.mqtt.publish(msgPack.topic,msgPack,this.mqttOption);
+    this.eeInternal.emit('did.manifest.update',{manifest:manifest});
+    //this.did.updateManifest(manifest);
   }
 }

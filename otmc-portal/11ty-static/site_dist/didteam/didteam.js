@@ -1,5 +1,5 @@
 import * as Vue from 'vue';
-import { Otmc } from 'otmc';
+import { OtmcTeam } from 'otmcTeam';
 
 document.addEventListener('DOMContentLoaded', async (evt) => {
   loadDidTeamApps(evt);
@@ -85,11 +85,13 @@ const didTeamOption = {
       console.log('clickCreateDidTeamSeed::this=:<',this,'>');
       const otmc = this.otmc;
       console.log('clickCreateDidTeamSeed::otmc=:<',otmc,'>');
-      const didDoc = otmc.createDidTeamFromSeed();
+      otmc.createDidTeamFromSeed();
+      /*
       console.log('clickCreateDidTeamSeed::didDoc=:<',didDoc,'>');
       this.did.id = didDoc.id;
       this.did.doc = JSON.stringify(didDoc,undefined,2);
       this.hasAddress = true;
+      */
     },
     clickJoinDidTeam(evt) {
       console.log('clickJoinDidTeam::this=:<',this,'>');
@@ -156,7 +158,7 @@ const loadDidTeamApps = (evt) => {
   console.log('loadDidTeamApps::appInvitationVM=:<',appInvitationVM,'>');
   
   
-  const otmc = new Otmc();
+  const otmc = new OtmcTeam();
   console.log('loadDidTeamApps::otmc=:<',otmc,'>');
   otmc.on('edcrypt:didKeyList',(didKeyList)=>{
     onDidKeyRefreshKeyApp(didKeyList,edcryptKeyVM);

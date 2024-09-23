@@ -3,26 +3,30 @@ import {
   DidStoreManifest,
   DidStoreJoin
 } from './otmc.did.document.store.js';
+import { StoreKey } from './otmc.const.js';
 
 const context = 'https://otmc.wator.xyz/ns/did';
-
+const LEVEL_OPT = {
+  keyEncoding: 'utf8',
+  valueEncoding: 'utf8',
+};
 
 /**
 *
 */
 export class DidResolver {
-  constructor(ee) {
+  constructor(eeInternal) {
     this.trace = true;;
     this.debug = true;
-    this.ee = ee;
+    this.eeInternal = eeInternal;
     this.ListenEventEmitter_();
   }
   ListenEventEmitter_() {
     if(this.trace) {
-      console.log('DidResolver::ListenEventEmitter_::this.ee=:<',this.ee,'>');
+      console.log('DidResolver::ListenEventEmitter_::this.eeInternal=:<',this.eeInternal,'>');
     }
     const self = this;
-    this.ee.on('sys.authKey.ready',(evt)=>{
+    this.eeInternal.on('sys.authKey.ready',(evt)=>{
       if(self.trace) {
         console.log('DidResolver::ListenEventEmitter_::evt=:<',evt,'>');
       }
@@ -30,6 +34,8 @@ export class DidResolver {
       self.otmc = evt.otmc;
       self.base32 = evt.base32;
       self.util = evt.util;
+      self.localStore = new DidResolverLocalStore();
+      self.webStore = new DidResolverWebStore();
     });
   }
 
@@ -37,13 +43,67 @@ export class DidResolver {
     if(this.trace) {
       console.log('DidResolver::resolver::didAddress=:<',didAddress,'>');
     }
-    const didDoc = await this.requestAPI_(didAddress);
+    const didDoc = await this.webStore(didAddress);
     if(this.trace) {
       console.log('DidResolver::resolver::didDoc=:<',didDoc,'>');
     }
   }
-  async store(didDoc){
+  async storeDid(storeKey,didDocStr){
+    this.localStore.storeDid(storeKey,didDocStr)
+  }
+  async storeManifest(storeKey,manifestStr){
+    this.localStore.storeManifest(storeKey,manifestStr)
+  }
+}
+
+
+class DidResolverLocalStore {
+  constructor() {
+    this.trace = true;;
+    this.debug = true;
+    this.didDocLS = new DidStoreDocument(StoreKey.open.did.document);
+    this.manifestLS = new DidStoreManifest(StoreKey.open.did.manifest);
+    this.joinStore = new DidStoreJoin(StoreKey.open.did.joinReq);
+  }
+
+  async resolver(didAddress){
+    if(this.trace) {
+      console.log('DidResolverLocalStore::resolver::didAddress=:<',didAddress,'>');
+    }
+    //const didDoc = await this.requestAPI_(didAddress);
     
+    //return didDoc;
+  }
+  async storeDid(storeKey,didDocStr){
+    this.didDocLS.put(storeKey, didDocStr, LEVEL_OPT,(err)=>{
+      if(this.trace) {
+        console.log('DidResolverLocalStore::storeDid::err=:<',err,'>');
+      }
+    });
+  }
+  async storeManifest(storeKey,manifestStr){
+    this.manifestLS.put(storeKey, manifestStr, LEVEL_OPT,(err)=>{
+      if(this.trace) {
+        console.log('DidResolverLocalStore::storeManifest::err=:<',err,'>');
+      }
+    });
+  }
+}
+
+ class DidResolverWebStore {
+  constructor(ee) {
+    this.trace = true;;
+    this.debug = true;
+  }
+
+  async resolver(didAddress){
+    if(this.trace) {
+      console.log('DidResolver::resolver::didAddress=:<',didAddress,'>');
+    }
+  }
+  async storeDid(storeKey,didDocStr){
+  }
+  async storeManifest(storeKey,manifestStr){
   }
   async requestAPI_(apiPath) {
     const reqURl =`${context}/v1/${apiPath}`;

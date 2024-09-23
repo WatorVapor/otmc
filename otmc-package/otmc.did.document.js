@@ -39,22 +39,18 @@ import {
 const includesAnyByCreator = (setArr,value ) => setArr.some(attr => value === attr.creator);
 
 
-const LEVEL_OPT = {
-  keyEncoding: 'utf8',
-  valueEncoding: 'utf8',
-};
-
 /**
 *
 */
 export class DidDocument {
-  constructor(ee) {
+  constructor(eeInternal,eeOut) {
     this.trace0 = true;
     this.trace1 = false;
     this.trace2 = false;
     this.trace = true;;
     this.debug = true;
-    this.ee = ee;
+    this.eeInternal = eeInternal;
+    this.eeOut = eeOut;
     this.base32 = new Base32();
     this.util = new EdUtil(this.base32,nacl);
     this.ListenEventEmitter_();
@@ -62,9 +58,9 @@ export class DidDocument {
       qos:0,
       nl:true
     };
-    this.docState = new DidDocStateMachine(this.ee);
-    this.rtState = new DidRuntimeStateMachine(this.ee);
-    this.resolver = new DidResolver(this.ee);
+    this.docState = new DidDocStateMachine(this.eeInternal);
+    this.rtState = new DidRuntimeStateMachine(this.eeInternal);
+    this.resolver = new DidResolver(this.eeInternal);
     this.evidenceAuth = {};
     this.evidenceCapability = {};
   }
@@ -81,7 +77,7 @@ export class DidDocument {
     if(this.trace0) {
       console.log('DidDocument::createModule_::this.fs=:<',this.fs,'>');
     }
-    this.ee.emit('OtmcStateMachine.actor.send',{type:'did:module_ready'});
+    this.eeInternal.emit('OtmcStateMachine.actor.send',{type:'did:module_ready'});
   }
   
   ListenEventEmitter_() {
@@ -91,16 +87,16 @@ export class DidDocument {
       console.log('DidDocument::ListenEventEmitter_::base64urlnopad=:<',base64urlnopad,'>');
     }
     if(this.trace0) {
-      console.log('DidDocument::ListenEventEmitter_::this.ee=:<',this.ee,'>');
+      console.log('DidDocument::ListenEventEmitter_::this.eeInternal=:<',this.eeInternal,'>');
     }
     const self = this;
-    this.ee.on('did.module.load',(authKey)=>{
+    this.eeInternal.on('did.module.load',(authKey)=>{
       if(self.trace) {
         console.log('DidDocument::ListenEventEmitter_::authKey=:<',authKey,'>');
       }
       self.createModule_();
     });
-    this.ee.on('did.edcrypt.authKey',(authKey)=>{
+    this.eeInternal.on('did.edcrypt.authKey',(authKey)=>{
       if(self.trace) {
         console.log('DidDocument::ListenEventEmitter_::authKey=:<',authKey,'>');
       }
@@ -115,10 +111,10 @@ export class DidDocument {
         auth:self.auth,
         did:this,
       };
-      self.ee.emit('sys.authKey.ready',evt);
+      self.eeInternal.emit('sys.authKey.ready',evt);
       self.createModule_();
     });
-    this.ee.on('did.edcrypt.recoveryKey',(recoveryKey)=>{
+    this.eeInternal.on('did.edcrypt.recoveryKey',(recoveryKey)=>{
       if(self.trace) {
         console.log('DidDocument::ListenEventEmitter_::recoveryKey=:<',recoveryKey,'>');
       }
@@ -130,27 +126,26 @@ export class DidDocument {
         otmc:self.otmc,
         recovery:self.recovery,
       };
-      self.ee.emit('mqtt.jwt.agent.recoveryKey.ready',evt);
+      self.eeInternal.emit('mqtt.jwt.agent.recoveryKey.ready',evt);
     });
-    this.ee.on('did.loadDocument',(evt)=>{
+    this.eeInternal.on('did.create.seed',(evt)=>{
+      if(self.trace) {
+        console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.createSeed();
+    });
+
+
+    this.eeInternal.on('did.loadDocument',(evt)=>{
       if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
       if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::self.otmc=:<',self.otmc,'>');
       }
-      if(self.otmc.isNode) {
-        self.didDocStore = new DidStoreDocument(self.otmc.config.didDocument);
-        self.didManifestStore = new DidStoreManifest(self.otmc.config.didManifest);
-        self.didJoinStore = new DidStoreJoin(self.otmc.config.joinReq);
-      } else {
-        self.didDocStore = new DidStoreDocument(StoreKey.open.did.document);
-        self.didManifestStore = new DidStoreManifest(StoreKey.open.did.manifest);
-        self.didJoinStore = new DidStoreJoin(StoreKey.open.did.joinReq);
-      }
       self.loadDocument();
     });
-    this.ee.on('did.evidence.load.storage',async (evt)=>{
+    this.eeInternal.on('did.evidence.load.storage',async (evt)=>{
       if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
@@ -166,10 +161,10 @@ export class DidDocument {
         manifest:manifest,
         evidence:evidence,
       };
-      self.ee.emit('did:document:evidence',evidenceChain);
+      self.eeInternal.emit('did:document:evidence',evidenceChain);
 
     });
-    this.ee.on('did.evidence.auth',(evt)=>{
+    this.eeInternal.on('did.evidence.auth',(evt)=>{
       if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
@@ -178,7 +173,7 @@ export class DidDocument {
         console.log('DidDocument::ListenEventEmitter_::self.evidenceAuth=:<',self.evidenceAuth,'>');
       }
     });
-    this.ee.on('did.evidence.capability',(evt)=>{
+    this.eeInternal.on('did.evidence.capability',(evt)=>{
       if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
@@ -187,7 +182,7 @@ export class DidDocument {
         console.log('DidDocument::ListenEventEmitter_::self.evidenceCapability=:<',self.evidenceCapability,'>');
       }
     });
-    this.ee.on('otmc.did.client.storage',(evt)=>{
+    this.eeInternal.on('otmc.did.client.storage',(evt)=>{
       if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
@@ -195,7 +190,7 @@ export class DidDocument {
         self.syncDidDocument_();
       },1);
     });
-    this.ee.on('did.document.merge',(evt)=>{
+    this.eeInternal.on('did.document.merge',(evt)=>{
       if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
@@ -215,13 +210,13 @@ export class DidDocument {
       console.log('DidDocument::syncDidDocument_::uploadManifest=:<',uploadManifest,'>');
     }
     if(uploadManifest) {
-      this.ee.emit('otmc.mqtt.publish',{msg:uploadManifest,option:this.mqttOption});
+      this.eeInternal.emit('otmc.mqtt.publish',{msg:uploadManifest,option:this.mqttOption});
     }    
     const uploadDoc = this.createSyncUploadDid();
     if(this.trace) {
       console.log('DidDocument::syncDidDocument_::uploadDoc=:<',uploadDoc,'>');
     }
-    this.ee.emit('otmc.mqtt.publish',{msg:uploadDoc,option:this.mqttOption});
+    this.eeInternal.emit('otmc.mqtt.publish',{msg:uploadDoc,option:this.mqttOption});
 
 
     const downloadManifest = this.createSyncDownloadManifest();
@@ -229,21 +224,21 @@ export class DidDocument {
       console.log('DidDocument::syncDidDocument_::downloadManifest=:<',downloadManifest,'>');
     }
     if(downloadManifest) {
-      this.ee.emit('otmc.mqtt.publish',{msg:downloadManifest,option:this.mqttOption});
+      this.eeInternal.emit('otmc.mqtt.publish',{msg:downloadManifest,option:this.mqttOption});
     }
     
     const downloadDoc = this.createSyncDownloadDid();
     if(this.trace) {
       console.log('DidDocument::syncDidDocument_::downloadDoc=:<',downloadDoc,'>');
     }
-    this.ee.emit('otmc.mqtt.publish',{msg:downloadDoc,option:this.mqttOption});
+    this.eeInternal.emit('otmc.mqtt.publish',{msg:downloadDoc,option:this.mqttOption});
 
     const downloadInvitation = this.createSyncDownloadInvitation();
     if(this.trace) {
       console.log('DidDocument::syncDidDocument_::downloadInvitation=:<',downloadInvitation,'>');
     }
     if(downloadInvitation) {
-      this.ee.emit('otmc.mqtt.publish',{msg:downloadInvitation,option:this.mqttOption});
+      this.eeInternal.emit('otmc.mqtt.publish',{msg:downloadInvitation,option:this.mqttOption});
     }
   }
 
@@ -253,7 +248,7 @@ export class DidDocument {
       console.log('DidDocument::loadDocument::fs=:<',fs,'>');
     }
     if(this.trace0) {
-      console.log('DidDocument::loadDocument::this.ee=:<',this.ee,'>');
+      console.log('DidDocument::loadDocument::this.eeInternal=:<',this.eeInternal,'>');
       console.log('DidDocument::loadDocument::this.otmc=:<',this.otmc,'>');
       console.log('DidDocument::loadDocument::this.auth=:<',this.auth,'>');
     }
@@ -276,9 +271,9 @@ export class DidDocument {
       if(this.trace) {
         console.log('DidDocument::loadDocument::didDoc=:<',didDoc,'>');
       }
-      this.otmc.emit('did:document',didDoc);
+      this.eeOut.emit('did:document',didDoc);
       this.didDoc_ = didDoc;
-      this.ee.emit('did:document',{didDoc:this});
+      this.eeInternal.emit('did:document',{didDoc:this});
 
       if(this.didDoc_) {
         let manifest = false;
@@ -296,11 +291,11 @@ export class DidDocument {
           console.log('DidDocument::loadDocument::manifest=:<',manifest,'>');
         }
         if(manifest) {
-          this.otmc.emit('did:manifest',manifest);
-          this.ee.emit('OtmcStateMachine.actor.send',{type:'did:document_manifest'});
+          this.eeOut.emit('did:manifest',manifest);
+          this.eeInternal.emit('OtmcStateMachine.actor.send',{type:'did:document_manifest'});
           this.didManifest_ = manifest;
         } else {
-          this.ee.emit('OtmcStateMachine.actor.send',{type:'did:document'});
+          this.eeInternal.emit('OtmcStateMachine.actor.send',{type:'did:document'});
         }
         const results = this.auth.verifyDid(this.didDoc_);
         if(this.trace) {
@@ -322,7 +317,7 @@ export class DidDocument {
           if(this.trace) {
             console.log('DidDocument::loadDocument::joinList=:<',joinList,'>');
           }
-          this.otmc.emit('didteam:joinLoaded',joinList);
+          this.eeOut.emit('didteam:joinLoaded',joinList);
         }
       }
     } catch(err) {
@@ -352,30 +347,13 @@ export class DidDocument {
     }
     const documentStr = JSON.stringify(documentObj);
     const storeKeyDid = `${this.seed.address()}.${this.util.calcAddress(documentStr)}`;
-    if(this.trace) {
-      console.log('DidDocument::createSeed::storeKeyDid=:<',storeKeyDid,'>');
-    }
-    if(this.otmc.isNode) {
-      this.fs.writeFileSync(this.otmc.config.topDoc,JSON.stringify(documentObj,undefined,2));
-    } else {
-      this.didDocStore.put(storeKeyDid, documentStr, LEVEL_OPT,(err)=>{
-        if(this.trace) {
-          console.log('DidDocument::createSeed::err=:<',err,'>');
-        }
-      });
-    }
+    this.resolver.storeDid(storeKeyDid,documentStr);
+
     const manifest = DIDManifest.ruleChainGuestOpen();
     const manifestStr = JSON.stringify(manifest);
     const storeKeyManifest = `${this.seed.address()}.${this.util.calcAddress(manifestStr)}`;
-    if(this.otmc.isNode) {
-      this.fs.writeFileSync(this.otmc.config.topManifest,JSON.stringify(manifest,undefined,2));
-    } else {
-      this.didManifestStore.put(storeKeyManifest, manifestStr, LEVEL_OPT,(err)=>{
-        if(this.trace) {
-          console.log('DidDocument::createSeed::err=:<',err,'>');
-        }
-      });
-    }
+    this.resolver.storeDid(storeKeyManifest,manifestStr);
+
     return documentObj;
   }
   createJoinAsAuth(id) {
@@ -673,7 +651,7 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::onInvitationJoinRequest::joinList=:<',joinList,'>');
     }
-    this.otmc.emit('didteam:joinLoaded',joinList);
+    this.eeOut.emit('didteam:joinLoaded',joinList);
   }
   acceptInvitation(address) {
     if(this.trace) {

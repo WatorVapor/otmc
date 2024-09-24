@@ -5,7 +5,6 @@ import {
 } from './otmc.did.document.store.js';
 import { StoreKey } from './otmc.const.js';
 
-const context = 'https://otmc.wator.xyz/ns/did';
 const LEVEL_OPT = {
   keyEncoding: 'utf8',
   valueEncoding: 'utf8',
@@ -34,8 +33,8 @@ export class DidResolver {
       self.otmc = evt.otmc;
       self.base32 = evt.base32;
       self.util = evt.util;
-      self.localStore = new DidResolverLocalStore();
-      self.webStore = new DidResolverWebStore();
+      self.localStore = new DidResolverLocalStore(evt);
+      self.webStore = new DidResolverWebStore(evt);
     });
   }
 
@@ -48,19 +47,28 @@ export class DidResolver {
       console.log('DidResolver::resolver::didDoc=:<',didDoc,'>');
     }
   }
-  async storeDid(storeKey,didDocStr){
-    this.localStore.storeDid(storeKey,didDocStr)
+  async storeDid(storeKey,documentObj){
+    const didDocStr = JSON.stringify(documentObj);
+    this.localStore.storeDid(storeKey,didDocStr);
+    this.webStore.storeDid(documentObj);
   }
-  async storeManifest(storeKey,manifestStr){
-    this.localStore.storeManifest(storeKey,manifestStr)
+  async storeManifest(storeKey,manifestObj){
+    const manifestStr = JSON.stringify(manifestObj);
+    this.localStore.storeManifest(storeKey,manifestStr);
+    this.webStore.storeManifest(manifestObj);
   }
 }
 
 
 class DidResolverLocalStore {
-  constructor() {
+  constructor(wrapper) {
     this.trace = true;;
     this.debug = true;
+    this.auth = wrapper.auth;
+    this.otmc = wrapper.otmc;
+    this.base32 = wrapper.base32;
+    this.util = wrapper.util;
+
     this.didDocLS = new DidStoreDocument(StoreKey.open.did.document);
     this.manifestLS = new DidStoreManifest(StoreKey.open.did.manifest);
     this.joinStore = new DidStoreJoin(StoreKey.open.did.joinReq);
@@ -70,9 +78,6 @@ class DidResolverLocalStore {
     if(this.trace) {
       console.log('DidResolverLocalStore::resolver::didAddress=:<',didAddress,'>');
     }
-    //const didDoc = await this.requestAPI_(didAddress);
-    
-    //return didDoc;
   }
   async storeDid(storeKey,didDocStr){
     this.didDocLS.put(storeKey, didDocStr, LEVEL_OPT,(err)=>{
@@ -90,25 +95,41 @@ class DidResolverLocalStore {
   }
 }
 
+const context = 'https://otmc.wator.xyz/ns/did';
  class DidResolverWebStore {
-  constructor(ee) {
+  constructor(wrapper) {
     this.trace = true;;
     this.debug = true;
+    this.auth = wrapper.auth;
+    this.otmc = wrapper.otmc;
+    this.base32 = wrapper.base32;
+    this.util = wrapper.util;
   }
 
   async resolver(didAddress){
     if(this.trace) {
-      console.log('DidResolver::resolver::didAddress=:<',didAddress,'>');
+      console.log('DidResolverWebStore::resolver::didAddress=:<',didAddress,'>');
     }
+    const didDoc = await this.requestAPI_(didAddress);
+    return didDoc;
   }
-  async storeDid(storeKey,didDocStr){
+  async storeDid(didDoc){
+    if(this.trace) {
+      console.log('DidResolverWebStore::storeDid::didDoc=:<',didDoc,'>');
+    }
+    const apiPath = `document/upload/${didDoc.id}`
+    if(this.trace) {
+      console.log('DidResolverWebStore::storeDid::apiPath=:<',apiPath,'>');
+    }
+    const result = await this.postAPI_(apiPath,didDoc);
+    return result;
   }
   async storeManifest(storeKey,manifestStr){
   }
   async requestAPI_(apiPath) {
     const reqURl =`${context}/v1/${apiPath}`;
     if(this.trace) {
-      console.log('DidResolver::requestAPI_::reqURl=:<',reqURl,'>');
+      console.log('DidResolverWebStore::requestAPI_::reqURl=:<',reqURl,'>');
     }
     const reqHeader = new Headers();
     reqHeader.append('Content-Type', 'application/json');
@@ -122,22 +143,22 @@ class DidResolverLocalStore {
     };
     const apiReq = new Request(reqURl, reqOption);
     if(this.trace) {
-      console.log('DidResolver::requestAPI_::apiReq=:<',apiReq,'>');
+      console.log('DidResolverWebStore::requestAPI_::apiReq=:<',apiReq,'>');
     }
     const apiResp = await fetch(apiReq);
     if(this.trace) {
-      console.log('DidResolver::requestAPI_::apiResp=:<',apiResp,'>');
+      console.log('DidResolverWebStore::requestAPI_::apiResp=:<',apiResp,'>');
     }
     const resultJson = await apiResp.json();
     if(this.trace) {
-      console.log('DidResolver::requestAPI_::resultJson=:<',resultJson,'>');
+      console.log('DidResolverWebStore::requestAPI_::resultJson=:<',resultJson,'>');
     }
     return resultJson;
   }
   async postAPI_(apiPath) {
     const reqURl =`${context}/v1/${apiPath}`;
     if(this.trace) {
-      console.log('DidResolver::postAPI_::reqURl=:<',reqURl,'>');
+      console.log('DidResolverWebStore::postAPI_::reqURl=:<',reqURl,'>');
     }
     const reqHeader = new Headers();
     reqHeader.append('Content-Type', 'application/json');
@@ -151,30 +172,30 @@ class DidResolverLocalStore {
     };
     const apiReq = new Request(reqURl, reqOption);
     if(this.trace) {
-      console.log('DidResolver::postAPI_::apiReq=:<',apiReq,'>');
+      console.log('DidResolverWebStore::postAPI_::apiReq=:<',apiReq,'>');
     }
     const apiResp = await fetch(apiReq);
     if(this.trace) {
-      console.log('DidResolver::postAPI_::apiResp=:<',apiResp,'>');
+      console.log('DidResolverWebStore::postAPI_::apiResp=:<',apiResp,'>');
     }
     const resultJson = await apiResp.json();
     if(this.trace) {
-      console.log('DidResolver::postAPI_::resultJson=:<',resultJson,'>');
+      console.log('DidResolverWebStore::postAPI_::resultJson=:<',resultJson,'>');
     }
     return resultJson;
   }
   accessToken_() {
     if(this.trace) {
-      console.log('DidResolver::accessToken_::this.auth=:<',this.auth,'>');
+      console.log('DidResolverWebStore::accessToken_::this.auth=:<',this.auth,'>');
     }
     const token = {};
     const signedToken = this.auth.sign(token);
     if(this.trace) {
-      console.log('DidResolver::accessToken_::signedToken=:<',signedToken,'>');
+      console.log('DidResolverWebStore::accessToken_::signedToken=:<',signedToken,'>');
     }
     const tokenB64 = this.util.encodeBase64Str(JSON.stringify(signedToken));
     if(this.trace) {
-      console.log('DidResolver::accessToken_::tokenB64=:<',tokenB64,'>');
+      console.log('DidResolverWebStore::accessToken_::tokenB64=:<',tokenB64,'>');
     }
     return tokenB64;
   }

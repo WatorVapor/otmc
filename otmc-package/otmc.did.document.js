@@ -347,12 +347,12 @@ export class DidDocument {
     }
     const documentStr = JSON.stringify(documentObj);
     const storeKeyDid = `${this.seed.address()}.${this.util.calcAddress(documentStr)}`;
-    this.resolver.storeDid(storeKeyDid,documentStr);
+    this.resolver.storeDid(storeKeyDid,documentObj);
 
     const manifest = DIDManifest.ruleChainGuestOpen();
     const manifestStr = JSON.stringify(manifest);
     const storeKeyManifest = `${this.seed.address()}.${this.util.calcAddress(manifestStr)}`;
-    this.resolver.storeDid(storeKeyManifest,manifestStr);
+    this.resolver.storeDid(storeKeyManifest,manifest);
 
     return documentObj;
   }

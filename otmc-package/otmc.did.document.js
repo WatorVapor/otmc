@@ -345,15 +345,9 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::createSeed::documentObj=:<',documentObj,'>');
     }
-    const documentStr = JSON.stringify(documentObj);
-    const storeKeyDid = `${this.seed.address()}.${this.util.calcAddress(documentStr)}`;
-    this.resolver.storeDid(storeKeyDid,documentObj);
-
+    this.resolver.storeDid(documentObj);
     const manifest = DIDManifest.ruleChainGuestOpen();
-    const manifestStr = JSON.stringify(manifest);
-    const storeKeyManifest = `${this.seed.address()}.${this.util.calcAddress(manifestStr)}`;
-    this.resolver.storeDid(storeKeyManifest,manifest);
-
+    this.resolver.storeManifest(manifest,documentObj.id);
     return documentObj;
   }
   createJoinAsAuth(id) {

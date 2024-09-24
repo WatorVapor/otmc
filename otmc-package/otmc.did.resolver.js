@@ -47,15 +47,17 @@ export class DidResolver {
       console.log('DidResolver::resolver::didDoc=:<',didDoc,'>');
     }
   }
-  async storeDid(storeKey,documentObj){
-    const didDocStr = JSON.stringify(documentObj);
-    this.localStore.storeDid(storeKey,didDocStr);
+  async storeDid(documentObj){
+    const documentStr = JSON.stringify(documentObj);
+    const storeKey = `${documentObj.id}.${this.util.calcAddress(documentStr)}`;
+    this.localStore.storeDid(storeKey,documentStr);
     this.webStore.storeDid(documentObj);
   }
-  async storeManifest(storeKey,manifestObj){
+  async storeManifest(manifestObj,did){
     const manifestStr = JSON.stringify(manifestObj);
+    const storeKey = `${did}.${this.util.calcAddress(manifestStr)}`;
     this.localStore.storeManifest(storeKey,manifestStr);
-    this.webStore.storeManifest(manifestObj);
+    this.webStore.storeManifest(manifestObj,did);
   }
 }
 
@@ -96,7 +98,7 @@ class DidResolverLocalStore {
 }
 
 const context = 'https://otmc.wator.xyz/ns/did';
- class DidResolverWebStore {
+class DidResolverWebStore {
   constructor(wrapper) {
     this.trace = true;;
     this.debug = true;
@@ -124,7 +126,16 @@ const context = 'https://otmc.wator.xyz/ns/did';
     const result = await this.postAPI_(apiPath,didDoc);
     return result;
   }
-  async storeManifest(storeKey,manifestStr){
+  async storeManifest(manifest,did){
+    if(this.trace) {
+      console.log('DidResolverWebStore::storeManifest::manifest=:<',manifest,'>');
+    }
+    const apiPath = `manifest/upload/${did}`
+    if(this.trace) {
+      console.log('DidResolverWebStore::storeManifest::apiPath=:<',apiPath,'>');
+    }
+    const result = await this.postAPI_(apiPath,manifest);
+    return result;
   }
   async requestAPI_(apiPath) {
     const reqURl =`${context}/v1/${apiPath}`;

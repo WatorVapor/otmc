@@ -1,3 +1,4 @@
+import {expect, jest, test} from '@jest/globals';
 import { DidResolver } from '../otmc.did.resolver.js'; // 更新为实际路径
 import EventEmitter from 'events';
 

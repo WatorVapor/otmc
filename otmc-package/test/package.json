@@ -1,6 +1,7 @@
 {
   "name": "otmc-package-test",
   "version": "1.0.0",
+  "type": "module",
   "main": "DidResolver.test.js",
   "scripts": {
     "test": "jest"

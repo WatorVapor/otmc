@@ -10,6 +10,6 @@ jobs:
     - name: Show files
       run: pwd;find ./
     - name: Jest prepare
-      run: cd otmc-package/test && ./test.prepare.x.sh
+      run: cd otmc-package/test && bash ./test.prepare.x.sh
     - name: Run jest
-      run: cd otmc-package/test &&./test.run.x.sh
+      run: cd otmc-package/test && bash ./test.run.x.sh

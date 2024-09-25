@@ -166,7 +166,7 @@ class DidResolverWebStore {
     }
     return resultJson;
   }
-  async postAPI_(apiPath) {
+  async postAPI_(apiPath,reqBody) {
     const reqURl =`${context}/v1/${apiPath}`;
     if(this.trace) {
       console.log('DidResolverWebStore::postAPI_::reqURl=:<',reqURl,'>');
@@ -175,10 +175,9 @@ class DidResolverWebStore {
     reqHeader.append('Content-Type', 'application/json');
     const authToken = this.accessToken_();
     reqHeader.append('Authorization', `Bearer ${authToken}`);
-    const reqBody = {};
     const reqOption = {
       method: 'POST',
-      body:reqBody,
+      body:JSON.stringify(reqBody),
       headers:reqHeader
     };
     const apiReq = new Request(reqURl, reqOption);

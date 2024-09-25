@@ -1,4 +1,4 @@
-name: Go
+name: OTMC
 on: [push]
 jobs:
 
@@ -8,3 +8,6 @@ jobs:
     steps:
     - name: Echo
       run: echo "Good 24h"
+    - name: Run jest
+      run: pwd;find *
+

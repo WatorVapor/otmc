@@ -1,13 +1,12 @@
 name: OTMC
 on: [push]
 jobs:
-
-  test:
-    name: Test
+  Test:
+    name: Run test codes
     runs-on: [self-hosted]
     steps:
-    - name: Echo
-      run: echo "Good 24h"
+    - name: Checkout
+      uses: actions/checkout@v4
     - name: Run jest
       run: pwd;find ./
 

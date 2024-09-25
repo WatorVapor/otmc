@@ -1,4 +1,4 @@
-import { DidResolverWebStore } from './path/to/your/DidResolver'; // 更新为实际路径
+import { DidResolverWebStore } from '../otmc.did.resolver.js'; // 更新为实际路径
 
 describe('DidResolverWebStore', () => {
   let webStore;

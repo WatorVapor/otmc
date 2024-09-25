@@ -1,4 +1,4 @@
-import { DidResolver } from './path/to/your/DidResolver'; // 更新为实际路径
+import { DidResolver } from '../otmc.did.resolver.js'; // 更新为实际路径
 import EventEmitter from 'events';
 
 describe('DidResolver', () => {

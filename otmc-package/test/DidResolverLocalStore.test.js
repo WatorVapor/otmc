@@ -1,7 +1,7 @@
 // DidResolverLocalStore.test.js
 
-const { DidResolverLocalStore } = require('./path/to/DidResolver');  // 假设 DidResolverLocalStore 是从这个文件中导出的
-const { DidStoreDocument, DidStoreManifest } = require('./otmc.did.document.store.js');
+const { DidResolverLocalStore } = require('../otmc.did.resolver.js');  // 假设 DidResolverLocalStore 是从这个文件中导出的
+const { DidStoreDocument, DidStoreManifest } = require('../otmc.did.document.store.js');
 const { StoreKey } = require('./otmc.const.js');
 
 jest.mock('./otmc.did.document.store.js');  // Mock 模块

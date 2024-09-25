@@ -9,5 +9,5 @@ jobs:
     - name: Echo
       run: echo "Good 24h"
     - name: Run jest
-      run: pwd;find *
+      run: pwd;find ./
 

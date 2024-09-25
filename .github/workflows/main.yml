@@ -1,0 +1,10 @@
+name: Go
+on: [push]
+jobs:
+
+  test:
+    name: Test
+    runs-on: [self-hosted]
+    steps:
+    - name: Build
+      run: gcc -v

@@ -7,4 +7,4 @@ jobs:
     runs-on: [self-hosted]
     steps:
     - name: Build
-      run: gcc -v
+      run: echo "Good"

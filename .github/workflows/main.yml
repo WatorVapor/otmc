@@ -16,5 +16,5 @@ jobs:
         node-version-file: otmc-package/test/package.json
     - name: Install packages
       run: cd otmc-package/test && npm install
-    - name: Show coverage
-      run: cd otmc-package/test && npm run coverage
+    - name: Run jest
+      run: cd otmc-package/test && npm run test

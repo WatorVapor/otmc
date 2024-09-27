@@ -123,7 +123,11 @@ class DidResolverWebStore {
     if(this.trace) {
       console.log('DidResolverWebStore::storeDid::apiPath=:<',apiPath,'>');
     }
-    const result = await this.postAPI_(apiPath,didDoc);
+    const didDocSigned =this.auth.sign({did:didDoc});
+    if(this.trace) {
+      console.log('DidResolverWebStore::storeDid::didDocSigned=:<',didDocSigned,'>');
+    }
+    const result = await this.postAPI_(apiPath,didDocSigned);
     return result;
   }
   async storeManifest(manifest,did){

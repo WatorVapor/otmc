@@ -38,13 +38,21 @@ export class DidResolver {
     });
   }
 
-  async resolver(didAddress){
+  async resolver(keyAddress){
+    if(this.trace) {
+      console.log('DidResolver::resolver::keyAddress=:<',keyAddress,'>');
+    }
+    const localDidDoc = await this.localStore.resolver(keyAddress);
+    if(this.trace) {
+      console.log('DidResolver::resolver::localDidDoc=:<',localDidDoc,'>');
+    }
+    const didAddress = `did:otmc:${keyAddress}`;
     if(this.trace) {
       console.log('DidResolver::resolver::didAddress=:<',didAddress,'>');
     }
-    const didDoc = await this.webStore(didAddress);
+    const webDidDoc = await this.webStore.resolver(didAddress);
     if(this.trace) {
-      console.log('DidResolver::resolver::didDoc=:<',didDoc,'>');
+      console.log('DidResolver::resolver::webDidDoc=:<',webDidDoc,'>');
     }
   }
   async storeDid(documentObj){
@@ -52,6 +60,22 @@ export class DidResolver {
     const storeKey = `${documentObj.id}.${this.util.calcAddress(documentStr)}`;
     this.localStore.storeDid(storeKey,documentStr);
     this.webStore.storeDid(documentObj);
+  }
+  async manifest(didAddress){
+    if(this.trace) {
+      console.log('DidResolver::manifest::didAddress=:<',didAddress,'>');
+    }
+    const localManifest = await this.localStore.manifest(didAddress);
+    if(this.trace) {
+      console.log('DidResolver::manifest::localManifest=:<',localManifest,'>');
+    }
+    if(this.trace) {
+      console.log('DidResolver::manifest::didAddress=:<',didAddress,'>');
+    }
+    const webManifest = await this.webStore.manifest(didAddress);
+    if(this.trace) {
+      console.log('DidResolver::manifest::webManifest=:<',webManifest,'>');
+    }
   }
   async storeManifest(manifestObj,did){
     const manifestStr = JSON.stringify(manifestObj);
@@ -76,9 +100,9 @@ class DidResolverLocalStore {
     this.joinStore = new DidStoreJoin(StoreKey.open.did.joinReq);
   }
 
-  async resolver(didAddress){
+  async resolver(keyAddress){
     if(this.trace) {
-      console.log('DidResolverLocalStore::resolver::didAddress=:<',didAddress,'>');
+      console.log('DidResolverLocalStore::resolver::keyAddress=:<',keyAddress,'>');
     }
   }
   async storeDid(storeKey,didDocStr){
@@ -87,6 +111,11 @@ class DidResolverLocalStore {
         console.log('DidResolverLocalStore::storeDid::err=:<',err,'>');
       }
     });
+  }
+  async manifest(didAddress){
+    if(this.trace) {
+      console.log('DidResolverLocalStore::manifest::didAddress=:<',didAddress,'>');
+    }
   }
   async storeManifest(storeKey,manifestStr){
     this.manifestLS.put(storeKey, manifestStr, LEVEL_OPT,(err)=>{
@@ -130,6 +159,14 @@ class DidResolverWebStore {
     const result = await this.postAPI_(apiPath,didDocSigned);
     return result;
   }
+  async manifest(didAddress){
+    if(this.trace) {
+      console.log('DidResolverWebStore::manifest::didAddress=:<',didAddress,'>');
+    }
+    const manifest = await this.requestAPI_(`manifest/${didAddress}`);
+    return manifest;
+  }
+
   async storeManifest(manifest,did){
     if(this.trace) {
       console.log('DidResolverWebStore::storeManifest::manifest=:<',manifest,'>');
@@ -138,7 +175,11 @@ class DidResolverWebStore {
     if(this.trace) {
       console.log('DidResolverWebStore::storeManifest::apiPath=:<',apiPath,'>');
     }
-    const result = await this.postAPI_(apiPath,manifest);
+    const manifestSigned =this.auth.sign({manifest:manifest});
+    if(this.trace) {
+      console.log('DidResolverWebStore::storeManifest::manifestSigned=:<',manifestSigned,'>');
+    }
+    const result = await this.postAPI_(apiPath,manifestSigned);
     return result;
   }
   async requestAPI_(apiPath) {

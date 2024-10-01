@@ -57,6 +57,27 @@ export class DidResolver {
     const didDoc = localDidDoc || webDidDoc;
     return didDoc;
   }
+
+  async getDidDocumentAll(keyAddress){
+    if(this.trace) {
+      console.log('DidResolver::getDidDocumentAll::keyAddress=:<',keyAddress,'>');
+    }
+    const localDidDoc = await this.localStore.getDidDocumentAll(keyAddress);
+    if(this.trace) {
+      console.log('DidResolver::getDidDocumentAll::localDidDoc=:<',localDidDoc,'>');
+    }
+    const didAddress = `did:otmc:${keyAddress}`;
+    if(this.trace) {
+      console.log('DidResolver::getDidDocumentAll::didAddress=:<',didAddress,'>');
+    }
+    const webDidDoc = await this.webStore.getDidDocumentAll(didAddress);
+    if(this.trace) {
+      console.log('DidResolver::getDidDocumentAll::webDidDoc=:<',webDidDoc,'>');
+    }
+    const didDoc = localDidDoc || webDidDoc;
+    return didDoc;
+  }
+  
   async storeDid(documentObj){
     const documentStr = JSON.stringify(documentObj);
     const storeKey = `${documentObj.id}.${this.util.calcAddress(documentStr)}`;
@@ -86,6 +107,30 @@ export class DidResolver {
     const storeKey = `${did}.${this.util.calcAddress(manifestStr)}`;
     this.localStore.storeManifest(storeKey,manifestStr);
     this.webStore.storeManifest(manifestObj,did);
+  }
+  async manifestAll(didAddress){
+    if(this.trace) {
+      console.log('DidResolver::manifestAll::didAddress=:<',didAddress,'>');
+    }
+    const localManifest = await this.localStore.manifestAll(didAddress);
+    if(this.trace) {
+      console.log('DidResolver::manifestAll::localManifest=:<',localManifest,'>');
+    }
+    if(this.trace) {
+      console.log('DidResolver::manifestAll::didAddress=:<',didAddress,'>');
+    }
+    const webManifest = await this.webStore.manifestAll(didAddress);
+    if(this.trace) {
+      console.log('DidResolver::manifestAll::webManifest=:<',webManifest,'>');
+    }
+    const manifest = localManifest || webManifest;
+    return manifest;
+  }
+
+  async getJoinInProgress(didAddress){
+    if(this.trace) {
+      console.log('DidResolver::getJoinInProgress::didAddress=:<',didAddress,'>');
+    }
   }
 }
 
@@ -121,6 +166,17 @@ class DidResolverLocalStore {
     }
     return null;
   }
+  async getDidDocumentAll(keyAddress){
+    if(this.trace) {
+      console.log('DidResolverLocalStore::resolver::keyAddress=:<',keyAddress,'>');
+    }
+    const didValuesJson = await this.didDocLS.getAll(keyAddress);
+    if(this.trace) {
+      console.log('DidResolverLocalStore::resolver::didValuesJson=:<',didValuesJson,'>');
+    }
+    return didValuesJson;
+  }
+
   async storeDid(storeKey,didDocStr){
     this.didDocLS.put(storeKey, didDocStr, LEVEL_OPT,(err)=>{
       if(this.trace) {
@@ -148,6 +204,16 @@ class DidResolverLocalStore {
       }
     });
   }
+  async manifestAll(didAddress){
+    if(this.trace) {
+      console.log('DidResolverLocalStore::manifestAll::didAddress=:<',didAddress,'>');
+    }
+    const manifestValuesJson = await this.manifestLS.getAll(didAddress);
+    if(this.trace) {
+      console.log('DidResolverLocalStore::manifest::manifestValuesJson=:<',manifestValuesJson,'>');
+    }
+    return manifestValuesJson;
+  }
 }
 
 const context = 'https://otmc.wator.xyz/ns/did';
@@ -166,6 +232,13 @@ class DidResolverWebStore {
       console.log('DidResolverWebStore::resolver::didAddress=:<',didAddress,'>');
     }
     const didDoc = await this.requestAPI_(didAddress);
+    return didDoc;
+  }
+  async getDidDocumentAll(didAddress){
+    if(this.trace) {
+      console.log('DidResolverWebStore::getDidDocumentAll::didAddress=:<',didAddress,'>');
+    }
+    const didDoc = await this.requestAPI_(`${didAddress}?all=true`);
     return didDoc;
   }
   async storeDid(didDoc){
@@ -188,6 +261,13 @@ class DidResolverWebStore {
       console.log('DidResolverWebStore::manifest::didAddress=:<',didAddress,'>');
     }
     const manifest = await this.requestAPI_(`manifest/${didAddress}`);
+    return manifest;
+  }
+  async manifestAll(didAddress){
+    if(this.trace) {
+      console.log('DidResolverWebStore::manifestAll::didAddress=:<',didAddress,'>');
+    }
+    const manifest = await this.requestAPI_(`manifest/${didAddress}?all=true`);
     return manifest;
   }
 

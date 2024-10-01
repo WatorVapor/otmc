@@ -266,7 +266,7 @@ export class DidDocument {
       this.eeInternal.emit('did:document',{didDoc:this});
 
       if(this.didDoc_) {
-        let manifest = await this.resolver.manifest(this.didDoc_.id);;
+        let manifest = await this.resolver.manifest(this.didDoc_.id);
         if(this.trace) {
           console.log('DidDocument::loadDocument::manifest=:<',manifest,'>');
         }
@@ -281,17 +281,7 @@ export class DidDocument {
         if(this.trace) {
           console.log('DidDocument::loadDocument::results=:<',results,'>');
         }
-        let joinList = false;
-        if(this.otmc.isNode) {
-          try {
-            const joinStr = this.fs.readFileSync(this.otmc.config.invitation);
-            joinList = JSON.parse(joinStr);
-          } catch ( err ) {
-            console.error('DidDocument::loadDocument::err=:<',err,'>');
-          }
-        } else {
-          joinList = await this.didJoinStore.getAll(this.didDoc_.id);
-        }
+        const joinList = await this.resolver.getJoinInProgress(this.didDoc_.id);
         if(joinList) {
           this.joinList_ = joinList;
           if(this.trace) {
@@ -302,10 +292,6 @@ export class DidDocument {
       }
     } catch(err) {
       console.error('DidDocument::loadDocument::err=:<',err,'>');
-    }
-    if(this.trace0) {
-      console.log('DidDocument::loadDocument::this.didDocStore=:<',this.didDocStore,'>');
-      console.log('DidDocument::loadDocument::this.didManifestStore=:<',this.didManifestStore,'>');
     }
   }
   createSeed() {
@@ -937,7 +923,7 @@ export class DidDocument {
   
   
   async loadDidRuleFromManifest_() {
-    const manifestsJson = await this.didManifestStore.getAll(this.didDoc_.id);
+    const manifestsJson = await this.resolver.manifestAll(this.didDoc_.id);
     if(this.trace5) {
       console.log('DidDocument::loadDidRuleFromManifest_::manifestsJson=<',manifestsJson,'>');
     }
@@ -947,7 +933,8 @@ export class DidDocument {
     return false;
   }
   async loadEvidenceChain_() {
-    const evidencesJson = await this.didDocStore.getAll(this.auth.address());
+    const keyAddress = this.didDoc_.id.replace('did:otmc:','')
+    const evidencesJson = await this.resolver.getDidDocumentAll(keyAddress);
     if(this.trace2) {
       console.log('DidDocument::loadEvidenceChain_::evidencesJson=<',evidencesJson,'>');
     }

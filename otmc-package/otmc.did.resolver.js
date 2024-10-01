@@ -54,6 +54,8 @@ export class DidResolver {
     if(this.trace) {
       console.log('DidResolver::resolver::webDidDoc=:<',webDidDoc,'>');
     }
+    const didDoc = localDidDoc || webDidDoc;
+    return didDoc;
   }
   async storeDid(documentObj){
     const documentStr = JSON.stringify(documentObj);
@@ -76,6 +78,8 @@ export class DidResolver {
     if(this.trace) {
       console.log('DidResolver::manifest::webManifest=:<',webManifest,'>');
     }
+    const manifest = localManifest || webManifest;
+    return manifest;
   }
   async storeManifest(manifestObj,did){
     const manifestStr = JSON.stringify(manifestObj);
@@ -104,6 +108,18 @@ class DidResolverLocalStore {
     if(this.trace) {
       console.log('DidResolverLocalStore::resolver::keyAddress=:<',keyAddress,'>');
     }
+    const didValuesJson = await this.didDocLS.getAll(keyAddress);
+    if(this.trace) {
+      console.log('DidResolverLocalStore::resolver::didValuesJson=:<',didValuesJson,'>');
+    }
+    const didValuesSorted = didValuesJson.sort((a,b) => new Date(b.updated) - new Date(a.updated));
+    if(this.trace) {
+      console.log('DidResolverLocalStore::resolver::didValuesSorted=:<',didValuesSorted,'>');
+    }
+    if(didValuesSorted.length > 0) {
+      return didValuesSorted[0];
+    }
+    return null;
   }
   async storeDid(storeKey,didDocStr){
     this.didDocLS.put(storeKey, didDocStr, LEVEL_OPT,(err)=>{
@@ -116,6 +132,14 @@ class DidResolverLocalStore {
     if(this.trace) {
       console.log('DidResolverLocalStore::manifest::didAddress=:<',didAddress,'>');
     }
+    const manifestValuesJson = await this.manifestLS.getAll(didAddress);
+    if(this.trace) {
+      console.log('DidResolverLocalStore::manifest::manifestValuesJson=:<',manifestValuesJson,'>');
+    }
+    if(manifestValuesJson.length > 0) {
+      return manifestValuesJson[0];
+    }
+    return null;
   }
   async storeManifest(storeKey,manifestStr){
     this.manifestLS.put(storeKey, manifestStr, LEVEL_OPT,(err)=>{

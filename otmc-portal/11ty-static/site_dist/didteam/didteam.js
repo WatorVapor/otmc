@@ -73,7 +73,8 @@ const didTeamOption = {
         doc:'',
       },
       create: {
-        controll:'',// 'did'
+        control:'',// 'did'
+        controls:'',// 'did'
       },
       join: {
         did:'',

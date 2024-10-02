@@ -132,7 +132,7 @@ export class DidDocument {
       if(self.trace) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      self.createSeed();
+      self.createSeed(evt.controls);
     });
 
 
@@ -294,12 +294,15 @@ export class DidDocument {
       console.error('DidDocument::loadDocument::err=:<',err,'>');
     }
   }
-  createSeed() {
+  createSeed(controls) {
+    if(this.trace) {
+      console.log('DidDocument::createSeed::controls=:<',controls,'>');
+    }
     if(this.trace) {
       console.log('DidDocument::createSeed::this.otmc=:<',this.otmc,'>');
     }
     this.checkEdcrypt_();
-    this.seed = new DIDSeedDocument(this.auth,this.recovery);
+    this.seed = new DIDSeedDocument(this.auth,this.recovery,controls);
     if(this.trace) {
       console.log('DidDocument::createSeed::this.seed=:<',this.seed,'>');
     }

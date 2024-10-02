@@ -10,12 +10,12 @@ class DIDConfig {
 export class DIDSeedDocument {
   static trace = false;
   static debug = true;
-  constructor(auth,recovery,controllerList) {
+  constructor(auth,recovery,controllers) {
     this.auth_ = auth;
     this.recovery_ = recovery;
     this.didCode_ = `did:${DIDConfig.method}:${auth.address()}`;;
-    if(controllerList) {
-      this.controllers_ = [controllerList].flat();
+    if(controllers) {
+      this.controllers_ = [controllers].flat();
     } else {
       this.controllers_ = [this.didCode_];
     }

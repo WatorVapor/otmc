@@ -1,7 +1,6 @@
 import { EventEmitter } from 'eventemitter3';
 import { default as mqtt } from 'mqtt';
 
-import { MqttMessager } from './otmc.mqtt.message.js';
 import { DidDocument } from './otmc.did.document.js';
 import { OtmcStateMachine } from './otmc.state.machine.js';
 import * as Level from 'level';
@@ -56,26 +55,19 @@ export class OtmcTeam extends EventEmitter {
     }
     this.eeInternal.emit('edCryptKey.loader.mining',data);
   }
-  createDidTeamFromSeed() {
+  createDidTeamFromSeed(controls) {
     if(this.trace) {
       console.log('OtmcTeam::createDidTeamFromSeed::this.eeInternal=:<',this.eeInternal,'>');
     }
-    this.eeInternal.emit('did.create.seed',{});
-    //return this.did.createSeed();
+    this.eeInternal.emit('did.create.seed',{controls:controls});
   }
   joinDidTeamAsAuth(id) {
     this.eeInternal.emit('did.join.as.auth',{did:id});
-    //return this.did.createJoinAsAuth(id);
   }
   
   
   requestJoinDidTeam() {
     this.eeInternal.emit('did.join.request',{});
-    //const joinRequest = this.did.requestJoinDid();
-    //if(this.trace) {
-    //  console.log('Otmc::requestJoinDidTeam::joinRequest=:<',joinRequest,'>');
-    //}
-    //this.mqtt.publish(joinRequest.topic,joinRequest,this.mqttOption);
   }
   acceptInvitation(address){
     if(this.trace) {
@@ -83,8 +75,6 @@ export class OtmcTeam extends EventEmitter {
       console.log('Otmc::acceptInvitation::address=:<',address,'>');
     }
     this.eeInternal.emit('did.join.accept.request',{address:address});
-    //const invitationReply = this.did.acceptInvitation(address);
-    //this.mqtt.publish(invitationReply.topic,invitationReply,this.mqttOption);
   }
   rejectInvitation(address){
     if(this.trace) {
@@ -92,21 +82,17 @@ export class OtmcTeam extends EventEmitter {
       console.log('Otmc::rejectInvitation::address=:<',address,'>');
     }
     this.eeInternal.emit('did.join.reject.request',{address:address});
-    //const rejectInvitationReply = this.did.rejectInvitation(address);
-    //this.mqtt.publish(invitationReply.topic,invitationReply,this.mqttOption);
   }
   checkEvidenceChain(){
     if(this.trace) {
       console.log('Otmc::checkEvidenceChain::new Date()=:<',new Date(),'>');
     }
     this.eeInternal.emit('did.check.evidence.chain',{});
-    //this.did.checkDidEvidence_();
   }
   updateManifest(manifest){
     if(this.trace) {
       console.log('Otmc::updateManifest::manifest=:<',manifest,'>');
     }
     this.eeInternal.emit('did.manifest.update',{manifest:manifest});
-    //this.did.updateManifest(manifest);
   }
 }

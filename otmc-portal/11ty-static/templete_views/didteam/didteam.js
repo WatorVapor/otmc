@@ -82,17 +82,36 @@ const didTeamOption = {
     };
   },
   methods: {
+    clickAddSeedControl(evt) {
+      console.log('clickAddSeedControl::this=:<',this,'>');
+      const otmc = this.otmc;
+      console.log('clickAddSeedControl::otmc=:<',otmc,'>');
+      console.log('clickAddSeedControl::this.create.controls=:<',this.create.controls,'>');
+      let newControl = null;
+      try { 
+        newControl = JSON.parse(this.create.controls);
+        console.log('clickAddSeedControl::newControl=:<',newControl,'>');
+      } catch(err) {
+        console.error('clickAddSeedControl::err=:<',err,'>');
+        newControl = [];
+      }
+      newControl.push(this.create.control);
+      this.create.controls = JSON.stringify(newControl);
+    },
     clickCreateDidTeamSeed(evt) {
       console.log('clickCreateDidTeamSeed::this=:<',this,'>');
       const otmc = this.otmc;
       console.log('clickCreateDidTeamSeed::otmc=:<',otmc,'>');
-      otmc.createDidTeamFromSeed();
-      /*
-      console.log('clickCreateDidTeamSeed::didDoc=:<',didDoc,'>');
-      this.did.id = didDoc.id;
-      this.did.doc = JSON.stringify(didDoc,undefined,2);
-      this.hasAddress = true;
-      */
+      let controllers = [];
+      try { 
+        controllers = JSON.parse(this.create.controls);
+        console.log('clickAddSeedControl::newControl=:<',newControl,'>');
+      } catch(err) {
+        console.error('clickAddSeedControl::err=:<',err,'>');
+        controllers = [];
+      }
+      controllers.push(this.create.control);
+      otmc.createDidTeamFromSeed(controllers);
     },
     clickJoinDidTeam(evt) {
       console.log('clickJoinDidTeam::this=:<',this,'>');

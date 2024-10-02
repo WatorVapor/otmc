@@ -50,12 +50,17 @@ export class DidResolver {
     if(this.trace) {
       console.log('DidResolver::resolver::didAddress=:<',didAddress,'>');
     }
-    const webDidDoc = await this.webStore.resolver(didAddress);
-    if(this.trace) {
-      console.log('DidResolver::resolver::webDidDoc=:<',webDidDoc,'>');
+    try {
+      const webDidDoc = await this.webStore.resolver(didAddress);
+      if(this.trace) {
+        console.log('DidResolver::resolver::webDidDoc=:<',webDidDoc,'>');
+      }
+      const didDoc = localDidDoc || webDidDoc;
+      return didDoc;
+    } catch(err) {
+      console.log('DidResolver::resolver::err=:<',err,'>');
     }
-    const didDoc = localDidDoc || webDidDoc;
-    return didDoc;
+    return localDidDoc;
   }
 
   async getDidDocumentAll(keyAddress){
@@ -70,14 +75,19 @@ export class DidResolver {
     if(this.trace) {
       console.log('DidResolver::getDidDocumentAll::didAddress=:<',didAddress,'>');
     }
-    const webDidDoc = await this.webStore.getDidDocumentAll(didAddress);
-    if(this.trace) {
-      console.log('DidResolver::getDidDocumentAll::webDidDoc=:<',webDidDoc,'>');
+    try {
+      const webDidDoc = await this.webStore.getDidDocumentAll(didAddress);
+      if(this.trace) {
+        console.log('DidResolver::getDidDocumentAll::webDidDoc=:<',webDidDoc,'>');
+      }
+      const didDoc = localDidDoc || webDidDoc;
+      return didDoc;
+    } catch(err) {
+      console.log('DidResolver::getDidDocumentAll::err=:<',err,'>');
     }
-    const didDoc = localDidDoc || webDidDoc;
-    return didDoc;
+    return localDidDoc;
   }
-  
+
   async storeDid(documentObj){
     const documentStr = JSON.stringify(documentObj);
     const storeKey = `${documentObj.id}.${this.util.calcAddress(documentStr)}`;
@@ -95,12 +105,17 @@ export class DidResolver {
     if(this.trace) {
       console.log('DidResolver::manifest::didAddress=:<',didAddress,'>');
     }
-    const webManifest = await this.webStore.manifest(didAddress);
-    if(this.trace) {
-      console.log('DidResolver::manifest::webManifest=:<',webManifest,'>');
+    try {
+      const webManifest = await this.webStore.manifest(didAddress);
+      if(this.trace) {
+        console.log('DidResolver::manifest::webManifest=:<',webManifest,'>');
+      }
+      const manifest = localManifest || webManifest;
+      return manifest;
+    } catch(err) {
+      console.log('DidResolver::manifest::err=:<',err,'>');
     }
-    const manifest = localManifest || webManifest;
-    return manifest;
+    return localManifest;
   }
   async storeManifest(manifestObj,did){
     const manifestStr = JSON.stringify(manifestObj);
@@ -119,12 +134,17 @@ export class DidResolver {
     if(this.trace) {
       console.log('DidResolver::manifestAll::didAddress=:<',didAddress,'>');
     }
-    const webManifest = await this.webStore.manifestAll(didAddress);
-    if(this.trace) {
-      console.log('DidResolver::manifestAll::webManifest=:<',webManifest,'>');
+    try {
+      const webManifest = await this.webStore.manifestAll(didAddress);
+      if(this.trace) {
+        console.log('DidResolver::manifestAll::webManifest=:<',webManifest,'>');
+      }
+      const manifest = localManifest || webManifest;
+      return manifest;
+    } catch(err) {
+      console.log('DidResolver::manifestAll::err=:<',err,'>');
     }
-    const manifest = localManifest || webManifest;
-    return manifest;
+    return localManifest;
   }
 
   async getJoinInProgress(didAddress){

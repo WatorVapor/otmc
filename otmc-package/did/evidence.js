@@ -1,10 +1,10 @@
 const includesAnyByDidKey = (setArr,value ) => setArr.some(attr => attr.endsWith(value));
 export class EvidenceChain {
   static trace1 = true;
-  static trace2 = false;
-  static trace3 = false;
-  static trace4 = false;
-  static trace5 = false;
+  static trace2 = true;
+  static trace3 = true;
+  static trace4 = true;
+  static trace5 = true;
   static trace = true;
   static debug = true;
 
@@ -298,41 +298,14 @@ export class EvidenceChain {
     }
     this.didRule_ = evidenceChain.manifest;
     this.evidencesJson_ = evidenceChain.evidence;
-    
-    for(const evidenceDid of evidenceChain.evidence) {
-      if(EvidenceChain.trace1) {
-        console.log('EvidenceChain::buildEvidenceProofChain::evidenceDid=<',evidenceDid,'>');
-      }
-      const seedKeyId = evidenceDid.id.replace('did:otmc:','');
-      if(EvidenceChain.trace1) {
-        console.log('EvidenceChain::buildEvidenceProofChain::seedKeyId=<',seedKeyId,'>');
-      }
-      const isGoodDid = this.auth_.verifyDid(evidenceDid);
-      if(EvidenceChain.trace1) {
-        console.log('EvidenceChain::buildEvidenceProofChain::isGoodDid=<',isGoodDid,'>');
-      }
-      if(isGoodDid && isGoodDid.proofList){
-        const authedList = [];
-        for(const authDid of evidenceDid.authentication) {
-          const authId = authDid.split('#').slice(-1)[0];
-          authedList.push(authId);
-        }
-        if(EvidenceChain.trace3) {
-          console.log('EvidenceChain::buildEvidenceProofChain::authedList=<',authedList,'>');
-        }
-        if(isGoodDid.proofList && isGoodDid.proofList.authProof && isGoodDid.proofList.authProof.length > 0){
-          for(const authProof of isGoodDid.proofList.authProof) {
-            if(EvidenceChain.trace3) {
-              console.log('EvidenceChain::buildEvidenceProofChain::evidenceDid=<',evidenceDid,'>');
-            }
-            if(seedKeyId === authProof) {
-              this.trySaveSeedEvidenceTree(evidenceDid,seedKeyId,authedList);
-            } else {
-              this.trySaveLeafEvidenceTree(evidenceDid,authProof,authedList);
-            }
-          }
-        }
-      }
+    const isRootChain = this.judgeRootChain_();
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::buildEvidenceProofChain::isRootChain=<',isRootChain,'>');
+    }
+    if(isRootChain) {
+      this.buildEvidenceProofChainRoot_();
+    } else {
+      this.buildEvidenceProofChainLeaf_();
     }
     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::buildEvidenceProofChain::this.tree_=<',this.tree_,'>');
@@ -460,6 +433,102 @@ export class EvidenceChain {
     if(EvidenceChain.trace5) {
       console.log('EvidenceChain::trySaveLeafEvidenceTree::this.tree_=<',this.tree_,'>');
     }
+  }
+
+  judgeRootChain_() {
+    for(const evidenceDid of this.evidencesJson_) {
+      if(EvidenceChain.trace1) {
+        console.log('EvidenceChain::judgeRootChain_::evidenceDid=<',evidenceDid,'>');
+      }
+      const isInController = evidenceDid.controller.includes(evidenceDid.id);
+      if(EvidenceChain.trace1) {
+        console.log('EvidenceChain::judgeRootChain_::isInController=<',isInController,'>');
+      }
+      if(!isInController) {
+        return false;
+      }
+    }
+    return true;
+  }
+  buildEvidenceProofChainRoot_() {
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::buildEvidenceProofChainRoot_::this.evidencesJson_=<',this.evidencesJson_,'>');
+    }
+    for(const evidenceDid of this.evidencesJson_) {
+      if(EvidenceChain.trace1) {
+        console.log('EvidenceChain::buildEvidenceProofChainRoot_::evidenceDid=<',evidenceDid,'>');
+      }
+      const seedKeyId = evidenceDid.id.replace('did:otmc:','');
+      if(EvidenceChain.trace1) {
+        console.log('EvidenceChain::buildEvidenceProofChainRoot_::seedKeyId=<',seedKeyId,'>');
+      }
+      const isGoodDid = this.auth_.verifyDid(evidenceDid);
+      if(EvidenceChain.trace1) {
+        console.log('EvidenceChain::buildEvidenceProofChainRoot_::isGoodDid=<',isGoodDid,'>');
+      }
+      if(isGoodDid && isGoodDid.proofList){
+        const authedList = [];
+        for(const authDid of evidenceDid.authentication) {
+          const authId = authDid.split('#').slice(-1)[0];
+          authedList.push(authId);
+        }
+        if(EvidenceChain.trace3) {
+          console.log('EvidenceChain::buildEvidenceProofChainRoot_::authedList=<',authedList,'>');
+        }
+        if(isGoodDid.proofList && isGoodDid.proofList.authProof && isGoodDid.proofList.authProof.length > 0){
+          for(const authProof of isGoodDid.proofList.authProof) {
+            if(EvidenceChain.trace3) {
+              console.log('EvidenceChain::buildEvidenceProofChainRoot_::evidenceDid=<',evidenceDid,'>');
+            }
+            if(seedKeyId === authProof) {
+              this.trySaveSeedEvidenceTree(evidenceDid,seedKeyId,authedList);
+            } else {
+              this.trySaveLeafEvidenceTree(evidenceDid,authProof,authedList);
+            }
+          }
+        }
+      }
+    }
+  } 
+  buildEvidenceProofChainLeaf_() {
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::buildEvidenceProofChainLeaf_::this.evidencesJson_=<',this.evidencesJson_,'>');
+    }
+    for(const evidenceDid of this.evidencesJson_) {
+      if(EvidenceChain.trace1) {
+        console.log('EvidenceChain::buildEvidenceProofChainLeaf_::evidenceDid=<',evidenceDid,'>');
+      }
+      const seedKeyId = evidenceDid.id.replace('did:otmc:','');
+      if(EvidenceChain.trace1) {
+        console.log('EvidenceChain::buildEvidenceProofChainLeaf_::seedKeyId=<',seedKeyId,'>');
+      }
+      const isGoodDid = this.auth_.verifyDid(evidenceDid);
+      if(EvidenceChain.trace1) {
+        console.log('EvidenceChain::buildEvidenceProofChainLeaf_::isGoodDid=<',isGoodDid,'>');
+      }
+      if(isGoodDid && isGoodDid.proofList){
+        const authedControllerList = [];
+        for(const controller of evidenceDid.controller) {
+          if(EvidenceChain.trace1) {
+            console.log('EvidenceChain::buildEvidenceProofChainLeaf_::controller=<', controller,'>');
+          }
+          const isAuthedControllerList = this.getIsAuthedControllerList_(controller);
+          if(EvidenceChain.trace1) {
+            console.log('EvidenceChain::buildEvidenceProofChainLeaf_::isAuthedControllerList=<', isAuthedControllerList,'>');
+          }
+        }
+        if(EvidenceChain.trace3) {
+          console.log('EvidenceChain::buildEvidenceProofChainLeaf_::authedControllerList=<', authedControllerList,'>');
+        }
+      }
+    }
+  }
+  getIsAuthedControllerList_(controller) {
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::getIsAuthedControllerList_::controller=<', controller,'>');
+    }
+    const isAuthedControllerList = [];
+    return isAuthedControllerList;
   }
 }
 

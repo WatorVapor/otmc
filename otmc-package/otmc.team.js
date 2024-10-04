@@ -4,6 +4,7 @@ import { default as mqtt } from 'mqtt';
 import { DidDocument } from './otmc.did.document.js';
 import { OtmcStateMachine } from './otmc.state.machine.js';
 import * as Level from 'level';
+import { WebWorkerLoaderBrowser,WebWorkerLoaderNode } from './otmc.webworker.loader.js';
 import { EdcryptKeyLoaderBrowser,EdcryptKeyLoaderNode } from './otmc.edcrypt.keyloader.js';
 
 /**
@@ -28,9 +29,11 @@ export class OtmcTeam extends EventEmitter {
       console.log('OtmcTeam::constructor::this.eeInternal=:<',this.eeInternal,'>');
     }
     if(this.isNode) {
-      this.edCryptKey = new EdcryptKeyLoaderNode(this.eeInternal);
+      this.worker = new WebWorkerLoaderNode(this.eeInternal);
+      this.edCryptKey = new EdcryptKeyLoaderNode(this.eeInternal,this);
     } else {
-      this.edCryptKey = new EdcryptKeyLoaderBrowser(this.eeInternal);
+      this.worker = new WebWorkerLoaderBrowser(this.eeInternal);
+      this.edCryptKey = new EdcryptKeyLoaderBrowser(this.eeInternal,this);
     }
     const self = this;
     setTimeout(() => {
@@ -38,6 +41,7 @@ export class OtmcTeam extends EventEmitter {
       self.edCryptKey.otmc = self;
       self.did.otmc = self;
       self.eeInternal.emit('edCryptKey.loader.runWorker',{});
+      self.eeInternal.emit('webwoker.create.worker',{});
       self.sm = new OtmcStateMachine(this.eeInternal);
     },1);
   }

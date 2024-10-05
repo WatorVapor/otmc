@@ -13,8 +13,8 @@ import { EvidenceChain } from './did/evidence.js';
 
 export class DidDocStateMachine {
   constructor(ee) {
-    this.trace0 = false;
-    this.trace1 = false;
+    this.trace0 = true;
+    this.trace1 = true;
     this.trace = true;
     this.debug = true;
     if(this.trace0) {
@@ -118,69 +118,58 @@ const didDocStateTable = {
   evidenceChainReady: {
     entry:['chainReady'],
     on: {
-      'auth.proof.is.seed':'authIsSeed',
-      'auth.proof.by.seed':'authBySeed',
-      'auth.proof.by.auth':'authByAuth',
-      'auth.proof.by.none':'authByNone',
-      'capability.proof.by.seed':'capabilityBySeed',
-      'capability.proof.by.auth':'capabilityByAuth',
-      'capability.proof.by.none':'capabilityByNone',
-      'capability.none.proof':'capabilityByNone',
+      'root.auth.proof.is.seed':'rootAuthIsSeed',
+      'root.auth.proof.by.seed':'rootAuthBySeed',
+      'root.auth.proof.by.auth':'rootAuthByAuth',
+      'root.auth.proof.by.none':'rootAuthByNone',
+      'leaf.auth.proof.by.ctrl':'leafAuthByCtrl',
+      'leaf.auth.proof.by.none':'leafAuthByNoe',
     } 
   },
   evidenceChainWithoutManifest: {
     entry:['chainReady'],
     on: {
-      'auth.proof.is.seed':'authIsSeed',
-      'auth.proof.by.seed':'authBySeed',
-      'auth.proof.by.auth':'authByAuth',
-      'auth.proof.by.none':'authByNone',
-      'capability.proof.by.seed':'capabilityBySeed',
-      'capability.proof.by.auth':'capabilityByAuth',
-      'capability.proof.by.none':'capabilityByNone',
-      'capability.none.proof':'capabilityByNone',
+      'root.auth.proof.is.seed':'rootAuthIsSeed',
+      'root.auth.proof.by.seed':'rootAuthBySeed',
+      'root.auth.proof.by.auth':'rootAuthByAuth',
+      'root.auth.proof.by.none':'rootAuthByNone',
+      'leaf.auth.proof.by.ctrl':'leafAuthByCtrl',
+      'leaf.auth.proof.by.none':'leafAuthByNoe',
     } 
   },
   evidenceChainFail: {
     entry:['chainFail'],
     on: {
-      'auth.proof.by.none':'authByNone',
-      'capability.proof.by.none':'capabilityByNone',
-      'capability.none.proof':'capabilityByNone',
+      'root.auth.proof.by.none':'rootAuthByNone',
     }
   },
-  authIsSeed: {
-    entry:['authIsSeed'],
+  rootAuthIsSeed: {
+    entry:['rootAuthIsSeed'],
     on: {
     }
   },
-  authBySeed: {
-    entry:['authBySeed'],
+  rootAuthBySeed: {
+    entry:['rootAuthBySeed'],
     on: {
     }
   },
-  authByAuth: {
-    entry:['authByAuth'],
+  rootAuthByAuth: {
+    entry:['rootAuthByAuth'],
     on: {
     }
   },
-  authByNone: {
-    entry:['authByNone'],
+  rootAuthByNone: {
+    entry:['rootAuthByNone'],
     on: {
     }
   },
-  capabilityBySeed: {
-    entry:['capabilityBySeed'],
+  leafAuthByCtrl: {
+    entry:['leafAuthByCtrl'],
     on: {
     }
   },
-  capabilityByAuth: {
-    entry:['capabilityByAuth'],
-    on: {
-    }
-  },
-  capabilityByNone: {
-    entry:['capabilityByNone'],
+  leafAuthByNoe: {
+    entry:['leafAuthByNoe'],
     on: {
     }
   },
@@ -224,7 +213,7 @@ const didDocActionTable = {
     }
     ee.emit('did.stm.docstate.internal.proof',{proof:proof});
   },
-  authIsSeed:(context, evt) => {
+  rootAuthIsSeed:(context, evt) => {
     const ee = context.context.ee;
     const chain = context.context.chain;
     if(LOG.trace) {
@@ -233,87 +222,73 @@ const didDocActionTable = {
       console.log('DidDocStateMachine::didDocActionTable::authIsSeed:chain=:<',chain,'>');
     }
     const notify = {
-      isSeed:true,
+      isSeedRoot:true,
     };
     ee.emit('did.evidence.auth',notify);
   },
-  authBySeed:(context, evt) => {
+  rootAuthBySeed:(context, evt) => {
     const ee = context.context.ee;
     const chain = context.context.chain;
     if(LOG.trace) {
-      console.log('DidDocStateMachine::didDocActionTable::authBySeed:context=:<',context,'>');
-      console.log('DidDocStateMachine::didDocActionTable::authBySeed:ee=:<',ee,'>');
-      console.log('DidDocStateMachine::didDocActionTable::authBySeed:chain=:<',chain,'>');
+      console.log('DidDocStateMachine::didDocActionTable::rootAuthBySeed:context=:<',context,'>');
+      console.log('DidDocStateMachine::didDocActionTable::rootAuthBySeed:ee=:<',ee,'>');
+      console.log('DidDocStateMachine::didDocActionTable::rootAuthBySeed:chain=:<',chain,'>');
     }
     const notify = {
-      bySeed:true,
+      bySeedRoot:true,
     };
     ee.emit('did.evidence.auth',notify);
   },
-  authByAuth:(context, evt) => {
+  rootAuthByAuth:(context, evt) => {
     const ee = context.context.ee;
     const chain = context.context.chain;
     if(LOG.trace) {
-      console.log('DidDocStateMachine::didDocActionTable::authByAuth:context=:<',context,'>');
-      console.log('DidDocStateMachine::didDocActionTable::authByAuth:ee=:<',ee,'>');
-      console.log('DidDocStateMachine::didDocActionTable::authByAuth:chain=:<',chain,'>');
+      console.log('DidDocStateMachine::didDocActionTable::rootAuthByAuth:context=:<',context,'>');
+      console.log('DidDocStateMachine::didDocActionTable::rootAuthByAuth:ee=:<',ee,'>');
+      console.log('DidDocStateMachine::didDocActionTable::rootAuthByAuth:chain=:<',chain,'>');
     }
     const notify = {
-      byAuth:true,
+      byAuthRoot:true,
     };
     ee.emit('did.evidence.auth',notify);
   },
-  authByNone:(context, evt) => {
+  rootAuthByNone:(context, evt) => {
     const ee = context.context.ee;
     const chain = context.context.chain;
     if(LOG.trace) {
-      console.log('DidDocStateMachine::didDocActionTable::authByNone:context=:<',context,'>');
-      console.log('DidDocStateMachine::didDocActionTable::authByNone:ee=:<',ee,'>');
-      console.log('DidDocStateMachine::didDocActionTable::authByNone:chain=:<',chain,'>');
+      console.log('DidDocStateMachine::didDocActionTable::rootAuthByNone:context=:<',context,'>');
+      console.log('DidDocStateMachine::didDocActionTable::rootAuthByNone:ee=:<',ee,'>');
+      console.log('DidDocStateMachine::didDocActionTable::rootAuthByNone:chain=:<',chain,'>');
     }
     const notify = {
-      byNone:true,
+      byNoneRoot:true,
     };
     ee.emit('did.evidence.auth',notify);
   },
-  capabilityBySeed:(context, evt) => {
+  leafAuthByCtrl:(context, evt) => {
     const ee = context.context.ee;
     const chain = context.context.chain;
     if(LOG.trace) {
-      console.log('DidDocStateMachine::didDocActionTable::capabilityBySeed:context=:<',context,'>');
-      console.log('DidDocStateMachine::didDocActionTable::capabilityBySeed:ee=:<',ee,'>');
-      console.log('DidDocStateMachine::didDocActionTable::capabilityBySeed:chain=:<',chain,'>');
+      console.log('DidDocStateMachine::didDocActionTable::leafAuthByCtrl:context=:<',context,'>');
+      console.log('DidDocStateMachine::didDocActionTable::leafAuthByCtrl:ee=:<',ee,'>');
+      console.log('DidDocStateMachine::didDocActionTable::leafAuthByCtrl:chain=:<',chain,'>');
     }
     const notify = {
-      bySeed:true,
+      byCtrlLeaf:true,
     };
-    ee.emit('did.evidence.capability',notify);
+    ee.emit('did.evidence.auth',notify);
   },
-  capabilityByAuth:(context, evt) => {
+  leafAuthByNoe:(context, evt) => {
     const ee = context.context.ee;
     const chain = context.context.chain;
     if(LOG.trace) {
-      console.log('DidDocStateMachine::didDocActionTable::capabilityByAuth:context=:<',context,'>');
-      console.log('DidDocStateMachine::didDocActionTable::capabilityByAuth:ee=:<',ee,'>');
-      console.log('DidDocStateMachine::didDocActionTable::capabilityByAuth:chain=:<',chain,'>');
+      console.log('DidDocStateMachine::didDocActionTable::leafAuthByNoe:context=:<',context,'>');
+      console.log('DidDocStateMachine::didDocActionTable::leafAuthByNoe:ee=:<',ee,'>');
+      console.log('DidDocStateMachine::didDocActionTable::leafAuthByNoe:chain=:<',chain,'>');
     }
     const notify = {
-      byAuth:true,
+      byNoneLeaf:true,
     };
-    ee.emit('did.evidence.capability',notify);
+    ee.emit('did.evidence.auth',notify);
   },
-  capabilityByNone:(context, evt) => {
-    const ee = context.context.ee;
-    const chain = context.context.chain;
-    if(LOG.trace) {
-      console.log('DidDocStateMachine::didDocActionTable::capabilityByNone:context=:<',context,'>');
-      console.log('DidDocStateMachine::didDocActionTable::capabilityByNone:ee=:<',ee,'>');
-      console.log('DidDocStateMachine::didDocActionTable::capabilityByNone:chain=:<',chain,'>');
-    }
-    const notify = {
-      byNone:true,
-    };
-    ee.emit('did.evidence.capability',notify);
-  },
-
 };

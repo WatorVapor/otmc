@@ -1,3 +1,4 @@
+import { base16, base32, base64, base58 } from '@scure/base';
 import * as Level from 'level';
 import { StoreKey } from './otmc.const.js';
 
@@ -24,6 +25,9 @@ export class EdcryptKeyLoaderBrowser {
     this.eeInternal = eeInternal;
     this.eeOut = eeOut;
     this.ListenEventEmitter_();
+    if(this.trace) {
+      console.log('EdcryptKeyLoaderBrowser::constructor::base58=:<',base58,'>');
+    }
   }
   ListenEventEmitter_() {
 

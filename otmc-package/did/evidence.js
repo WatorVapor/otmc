@@ -14,6 +14,7 @@ export class EvidenceChain {
     this.tree_ = {};
     this.seed_ = {};
     this.didRule_ = {};
+    this.authsOfDid_ = {};
   }
   
   tryMergeStoredDidDocument() {
@@ -170,7 +171,21 @@ export class EvidenceChain {
     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::calcDidAuthInternal_::didAddress=<',didAddress,'>');
     }
-    const proof = this.searchProofFromChain_(isGoodDid.proofList,didAddress,myAddress,seedTracedIds);
+    let isRootChain = false;
+    for(const controller of didDoc.controller) {
+      if(controller.endsWith(didAddress) ) {
+        isRootChain = true;
+      }
+    }
+    if(EvidenceChain.trace) {
+      console.log('EvidenceChain::calcDidAuthInternal_::isRootChain=<',isRootChain,'>');
+    }
+    let proof = {};
+    if(isRootChain) {
+      proof = this.searchProofFromChainRoot_(isGoodDid.proofList,didAddress,myAddress,seedTracedIds);
+    } else {
+      proof = this.searchProofFromChainLeaf_(isGoodDid.proofList,didAddress,myAddress,didDoc.controller);
+    }
     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::calcDidAuthInternal_::proof=<',proof,'>');
     }
@@ -231,62 +246,95 @@ export class EvidenceChain {
       }
     }
   }
-  searchProofFromChain_(proofList,didAddress,myAddress,seedTracedIds) {
+  searchProofFromChainRoot_(proofList,didAddress,myAddress,seedTracedIds) {
     if(EvidenceChain.trace) {
-      console.log('EvidenceChain::searchProofFromChain_::proofList=<',proofList,'>');
-      console.log('EvidenceChain::searchProofFromChain_::didAddress=<',didAddress,'>');
-      console.log('EvidenceChain::searchProofFromChain_::myAddress=<',myAddress,'>');
-      console.log('EvidenceChain::searchProofFromChain_::seedTracedIds=<',seedTracedIds,'>');
+      console.log('EvidenceChain::searchProofFromChainRoot_::proofList=<',proofList,'>');
+      console.log('EvidenceChain::searchProofFromChainRoot_::didAddress=<',didAddress,'>');
+      console.log('EvidenceChain::searchProofFromChainRoot_::myAddress=<',myAddress,'>');
+      console.log('EvidenceChain::searchProofFromChainRoot_::seedTracedIds=<',seedTracedIds,'>');
     }
     let proof = {
-      auth:'auth.proof.by.none',
-      capability:'capability.proof.by.none',
+      auth:'root.auth.proof.by.none',
+      capability:'root.capability.proof.by.none',
     };
     if(proofList.authProof && proofList.authProof.length > 0) {
       if(proofList.authProof.includes(didAddress)) {
-        proof.auth = 'auth.proof.by.seed';
+        proof.auth = 'root.auth.proof.by.seed';
         if(myAddress === didAddress) {
-          proof.auth = 'auth.proof.is.seed';
+          proof.auth = 'root.auth.proof.is.seed';
         }
       } else if(proofList.authProof.includes(myAddress)) {
         const poofHint = includesAny(proofList.authProof,seedTracedIds);
         if(EvidenceChain.trace1) {
-          console.log('EvidenceChain::searchProofFromChain_::poofHint=<',poofHint,'>');
+          console.log('EvidenceChain::searchProofFromChainRoot_::poofHint=<',poofHint,'>');
         }
         if(poofHint) {
-          proof.auth = 'auth.proof.by.auth';
+          proof.auth = 'root.auth.proof.by.auth';
         } else {
-          proof.auth = 'auth.proof.by.none';
+          proof.auth = 'root.auth.proof.by.none';
         }
       } else {
         const poofHint = includesAny(proofList.authProof,seedTracedIds);
         if(EvidenceChain.trace1) {
-          console.log('EvidenceChain::searchProofFromChain_::poofHint=<',poofHint,'>');
+          console.log('EvidenceChain::searchProofFromChainRoot_::poofHint=<',poofHint,'>');
         }
         if(poofHint) {
-          proof.auth = 'auth.proof.by.auth';
+          proof.auth = 'root.auth.proof.by.auth';
         } else {
-          proof.auth = 'auth.proof.by.none';
-        }
-      }
-    }
-    if(proofList.capabilityProof && proofList.capabilityProof.length > 0) {
-      if(proofList.capabilityProof.includes(myAddress)) {
-        if(proof.auth === 'auth.proof.is.seed') {
-          proof.capability = 'capability.proof.by.seed';
-        }
-        if(proof.auth === 'auth.proof.by.seed') {
-          proof.capability = 'capability.proof.by.seed';
-        }
-        if(proof.auth === 'auth.proof.by.auth') {
-          proof.capability = 'capability.proof.by.auth';
+          proof.auth = 'root.auth.proof.by.none';
         }
       }
     }
     if(EvidenceChain.trace1) {
-      console.log('EvidenceChain::searchProofFromChain_::proof=<',proof,'>');
+      console.log('EvidenceChain::searchProofFromChainRoot_::proof=<',proof,'>');
     }
     return proof;
+  }
+  searchProofFromChainLeaf_(proofList,didAddress,myAddress,controllers) {
+    if(EvidenceChain.trace) {
+      console.log('EvidenceChain::searchProofFromChainLeaf_::proofList=<',proofList,'>');
+      console.log('EvidenceChain::searchProofFromChainLeaf_::didAddress=<',didAddress,'>');
+      console.log('EvidenceChain::searchProofFromChainLeaf_::myAddress=<',myAddress,'>');
+      console.log('EvidenceChain::searchProofFromChainLeaf_::controllers=<',controllers,'>');
+    }
+    let proof = {
+      auth:'leaf.auth.proof.by.none',
+      capability:'leaf.capability.proof.by.none',
+    };
+    const authControlIds = this.collectAuthFromCotrollers_(controllers);
+    if(EvidenceChain.trace) {
+      console.log('EvidenceChain::searchProofFromChainLeaf_::authControlIds=<',authControlIds,'>');
+    }
+    if(proofList.authProof && proofList.authProof.length > 0) {
+      const poofHint = includesAny(proofList.authProof,authControlIds);
+      if(EvidenceChain.trace1) {
+        console.log('EvidenceChain::searchProofFromChainLeaf_::poofHint=<',poofHint,'>');
+      }
+      if(poofHint) {
+        proof.auth = 'leaf.auth.proof.by.ctrl';
+      } else {
+        proof.auth = 'leaf.auth.proof.by.none';
+      }
+    }
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::searchProofFromChainLeaf_::proof=<',proof,'>');
+    }
+    return proof;
+  }
+  collectAuthFromCotrollers_(controllers) {
+    if(EvidenceChain.trace) {
+      console.log('EvidenceChain::collectAuthFromCotrollers_::controllers=<',controllers,'>');
+    }
+    const authsInCtrl = [];
+    for(const control of controllers) {
+      if(this.authsOfDid_[control]) {
+        authsInCtrl.push(this.authsOfDid_[control]);
+      }
+    }
+    if(EvidenceChain.trace) {
+      console.log('EvidenceChain::collectAuthFromCotrollers_::controllers=<',controllers,'>');
+    }
+    return authsInCtrl.flat();
   }
 
 
@@ -515,6 +563,13 @@ export class EvidenceChain {
           const isAuthedControllerList = this.getIsAuthedControllerList_(controller);
           if(EvidenceChain.trace1) {
             console.log('EvidenceChain::buildEvidenceProofChainLeaf_::isAuthedControllerList=<', isAuthedControllerList,'>');
+          }
+          for(const authProof of isGoodDid.proofList.authProof) {
+            if(EvidenceChain.trace1) {
+              console.log('EvidenceChain::buildEvidenceProofChainLeaf_::authProof=<', authProof,'>');
+            }
+            if(isAuthedControllerList.includes(authProof)) {
+            }
           }
         }
         if(EvidenceChain.trace3) {

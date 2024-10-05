@@ -1,5 +1,5 @@
 class WebWorkerLoader {
-  static trace = true;
+  static trace = false;
   static debug = true;
   constructor() {
     
@@ -10,7 +10,7 @@ class WebWorkerLoader {
 */
 export class WebWorkerLoaderBrowser {
   constructor(eeInternal) {
-    this.trace = true;
+    this.trace = false;
     this.debug = true;
     this.otmc = false;
     this.eeInternal = eeInternal;
@@ -83,7 +83,6 @@ export class WebWorkerLoaderNode {
     this.trace0 = false;
     this.trace = true;
     this.debug = true;
-    this.otmc = false;
     this.eeInternal = eeInternal;
     this.ListenEventEmitter_();
   }
@@ -92,9 +91,6 @@ export class WebWorkerLoaderNode {
     this.eeInternal.on('webwoker.create.worker',(evt)=>{
       if(this.trace) {
         console.log('WebWorkerLoaderNode::ListenEventEmitter_::evt=:<',evt,'>');
-      }
-      if(this.trace) {
-        console.log('WebWorkerLoaderNode::ListenEventEmitter_::this.otmc=:<',this.otmc,'>');
       }
       self.createWorker();
     });

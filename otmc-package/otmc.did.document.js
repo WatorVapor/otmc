@@ -11,6 +11,8 @@ import {
   base64urlnopad,
 } from '@scure/base';
 
+import { md5, sha1, sha512, sha3 } from 'hash-wasm';
+
 import { Base32 } from './edcrypto/base32.js';
 import { EdUtil } from './edcrypto/edutils.js';
 import { EdAuth } from './edcrypto/edauth.js';
@@ -85,6 +87,9 @@ export class DidDocument {
       console.log('DidDocument::ListenEventEmitter_::base58xmr=:<',base58xmr,'>');
       console.log('DidDocument::ListenEventEmitter_::base32crockford=:<',base32crockford,'>');
       console.log('DidDocument::ListenEventEmitter_::base64urlnopad=:<',base64urlnopad,'>');
+    }
+    if(this.trace) {
+      console.log('DidDocument::ListenEventEmitter_::sha3=:<',sha3,'>');
     }
     if(this.trace0) {
       console.log('DidDocument::ListenEventEmitter_::this.eeInternal=:<',this.eeInternal,'>');

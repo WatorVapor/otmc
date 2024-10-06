@@ -30,11 +30,7 @@ import {
 import {DidDocStateMachine} from './otmc.did.stm.docstate.js';
 import {DidRuntimeStateMachine} from './otmc.did.stm.runtime.js';
 import { DidResolver } from './otmc.did.resolver.js';
-import {
-  DidStoreDocument,
-  DidStoreManifest,
-  DidStoreJoin
-} from './otmc.did.document.store.js';
+
 
 
 
@@ -47,8 +43,8 @@ const includesAnyByCreator = (setArr,value ) => setArr.some(attr => value === at
 export class DidDocument {
   constructor(eeInternal,eeOut) {
     this.trace0 = true;
-    this.trace1 = false;
-    this.trace2 = false;
+    this.trace1 = true;
+    this.trace2 = true;
     this.trace = true;;
     this.debug = true;
     this.eeInternal = eeInternal;
@@ -65,6 +61,7 @@ export class DidDocument {
     this.resolver = new DidResolver(this.eeInternal);
     this.evidenceAuth = {};
     this.evidenceCapability = {};
+    this.allEvidenceChain = {};
   }
   
   async createModule_() {
@@ -154,38 +151,25 @@ export class DidDocument {
       if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      const manifest = await self.loadDidRuleFromManifest_();
+      await self.loadEvidenceChain_();
       if(self.trace0) {
-        console.log('DidDocument::ListenEventEmitter_::manifest=:<',manifest,'>');
+        console.log('DidDocument::ListenEventEmitter_::this.allEvidenceChain=:<',this.allEvidenceChain,'>');
       }
-      const evidence = await self.loadEvidenceChain_();
-      if(self.trace0) {
-        console.log('DidDocument::ListenEventEmitter_::evidence=:<',evidence,'>');
-      }
-      const evidenceChain = {
-        manifest:manifest,
-        evidence:evidence,
-      };
-      self.eeInternal.emit('did:document:evidence',evidenceChain);
-    });
-    this.eeInternal.on('did.evidence.load.control.chain',async (evt)=>{
-      if(self.trace0) {
-        console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
-      }
-      const manifest = await self.loadDidRuleFromManifest_();
-      if(self.trace0) {
-        console.log('DidDocument::ListenEventEmitter_::manifest=:<',manifest,'>');
-      }
-      for(const ctrlId of evt.control) {
-        const evidence = await self.loadEvidenceChain_(ctrlId);
+      for(const chainId in this.allEvidenceChain) {
         if(self.trace0) {
-          console.log('DidDocument::ListenEventEmitter_::evidence=:<',evidence,'>');
+          console.log('DidDocument::ListenEventEmitter_::chainId=:<',chainId,'>');
         }
+        const manifest = await self.loadDidRuleFromManifest_(chainId);
+        if(self.trace0) {
+          console.log('DidDocument::ListenEventEmitter_::manifest=:<',manifest,'>');
+        }
+        this.allEvidenceChain[chainId].manifest = manifest;
+        const evidence = this.allEvidenceChain[chainId].did;
         const evidenceChain = {
           manifest:manifest,
           evidence:evidence,
         };
-        self.eeInternal.emit('did:document:evidence',evidenceChain);
+        self.eeInternal.emit('did:document:evidence',evidenceChain);    
       }
     });
     this.eeInternal.on('did.evidence.auth',(evt)=>{
@@ -949,9 +933,12 @@ export class DidDocument {
   }
   
   
-  async loadDidRuleFromManifest_() {
-    const manifestsJson = await this.resolver.manifestAll(this.didDoc_.id);
-    if(this.trace5) {
+  async loadDidRuleFromManifest_(didId) {
+    if(!didId) {
+      didId = this.didDoc_.id;
+    }
+    const manifestsJson = await this.resolver.manifestAll(didId);
+    if(this.trace2) {
       console.log('DidDocument::loadDidRuleFromManifest_::manifestsJson=<',manifestsJson,'>');
     }
     if(manifestsJson.length > 0) {
@@ -968,7 +955,25 @@ export class DidDocument {
     if(this.trace2) {
       console.log('DidDocument::loadEvidenceChain_::evidencesJson=<',evidencesJson,'>');
     }
+    for(const evidenceJson of evidencesJson) {
+      if(this.trace2) {
+        console.log('DidDocument::loadEvidenceChain_::evidenceJson=<',evidenceJson,'>');
+      }
+      for(const ctrlId of evidenceJson.controller ) {
+        if(this.trace2) {
+          console.log('DidDocument::loadEvidenceChain_::ctrlId=<',ctrlId,'>');
+        }
+        if(ctrlId)  {
+          await this.loadEvidenceChain_(ctrlId);
+        }
+      }  
+    }
+    this.allEvidenceChain[didId] = {
+      did:evidencesJson
+    };
+    if(this.trace2) {
+      console.log('DidDocument::loadEvidenceChain_::this.allEvidenceChain=<',this.allEvidenceChain,'>');
+    }
     return evidencesJson;
   }
-
 }

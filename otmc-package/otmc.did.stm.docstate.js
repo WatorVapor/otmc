@@ -61,10 +61,6 @@ export class DidDocStateMachine {
       if(chainType.root) {
         self.ee.emit('did.stm.runtime.chain',{chain:self.chain});
         self.actor.send({type:'chain.load'});  
-      } else {
-        if(chainType.controllers.length > 0) {
-          self.ee.emit('did.evidence.load.control.chain',{control:chainType.controllers});
-        }
       }
     });
     this.ee.on('did.stm.docstate.internal.proof',(evt)=>{

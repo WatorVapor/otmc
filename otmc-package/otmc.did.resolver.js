@@ -36,6 +36,12 @@ export class DidResolver {
       self.localStore = new DidResolverLocalStore(evt);
       self.webStore = new DidResolverWebStore(evt);
     });
+    this.eeInternal.on('webwoker.resolver.worker',(evt)=>{
+      if(self.trace) {
+        console.log('DidResolver::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.worker = evt.worker;
+    });
   }
 
   async resolver(keyAddress){

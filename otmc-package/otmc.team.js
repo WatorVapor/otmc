@@ -1,9 +1,6 @@
 import { EventEmitter } from 'eventemitter3';
-import { default as mqtt } from 'mqtt';
-
 import { DidDocument } from './otmc.did.document.js';
 import { OtmcStateMachine } from './otmc.state.machine.js';
-import * as Level from 'level';
 import { WebWorkerLoaderBrowser,WebWorkerLoaderNode } from './otmc.webworker.loader.js';
 import { EdcryptKeyLoaderBrowser,EdcryptKeyLoaderNode } from './otmc.edcrypt.keyloader.js';
 

@@ -70,7 +70,7 @@ export class WebWorkerLoaderBrowser {
         }
       };    
       resolverWorker.postMessage(initMsg);
-      self.eeInternal.emit('webwoker.resolver.worker',{type:resolverWorker});
+      self.eeInternal.emit('webwoker.resolver.worker',{worker:resolverWorker});
     });
   }
 }

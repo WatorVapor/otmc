@@ -19,13 +19,13 @@ const onMessage = async (msg) => {
 const modulePath = {};
 const onInitCmd = async (initMsg) => {
   if(self.trace) {
-    console.log('otmc.worker.edcrypt::onInitCmd::initMsg=:<',initMsg,'>');
+    console.log('otmc.worker.resolver::onInitCmd::initMsg=:<',initMsg,'>');
   }
   modulePath.base32 = `${initMsg.path}/edcrypto/base32.js`;
   modulePath.edkey = `${initMsg.path}/edcrypto/edkey.js`;
   modulePath.edutils = `${initMsg.path}/edcrypto/edutils.js`;
   if(self.trace) {
-    console.log('otmc.worker.edcrypt::onInitCmd::modulePath=:<',modulePath,'>');
+    console.log('otmc.worker.resolver::onInitCmd::modulePath=:<',modulePath,'>');
   }
   self.postMessage({ready:true});
 }

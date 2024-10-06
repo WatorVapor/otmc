@@ -54,9 +54,18 @@ export class DidDocStateMachine {
         self.actor.send({type:'manifest.lack'});
         return;
       }
-      self.chain.buildEvidenceProofChain(evt);
-      self.ee.emit('did.stm.runtime.chain',{chain:self.chain});
-      self.actor.send({type:'chain.load'});
+      const chainType = self.chain.buildEvidenceProofChain(evt);
+      if(self.trace0) {
+        console.log('DidDocStateMachine::ListenEventEmitter_::chainType=:<',chainType,'>');
+      }
+      if(chainType.root) {
+        self.ee.emit('did.stm.runtime.chain',{chain:self.chain});
+        self.actor.send({type:'chain.load'});  
+      } else {
+        if(chainType.controllers.length > 0) {
+          self.ee.emit('did.evidence.load.control.chain',{control:chainType.controllers});
+        }
+      }
     });
     this.ee.on('did.stm.docstate.internal.proof',(evt)=>{
       if(self.trace1) {

@@ -167,7 +167,26 @@ export class DidDocument {
         evidence:evidence,
       };
       self.eeInternal.emit('did:document:evidence',evidenceChain);
-
+    });
+    this.eeInternal.on('did.evidence.load.control.chain',async (evt)=>{
+      if(self.trace0) {
+        console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      const manifest = await self.loadDidRuleFromManifest_();
+      if(self.trace0) {
+        console.log('DidDocument::ListenEventEmitter_::manifest=:<',manifest,'>');
+      }
+      for(const ctrlId of evt.control) {
+        const evidence = await self.loadEvidenceChain_(ctrlId);
+        if(self.trace0) {
+          console.log('DidDocument::ListenEventEmitter_::evidence=:<',evidence,'>');
+        }
+        const evidenceChain = {
+          manifest:manifest,
+          evidence:evidence,
+        };
+        self.eeInternal.emit('did:document:evidence',evidenceChain);
+      }
     });
     this.eeInternal.on('did.evidence.auth',(evt)=>{
       if(self.trace0) {
@@ -940,8 +959,11 @@ export class DidDocument {
     }
     return false;
   }
-  async loadEvidenceChain_() {
-    const keyAddress = this.didDoc_.id.replace('did:otmc:','')
+  async loadEvidenceChain_(didId) {
+    if(!didId) {
+      didId = this.didDoc_.id;
+    }
+    const keyAddress = didId.replace('did:otmc:','')
     const evidencesJson = await this.resolver.getDidDocumentAll(keyAddress);
     if(this.trace2) {
       console.log('DidDocument::loadEvidenceChain_::evidencesJson=<',evidencesJson,'>');

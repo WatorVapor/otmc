@@ -346,11 +346,11 @@ export class EvidenceChain {
     }
     this.didRule_ = evidenceChain.manifest;
     this.evidencesJson_ = evidenceChain.evidence;
-    const isRootChain = this.judgeRootChain_();
+    const chainType = this.judgeEvidenceChainType_();
     if(EvidenceChain.trace1) {
-      console.log('EvidenceChain::buildEvidenceProofChain::isRootChain=<',isRootChain,'>');
+      console.log('EvidenceChain::buildEvidenceProofChain::chainType=<',chainType,'>');
     }
-    if(isRootChain) {
+    if(chainType.root) {
       this.buildEvidenceProofChainRoot_();
     } else {
       this.buildEvidenceProofChainLeaf_();
@@ -358,6 +358,7 @@ export class EvidenceChain {
     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::buildEvidenceProofChain::this.tree_=<',this.tree_,'>');
     }
+    return chainType;
   }
 
   collectAllAuthedKeyId(did,nodeId) {
@@ -433,22 +434,29 @@ export class EvidenceChain {
     if(EvidenceChain.trace3) {
       console.log('EvidenceChain::trySaveSeedEvidenceTree::this.tree_=<',this.tree_,'>');
     }
+    if(!this.authsOfDid_[evidenceDid.id]) {
+      this.authsOfDid_[evidenceDid.id] = []
+    }
+    this.authsOfDid_[evidenceDid.id].push(`${evidenceDid.id}#${seedKeyId}`);
+    if(EvidenceChain.trace3) {
+      console.log('EvidenceChain::trySaveSeedEvidenceTree::this.authsOfDid_=<',this.authsOfDid_,'>');
+    }
   }
 
 
 
 
-  trySaveLeafEvidenceTree(evidenceDid,leafKeyId,authedList){
+  trySaveSproutEvidenceTree(evidenceDid,leafKeyId,authedList){
     if(EvidenceChain.trace3) {
-      console.log('EvidenceChain::trySaveLeafEvidenceTree::authedList=<',authedList,'>');
+      console.log('EvidenceChain::trySaveSproutEvidenceTree::authedList=<',authedList,'>');
     }
     const allAuthedKeyIds = this.collectAllAuthedKeyId(evidenceDid.id,leafKeyId);
     if(EvidenceChain.trace3) {
-      console.log('EvidenceChain::trySaveLeafEvidenceTree::allAuthedKeyIds=<',allAuthedKeyIds,'>');
+      console.log('EvidenceChain::trySaveSproutEvidenceTree::allAuthedKeyIds=<',allAuthedKeyIds,'>');
     }
     const savedNode = this.tree_[leafKeyId];
     if(EvidenceChain.trace3) {
-      console.log('EvidenceChain::trySaveLeafEvidenceTree::savedNode=<',savedNode,'>');
+      console.log('EvidenceChain::trySaveSproutEvidenceTree::savedNode=<',savedNode,'>');
     }
     if(savedNode) {
       let newComing = false;
@@ -475,28 +483,51 @@ export class EvidenceChain {
       }
     }
     if(EvidenceChain.trace3) {
-      console.log('EvidenceChain::trySaveLeafEvidenceTree::newNode=<',newNode,'>');
+      console.log('EvidenceChain::trySaveSproutEvidenceTree::newNode=<',newNode,'>');
     }
     this.tree_[leafKeyId] = newNode;
     if(EvidenceChain.trace5) {
-      console.log('EvidenceChain::trySaveLeafEvidenceTree::this.tree_=<',this.tree_,'>');
+      console.log('EvidenceChain::trySaveSproutEvidenceTree::this.tree_=<',this.tree_,'>');
+    }
+    if(!this.authsOfDid_[evidenceDid.id]) {
+      this.authsOfDid_[evidenceDid.id] = []
+    }
+    this.authsOfDid_[evidenceDid.id].push(`${evidenceDid.id}#${seedKeyId}`);
+    if(EvidenceChain.trace3) {
+      console.log('EvidenceChain::trySaveSproutEvidenceTree::this.authsOfDid_=<',this.authsOfDid_,'>');
     }
   }
 
-  judgeRootChain_() {
+  judgeEvidenceChainType_() {
+    let isRoot = false;
+    let controllers = [];
     for(const evidenceDid of this.evidencesJson_) {
       if(EvidenceChain.trace1) {
-        console.log('EvidenceChain::judgeRootChain_::evidenceDid=<',evidenceDid,'>');
+        console.log('EvidenceChain::judgeEvidenceChainType_::evidenceDid=<',evidenceDid,'>');
       }
       const isInController = evidenceDid.controller.includes(evidenceDid.id);
       if(EvidenceChain.trace1) {
-        console.log('EvidenceChain::judgeRootChain_::isInController=<',isInController,'>');
+        console.log('EvidenceChain::judgeEvidenceChainType_::isInController=<',isInController,'>');
       }
-      if(!isInController) {
-        return false;
+      if(isInController) {
+        isRoot = true;
+      } else {
+        controllers.push(evidenceDid.controller);
       }
     }
-    return true;
+    controllers = controllers.flat();
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::judgeEvidenceChainType_::controllers=<',controllers,'>');
+    }
+    controllers = [...new Set(controllers)];
+    if(EvidenceChain.trace1) {
+      console.log('EvidenceChain::judgeEvidenceChainType_::controllers=<',controllers,'>');
+    }
+    const chainType = {
+      root:isRoot,
+      controllers:controllers
+    };
+    return chainType;
   }
   buildEvidenceProofChainRoot_() {
     if(EvidenceChain.trace1) {
@@ -531,7 +562,7 @@ export class EvidenceChain {
             if(seedKeyId === authProof) {
               this.trySaveSeedEvidenceTree(evidenceDid,seedKeyId,authedList);
             } else {
-              this.trySaveLeafEvidenceTree(evidenceDid,authProof,authedList);
+              this.trySaveSproutEvidenceTree(evidenceDid,authProof,authedList);
             }
           }
         }

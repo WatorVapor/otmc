@@ -44,10 +44,18 @@
       if(LOG.trace) {
         console.log('::bootstrap=<',bootstrap,'>');
       }
-      const collapseElementList = document.querySelectorAll('.collapse');
-      const collapseList = [...collapseElementList].map(collapseEl => new bootstrap.Collapse(collapseEl));
-      const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-      const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+      setTimeout(()=>{
+        enableTooltips();
+      },100);
+      setTimeout(()=>{
+        enableTooltips();
+      },3000);
+      const enableTooltips = () => {
+        const collapseElementList = document.querySelectorAll('.collapse');
+        const collapseList = [...collapseElementList].map(collapseEl => new bootstrap.Collapse(collapseEl));
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+      }
     </script>
     <script type="text/javascript" src="/layout/const.js"></script>
     <header class="navbar navbar-expand navbar-dark bd-navbar bg-dark fixed-top sticky-top ">
@@ -159,13 +167,13 @@
             <span class="input-group-text w-25">Team Address</span>
             <input type="text" class="form-control" readonly placeholder="did:otmc: NOT in any team" v-model="did.id">
             <span class="input-group-text w-25">
-              <button class="btn btn-primary" type="button" v-if="isRoot && !isSeed" @click="clickRequestJoinTeamAcceptSelf()" :disabled="isInTeam == false" 
-                data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Join An Exist DidTeam">
+              <button class="btn btn-primary" type="button" v-if="isRoot && !isSeed" @click="clickSendJoinRequest2TeamMate()" :disabled="isInTeam == false" 
+                data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Send a joining request to authed team mates">
                 <i class="fa-solid fa-share"></i>
                 <i class="fa-solid fa-people-group"></i>
               </button>
-              <button class="btn btn-primary" type="button" v-if="isLeaf" @click="clickRequestJoinTeamAcceptController()" :disabled="isInTeam == false" 
-                data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Join An Exist DidTeam">
+              <button class="btn btn-primary" type="button" v-if="isLeaf" @click="clickSendJoinRequest2Controller()" :disabled="isInTeam == false" 
+                data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Send a joining request to controllers">
                 <i class="fa-solid fa-share"></i>
                 <i class="fa-solid fa-people-roof"></i>
               </button>

@@ -44,10 +44,18 @@
       if(LOG.trace) {
         console.log('::bootstrap=<',bootstrap,'>');
       }
-      const collapseElementList = document.querySelectorAll('.collapse');
-      const collapseList = [...collapseElementList].map(collapseEl => new bootstrap.Collapse(collapseEl));
-      const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-      const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+      setTimeout(()=>{
+        enableTooltips();
+      },100);
+      setTimeout(()=>{
+        enableTooltips();
+      },3000);
+      const enableTooltips = () => {
+        const collapseElementList = document.querySelectorAll('.collapse');
+        const collapseList = [...collapseElementList].map(collapseEl => new bootstrap.Collapse(collapseEl));
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+      }
     </script>
     <script type="text/javascript" src="<%- `${prefix}/layout/const.js` %>"></script>
     <header class="navbar navbar-expand navbar-dark bd-navbar bg-dark fixed-top sticky-top ">

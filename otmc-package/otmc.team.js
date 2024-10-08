@@ -56,11 +56,11 @@ export class OtmcTeam extends EventEmitter {
     }
     this.eeInternal.emit('edCryptKey.loader.mining',data);
   }
-  createDidTeamFromSeed(controls) {
+  createDidTeamFromSeed(controls,root) {
     if(this.trace) {
       console.log('OtmcTeam::createDidTeamFromSeed::this.eeInternal=:<',this.eeInternal,'>');
     }
-    this.eeInternal.emit('did.create.seed',{controls:controls});
+    this.eeInternal.emit('did.create.seed',{controls:controls,root:root});
   }
   joinDidTeamAsAuth(id) {
     this.eeInternal.emit('did.join.as.auth',{did:id});

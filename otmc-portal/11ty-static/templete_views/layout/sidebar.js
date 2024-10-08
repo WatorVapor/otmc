@@ -1,7 +1,7 @@
 import * as Vue from 'vue';
 
 const SIDEBAR = {
-  trace:true,
+  trace:false,
   debug:true,
 }
 window.addEventListener('DOMContentLoaded', async (evt) => {

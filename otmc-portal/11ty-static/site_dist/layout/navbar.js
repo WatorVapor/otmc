@@ -1,6 +1,6 @@
 import * as Vue from 'vue';
 const NAVBAR = {
-  trace:true,
+  trace:false,
   debug:true,
 }
 window.addEventListener('DOMContentLoaded', async (evt) => {

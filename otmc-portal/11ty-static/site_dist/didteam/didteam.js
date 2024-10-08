@@ -1,14 +1,13 @@
 import * as Vue from 'vue';
 import { OtmcTeam } from 'otmcTeam';
-
-document.addEventListener('DOMContentLoaded', async (evt) => {
-  loadDidTeamApps(evt);
-});
 const TEAM = {
   trace:false,
 };
-
 const apps = {};
+document.addEventListener('DOMContentLoaded', async (evt) => {
+  loadDidTeamApps(evt);
+});
+
 const appStoreDidKeySelected = 'otmc/team/didkey/selected';
 
 const loadLastSavedKeyIdSelection = () => {
@@ -111,7 +110,11 @@ const didTeamOption = {
         controllers = [];
       }
       controllers.push(this.create.control);
-      otmc.createDidTeamFromSeed(controllers);
+      if(this.create.control) {
+        otmc.createDidTeamFromSeed(controllers);
+      } else {
+        otmc.createDidTeamFromSeed(controllers,true);
+      }
     },
     clickJoinDidTeam(evt) {
       console.log('clickJoinDidTeam::this=:<',this,'>');

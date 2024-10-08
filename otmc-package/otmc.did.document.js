@@ -1,5 +1,4 @@
 import nacl from 'tweetnacl-es6';
-import * as Level from 'level';
 import * as jsDiff from 'json-diff';
 import {
   base58xmr,
@@ -134,7 +133,7 @@ export class DidDocument {
       if(self.trace) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      self.createSeed(evt.controls);
+      self.createSeed(evt.controls,evt.root);
     });
 
 
@@ -169,8 +168,9 @@ export class DidDocument {
           manifest:manifest,
           evidence:evidence,
         };
-        self.eeInternal.emit('did:document:evidence',evidenceChain);    
+        self.eeInternal.emit('did:document:evidence.chain',evidenceChain);
       }
+      self.eeInternal.emit('did:document:evidence.complete',{});
     });
     this.eeInternal.on('did.evidence.auth',(evt)=>{
       if(self.trace0) {
@@ -302,7 +302,7 @@ export class DidDocument {
       console.error('DidDocument::loadDocument::err=:<',err,'>');
     }
   }
-  createSeed(controls) {
+  createSeed(controls,root) {
     if(this.trace) {
       console.log('DidDocument::createSeed::controls=:<',controls,'>');
     }
@@ -310,7 +310,15 @@ export class DidDocument {
       console.log('DidDocument::createSeed::this.otmc=:<',this.otmc,'>');
     }
     this.checkEdcrypt_();
-    this.seed = new DIDSeedDocument(this.auth,this.recovery,controls);
+    if(root) {
+      const rootDid = `did:otmc:${this.auth.address()}`;
+      controls.push(rootDid);
+    }
+    const checkedControls = controls.filter((ctrl) => ctrl.startsWith('did:otmc:'));
+    if(this.trace) {
+      console.log('DidDocument::createSeed::checkedControls=:<',checkedControls,'>');
+    }
+    this.seed = new DIDSeedDocument(this.auth,this.recovery,checkedControls);
     if(this.trace) {
       console.log('DidDocument::createSeed::this.seed=:<',this.seed,'>');
     }

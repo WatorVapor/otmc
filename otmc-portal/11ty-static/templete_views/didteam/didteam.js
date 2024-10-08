@@ -67,6 +67,9 @@ const didTeamOption = {
       isInTeam:false,
       teamType:'create',// 'create|join'
       isControlled:true,
+      isRoot:false,
+      isSeed:false,
+      isLeaf:false,
       did: {
         id:'',
         doc:'',
@@ -223,10 +226,23 @@ const loadDidTeamApps = (evt) => {
     }
     apps.invitation.invitations = invitationJoin;
   });
+  otmc.on('did:team:evidence.auth',(auth) => {
+    console.log('loadDidTeamApps::auth=:<',auth,'>');
+    if(auth.isSeedRoot) {
+      appDidVM.isRoot = true;
+      appDidVM.isSeed = true;
+      appDidVM.isLeaf = false;
+    }
+    if(auth.byNoneLeaf) {
+      appDidVM.isRoot = false;
+      appDidVM.isSeed = false;
+      appDidVM.isLeaf = true;
+    }
+  });
+  /*
   otmc.on('otmc:mqtt:app',(appMsg) => {
     console.log('loadDidTeamApps::appMsg=:<',appMsg,'>');
   });
-  /*
   otmc.on('otmc:mqtt:all',(mqttMsg) => {
     console.log('loadDidTeamApps::mqttMsg=:<',mqttMsg,'>');
   });

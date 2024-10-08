@@ -180,6 +180,7 @@ export class DidDocument {
       if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::self.evidenceAuth=:<',self.evidenceAuth,'>');
       }
+      self.eeOut.emit('did:team:evidence.auth',self.evidenceAuth);
     });
     this.eeInternal.on('did.evidence.capability',(evt)=>{
       if(self.trace0) {

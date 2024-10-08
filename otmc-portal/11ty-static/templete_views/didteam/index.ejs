@@ -42,9 +42,15 @@ layout: didteam.sidebar.ejs
             <span class="input-group-text w-25">Team Address</span>
             <input type="text" class="form-control" readonly placeholder="did:otmc: NOT in any team" v-model="did.id">
             <span class="input-group-text w-25">
-              <button class="btn btn-primary" type="button" @click="clickRequestJoinTeam()" :disabled="isInTeam == false" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Join An Exist DidTeam">
+              <button class="btn btn-primary" type="button" v-if="isRoot && !isSeed" @click="clickRequestJoinTeamAcceptSelf()" :disabled="isInTeam == false" 
+                data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Join An Exist DidTeam">
                 <i class="fa-solid fa-share"></i>
                 <i class="fa-solid fa-people-group"></i>
+              </button>
+              <button class="btn btn-primary" type="button" v-if="isLeaf" @click="clickRequestJoinTeamAcceptController()" :disabled="isInTeam == false" 
+                data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Join An Exist DidTeam">
+                <i class="fa-solid fa-share"></i>
+                <i class="fa-solid fa-people-roof"></i>
               </button>
             </span>
           </div>

@@ -971,7 +971,7 @@ export class DidDocument {
         if(this.trace2) {
           console.log('DidDocument::loadEvidenceChain_::ctrlId=<',ctrlId,'>');
         }
-        if(ctrlId)  {
+        if(ctrlId && ctrlId !== evidenceJson.id && ctrlId !== didId)  {
           await this.loadEvidenceChain_(ctrlId);
         }
       }  

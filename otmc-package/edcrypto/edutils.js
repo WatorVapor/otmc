@@ -33,7 +33,7 @@ export class EdUtil {
     return address;
   }
   randomAddress() {
-    const randomHex = nacl.randomBytes(1024);
+    const randomHex = this.nacl.randomBytes(1024);
     if(this.trace) {
       console.log('EdUtil::randomAddress:randomHex=<',randomHex,'>');
     }

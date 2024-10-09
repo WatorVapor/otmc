@@ -29,6 +29,7 @@ import {
 import {DidDocStateMachine} from './otmc.did.stm.docstate.js';
 import {DidRuntimeStateMachine} from './otmc.did.stm.runtime.js';
 import { DidResolver } from './otmc.did.resolver.js';
+import { DIDCredentialRequestJoinController } from './did/credentialRequest.js';
 
 
 
@@ -138,6 +139,11 @@ export class DidDocument {
     this.eeInternal.on('did.vcr.join.team',(evt)=>{
       if(self.trace) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      if(evt.controller) {
+        self.joinRequest2Controller();
+      } else {
+        self.joinRequest2TeamMate();          
       }
     });
 
@@ -371,6 +377,7 @@ export class DidDocument {
     }
     return documentObj;
   }
+
   mergeDidDocument(newDoc) {
     if(this.trace) {
       console.log('DidDocument::mergeDidDocument::newDoc=:<',newDoc,'>');
@@ -585,6 +592,38 @@ export class DidDocument {
   }
 
 
+  joinRequest2Controller() {
+    this.checkEdcrypt_();
+    const credReq = new DIDCredentialRequestJoinController(this.auth,this.didDoc_,this.util);
+    if(this.trace) {
+      console.log('DidDocument::joinRequest2Controller::credReq=:<',credReq,'>');
+    }
+    const credReqDoc = credReq.credential();
+    if(this.trace) {
+      console.log('DidDocument::joinRequest2Controller::credReqDoc=:<',credReqDoc,'>');
+    }
+  }
+  joinRequest2TeamMate() {
+    if(this.trace) {
+      console.log('DidDocument::joinRequest2TeamMate::this.otmc=:<',this.otmc,'>');
+    }
+    this.checkEdcrypt_();    
+    const role = 'invitation';
+    const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
+    const joinDid = {
+      topic:`${prefixDidToTopic}/${this.auth.address()}/sys/did/${role}/join`,
+      did:this.didDoc_,
+    };
+    if(this.trace) {
+      console.log('DidDocument::joinRequest2TeamMate::joinDid=:<',joinDid,'>');
+    }
+    const joinDidSigned = this.auth.sign(joinDid);
+    if(this.trace) {
+      console.log('DidDocument::joinRequest2TeamMate::joinDidSigned=:<',joinDidSigned,'>');
+    }
+    return joinDidSigned;
+
+  }
 
   requestJoinDid() {
     // 0:"did/otmc/otmsnaftnd45lzlcdrsqpr73zzst3okf/otm6mefe2b6jqyypd2etnyxj3ho56km6/sys/did/invitation/#"

@@ -119,6 +119,18 @@ const didTeamOption = {
         otmc.createDidTeamFromSeed(controllers,true);
       }
     },
+    clickSendJoinRequest2Controller(evt) {
+      console.log('clickSendJoinRequest2Controller::this=:<',this,'>');
+      const otmc = this.otmc;
+      console.log('clickSendJoinRequest2Controller::otmc=:<',otmc,'>');
+      otmc.createJoinTeamVCR(true);
+    },
+    clickSendJoinRequest2TeamMate(evt) {
+      console.log('clickSendJoinRequest2TeamMate::this=:<',this,'>');
+      const otmc = this.otmc;
+      console.log('clickSendJoinRequest2TeamMate::otmc=:<',otmc,'>');
+      otmc.createJoinTeamVCR(false);
+    },
     clickJoinDidTeam(evt) {
       console.log('clickJoinDidTeam::this=:<',this,'>');
       const otmc = this.otmc;

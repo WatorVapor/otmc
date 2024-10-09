@@ -135,6 +135,11 @@ export class DidDocument {
       }
       self.createSeed(evt.controls,evt.root);
     });
+    this.eeInternal.on('did.vcr.join.team',(evt)=>{
+      if(self.trace) {
+        console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+    });
 
 
     this.eeInternal.on('did.loadDocument',(evt)=>{

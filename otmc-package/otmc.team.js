@@ -66,6 +66,10 @@ export class OtmcTeam extends EventEmitter {
     this.eeInternal.emit('did.join.as.auth',{did:id});
   }
   
+  createJoinTeamVCR(controller) {
+    this.eeInternal.emit('did.vcr.join.team',{controller:controller});
+  }
+
   
   requestJoinDidTeam() {
     this.eeInternal.emit('did.join.request',{});

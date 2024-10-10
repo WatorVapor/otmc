@@ -594,6 +594,9 @@ export class DidDocument {
 
   joinRequest2Controller() {
     this.checkEdcrypt_();
+    if(this.trace) {
+      console.log('DidDocument::joinRequest2Controller::this.didDoc_=:<',this.didDoc_,'>');
+    }
     const credReq = new DIDCredentialRequestJoinController(this.auth,this.didDoc_,this.util);
     if(this.trace) {
       console.log('DidDocument::joinRequest2Controller::credReq=:<',credReq,'>');
@@ -602,6 +605,7 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::joinRequest2Controller::credReqDoc=:<',credReqDoc,'>');
     }
+    this.resolver.storeCredentialRequest(credReqDoc,this.didDoc_.id);
   }
   joinRequest2TeamMate() {
     if(this.trace) {

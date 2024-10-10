@@ -7,6 +7,12 @@ const LEVEL_OPT = {
   valueEncoding: 'utf8',
 };
 
+const LEVEL_OPT2 = {
+  prefix:'',
+  keyEncoding: 'utf8',
+  valueEncoding: 'utf8',
+};
+
 /**
 *
 */
@@ -194,20 +200,23 @@ export class DidStoreJoin {
     this.trace2 = false;
     this.trace = true;;
     this.debug = true;
-    this.store = new Level.Level(dbName,LEVEL_OPT);
+    this.store = new Level.Level(dbName,LEVEL_OPT2);
   }
   put(key,value,option,cb) {
+    if(this.trace) {
+      console.log('DidStoreJoin::put::key=:<',key,'>');
+    }
     this.store.put(key,value,option,cb);
   }
-  async getTop(didAddress) {
+  async getRequestTop(didAddress) {
     const didValuesJson = await this.getAll(didAddress);
     if(this.trace) {
-      console.log('DidStoreJoin::getTop::didValuesJson=:<',didValuesJson,'>');
+      console.log('DidStoreJoin::getRequestTop::didValuesJson=:<',didValuesJson,'>');
     }
     
     const sorted = didValuesJson.sort( this.compare_ );
     if(this.trace) {
-      console.log('DidStoreJoin::getTop::sorted=:<',sorted,'>');
+      console.log('DidStoreJoin::getRequestTop::sorted=:<',sorted,'>');
     }
     if(sorted.length > 0) {
       return sorted[0];
@@ -215,41 +224,40 @@ export class DidStoreJoin {
       return null;
     }
   }
-  async getAll(didAddress) {
+  async getRequestAll(didAddress) {
     const storeKeyPrefix = `${didAddress}.`;
     if(this.trace) {
-      console.log('DidStoreJoin::getAll::storeKeyPrefix=:<',storeKeyPrefix,'>');
+      console.log('DidStoreJoin::getRequestAll::storeKeyPrefix=:<',storeKeyPrefix,'>');
     }
-    const storeKeys = await this.store.keys(LEVEL_OPT).all();
+    const storeValues = await this.store.values(LEVEL_OPT2).all();
     if(this.trace) {
-      console.log('DidStoreJoin::getAll::storeKeys=:<',storeKeys,'>');
-    }
-    const didMyKeyJson = [];
-    for(const storeKey of storeKeys) {
-      if(this.trace) {
-        console.log('DidStoreJoin::getAll::storeKey=:<',storeKey,'>');
-      }
-      if(storeKey.startsWith(storeKeyPrefix)) {
-        didMyKeyJson.push(storeKey);
-      }
-    }
-    if(this.trace) {
-      console.log('DidStoreJoin::getAll::didMyKeyJson=:<',didMyKeyJson,'>');
-    }
-    const storeValuesStr = await this.store.getMany(didMyKeyJson,LEVEL_OPT);
-    if(this.trace) {
-      console.log('DidStoreJoin::getAll::storeValuesStr=:<',storeValuesStr,'>');
+      console.log('DidStoreJoin::getRequestAll::storeValues=:<',storeValues,'>');
     }
     const storeValuesJson = [];
-    for(const storeValueStr of storeValuesStr) {
-      const storeValue = JSON.parse(storeValueStr);
+    for(const storeValueStr of storeValues) {
       if(this.trace) {
-        console.log('DidStoreJoin::getAll::storeValue=:<',storeValue,'>');
+        console.log('DidStoreJoin::getRequestAll::storeValueStr=:<',storeValueStr,'>');
       }
-      storeValuesJson.push(storeValue);
+      try {
+        const storeValue = JSON.parse(storeValueStr);
+        if(this.trace) {
+          console.log('DidStoreJoin::getRequestAll::storeValue=:<',storeValue,'>');
+        }
+        if(storeValue && storeValue.credentialRequest && storeValue.credentialRequest.issuer){
+          if(storeValue.credentialRequest.issuer.includes(didAddress)) {
+            storeValuesJson.push(storeValue);
+          } else {
+            if(this.trace) {
+              console.log('DidStoreJoin::getRequestAll:: skip storeValue=:<',storeValue,'>');
+            }
+          }
+        }
+      } catch(err) {
+        console.log('DidStoreJoin::getRequestAll::err=:<',err,'>');
+      }
     }
     if(this.trace) {
-      console.log('DidStoreJoin::getAll::storeValuesJson=:<',storeValuesJson,'>');
+      console.log('DidStoreJoin::getRequestAll::storeValuesJson=:<',storeValuesJson,'>');
     }
     return storeValuesJson;
   }

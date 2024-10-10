@@ -223,21 +223,15 @@ const loadDidTeamApps = (evt) => {
   otmc.on('didteam:join',(joinMsg) => {
     console.log('loadDidTeamApps::joinMsg=:<',joinMsg,'>');
   });
-  otmc.on('didteam:joinLoaded',(invitationJoin) => {
-    console.log('loadDidTeamApps::invitationJoin=:<',invitationJoin,'>');
-    for(const addIndex in invitationJoin) {
-      console.log('loadDidTeamApps::addIndex=:<',addIndex,'>');
-      const join = invitationJoin[addIndex];
-      if(join.authentication && join.authentication.length > 0) {
-        invitationJoin[addIndex].invitationType = 'Auth Member';
-      }
-      if(join.capabilityInvocation && join.capabilityInvocation.length > 0) {
-        invitationJoin[addIndex].invitationType = 'Capability Member';
-      }
-      console.log('loadDidTeamApps::invitationJoin=:<',invitationJoin,'>');
-    }
-    apps.invitation.invitations = invitationJoin;
+  otmc.on('didteam:joinLoaded',(joinRequestList) => {
+    console.log('loadDidTeamApps::joinRequestList=:<',joinRequestList,'>');
+    joinRequestList.forEach((joinRequest, index) => {
+      const showAddress = JSON.stringify(joinRequest.credentialRequest.claims.memberAsAuthentication,undefined,2);
+      joinRequestList[index].showAddress = showAddress.replace('[','').replace(']','').replace('#','#\n').trim();
+    });
+    apps.invitation.invitations = joinRequestList;
   });
+  
   otmc.on('did:team:evidence.auth',(auth) => {
     console.log('loadDidTeamApps::auth=:<',auth,'>');
     if(auth.isSeedRoot) {

@@ -18,6 +18,7 @@ class DIDCredentialRequest {
     const credentialJson = {
       '@context':this.didDoc_['@context'],
       type:'VerifiablePresentationRequest',
+      created:(new Date()).toISOString(),
       holder:this.didDoc_.controller,
       credentialRequest: {
         type:['VerifiableCredential'],
@@ -55,7 +56,8 @@ export class DIDCredentialRequestJoinController extends DIDCredentialRequest {
     const claims = {
       memberAsAuthentication:[
         `${this.didDoc_.id}#${this.auth_.address()}`
-      ]
+      ],
+      message:'Controller Verifiable Presentation Request',
     };
     if(this.trace) {
       console.log('DIDCredentialRequestJoinController::credential:claims=<',claims,'>');
@@ -63,6 +65,29 @@ export class DIDCredentialRequestJoinController extends DIDCredentialRequest {
     const credentialDoc = super.credential(claims);
     if(this.trace) {
       console.log('DIDCredentialRequestJoinController::credential:credentialDoc=<',credentialDoc,'>');
+    }
+    return credentialDoc;
+  }
+}
+
+export class DIDCredentialRequestJoinTeamMate extends DIDCredentialRequest {
+  constructor(auth,didDoc,util) {
+    super(auth,didDoc,util);
+    this.trace = true;
+  }
+  credential() {
+    const claims = {
+      memberAsAuthentication:[
+        `${this.didDoc_.id}#${this.auth_.address()}`
+      ],
+      message:'Team Mate Verifiable Presentation Request',
+    };
+    if(this.trace) {
+      console.log('DIDCredentialRequestJoinTeamMate::credential:claims=<',claims,'>');
+    }
+    const credentialDoc = super.credential(claims);
+    if(this.trace) {
+      console.log('DIDCredentialRequestJoinTeamMate::credential:credentialDoc=<',credentialDoc,'>');
     }
     return credentialDoc;
   }

@@ -124,8 +124,14 @@ export class DidResolver {
     return localManifest;
   }
   async storeManifest(manifestObj,did){
+    if(this.trace) {
+      console.log('DidResolver::storeManifest::did=:<',did,'>');
+    }
     const manifestStr = JSON.stringify(manifestObj);
     const storeKey = `${did}.${this.util.calcAddress(manifestStr)}`;
+    if(this.trace) {
+      console.log('DidResolver::storeManifest::storeKey=:<',storeKey,'>');
+    }
     this.localStore.storeManifest(storeKey,manifestStr);
     this.webStore.storeManifest(manifestObj,did);
   }
@@ -153,10 +159,27 @@ export class DidResolver {
     return localManifest;
   }
 
+  async storeCredentialRequest(credReqObj,reqDid){
+    if(this.trace) {
+      console.log('DidResolver::storeCredentialRequest::reqDid=:<',reqDid,'>');
+    }
+    const credReqStr = JSON.stringify(credReqObj);
+    const storeKey = `credential.request.${reqDid}.${this.util.calcAddress(credReqStr)}`;
+    if(this.trace) {
+      console.log('DidResolver::storeCredentialRequest::storeKey=:<',storeKey,'>');
+    }
+    this.localStore.storeCredentialRequest(storeKey,credReqStr);
+  }
+
   async getJoinInProgress(didAddress){
     if(this.trace) {
       console.log('DidResolver::getJoinInProgress::didAddress=:<',didAddress,'>');
     }
+    const jointList = await this.localStore.getJoinInProgress(didAddress);
+    if(this.trace) {
+      console.log('DidResolver::getJoinInProgress::jointList=:<',jointList,'>');
+    }
+    return jointList;
   }
 }
 
@@ -172,7 +195,7 @@ class DidResolverLocalStore {
 
     this.didDocLS = new DidStoreDocument(StoreKey.open.did.document);
     this.manifestLS = new DidStoreManifest(StoreKey.open.did.manifest);
-    this.joinStore = new DidStoreJoin(StoreKey.open.did.joinReq);
+    this.joinStoreLS = new DidStoreJoin(StoreKey.open.did.joinCRV);
   }
 
   async resolver(keyAddress){
@@ -239,6 +262,23 @@ class DidResolverLocalStore {
       console.log('DidResolverLocalStore::manifest::manifestValuesJson=:<',manifestValuesJson,'>');
     }
     return manifestValuesJson;
+  }
+  async storeCredentialRequest(storeKey,credReqStr){
+    this.joinStoreLS.put(storeKey, credReqStr, LEVEL_OPT,(err)=>{
+      if(this.trace) {
+        console.log('DidResolverLocalStore::storeCredentialRequest::err=:<',err,'>');
+      }
+    });
+  }
+  async getJoinInProgress(didAddress){
+    if(this.trace) {
+      console.log('DidResolverLocalStore::getJoinInProgress::didAddress=:<',didAddress,'>');
+    }
+    const joinList = await this.joinStoreLS.getRequestAll(didAddress);
+    if(this.trace) {
+      console.log('DidResolverLocalStore::getJoinInProgress::joinList=:<',joinList,'>');
+    }
+    return joinList;
   }
 }
 

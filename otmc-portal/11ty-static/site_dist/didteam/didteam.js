@@ -155,31 +155,6 @@ const didTeamOption = {
   }, 
 }
 
-const invitationOption = {
-  data() {
-    return {
-      invitations:{},
-    };
-  },
-  methods: {
-    clickAcceptInvitationJoin(evt,address) {
-      console.log('clickAcceptInvitationJoin::this=:<',this,'>');
-      console.log('clickAcceptInvitationJoin::evt=:<',evt,'>');
-      console.log('clickAcceptInvitationJoin::address=:<',address,'>');
-      const otmc = this.otmc;
-      otmc.acceptInvitation(address);
-    },
-    clickRejectInvitationJoin(evt,address) {
-      console.log('clickRejectInvitationJoin::this=:<',this,'>');
-      console.log('clickRejectInvitationJoin::evt=:<',evt,'>');
-      console.log('clickRejectInvitationJoin::address=:<',address,'>');
-      const otmc = this.otmc;
-      otmc.rejectInvitation(address);
-    },
-  }, 
-}
-
-
 const loadDidTeamApps = (evt) => {
   const appEdcryptKey = Vue.createApp(edcryptKeyOption);
   const edcryptKeyVM = appEdcryptKey.mount('#vue-ui-app-edcrypt-key');
@@ -191,11 +166,6 @@ const loadDidTeamApps = (evt) => {
   const appDidVM = appDidTeam.mount('#vue-ui-app-did-team');
   console.log('loadDidTeamApps::appDidVM=:<',appDidVM,'>');
 
-  const appInvitation = Vue.createApp(invitationOption);
-  const appInvitationVM = appInvitation.mount('#vue-ui-app-invitation-join');
-  console.log('loadDidTeamApps::appInvitationVM=:<',appInvitationVM,'>');
-  
-  
   const otmc = new OtmcTeam();
   console.log('loadDidTeamApps::otmc=:<',otmc,'>');
   otmc.on('edcrypt:didKeyList',(didKeyList)=>{
@@ -219,17 +189,6 @@ const loadDidTeamApps = (evt) => {
       appDidVM.hasAddress = true;
       appDidVM.isInTeam = true;
     }
-  });
-  otmc.on('didteam:join',(joinMsg) => {
-    console.log('loadDidTeamApps::joinMsg=:<',joinMsg,'>');
-  });
-  otmc.on('didteam:joinLoaded',(joinRequestList) => {
-    console.log('loadDidTeamApps::joinRequestList=:<',joinRequestList,'>');
-    joinRequestList.forEach((joinRequest, index) => {
-      const showAddress = JSON.stringify(joinRequest.credentialRequest.claims.memberAsAuthentication,undefined,2);
-      joinRequestList[index].showAddress = showAddress.replace('[','').replace(']','').replace('#','#\n').trim();
-    });
-    apps.invitation.invitations = joinRequestList;
   });
   
   otmc.on('did:team:evidence.auth',(auth) => {
@@ -256,11 +215,9 @@ const loadDidTeamApps = (evt) => {
   
   edcryptKeyVM.otmc = otmc;
   appDidVM.otmc = otmc;
-  appInvitationVM.otmc = otmc;
   
   apps.edcrypt = edcryptKeyVM;
   apps.did = appDidVM;
-  apps.invitation = appInvitationVM;
 
 }
 

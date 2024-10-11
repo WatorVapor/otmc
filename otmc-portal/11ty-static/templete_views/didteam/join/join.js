@@ -92,10 +92,12 @@ const loadDidTeamApps = (evt) => {
   });
   otmc.on('didteam:joinLoaded',(joinRequestList) => {
     console.log('loadDidTeamApps::joinRequestList=:<',joinRequestList,'>');
+    /*
     joinRequestList.forEach((joinRequest, index) => {
       const showAddress = JSON.stringify(joinRequest.credentialRequest.claims.memberAsAuthentication,undefined,2);
       joinRequestList[index].showAddress = showAddress.replace('[','').replace(']','').replace('#','#\n').trim();
     });
+    */
     apps.invitation.invitations = joinRequestList;
   });
   
@@ -108,30 +110,10 @@ const loadDidTeamApps = (evt) => {
 
 }
 
-const onAddressRefreshKeyApp = (address,app) => {
-  console.log('onAddressRefreshKeyApp::address=:<',address,'>');  
-  console.log('onAddressRefreshKeyApp::app=:<',app,'>');
-  app.hasAddress = true;
-  app.isMining = false;
-  app.address = address;
-};
-
-const onAddressRefreshTeamApp = (address,app) => {
-  console.log('onAddressRefreshTeamApp::address=:<',address,'>');  
-  console.log('onAddressRefreshTeamApp::app=:<',app,'>');
-  app.edKeyReady = true;
-};
 
 
 const onDidKeyRefreshKeyApp = (didKeys,app) => {
   console.log('onDidKeyRefreshKeyApp::didKeys=:<',didKeys,'>');  
   console.log('onDidKeyRefreshKeyApp::app=:<',app,'>');
   app.didKeyList = didKeys;
-  app.isMining = false;
 };
-
-const onDidKeyRefreshTeamApp = (didKeys,app) => {
-  console.log('onDidKeyRefreshTeamApp::didKeys=:<',didKeys,'>');  
-  console.log('onDidKeyRefreshTeamApp::app=:<',app,'>');
-};
-

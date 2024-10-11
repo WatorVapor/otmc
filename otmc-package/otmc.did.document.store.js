@@ -229,6 +229,32 @@ export class DidStoreJoin {
     if(this.trace) {
       console.log('DidStoreJoin::getRequestAll::storeKeyPrefix=:<',storeKeyPrefix,'>');
     }
+    const storeIterators = await this.store.iterator(LEVEL_OPT2).all();
+    if(this.trace) {
+      console.log('DidStoreJoin::getRequestAll::storeIterator=:<',storeIterators,'>');
+    }
+    const storeValuesJson = {};
+    for(const storeIterator of storeIterators) {
+      if(this.trace) {
+        console.log('DidStoreJoin::getRequestAll::storeIterator=:<',storeIterator,'>');
+      }
+      const storeKey = storeIterator[0]
+      const storeValueStr = storeIterator[1]
+      const storeValue = JSON.parse(storeValueStr);
+      if(this.trace) {
+        console.log('DidStoreJoin::getRequestAll::storeValue=:<',storeValue,'>');
+      }
+      if(storeValue && storeValue.credentialRequest && storeValue.credentialRequest.issuer){
+        if(storeValue.credentialRequest.issuer.includes(didAddress)) {
+          storeValuesJson[storeKey] = storeValue;
+        } else {
+          if(this.trace) {
+            console.log('DidStoreJoin::getRequestAll:: skip storeValue=:<',storeValue,'>');
+          }
+        }
+      }
+    }
+/* 
     const storeValues = await this.store.values(LEVEL_OPT2).all();
     if(this.trace) {
       console.log('DidStoreJoin::getRequestAll::storeValues=:<',storeValues,'>');
@@ -256,6 +282,7 @@ export class DidStoreJoin {
         console.log('DidStoreJoin::getRequestAll::err=:<',err,'>');
       }
     }
+*/
     if(this.trace) {
       console.log('DidStoreJoin::getRequestAll::storeValuesJson=:<',storeValuesJson,'>');
     }

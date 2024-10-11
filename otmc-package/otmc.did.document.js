@@ -146,6 +146,11 @@ export class DidDocument {
         self.joinRequest2TeamMate();          
       }
     });
+    this.eeInternal.on('did.join.accept.request',(evt)=>{
+      if(self.trace) {
+        console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+    });
 
 
     this.eeInternal.on('did.loadDocument',(evt)=>{

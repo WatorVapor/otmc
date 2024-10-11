@@ -58,6 +58,7 @@ export class DIDCredentialRequestJoinController extends DIDCredentialRequest {
         `${this.didDoc_.id}#${this.auth_.address()}`
       ],
       message:'Controller Verifiable Presentation Request',
+      did:this.didDoc_,
     };
     if(this.trace) {
       console.log('DIDCredentialRequestJoinController::credential:claims=<',claims,'>');
@@ -81,6 +82,7 @@ export class DIDCredentialRequestJoinTeamMate extends DIDCredentialRequest {
         `${this.didDoc_.id}#${this.auth_.address()}`
       ],
       message:'Team Mate Verifiable Presentation Request',
+      did:this.didDoc_,
     };
     if(this.trace) {
       console.log('DIDCredentialRequestJoinTeamMate::credential:claims=<',claims,'>');

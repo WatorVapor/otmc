@@ -2,6 +2,7 @@
 title: 'DidTeam'
 layout: didteam.sidebar.ejs
 ---
+
      <div class="container text-start mt-3">
       <div class="row justify-content-start">
         <div class="col-10" id="vue-ui-app-edcrypt-key">
@@ -29,8 +30,8 @@ layout: didteam.sidebar.ejs
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(JoinReq, address) of invitations">
-                <td>{{ JoinReq.showAddress }}</td>
+              <tr v-for="(address,JoinReq) of invitations">
+                <td>{{ address }}</td>
                 <td>{{ JoinReq.credentialRequest.claims.message }}</td>
                 <td>{{ new Date(JoinReq.created) }}</td>
                 <td>

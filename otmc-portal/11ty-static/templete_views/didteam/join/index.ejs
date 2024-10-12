@@ -18,7 +18,7 @@ layout: didteam.sidebar.ejs
       </div>
       <div class="row justify-content-start">
         <h1>Request to join the Team</h1>
-        <div class="col-12" id="vue-ui-app-invitation-join">
+        <div class="col-12" id="vue-ui-app-join-request">
           <table class="table table-striped table-bordered">
             <thead>
               <tr>
@@ -30,17 +30,17 @@ layout: didteam.sidebar.ejs
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(address,JoinReq) of invitations">
-                <td>{{ address }}</td>
-                <td>{{ JoinReq.credentialRequest.claims.message }}</td>
-                <td>{{ new Date(JoinReq.created) }}</td>
+              <tr v-for="(joinReq,storeKey) of joinRequests">
+                <td><pre>{{ joinReq.showAddress }}</pre></td>
+                <td>{{ joinReq.credentialRequest.claims.message }}</td>
+                <td>{{ new Date(joinReq.created) }}</td>
                 <td>
-                  <button class="btn btn-success" type="button" @click="clickAcceptInvitationJoin($event,address)">
+                  <button class="btn btn-success" type="button" @click="clickAcceptJoinRequest($event,storeKey)">
                     <i class="fa-solid fa-circle-check"></i>
                   </button>
                 </td>
                 <td>
-                  <button class="btn btn-danger" type="button" @click="clickRejectInvitationJoin($event,address)">
+                  <button class="btn btn-danger" type="button" @click="clickRejectJoinRequest($event,storeKey)">
                     <i class="fa-solid fa-ban"></i>
                   </button>
                 </td>

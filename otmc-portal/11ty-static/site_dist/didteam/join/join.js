@@ -43,26 +43,26 @@ const edcryptKeyOption = {
 }
 
 
-const invitationOption = {
+const joinRequestOption = {
   data() {
     return {
-      invitations:{},
+      joinRequests:{},
     };
   },
   methods: {
-    clickAcceptInvitationJoin(evt,address) {
-      console.log('clickAcceptInvitationJoin::this=:<',this,'>');
-      console.log('clickAcceptInvitationJoin::evt=:<',evt,'>');
-      console.log('clickAcceptInvitationJoin::address=:<',address,'>');
+    clickAcceptJoinRequest(evt,storeKey) {
+      console.log('clickAcceptJoinRequest::this=:<',this,'>');
+      console.log('clickAcceptJoinRequest::evt=:<',evt,'>');
+      console.log('clickAcceptJoinRequest::storeKey=:<',storeKey,'>');
       const otmc = this.otmc;
-      otmc.acceptInvitation(address);
+      otmc.acceptJoinRequest(storeKey);
     },
-    clickRejectInvitationJoin(evt,address) {
-      console.log('clickRejectInvitationJoin::this=:<',this,'>');
-      console.log('clickRejectInvitationJoin::evt=:<',evt,'>');
-      console.log('clickRejectInvitationJoin::address=:<',address,'>');
+    clickRejectJoinRequest(evt,storeKey) {
+      console.log('clickRejectJoinRequest::this=:<',this,'>');
+      console.log('clickRejectJoinRequest::evt=:<',evt,'>');
+      console.log('clickRejectJoinRequest::storeKey=:<',storeKey,'>');
       const otmc = this.otmc;
-      otmc.rejectInvitation(address);
+      otmc.rejectJoinRequest(storeKey);
     },
   }, 
 }
@@ -76,9 +76,9 @@ const loadDidTeamApps = (evt) => {
   edcryptKeyVM.didKeySelected = selectedKeyId;
   
 
-  const appInvitation = Vue.createApp(invitationOption);
-  const appInvitationVM = appInvitation.mount('#vue-ui-app-invitation-join');
-  console.log('loadDidTeamApps::appInvitationVM=:<',appInvitationVM,'>');
+  const appJoin = Vue.createApp(joinRequestOption);
+  const appJoinVM = appJoin.mount('#vue-ui-app-join-request');
+  console.log('loadDidTeamApps::appJoinVM=:<',appJoinVM,'>');
   
   
   const otmc = new OtmcTeam();
@@ -92,21 +92,28 @@ const loadDidTeamApps = (evt) => {
   });
   otmc.on('didteam:joinLoaded',(joinRequestList) => {
     console.log('loadDidTeamApps::joinRequestList=:<',joinRequestList,'>');
+    for(const storeKey in joinRequestList) {
+      console.log('loadDidTeamApps::storeKey=:<',storeKey,'>');
+      const joinRequest = joinRequestList[storeKey];
+      const showAddress = JSON.stringify(joinRequest.credentialRequest.claims.memberAsAuthentication,undefined,2);
+      joinRequestList[storeKey].showAddress = showAddress;
+      //joinRequestList[storeKey].showAddress = showAddress.replace('[','').replace(']','').replace('#','#\n').trim();
+    }
     /*
-    joinRequestList.forEach((joinRequest, index) => {
+    Object.keys(joinRequestList).forEach((joinRequest, index) => {
       const showAddress = JSON.stringify(joinRequest.credentialRequest.claims.memberAsAuthentication,undefined,2);
       joinRequestList[index].showAddress = showAddress.replace('[','').replace(']','').replace('#','#\n').trim();
     });
     */
-    apps.invitation.invitations = joinRequestList;
+    apps.join.joinRequests = joinRequestList;
   });
   
   
   edcryptKeyVM.otmc = otmc;
-  appInvitationVM.otmc = otmc;
+  appJoinVM.otmc = otmc;
   
   apps.edcrypt = edcryptKeyVM;
-  apps.invitation = appInvitationVM;
+  apps.join = appJoinVM;
 
 }
 

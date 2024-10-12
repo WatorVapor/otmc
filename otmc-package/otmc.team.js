@@ -74,19 +74,19 @@ export class OtmcTeam extends EventEmitter {
   requestJoinDidTeam() {
     this.eeInternal.emit('did.join.request',{});
   }
-  acceptInvitation(address){
+  acceptJoinRequest(storeKey){
     if(this.trace) {
-      console.log('Otmc::acceptInvitation::new Date()=:<',new Date(),'>');
-      console.log('Otmc::acceptInvitation::address=:<',address,'>');
+      console.log('Otmc::acceptJoinRequest::new Date()=:<',new Date(),'>');
+      console.log('Otmc::acceptJoinRequest::storeKey=:<',storeKey,'>');
     }
-    this.eeInternal.emit('did.join.accept.request',{address:address});
+    this.eeInternal.emit('did.join.accept.request',{storeKey:storeKey});
   }
-  rejectInvitation(address){
+  rejectJoinRequest(storeKey){
     if(this.trace) {
-      console.log('Otmc::rejectInvitation::new Date()=:<',new Date(),'>');
-      console.log('Otmc::rejectInvitation::address=:<',address,'>');
+      console.log('Otmc::rejectJoinRequest::new Date()=:<',new Date(),'>');
+      console.log('Otmc::rejectJoinRequest::storeKey=:<',storeKey,'>');
     }
-    this.eeInternal.emit('did.join.reject.request',{address:address});
+    this.eeInternal.emit('did.join.reject.request',{storeKey:storeKey});
   }
   checkEvidenceChain(){
     if(this.trace) {

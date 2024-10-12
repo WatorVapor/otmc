@@ -151,7 +151,11 @@ export class DidDocument {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
     });
-
+    this.eeInternal.on('did.join.reject.request',(evt)=>{
+      if(self.trace) {
+        console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+    });
 
     this.eeInternal.on('did.loadDocument',(evt)=>{
       if(self.trace0) {

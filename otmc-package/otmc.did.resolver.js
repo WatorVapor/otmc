@@ -1,10 +1,6 @@
-import {
-  DidStoreDocument,
-  DidStoreManifest
-} from './otmc.did.document.store.js';
-import {
-  DidStoreTeamJoin
-} from './otmc.did.store.team.join.js';
+import { DidStoreDocument } from './otmc.did.store.document.js';
+import { DidStoreManifest } from './otmc.did.store.manifest.js';
+import { DidStoreTeamJoin } from './otmc.did.store.team.join.js';
 
 import { StoreKey } from './otmc.const.js';
 

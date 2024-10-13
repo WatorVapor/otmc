@@ -12,8 +12,12 @@ export const StoreKey = {
   },
   open: {
     did: {
-      document:'otmc/open/did/document',
-      manifest:'otmc/open/did/manifest',
+      document: {
+        dbName:'otmc/open/did/document',
+      },
+      manifest: {
+        dbName:'otmc/open/did/manifest',
+      },
       join: {
         dbName: 'otmc/open/did/join/credential_request_verifiable',
       }

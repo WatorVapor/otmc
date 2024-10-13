@@ -16,13 +16,13 @@ export class DidStoreTeamJoin {
     }
     this.db = new Dexie(StoreKey.open.did.join.dbName);
     this.db.version(this.version).stores({
-      inProgress: '++id,did,control,hashCR,origCredReq'
+      inProgress: '++autoId,did,control,hashCR,origCredReq'
     });
     this.db.version(this.version).stores({
-      done: '++id,did,control,hashCR'
+      done: '++autoId,did,control,hashCR'
     });
     this.db.version(this.version).stores({
-      verified: '++id,did,control,hashCR,hashVC,origVC'
+      verified: '++autoId,did,control,hashCR,hashVC,origVC'
     });
     if(this.trace) {
       console.log('DidStoreTeamJoin::constructor::this.db=:<',this.db,'>');

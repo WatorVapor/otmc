@@ -192,6 +192,27 @@ export class DidResolver {
     }
     return credReq;
   }
+  async markDoneJoinCredRequest(storeHash){
+    if(this.trace) {
+      console.log('DidResolver::markDoneJoinCredRequest::storeHash=:<',storeHash,'>');
+    }
+    const markResult = await this.localStore.markDoneJoinCredRequest(storeHash);
+    if(this.trace) {
+      console.log('DidResolver::markDoneJoinCredRequest::markResult=:<',markResult,'>');
+    }
+    return markResult;
+  }  
+  
+  async storeJoinVerifiableCredential(didVC) {
+    if(this.trace) {
+      console.log('DidResolver::storeJoinVerifiableCredential::didVC=:<',didVC,'>');
+    }
+    const resultStore = await this.localStore.storeJoinVerifiableCredential(didVC);
+    if(this.trace) {
+      console.log('DidResolver::storeJoinVerifiableCredential::resultStore=:<',resultStore,'>');
+    }
+    return resultStore;
+  }
 }
 
 
@@ -286,7 +307,7 @@ class DidResolverLocalStore {
     }
     for(const holder of credReq.holder) {
       credReqStore.control = holder;
-      await this.joinStoreLS.addCredReq(credReqStore);
+      await this.joinStoreLS.putCredReq(credReqStore);
     }
   }
   async getJoinInProgress(didAddress){
@@ -308,6 +329,38 @@ class DidResolverLocalStore {
       console.log('DidResolverLocalStore::getJoinCredRequest::credReq=:<',credReq,'>');
     }
     return credReq;
+  }
+  async markDoneJoinCredRequest(storeHash){
+    if(this.trace) {
+      console.log('DidResolverLocalStore::markDoneJoinCredRequest::storeHash=:<',storeHash,'>');
+    }
+    const markResult = await this.joinStoreLS.moveJoinCredRequest2Done(storeHash);
+    if(this.trace) {
+      console.log('DidResolverLocalStore::markDoneJoinCredRequest::markResult=:<',markResult,'>');
+    }
+    return markResult;
+  }  
+  
+  async storeJoinVerifiableCredential(didVC) {
+    if(this.trace) {
+      console.log('DidResolverLocalStore::storeJoinVerifiableCredential::didVC=:<',didVC,'>');
+    }
+    const didVCStr = JSON.stringify(didVC);
+    const vcStore = {
+      did:didVC.credentialSubject.did.id,
+      control:didVC.credentialSubject.did.controller,
+      hashCR:didVC.id,
+      hashVC:this.util.calcAddress(didVCStr),
+      origVC:didVCStr
+    }
+    if(this.trace) {
+      console.log('DidResolverLocalStore::storeJoinVerifiableCredential::vcStore=:<',vcStore,'>');
+    }
+    const resultStore = await this.joinStoreLS.putVerifiableCredential(vcStore);
+    if(this.trace) {
+      console.log('DidResolverLocalStore::storeJoinVerifiableCredential::resultStore=:<',resultStore,'>');
+    }
+    return resultStore;
   }
 }
 

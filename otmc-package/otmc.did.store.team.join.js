@@ -38,9 +38,9 @@ export class DidStoreTeamJoin {
     }
   }
 
-  async addCredReq(credReqStore) {
+  async putCredReq(credReqStore) {
     if(this.trace) {
-      console.log('DidStoreTeamJoin::addCredReq::credReqStore=:<',credReqStore,'>');
+      console.log('DidStoreTeamJoin::putCredReq::credReqStore=:<',credReqStore,'>');
     }
     await this.db.inProgress.put(credReqStore);
   }
@@ -94,7 +94,16 @@ export class DidStoreTeamJoin {
     const storeValue = JSON.parse(storeValueStr);
     return storeValue;
   }
-
+  async putVerifiableCredential(vcStore) {
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::putVerifiableCredential::vcStore=:<',vcStore,'>');
+    }
+    const result = await this.db.verified.put(vcStore);
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::putVerifiableCredential::result=:<',result,'>');
+    }
+    return result;
+  }
   
   compare_(a,b) {
     if ( a.updated < b.updated ){

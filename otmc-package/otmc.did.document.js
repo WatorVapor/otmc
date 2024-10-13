@@ -673,9 +673,23 @@ export class DidDocument {
     }
     const didVCDoc = didVC.verifiable(did2VC,storeHash);
     if(this.trace) {
-      console.log('DidDocument::joinRequest2Controller::didVCDoc=:<',didVCDoc,'>');
+      console.log('DidDocument::acceptRequest::didVCDoc=:<',didVCDoc,'>');
     }
-
+    const results = await this.resolver.storeJoinVerifiableCredential(didVCDoc);
+    if(this.trace) {
+      console.log('DidDocument::acceptRequest::results=:<',results,'>');
+    }
+    if(results) {
+      const didStoreLocal = didVCDoc.credentialSubject.did;
+      if(this.trace) {
+        console.log('DidDocument::acceptRequest::didStoreLocal=:<',didStoreLocal,'>');
+      }
+      await this.resolver.storeDid(didStoreLocal);
+      const resultMark = await this.resolver.markDoneJoinCredRequest(storeHash);
+      if(this.trace) {
+        console.log('DidDocument::acceptRequest::resultMark=:<',resultMark,'>');
+      }
+    }
   }
 
   requestJoinDid() {

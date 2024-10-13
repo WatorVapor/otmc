@@ -19,13 +19,19 @@ export class DidStoreManifest {
   put(key,value,option,cb) {
     this.store.put(key,value,option,cb);
   }
-  async getTop(didAddress) {
-    const didValuesJson = await this.getAll(didAddress);
+  async putManifest(didManifest) {
     if(this.trace) {
-      console.log('DidStoreManifest::getTop::didValuesJson=:<',didValuesJson,'>');
+      console.log('DidStoreManifest::putManifest::didManifest=:<',didManifest,'>');
+    }
+    await this.db.manifest.put(didManifest);
+  }
+  async getTop(didAddress) {
+    const manifestValuesJson = await this.getAll(didAddress);
+    if(this.trace) {
+      console.log('DidStoreManifest::getTop::manifestValuesJson=:<',manifestValuesJson,'>');
     }
     
-    const sorted = didValuesJson.sort( this.compare_ );
+    const sorted = manifestValuesJson.sort( this.compare_ );
     if(this.trace) {
       console.log('DidStoreManifest::getTop::sorted=:<',sorted,'>');
     }
@@ -36,37 +42,14 @@ export class DidStoreManifest {
     }
   }
   async getAll(didAddress) {
-    const storeKeyPrefix = `${didAddress}.`;
+    const storeObjects = await this.db.manifest.where('did').equals(didAddress).toArray();
     if(this.trace) {
-      console.log('DidStoreManifest::getAll::storeKeyPrefix=:<',storeKeyPrefix,'>');
-    }
-    const storeKeys = await this.store.keys(LEVEL_OPT).all();
-    if(this.trace) {
-      console.log('DidStoreManifest::getAll::storeKeys=:<',storeKeys,'>');
-    }
-    const didMyKeyJson = [];
-    for(const storeKey of storeKeys) {
-      if(this.trace) {
-        console.log('DidStoreManifest::getAll::storeKey=:<',storeKey,'>');
-      }
-      if(storeKey.startsWith(storeKeyPrefix)) {
-        didMyKeyJson.push(storeKey);
-      }
-    }
-    if(this.trace) {
-      console.log('DidStoreManifest::getAll::didMyKeyJson=:<',didMyKeyJson,'>');
-    }
-    const storeValuesStr = await this.store.getMany(didMyKeyJson,LEVEL_OPT);
-    if(this.trace) {
-      console.log('DidStoreManifest::getAll::storeValuesStr=:<',storeValuesStr,'>');
+      console.log('DidStoreManifest::getAll::storeObjects=:<',storeObjects,'>');
     }
     const storeValuesJson = [];
-    for(const storeValueStr of storeValuesStr) {
-      const storeValue = JSON.parse(storeValueStr);
-      if(this.trace) {
-        console.log('DidStoreManifest::getAll::storeValue=:<',storeValue,'>');
-      }
-      storeValuesJson.push(storeValue);
+    for(const storeValue of storeObjects) {
+      const storeManifest = JSON.parse(storeValue.origManifest);
+      storeValuesJson.push(storeManifest);
     }
     if(this.trace) {
       console.log('DidStoreManifest::getAll::storeValuesJson=:<',storeValuesJson,'>');

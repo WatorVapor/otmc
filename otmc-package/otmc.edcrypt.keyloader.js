@@ -82,29 +82,6 @@ export class EdcryptKeyLoaderBrowser {
       console.log('EdcryptKeyLoaderBrowser::loadKey::edKeys=:<',edKeys,'>');
     }
     this.eeOut.emit('edcrypt:didKeyList',edKeys);
-    /*
-    try {
-      const didKeyListStr = await this.didKeyStore.get(StoreKey.didKeyList);
-      if(this.trace) {
-        console.log('EdcryptKeyLoaderBrowser::loadKey::didKeyListStr=:<',didKeyListStr,'>');
-      }
-      if(didKeyListStr) {
-        const didKeyList = JSON.parse(didKeyListStr);
-        this.eeOut.emit('edcrypt:didKeyList',didKeyList);
-      } else {
-        this.eeOut.emit('edcrypt:didKeyList',[]);
-      }
-    } catch(errDidKey) {
-      if(this.trace) {
-        console.error('EdcryptKeyLoaderBrowser::loadKey::errDidKey.message=:<',errDidKey.message,'>');
-      }
-      if(errDidKey.message === 'Entry not found') {
-        this.eeOut.emit('edcrypt:didKeyList',[]);
-      } else {
-        console.error('EdcryptKeyLoaderBrowser::loadKey::errDidKey=:<',errDidKey,'>');
-      }
-    }
-    */
   }
   async switchKey(keyId) {
     try {

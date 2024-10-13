@@ -16,8 +16,11 @@ export class DidStoreDocument {
       didDoc: '++autoId,id,hashDid,origDid'
     });
   }
-  put(key,value,option,cb) {
-    this.store.put(key,value,option,cb);
+  async putDid(didStore) {
+    if(this.trace) {
+      console.log('DidStoreDocument::putDid::didStore=:<',didStore,'>');
+    }
+    await this.db.didDoc.put(didStore);
   }
   async getTop(address) {
     const didValuesJson = await this.getAll(address);
@@ -36,31 +39,18 @@ export class DidStoreDocument {
     }
   }
   async getAll(address) {
-    const storeKeyPrefix = `did:otmc:${address}.`;
+    const didAddress = `did:otmc:${address}`;
     if(this.trace) {
-      console.log('DidStoreDocument::getAll::storeKeyPrefix=:<',storeKeyPrefix,'>');
+      console.log('DidStoreDocument::getAll::didAddress=:<',didAddress,'>');
     }
-    const storeKeys = await this.store.keys(LEVEL_OPT).all();
+    const storeObjects = await this.db.didDoc.where('id').equals(didAddress).toArray();
     if(this.trace) {
-      console.log('DidStoreDocument::getAll::storeKeys=:<',storeKeys,'>');
+      console.log('DidStoreDocument::getAll::storeObjects=:<',storeObjects,'>');
     }
     const storeValuesJson = [];
-    for(const storeKey of storeKeys) {
-      const storeValueStr = await this.store.get(storeKey,LEVEL_OPT);
-      if(this.trace) {
-        console.log('DidStoreDocument::getAll::storeValueStr=:<',storeValueStr,'>');
-      }
-      const storeValue = JSON.parse(storeValueStr);
-      if(this.trace) {
-        console.log('DidStoreDocument::getAll::storeValue=:<',storeValue,'>');
-      }
-      const isMine = this.isAddressUsedDid_(storeValue,address);
-      if(this.trace) {
-        console.log('DidStoreDocument::getAll::isMine=:<',isMine,'>');
-      }
-      if(isMine) {
-        storeValuesJson.push(storeValue);
-      }
+    for(const storeValue of storeObjects) {
+      const storeDid = JSON.parse(storeValue.origDid);
+      storeValuesJson.push(storeDid);
     }
     if(this.trace) {
       console.log('DidStoreDocument::getAll::storeValuesJson=:<',storeValuesJson,'>');

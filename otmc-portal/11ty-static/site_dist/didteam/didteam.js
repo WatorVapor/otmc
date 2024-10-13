@@ -89,16 +89,16 @@ const didTeamOption = {
       const otmc = this.otmc;
       console.log('clickAddSeedControl::otmc=:<',otmc,'>');
       console.log('clickAddSeedControl::this.create.controls=:<',this.create.controls,'>');
-      let newControl = null;
+      let controllers = null;
       try { 
-        newControl = JSON.parse(this.create.controls);
-        console.log('clickAddSeedControl::newControl=:<',newControl,'>');
+        controllers = JSON.parse(this.create.controls);
+        console.log('clickAddSeedControl::controllers=:<',controllers,'>');
       } catch(err) {
         console.error('clickAddSeedControl::err=:<',err,'>');
-        newControl = [];
+        controllers = [];
       }
-      newControl.push(this.create.control);
-      this.create.controls = JSON.stringify(newControl);
+      controllers.push(this.create.control);
+      this.create.controls = JSON.stringify(controllers);
     },
     clickCreateDidTeamSeed(evt) {
       console.log('clickCreateDidTeamSeed::this=:<',this,'>');
@@ -107,7 +107,7 @@ const didTeamOption = {
       let controllers = [];
       try { 
         controllers = JSON.parse(this.create.controls);
-        console.log('clickAddSeedControl::newControl=:<',newControl,'>');
+        console.log('clickAddSeedControl::controllers=:<',controllers,'>');
       } catch(err) {
         console.error('clickAddSeedControl::err=:<',err,'>');
         controllers = [];

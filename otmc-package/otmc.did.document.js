@@ -347,7 +347,11 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::createSeed::checkedControls=:<',checkedControls,'>');
     }
-    this.seed = new DIDSeedDocument(this.auth,this.recovery,checkedControls);
+    const uniqControls = Array.from(new Set(checkedControls));
+    if(this.trace) {
+      console.log('DidDocument::createSeed::uniqControls=:<',uniqControls,'>');
+    }
+    this.seed = new DIDSeedDocument(this.auth,this.recovery,uniqControls);
     if(this.trace) {
       console.log('DidDocument::createSeed::this.seed=:<',this.seed,'>');
     }

@@ -95,8 +95,12 @@ export class DidResolver {
 
   async storeDid(documentObj){
     const documentStr = JSON.stringify(documentObj);
-    const storeKey = `${documentObj.id}.${this.util.calcAddress(documentStr)}`;
-    this.localStore.storeDid(storeKey,documentStr);
+    const storeDoc = {
+      id:documentObj.id,
+      hashDid:this.util.calcAddress(documentStr),
+      origDid:documentStr
+    }
+    this.localStore.storeDid(storeDoc);
     this.webStore.storeDid(documentObj);
   }
   async manifest(didAddress){
@@ -127,11 +131,12 @@ export class DidResolver {
       console.log('DidResolver::storeManifest::did=:<',did,'>');
     }
     const manifestStr = JSON.stringify(manifestObj);
-    const storeKey = `${did}.${this.util.calcAddress(manifestStr)}`;
-    if(this.trace) {
-      console.log('DidResolver::storeManifest::storeKey=:<',storeKey,'>');
+    const manifestStore = {
+      did:did,
+      hash:this.util.calcAddress(manifestStr),
+      origManifest:manifestStr
     }
-    this.localStore.storeManifest(storeKey,manifestStr);
+    this.localStore.storeManifest(manifestStore);
     this.webStore.storeManifest(manifestObj,did);
   }
   async manifestAll(didAddress){
@@ -253,13 +258,8 @@ class DidResolverLocalStore {
     }
     return didValuesJson;
   }
-
-  async storeDid(storeKey,didDocStr){
-    this.didDocLS.put(storeKey, didDocStr, LEVEL_OPT,(err)=>{
-      if(this.trace) {
-        console.log('DidResolverLocalStore::storeDid::err=:<',err,'>');
-      }
-    });
+  async storeDid(storeDid){
+    this.didDocLS.putDid(storeDid);
   }
   async manifest(didAddress){
     if(this.trace) {
@@ -274,12 +274,8 @@ class DidResolverLocalStore {
     }
     return null;
   }
-  async storeManifest(storeKey,manifestStr){
-    this.manifestLS.put(storeKey, manifestStr, LEVEL_OPT,(err)=>{
-      if(this.trace) {
-        console.log('DidResolverLocalStore::storeManifest::err=:<',err,'>');
-      }
-    });
+  async storeManifest(storeManifest){
+    this.manifestLS.putManifest(storeManifest);
   }
   async manifestAll(didAddress){
     if(this.trace) {

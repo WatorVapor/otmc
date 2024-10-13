@@ -1,27 +1,22 @@
 import { base16, base32, base64, base58 } from '@scure/base';
-import * as Level from 'level';
+import Dexie from 'dexie';
 import { StoreKey } from './otmc.const.js';
 
 class OtmcEdcrypt {
   static trace = false;
   static debug = true;
   constructor() {
-    
   }
 }
-const LEVEL_OPT = {
-  keyEncoding: 'utf8',
-  valueEncoding: 'utf8',
-};
 
 /**
 *
 */
 export class EdcryptKeyLoaderBrowser {
   constructor(eeInternal,eeOut) {
+    this.version = '1.0';
     this.trace = true;
     this.debug = true;
-    this.otmc = false;
     this.eeInternal = eeInternal;
     this.eeOut = eeOut;
     this.ListenEventEmitter_();
@@ -30,39 +25,34 @@ export class EdcryptKeyLoaderBrowser {
     }
   }
   ListenEventEmitter_() {
-
     const self = this;
     this.eeInternal.on('webwoker.crypt.worker',(evt)=>{
-      if(this.trace) {
+      if(self.trace) {
         console.log('EdcryptKeyLoaderBrowser::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      if(this.trace) {
-        console.log('EdcryptKeyLoaderBrowser::ListenEventEmitter_::this.otmc=:<',this.otmc,'>');
-      }
-      if(this.otmc.isNode) {
-        this.didKeyStore = new Level.Level(this.otmc.config.didKeys,LEVEL_OPT);
-      } else {
-        this.didKeyStore = new Level.Level(StoreKey.secret.authKey,LEVEL_OPT);
-      }
-      if(this.trace) {
-        console.log('EdcryptKeyLoaderBrowser::ListenEventEmitter_::this.didKeyStore=:<',this.didKeyStore,'>');
+      self.db = new Dexie(StoreKey.secret.authKey.dbName);
+      self.db.version(self.version).stores({
+        edKey: '++autoId,authKey,recoveryKey'
+      });
+      if(self.trace) {
+        console.log('EdcryptKeyLoaderBrowser::ListenEventEmitter_::self.db=:<',self.db,'>');
       }
       self.runWorker(evt.worker);
     });
     this.eeInternal.on('edCryptKey.loader.loadKey',(evt)=>{
-      if(this.trace) {
+      if(self.trace) {
         console.log('EdcryptKeyLoaderBrowser::ListenEventEmitter_::evt=:<',evt,'>');
       }
       self.loadKey();
     });
     this.eeInternal.on('edCryptKey.loader.switchKey',(evt)=>{
-      if(this.trace) {
+      if(self.trace) {
         console.log('EdcryptKeyLoaderBrowser::ListenEventEmitter_::evt=:<',evt,'>');
       }
       self.switchKey(evt.keyId);
     });
     this.eeInternal.on('edCryptKey.loader.mining',(evt)=>{
-      if(this.trace) {
+      if(self.trace) {
         console.log('EdcryptKeyLoaderBrowser::ListenEventEmitter_::evt=:<',evt,'>');
       }
       self.postMessage(evt);
@@ -87,6 +77,12 @@ export class EdcryptKeyLoaderBrowser {
     this.cryptWorker.postMessage(data);
   }
   async loadKey() {
+    const edKeys = await this.db.edKey.toArray();
+    if(this.trace) {
+      console.log('EdcryptKeyLoaderBrowser::loadKey::edKeys=:<',edKeys,'>');
+    }
+    this.eeOut.emit('edcrypt:didKeyList',edKeys);
+    /*
     try {
       const didKeyListStr = await this.didKeyStore.get(StoreKey.didKeyList);
       if(this.trace) {
@@ -108,38 +104,32 @@ export class EdcryptKeyLoaderBrowser {
         console.error('EdcryptKeyLoaderBrowser::loadKey::errDidKey=:<',errDidKey,'>');
       }
     }
+    */
   }
   async switchKey(keyId) {
     try {
-      const didKeyListStr = await this.didKeyStore.get(StoreKey.didKeyList);
+      const edKeys = await this.db.edKey.toArray();
       if(this.trace) {
-        console.log('EdcryptKeyLoaderBrowser::switchKey::didKeyListStr=:<',didKeyListStr,'>');
+        console.log('EdcryptKeyLoaderBrowser::switchKey::edKeys=:<',edKeys,'>');
       }
-      if(didKeyListStr) {
-        const didKeyList = JSON.parse(didKeyListStr);
-        if(this.trace) {
-          console.log('EdcryptKeyLoaderBrowser::switchKey::didKeyList=:<',didKeyList,'>');
-        }
-        for(const didKey of didKeyList) {
-          if(didKey.auth.idOfKey === keyId) {
-            console.log('EdcryptKeyLoaderBrowser::switchKey::didKey=:<',didKey,'>');
-            this.authKey = didKey.auth;
-            this.recoveryKey = didKey.recovery;
-            const addressMsg = {
-              auth:this.authKey.idOfKey,
-              recovery:this.recoveryKey.idOfKey,
-            };
-            if(this.trace) {
-              console.log('EdcryptKeyLoaderBrowser::switchKey::addressMsg=:<',addressMsg,'>');
-            }
-            this.eeInternal.emit('did.edcrypt.authKey',this.authKey);
-            this.eeInternal.emit('did.edcrypt.recoveryKey',this.recoveryKey);
-            this.eeOut.emit('edcrypt:address',addressMsg);
-            this.eeInternal.emit('OtmcStateMachine.actor.send',{type:'edcrypt:address'});
-            break;
+      for(const didKey of edKeys) {
+        if(didKey.auth.idOfKey === keyId) {
+          console.log('EdcryptKeyLoaderBrowser::switchKey::didKey=:<',didKey,'>');
+          this.authKey = didKey.auth;
+          this.recoveryKey = didKey.recovery;
+          const addressMsg = {
+            auth:this.authKey.idOfKey,
+            recovery:this.recoveryKey.idOfKey,
+          };
+          if(this.trace) {
+            console.log('EdcryptKeyLoaderBrowser::switchKey::addressMsg=:<',addressMsg,'>');
           }
+          this.eeInternal.emit('did.edcrypt.authKey',this.authKey);
+          this.eeInternal.emit('did.edcrypt.recoveryKey',this.recoveryKey);
+          this.eeOut.emit('edcrypt:address',addressMsg);
+          this.eeInternal.emit('OtmcStateMachine.actor.send',{type:'edcrypt:address'});
+          break;
         }
-      } else {
       }
     } catch(errDidKey) {
       if(this.trace) {
@@ -161,29 +151,39 @@ export class EdcryptKeyLoaderBrowser {
       this.eeInternal.emit('edCryptKey.loader.loadKey',{});
     }
     if(msg.auth && msg.recovery) {
+      /*
       let didKeyList = [];
       try {
         const didKeyListStr = await this.didKeyStore.get(StoreKey.didKeyList);
         if(this.trace) {
-          console.log('EdcryptKeyLoaderBrowser::loadKey::didKeyListStr=:<',didKeyListStr,'>');
+          console.log('EdcryptKeyLoaderBrowser::onEdCryptMessage_::didKeyListStr=:<',didKeyListStr,'>');
         }
         if(didKeyListStr) {
           didKeyList = JSON.parse(didKeyListStr);
         }
       } catch(errDidKey) {
         if(this.trace) {
-          console.error('EdcryptKeyLoaderBrowser::loadKey::errDidKey.message=:<',errDidKey.message,'>');
+          console.error('EdcryptKeyLoaderBrowser::onEdCryptMessage_::errDidKey.message=:<',errDidKey.message,'>');
         }
       }
       if(this.trace) {
-        console.log('EdcryptKeyLoaderBrowser::loadKey::didKeyList=:<',didKeyList,'>');
+        console.log('EdcryptKeyLoaderBrowser::onEdCryptMessage_::didKeyList=:<',didKeyList,'>');
       }
       didKeyList.push(msg);
       if(this.trace) {
-        console.log('EdcryptKeyLoaderBrowser::loadKey::didKeyList=:<',didKeyList,'>');
+        console.log('EdcryptKeyLoaderBrowser::onEdCryptMessage_::didKeyList=:<',didKeyList,'>');
       }
       const result = await this.didKeyStore.put(StoreKey.didKeyList,JSON.stringify(didKeyList));
-      this.eeOut.emit('edcrypt:didKeyList',didKeyList);
+      */
+      const resultStore = await this.db.edKey.add(msg);
+      if(this.trace) {
+        console.log('EdcryptKeyLoaderBrowser::onEdCryptMessage_::resultStore=:<',resultStore,'>');
+      }
+      const edKeys = await this.db.edKey.toArray();
+      if(this.trace) {
+        console.log('EdcryptKeyLoaderBrowser::onEdCryptMessage_::edKeys=:<',edKeys,'>');
+      }
+      this.eeOut.emit('edcrypt:didKeyList',edKeys);
     }
     if(msg.mining) {
       this.eeOut.emit('edcrypt:mining',msg.mining);

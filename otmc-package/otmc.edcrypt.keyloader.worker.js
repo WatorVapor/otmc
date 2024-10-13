@@ -81,7 +81,7 @@ const mineEdKeyWithTimer = (result,edKey) => {
       console.log('otmc.worker.edcrypt::mineEdKeyWithTimer::keyObject.idOfKey=:<',keyObject.idOfKey,'>');
       console.log('otmc.worker.edcrypt::mineEdKeyWithTimer::self.counter=:<',self.counter,'>');
     }
-    self.postMessage({mining:{counter:self.counter++}});
+    self.postMessage({mining:{counter:self.counter++,keyObject:keyObject}});
   }
   if(keyObject.idOfKey.startsWith(addressPrefix)) {
     if(self.debug ) {

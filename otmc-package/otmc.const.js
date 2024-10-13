@@ -1,13 +1,16 @@
 export const StoreKey = {
   didKeyList:'otmc/didkey/list',
   secret: {
-    dbName: 'otmc/secret/team/account',
-    authKey:'otmc/secret/did/authKey',
+    authKey: {
+      dbName: 'otmc/secret/did/authKey',
+    },
     did: {
-      account :'otmc/secret/did/account',
+      dbName:'otmc/secret/did/account',
     },
     mqtt: {
-      jwt:'otmc/secret/mqtt/jwt',
+      jwt: {
+        dbName:'otmc/secret/mqtt/jwt',
+      },
     },
   },
   open: {
@@ -22,16 +25,6 @@ export const StoreKey = {
         dbName: 'otmc/open/did/join/credential_request_verifiable',
       }
     }
-  },
-  /*
-  auth:'otmc/auth/key',
-  recovery:'otmc/recovery/key',
-  didDoc:'otmc/did/document',
-  manifest:'otmc/did/manifest',
-  mqttJwt:'otmc/mqtt/jwt',
-  */
-  invitation:{
-    join:'otmc/did/invitation/join',
   },
 }
 

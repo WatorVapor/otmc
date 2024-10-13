@@ -3,6 +3,7 @@ export class EdAuth {
   constructor(edKey,util) {
     this.trace = false;
     this.trace1 = false;
+    this.trace2 = true;
     this.debug = true;
     this.edKey_ = edKey;
     this.util_ = util;
@@ -181,12 +182,12 @@ export class EdAuth {
     return false;
   }
   verifyDid(didDoc) {
-    if(this.trace) {
+    if(this.trace2) {
       console.log('EdAuth::verifyDid::didDoc=<',didDoc,'>');
     }
     for(const method of didDoc.verificationMethod) {
-      const goodMethod = this.verificationMethod_(method,didDoc.id);
-      if(this.trace) {
+      const goodMethod = this.verificationMethod_(method,didDoc.id,didDoc.controller);
+      if(this.trace2) {
         console.log('EdAuth::verifyDid::goodMethod=<',goodMethod,'>');
       }
       if(!goodMethod) {
@@ -200,14 +201,14 @@ export class EdAuth {
     delete didDocCal.proof;
     const didDocCalcStr = JSON.stringify(didDocCal);
     const hashCalcledB64 = this.util_.calcMessage(didDocCalcStr);
-    if(this.trace) {
+    if(this.trace2) {
       console.log('EdAuth::verifyDid::hashCalcledB64=<',hashCalcledB64,'>');
     }
     const results = {
       hashCalcledB64:hashCalcledB64
     }
     for(const proof of didDoc.proof) {
-      if(this.trace) {
+      if(this.trace2) {
         console.log('EdAuth::verifyDid::proof=<',proof,'>');
       }
       const verifyResult = this.verificationProof_(proof,didDoc.verificationMethod);
@@ -216,7 +217,7 @@ export class EdAuth {
         console.log('EdAuth::verifyDid::verifyResult=<',verifyResult,'>');
         return false;
       }
-      if(this.trace) {
+      if(this.trace2) {
         console.log('EdAuth::verifyDid::hashCalcledB64=<',hashCalcledB64,'>');
         console.log('EdAuth::verifyDid::verifyResult=<',verifyResult,'>');
       }
@@ -227,6 +228,9 @@ export class EdAuth {
       }
     }
     results.proofList = this.collectVerificationMember_(didDoc);
+    if(this.trace2) {
+      console.log('EdAuth::verifyDid::results=<',results,'>');
+    }
     return results;
   }
   verifyWeak(msg) {
@@ -374,26 +378,41 @@ export class EdAuth {
 
 
 
-  verificationMethod_(verificationMethod,docId) {
-    if(this.trace) {
+  verificationMethod_(verificationMethod,docId,controller) {
+    if(this.trace2) {
       console.log('EdAuth::verificationMethod_::verificationMethod=<',verificationMethod,'>');
+      console.log('EdAuth::verificationMethod_::docId=<',docId,'>');
+      console.log('EdAuth::verificationMethod_::controller=<',controller,'>');
     }
     const calcAddress = this.util_.calcAddress(verificationMethod.publicKeyMultibase);
-    if(this.trace) {
+    if(this.trace2) {
       console.log('EdAuth::verificationMethod_::calcAddress=<',calcAddress,'>');
     }
     if(!calcAddress.startsWith(strConstAddressPrefix)) {
       console.log('EdAuth::verificationMethod_::calcAddress=<',calcAddress,'>');
       return false;
     }
-    const fullId = `${docId}#${calcAddress}`;
-    if(this.trace) {
-      console.log('EdAuth::verificationMethod_::fullId=<',fullId,'>');
+    const selfFullId = `${docId}#${calcAddress}`;
+    if(this.trace2) {
+      console.log('EdAuth::verificationMethod_::selfFullId=<',selfFullId,'>');
     }
-    if(verificationMethod.id !== fullId) {
+    if(verificationMethod.id !== selfFullId) {
       console.log('EdAuth::verificationMethod_::verificationMethod.id=<',verificationMethod.id,'>');
       console.log('EdAuth::verificationMethod_::calcAddress=<',calcAddress,'>');
-      return false;
+      let isController = false;
+      for(const ctrlId of controller) {
+        console.log('EdAuth::verificationMethod_::ctrlId=<',ctrlId,'>');
+        const ctrlFullId = `${ctrlId}#${calcAddress}`;
+        console.log('EdAuth::verificationMethod_::ctrlFullId=<',ctrlFullId,'>');
+        if(verificationMethod.id === ctrlFullId) {
+          isController = true;
+          break;
+        }
+      }
+      console.log('EdAuth::verificationMethod_::isController=<',isController,'>');
+      if(!isController) {
+        return false;
+      }
     }
     return true;
   }

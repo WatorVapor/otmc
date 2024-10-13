@@ -40,8 +40,7 @@ export class DIDVerifiableCredential {
       creator:methodId,
       signatureValue:signedMsgVC.auth.sign,
     };
-    oldDidProof.push(proofVC);
-    didVCNew.proof = oldDidProof;
+    didVCNew.proof = [proofVC];
     if(this.trace) {
       console.log('DIDVerifiableCredential::constructor::didVCNew=:<',didVCNew,'>');
     }

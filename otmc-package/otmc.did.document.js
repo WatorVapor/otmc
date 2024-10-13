@@ -150,11 +150,13 @@ export class DidDocument {
       if(self.trace) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
+      self.acceptRequest(evt.storeHash);
     });
     this.eeInternal.on('did.join.reject.request',(evt)=>{
       if(self.trace) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
+      self.rejectRequest(evt.storeHash);
     });
 
     this.eeInternal.on('did.loadDocument',(evt)=>{
@@ -636,6 +638,18 @@ export class DidDocument {
     }
     return joinDidSigned;
 
+  }
+  async acceptRequest(storeHash) {
+    if(this.trace) {
+      console.log('DidDocument::acceptRequest::storeHash=:<',storeHash,'>');
+    }
+    const credReq = await this.resolver.getJoinCredRequest(storeHash);
+    if(this.trace) {
+      console.log('DidDocument::acceptRequest::credReq=:<',credReq,'>');
+    }
+    if(!credReq) {
+      return null;
+    }
   }
 
   requestJoinDid() {

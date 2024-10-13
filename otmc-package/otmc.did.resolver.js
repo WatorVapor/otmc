@@ -1,8 +1,11 @@
 import {
   DidStoreDocument,
-  DidStoreManifest,
-  DidStoreJoin
+  DidStoreManifest
 } from './otmc.did.document.store.js';
+import {
+  DidStoreTeamJoin
+} from './otmc.did.store.team.join.js';
+
 import { StoreKey } from './otmc.const.js';
 
 const LEVEL_OPT = {
@@ -163,12 +166,10 @@ export class DidResolver {
     if(this.trace) {
       console.log('DidResolver::storeCredentialRequest::reqDid=:<',reqDid,'>');
     }
-    const credReqStr = JSON.stringify(credReqObj);
-    const storeKey = `credential.request.${reqDid}.${this.util.calcAddress(credReqStr)}`;
     if(this.trace) {
-      console.log('DidResolver::storeCredentialRequest::storeKey=:<',storeKey,'>');
+      console.log('DidResolver::storeCredentialRequest::credReqObj=:<',credReqObj,'>');
     }
-    this.localStore.storeCredentialRequest(storeKey,credReqStr);
+    this.localStore.storeCredentialRequest(reqDid,credReqObj);
   }
 
   async getJoinInProgress(didAddress){
@@ -180,6 +181,16 @@ export class DidResolver {
       console.log('DidResolver::getJoinInProgress::jointList=:<',jointList,'>');
     }
     return jointList;
+  }
+  async getJoinCredRequest(storeHash){
+    if(this.trace) {
+      console.log('DidResolver::getJoinCredRequest::storeHash=:<',storeHash,'>');
+    }
+    const credReq = await this.localStore.getJoinCredRequest(storeHash);
+    if(this.trace) {
+      console.log('DidResolver::getJoinCredRequest::credReq=:<',credReq,'>');
+    }
+    return credReq;
   }
 }
 
@@ -195,7 +206,7 @@ class DidResolverLocalStore {
 
     this.didDocLS = new DidStoreDocument(StoreKey.open.did.document);
     this.manifestLS = new DidStoreManifest(StoreKey.open.did.manifest);
-    this.joinStoreLS = new DidStoreJoin(StoreKey.open.did.joinCRV);
+    this.joinStoreLS = new DidStoreTeamJoin();
   }
 
   async resolver(keyAddress){
@@ -263,22 +274,40 @@ class DidResolverLocalStore {
     }
     return manifestValuesJson;
   }
-  async storeCredentialRequest(storeKey,credReqStr){
-    this.joinStoreLS.put(storeKey, credReqStr, LEVEL_OPT,(err)=>{
-      if(this.trace) {
-        console.log('DidResolverLocalStore::storeCredentialRequest::err=:<',err,'>');
-      }
-    });
+  async storeCredentialRequest(did,credReq){
+    if(this.trace) {
+      console.log('DidResolverLocalStore::storeCredentialRequest::credReq=:<',credReq,'>');
+    }
+    const credReqStr = JSON.stringify(credReq);
+    const credReqStore = {
+      did:did,
+      hashCR:this.util.calcAddress(credReqStr),
+      origCredReq:credReqStr
+    }
+    for(const holder of credReq.holder) {
+      credReqStore.control = holder;
+      await this.joinStoreLS.addCredReq(credReqStore);
+    }
   }
   async getJoinInProgress(didAddress){
     if(this.trace) {
       console.log('DidResolverLocalStore::getJoinInProgress::didAddress=:<',didAddress,'>');
     }
-    const joinList = await this.joinStoreLS.getRequestAll(didAddress);
+    const joinList = await this.joinStoreLS.getInProgressAll(didAddress);
     if(this.trace) {
       console.log('DidResolverLocalStore::getJoinInProgress::joinList=:<',joinList,'>');
     }
     return joinList;
+  }
+  async getJoinCredRequest(storeHash){
+    if(this.trace) {
+      console.log('DidResolverLocalStore::getJoinCredRequest::storeHash=:<',storeHash,'>');
+    }
+    const credReq = await this.joinStoreLS.getJoinCredRequest(storeHash);
+    if(this.trace) {
+      console.log('DidResolverLocalStore::getJoinCredRequest::credReq=:<',credReq,'>');
+    }
+    return credReq;
   }
 }
 

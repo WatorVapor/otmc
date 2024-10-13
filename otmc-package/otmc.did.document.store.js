@@ -1,5 +1,7 @@
 import * as Level from 'level';
 import * as jsDiff from 'json-diff';
+import Dexie from 'dexie';
+import { StoreKey } from './otmc.const.js';
 
 
 const LEVEL_OPT = {
@@ -188,114 +190,4 @@ export class DidStoreManifest {
     return 0;
   }
   
-}
-
-/**
-*
-*/
-export class DidStoreJoin {
-  constructor(dbName) {
-    this.trace0 = true;
-    this.trace1 = false;
-    this.trace2 = false;
-    this.trace = true;;
-    this.debug = true;
-    this.store = new Level.Level(dbName,LEVEL_OPT2);
-  }
-  put(key,value,option,cb) {
-    if(this.trace) {
-      console.log('DidStoreJoin::put::key=:<',key,'>');
-    }
-    this.store.put(key,value,option,cb);
-  }
-  async getRequestTop(didAddress) {
-    const didValuesJson = await this.getAll(didAddress);
-    if(this.trace) {
-      console.log('DidStoreJoin::getRequestTop::didValuesJson=:<',didValuesJson,'>');
-    }
-    
-    const sorted = didValuesJson.sort( this.compare_ );
-    if(this.trace) {
-      console.log('DidStoreJoin::getRequestTop::sorted=:<',sorted,'>');
-    }
-    if(sorted.length > 0) {
-      return sorted[0];
-    } else {
-      return null;
-    }
-  }
-  async getRequestAll(didAddress) {
-    const storeKeyPrefix = `${didAddress}.`;
-    if(this.trace) {
-      console.log('DidStoreJoin::getRequestAll::storeKeyPrefix=:<',storeKeyPrefix,'>');
-    }
-    const storeIterators = await this.store.iterator(LEVEL_OPT2).all();
-    if(this.trace) {
-      console.log('DidStoreJoin::getRequestAll::storeIterator=:<',storeIterators,'>');
-    }
-    const storeValuesJson = {};
-    for(const storeIterator of storeIterators) {
-      if(this.trace) {
-        console.log('DidStoreJoin::getRequestAll::storeIterator=:<',storeIterator,'>');
-      }
-      const storeKey = storeIterator[0]
-      const storeValueStr = storeIterator[1]
-      const storeValue = JSON.parse(storeValueStr);
-      if(this.trace) {
-        console.log('DidStoreJoin::getRequestAll::storeValue=:<',storeValue,'>');
-      }
-      if(storeValue && storeValue.credentialRequest && storeValue.credentialRequest.issuer){
-        if(storeValue.credentialRequest.issuer.includes(didAddress)) {
-          storeValuesJson[storeKey] = storeValue;
-        } else {
-          if(this.trace) {
-            console.log('DidStoreJoin::getRequestAll:: skip storeValue=:<',storeValue,'>');
-          }
-        }
-      }
-    }
-/* 
-    const storeValues = await this.store.values(LEVEL_OPT2).all();
-    if(this.trace) {
-      console.log('DidStoreJoin::getRequestAll::storeValues=:<',storeValues,'>');
-    }
-    const storeValuesJson = [];
-    for(const storeValueStr of storeValues) {
-      if(this.trace) {
-        console.log('DidStoreJoin::getRequestAll::storeValueStr=:<',storeValueStr,'>');
-      }
-      try {
-        const storeValue = JSON.parse(storeValueStr);
-        if(this.trace) {
-          console.log('DidStoreJoin::getRequestAll::storeValue=:<',storeValue,'>');
-        }
-        if(storeValue && storeValue.credentialRequest && storeValue.credentialRequest.issuer){
-          if(storeValue.credentialRequest.issuer.includes(didAddress)) {
-            storeValuesJson.push(storeValue);
-          } else {
-            if(this.trace) {
-              console.log('DidStoreJoin::getRequestAll:: skip storeValue=:<',storeValue,'>');
-            }
-          }
-        }
-      } catch(err) {
-        console.log('DidStoreJoin::getRequestAll::err=:<',err,'>');
-      }
-    }
-*/
-    if(this.trace) {
-      console.log('DidStoreJoin::getRequestAll::storeValuesJson=:<',storeValuesJson,'>');
-    }
-    return storeValuesJson;
-  }
-  
-  compare_(a,b) {
-    if ( a.updated < b.updated ){
-      return -1;
-    }
-    if ( a.updated > b.updated ){
-      return 1;
-    }
-    return 0;
-  }  
 }

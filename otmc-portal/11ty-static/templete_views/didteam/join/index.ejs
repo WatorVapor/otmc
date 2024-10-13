@@ -30,17 +30,17 @@ layout: didteam.sidebar.ejs
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(joinReq,storeKey) of joinRequests">
+              <tr v-for="(joinReq,storeHash) of joinRequests">
                 <td><pre>{{ joinReq.showAddress }}</pre></td>
                 <td>{{ joinReq.credentialRequest.claims.message }}</td>
                 <td>{{ new Date(joinReq.created) }}</td>
                 <td>
-                  <button class="btn btn-success" type="button" @click="clickAcceptJoinRequest($event,storeKey)">
+                  <button class="btn btn-success" type="button" @click="clickAcceptJoinRequest($event,storeHash)">
                     <i class="fa-solid fa-circle-check"></i>
                   </button>
                 </td>
                 <td>
-                  <button class="btn btn-danger" type="button" @click="clickRejectJoinRequest($event,storeKey)">
+                  <button class="btn btn-danger" type="button" @click="clickRejectJoinRequest($event,storeHash)">
                     <i class="fa-solid fa-ban"></i>
                   </button>
                 </td>

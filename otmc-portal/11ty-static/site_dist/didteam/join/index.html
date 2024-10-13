@@ -27,6 +27,7 @@
           "eventemitter3": "https://cdn.jsdelivr.net/npm/eventemitter3@5.0.1/dist/eventemitter3.esm.min.js",
           "xstate": "https://cdn.jsdelivr.net/npm/xstate@5.10.0/+esm",
           "level": "https://cdn.jsdelivr.net/npm/level@8.0.1/+esm",
+          "dexie": "https://cdn.jsdelivr.net/npm/dexie@4.0.8/+esm",
           "three": "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.min.js",
           "json-diff": "https://cdn.jsdelivr.net/npm/json-diff@1.0.6/+esm",
           "isomorphicGit": "https://cdn.jsdelivr.net/npm/isomorphic-git@1.27.1/+esm",
@@ -155,17 +156,17 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(joinReq,storeKey) of joinRequests">
+              <tr v-for="(joinReq,storeHash) of joinRequests">
                 <td><pre>{{ joinReq.showAddress }}</pre></td>
                 <td>{{ joinReq.credentialRequest.claims.message }}</td>
                 <td>{{ new Date(joinReq.created) }}</td>
                 <td>
-                  <button class="btn btn-success" type="button" @click="clickAcceptJoinRequest($event,storeKey)">
+                  <button class="btn btn-success" type="button" @click="clickAcceptJoinRequest($event,storeHash)">
                     <i class="fa-solid fa-circle-check"></i>
                   </button>
                 </td>
                 <td>
-                  <button class="btn btn-danger" type="button" @click="clickRejectJoinRequest($event,storeKey)">
+                  <button class="btn btn-danger" type="button" @click="clickRejectJoinRequest($event,storeHash)">
                     <i class="fa-solid fa-ban"></i>
                   </button>
                 </td>

@@ -50,19 +50,19 @@ const joinRequestOption = {
     };
   },
   methods: {
-    clickAcceptJoinRequest(evt,storeKey) {
+    clickAcceptJoinRequest(evt,storeHash) {
       console.log('clickAcceptJoinRequest::this=:<',this,'>');
       console.log('clickAcceptJoinRequest::evt=:<',evt,'>');
-      console.log('clickAcceptJoinRequest::storeKey=:<',storeKey,'>');
+      console.log('clickAcceptJoinRequest::storeHash=:<',storeHash,'>');
       const otmc = this.otmc;
-      otmc.acceptJoinRequest(storeKey);
+      otmc.acceptJoinRequest(storeHash);
     },
-    clickRejectJoinRequest(evt,storeKey) {
+    clickRejectJoinRequest(evt,storeHash) {
       console.log('clickRejectJoinRequest::this=:<',this,'>');
       console.log('clickRejectJoinRequest::evt=:<',evt,'>');
-      console.log('clickRejectJoinRequest::storeKey=:<',storeKey,'>');
+      console.log('clickRejectJoinRequest::storeHash=:<',storeHash,'>');
       const otmc = this.otmc;
-      otmc.rejectJoinRequest(storeKey);
+      otmc.rejectJoinRequest(storeHash);
     },
   }, 
 }

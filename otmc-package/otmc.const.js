@@ -1,6 +1,7 @@
 export const StoreKey = {
   didKeyList:'otmc/didkey/list',
   secret: {
+    dbName: 'otmc/secret/team/account',
     authKey:'otmc/secret/did/authKey',
     did: {
       account :'otmc/secret/did/account',
@@ -13,7 +14,9 @@ export const StoreKey = {
     did: {
       document:'otmc/open/did/document',
       manifest:'otmc/open/did/manifest',
-      joinCRV:'otmc/open/did/join/credentialRequestVerifiable',
+      join: {
+        dbName: 'otmc/open/did/join/credential_request_verifiable',
+      }
     }
   },
   /*

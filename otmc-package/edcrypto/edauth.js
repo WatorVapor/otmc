@@ -2,6 +2,7 @@ const strConstAddressPrefix = 'otm';
 export class EdAuth {
   constructor(edKey,util) {
     this.trace = false;
+    this.trace1 = false;
     this.debug = true;
     this.edKey_ = edKey;
     this.util_ = util;
@@ -274,6 +275,69 @@ export class EdAuth {
     }
     return false;
   }
+  verifyCredReq(credReq) {
+    if(this.trace1) {
+      console.log('EdAuth::verifyCredReq::credReq=<',credReq,'>');
+    }
+    if(!credReq) {
+      return false;
+    }
+    if(!credReq.credentialRequest) {
+      return false;
+    }
+    if(!credReq.credentialRequest.claims) {
+      return false;
+    }
+    if(!credReq.credentialRequest.claims.did) {
+      return false;
+    }
+    const goodDid = this.verifyDid(credReq.credentialRequest.claims.did);
+    if(this.trace1) {
+      console.log('EdAuth::verifyCredReq::goodDid=<',goodDid,'>');
+    }
+    const credReqCal = JSON.parse(JSON.stringify(credReq));
+    delete credReqCal.proof;
+    const credReqCalcStr = JSON.stringify(credReqCal);
+    const hashCalcledB64 = this.util_.calcMessage(credReqCalcStr);
+    if(this.trace1) {
+      console.log('EdAuth::verifyCredReq::hashCalcledB64=<',hashCalcledB64,'>');
+    }
+    const results = {
+      hashCalcledB64:hashCalcledB64
+    }
+    const verificationMethods = credReq.credentialRequest.claims.did.verificationMethod;
+    if(this.trace1) {
+      console.log('EdAuth::verifyCredReq::verificationMethods=<',verificationMethods,'>');
+    }
+    for(const proof of credReq.proof) {
+      if(this.trace1) {
+        console.log('EdAuth::verifyCredReq::proof=<',proof,'>');
+      }
+      const verifyResult = this.verificationProof_(proof,verificationMethods);
+      if(!verifyResult) {
+        console.log('EdAuth::verifyCredReq::proof=<',proof,'>');
+        console.log('EdAuth::verifyCredReq::verifyResult=<',verifyResult,'>');
+        return false;
+      }
+      if(this.trace1) {
+        console.log('EdAuth::verifyCredReq::hashCalcledB64=<',hashCalcledB64,'>');
+        console.log('EdAuth::verifyCredReq::verifyResult=<',verifyResult,'>');
+      }
+      if(hashCalcledB64 !== verifyResult.signedHashB64) {
+        console.log('EdAuth::verifyCredReq::hashCalcledB64=<',hashCalcledB64,'>');
+        console.log('EdAuth::verifyCredReq::verifyResult=<',verifyResult,'>');
+        return false;        
+      }
+    }
+    const authentications = credReq.credentialRequest.claims.did.authentication;
+    const resultAuth = this.collectAuthentication_(credReq.proof,authentications);
+    if(this.trace1) {
+      console.log('EdAuth::verifyCredReq::resultAuth=<',resultAuth,'>');
+    }
+    results.proofList = resultAuth;
+    return results;
+  }
+
   
   randomAddress() {
     const randomHex = this.nacl.randomBytes(1024);

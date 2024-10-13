@@ -35,6 +35,7 @@ class DIDCredentialRequest {
     const signedMsg = this.auth_.signWithoutTS(credentialJson);
     const proof = {
       type:'ed25519',
+      publicKeyMultibase:this.auth_.pub(),
       creator:`${this.didDoc_.id}#${this.auth_.address()}`,
       signatureValue:signedMsg.auth.sign,
     };
@@ -53,12 +54,14 @@ export class DIDCredentialRequestJoinController extends DIDCredentialRequest {
     this.trace = true;
   }
   credential() {
+    const didDocWithoutProof = JSON.parse(JSON.stringify(this.didDoc_));
+    //delete didDocWithoutProof.proof;
     const claims = {
       memberAsAuthentication:[
         `${this.didDoc_.id}#${this.auth_.address()}`
       ],
       message:'Controller Verifiable Presentation Request',
-      did:this.didDoc_,
+      did:didDocWithoutProof,
     };
     if(this.trace) {
       console.log('DIDCredentialRequestJoinController::credential:claims=<',claims,'>');
@@ -77,6 +80,8 @@ export class DIDCredentialRequestJoinTeamMate extends DIDCredentialRequest {
     this.trace = true;
   }
   credential() {
+    const didDocWithoutProof = JSON.parse(JSON.stringify(this.didDoc_));
+    //delete didDocWithoutProof.proof;
     const claims = {
       memberAsAuthentication:[
         `${this.didDoc_.id}#${this.auth_.address()}`

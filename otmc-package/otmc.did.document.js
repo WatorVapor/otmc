@@ -29,8 +29,14 @@ import {
 import {DidDocStateMachine} from './otmc.did.stm.docstate.js';
 import {DidRuntimeStateMachine} from './otmc.did.stm.runtime.js';
 import { DidResolver } from './otmc.did.resolver.js';
-import { DIDCredentialRequestJoinController } from './did/credentialRequest.js';
+import { 
+  DIDCredentialRequestJoinController,
+  DIDCredentialRequestJoinTeamMate
+} from './did/credentialRequest.js';
 
+import { 
+  DIDVerifiableCredential
+} from './did/verifiableCredential.js';
 
 
 
@@ -650,6 +656,26 @@ export class DidDocument {
     if(!credReq) {
       return null;
     }
+    const goodCredReq = this.auth.verifyCredReq(credReq);
+    if(this.trace) {
+      console.log('DidDocument::acceptRequest::goodCredReq=:<',goodCredReq,'>');
+    }
+    if(!goodCredReq) {
+      return null;
+    }
+    const did2VC = credReq.credentialRequest.claims.did;
+    if(this.trace) {
+      console.log('DidDocument::acceptRequest::did2VC=:<',did2VC,'>');
+    }
+    const didVC = new DIDVerifiableCredential(this.auth,this.didDoc_,this.util);
+    if(this.trace) {
+      console.log('DidDocument::acceptRequest::didVC=:<',didVC,'>');
+    }
+    const didVCDoc = didVC.verifiable(did2VC,storeHash);
+    if(this.trace) {
+      console.log('DidDocument::joinRequest2Controller::didVCDoc=:<',didVCDoc,'>');
+    }
+
   }
 
   requestJoinDid() {

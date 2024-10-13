@@ -81,7 +81,7 @@ export class DidStoreTeamJoin {
       storeValuesJson[storeKey] = storeValue;
     }
     if(this.trace) {
-      console.log('DidStoreTeamJoin::getRequestAll::storeValuesJson=:<',storeValuesJson,'>');
+      console.log('DidStoreTeamJoin::getInProgressAll::storeValuesJson=:<',storeValuesJson,'>');
     }
     return storeValuesJson;
   }

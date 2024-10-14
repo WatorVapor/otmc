@@ -3,7 +3,7 @@ export class EdAuth {
   constructor(edKey,util) {
     this.trace = false;
     this.trace1 = false;
-    this.trace2 = true;
+    this.trace2 = false;
     this.debug = true;
     this.edKey_ = edKey;
     this.util_ = util;

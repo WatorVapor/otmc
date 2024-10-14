@@ -14,14 +14,14 @@ export class DidResolverWebStore {
     if(this.trace) {
       console.log('DidResolverWebStore::resolver::didAddress=:<',didAddress,'>');
     }
-    const didDoc = await this.requestAPI_(didAddress);
+    const didDoc = await this.GetRequestAPI_(didAddress);
     return didDoc;
   }
   async getDidDocumentAll(didAddress){
     if(this.trace) {
       console.log('DidResolverWebStore::getDidDocumentAll::didAddress=:<',didAddress,'>');
     }
-    const didDoc = await this.requestAPI_(`${didAddress}?all=true`);
+    const didDoc = await this.GetRequestAPI_(`${didAddress}?all=true`);
     return didDoc;
   }
   async storeDid(didDoc){
@@ -36,21 +36,21 @@ export class DidResolverWebStore {
     if(this.trace) {
       console.log('DidResolverWebStore::storeDid::didDocSigned=:<',didDocSigned,'>');
     }
-    const result = await this.postAPI_(apiPath,didDocSigned);
+    const result = await this.postRequestAPI_(apiPath,didDocSigned);
     return result;
   }
   async manifest(didAddress){
     if(this.trace) {
       console.log('DidResolverWebStore::manifest::didAddress=:<',didAddress,'>');
     }
-    const manifest = await this.requestAPI_(`manifest/${didAddress}`);
+    const manifest = await this.GetRequestAPI_(`manifest/${didAddress}`);
     return manifest;
   }
   async manifestAll(didAddress){
     if(this.trace) {
       console.log('DidResolverWebStore::manifestAll::didAddress=:<',didAddress,'>');
     }
-    const manifest = await this.requestAPI_(`manifest/${didAddress}?all=true`);
+    const manifest = await this.GetRequestAPI_(`manifest/${didAddress}?all=true`);
     return manifest;
   }
 
@@ -66,42 +66,43 @@ export class DidResolverWebStore {
     if(this.trace) {
       console.log('DidResolverWebStore::storeManifest::manifestSigned=:<',manifestSigned,'>');
     }
-    const result = await this.postAPI_(apiPath,manifestSigned);
+    const result = await this.postRequestAPI_(apiPath,manifestSigned);
     return result;
   }
-  async requestAPI_(apiPath) {
+  async GetRequestAPI_(apiPath) {
+    /*
     const reqURl =`${context}/v1/${apiPath}`;
     if(this.trace) {
-      console.log('DidResolverWebStore::requestAPI_::reqURl=:<',reqURl,'>');
+      console.log('DidResolverWebStore::GetRequestAPI_::reqURl=:<',reqURl,'>');
     }
     const reqHeader = new Headers();
     reqHeader.append('Content-Type', 'application/json');
     const authToken = this.accessToken_();
     reqHeader.append('Authorization', `Bearer ${authToken}`);
-    //const reqBody = {};
     const reqOption = {
       method: 'GET',
-      //body:reqBody,
       headers:reqHeader
     };
     const apiReq = new Request(reqURl, reqOption);
     if(this.trace) {
-      console.log('DidResolverWebStore::requestAPI_::apiReq=:<',apiReq,'>');
+      console.log('DidResolverWebStore::GetRequestAPI_::apiReq=:<',apiReq,'>');
     }
     const apiResp = await fetch(apiReq);
     if(this.trace) {
-      console.log('DidResolverWebStore::requestAPI_::apiResp=:<',apiResp,'>');
+      console.log('DidResolverWebStore::GetRequestAPI_::apiResp=:<',apiResp,'>');
     }
     const resultJson = await apiResp.json();
     if(this.trace) {
-      console.log('DidResolverWebStore::requestAPI_::resultJson=:<',resultJson,'>');
+      console.log('DidResolverWebStore::GetRequestAPI_::resultJson=:<',resultJson,'>');
     }
     return resultJson;
+    */
   }
-  async postAPI_(apiPath,reqBody) {
+  async postRequestAPI_(apiPath,reqBody) {
+    /*
     const reqURl =`${context}/v1/${apiPath}`;
     if(this.trace) {
-      console.log('DidResolverWebStore::postAPI_::reqURl=:<',reqURl,'>');
+      console.log('DidResolverWebStore::postRequestAPI_::reqURl=:<',reqURl,'>');
     }
     const reqHeader = new Headers();
     reqHeader.append('Content-Type', 'application/json');
@@ -114,17 +115,18 @@ export class DidResolverWebStore {
     };
     const apiReq = new Request(reqURl, reqOption);
     if(this.trace) {
-      console.log('DidResolverWebStore::postAPI_::apiReq=:<',apiReq,'>');
+      console.log('DidResolverWebStore::postRequestAPI_::apiReq=:<',apiReq,'>');
     }
     const apiResp = await fetch(apiReq);
     if(this.trace) {
-      console.log('DidResolverWebStore::postAPI_::apiResp=:<',apiResp,'>');
+      console.log('DidResolverWebStore::postRequestAPI_::apiResp=:<',apiResp,'>');
     }
     const resultJson = await apiResp.json();
     if(this.trace) {
-      console.log('DidResolverWebStore::postAPI_::resultJson=:<',resultJson,'>');
+      console.log('DidResolverWebStore::postRequestAPI_::resultJson=:<',resultJson,'>');
     }
     return resultJson;
+    */
   }
   accessToken_() {
     if(this.trace) {

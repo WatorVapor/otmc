@@ -94,7 +94,7 @@ const didTeamOption = {
         controllers = JSON.parse(this.create.controls);
         console.log('clickAddSeedControl::controllers=:<',controllers,'>');
       } catch(err) {
-        console.error('clickAddSeedControl::err=:<',err,'>');
+        console.log('clickAddSeedControl::err=:<',err,'>');
         controllers = [];
       }
       controllers.push(this.create.control);

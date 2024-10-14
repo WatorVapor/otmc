@@ -19,7 +19,7 @@ export class DidStoreTeamJoin {
       inProgress: '++autoId,did,control,hashCR,origCredReq'
     });
     this.db.version(this.version).stores({
-      done: '++autoId,did,control,hashCR'
+      done: '++autoId,did,control,hashCR,origCredReq'
     });
     this.db.version(this.version).stores({
       verified: '++autoId,did,control,hashCR,hashVC,origVC'
@@ -103,6 +103,14 @@ export class DidStoreTeamJoin {
       console.log('DidStoreTeamJoin::putVerifiableCredential::result=:<',result,'>');
     }
     return result;
+  }
+  async moveJoinCredRequest2Done(storeHash) {
+    const storeRequest = await this.db.inProgress.where('hashCR').equals(storeHash).first();
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::moveJoinCredRequest2Done::storeRequest=:<',storeRequest,'>');
+    }
+    await this.db.done.put(storeRequest);
+    await this.db.inProgress.where('hashCR').equals(storeHash).delete();
   }
   
   compare_(a,b) {

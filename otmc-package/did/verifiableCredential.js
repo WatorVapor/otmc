@@ -23,6 +23,7 @@ export class DIDVerifiableCredential {
     }
     delete didVCNew.proof;
     const methodId = `${this.didDoc_.id}#${this.auth_.address()}`;
+    didVCNew.updated = (new Date()).toISOString();
     didVCNew.authentication.push(methodId);
     const verificationMethod = {
       id:methodId,

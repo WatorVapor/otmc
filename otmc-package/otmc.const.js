@@ -21,6 +21,9 @@ export const StoreKey = {
       manifest: {
         dbName:'otmc/open/did/manifest',
       },
+      chain: {
+        dbName:'otmc/open/did/chain',
+      },
       join: {
         dbName: 'otmc/open/did/join/credential_request_verifiable',
       }

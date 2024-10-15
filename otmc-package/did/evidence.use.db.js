@@ -557,6 +557,7 @@ export class EvidenceChain {
         if(isGoodDid.proofList && isGoodDid.proofList.authProof && isGoodDid.proofList.authProof.length > 0){
           for(const authProof of isGoodDid.proofList.authProof) {
             if(EvidenceChain.trace3) {
+              console.log('EvidenceChain::buildEvidenceProofChainRoot_::authProof=<',authProof,'>');
               console.log('EvidenceChain::buildEvidenceProofChainRoot_::evidenceDid=<',evidenceDid,'>');
             }
             if(seedKeyId === authProof) {

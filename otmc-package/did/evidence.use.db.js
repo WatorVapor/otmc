@@ -1,3 +1,5 @@
+import Dexie from 'dexie';
+
 const includesAnyByDidKey = (setArr,value ) => setArr.some(attr => attr.endsWith(value));
 export class EvidenceChain {
   static trace1 = true;
@@ -8,13 +10,17 @@ export class EvidenceChain {
   static trace = true;
   static debug = true;
 
-  constructor(auth,docTop) {
+  constructor(auth,docTop,StoreKey) {
     this.auth_ = auth;
     this.docTop_ = JSON.parse(JSON.stringify(docTop));
     this.tree_ = {};
     this.seed_ = {};
     this.didRule_ = {};
     this.authsOfDid_ = {};
+    this.db = new Dexie(StoreKey.open.did.chain.dbName);
+    this.db.version(this.version).stores({
+      chain: '++autoId,keyAddress,authedList'
+    });
   }
   
   tryMergeStoredDidDocument() {

@@ -1,4 +1,5 @@
 import * as xstate  from 'xstate';
+import { StoreKey } from './otmc.const.js';
 const LOG = {
   trace:true,
   debug:true,
@@ -35,7 +36,7 @@ export class DidDocStateMachine {
         console.log('DidDocStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
       }
       if(evt.didDoc.auth && evt.didDoc.didDoc_) {
-        self.chain = new EvidenceChain(evt.didDoc.auth,evt.didDoc.didDoc_);
+        self.chain = new EvidenceChain(evt.didDoc.auth,evt.didDoc.didDoc_,StoreKey);
         if(self.trace0) {
           console.log('DidDocStateMachine::ListenEventEmitter_::this.stm=:<',this.stm,'>');
         }

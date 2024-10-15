@@ -11,6 +11,7 @@ export class EvidenceChain {
   static debug = true;
 
   constructor(auth,docTop,StoreKey) {
+    this.version = '1.0';
     this.auth_ = auth;
     this.docTop_ = JSON.parse(JSON.stringify(docTop));
     this.tree_ = {};

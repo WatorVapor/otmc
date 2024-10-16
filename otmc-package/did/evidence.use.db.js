@@ -403,7 +403,11 @@ export class EvidenceChain {
       console.log('EvidenceChain::trySaveSeedEvidenceTree::seedKeyId=<',seedKeyId,'>');
       console.log('EvidenceChain::trySaveSeedEvidenceTree::authedList=<',authedList,'>');
     }
-    const allAuthedKeyIds = await this.db.chain.where('keyAddress').equals(seedKeyId).toArray();
+    const filter = {
+      didId:evidenceDid.id,
+      keyAddress:seedKeyId
+    };
+    const allAuthedKeyIds = await this.db.chain.where(filter).toArray();
     if(EvidenceChain.trace3) {
       console.log('EvidenceChain::trySaveSeedEvidenceTree::allAuthedKeyIds=<',allAuthedKeyIds,'>');
     }
@@ -413,13 +417,19 @@ export class EvidenceChain {
           console.log('EvidenceChain::trySaveSeedEvidenceTree::included=<',included,'>');
         }
         if(!included) {
-        const storeObje = {
+        const storeObject = {
           didId:evidenceDid.id,
           keyAddress:seedKeyId,
           authedAddress:authed,
           seed:true,
         }
-        await this.db.chain.add(storeObje);
+        const checkBeforeSave = await this.db.chain.where(storeObject).toArray();
+        if(EvidenceChain.trace3) {
+          console.log('EvidenceChain::trySaveSeedEvidenceTree::checkBeforeSave=<',checkBeforeSave,'>');
+        }
+        if(checkBeforeSave.length === 0) {
+          await this.db.chain.put(storeObject);
+        }
       }
     }
   }
@@ -440,13 +450,19 @@ export class EvidenceChain {
           console.log('EvidenceChain::trySaveSproutEvidenceTree::included=<',included,'>');
         }
         if(!included) {
-        const storeObje = {
+        const storeObject = {
           didId:evidenceDid.id,
           keyAddress:leafKeyId,
           authedAddress:authed,
           seed:false,
         }
-        await this.db.chain.add(storeObje);
+        const checkBeforeSave = await this.db.chain.where(storeObject).toArray();
+        if(EvidenceChain.trace3) {
+          console.log('EvidenceChain::trySaveSproutEvidenceTree::checkBeforeSave=<',checkBeforeSave,'>');
+        }
+        if(checkBeforeSave.length === 0) {
+          await this.db.chain.put(storeObject);
+        }
       }
     }
   }
@@ -523,7 +539,7 @@ export class EvidenceChain {
       }
     }
   } 
-  buildEvidenceProofChainLeaf_() {
+  async buildEvidenceProofChainLeaf_() {
     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::buildEvidenceProofChainLeaf_::this.evidencesJson_=<',this.evidencesJson_,'>');
     }
@@ -531,21 +547,21 @@ export class EvidenceChain {
       if(EvidenceChain.trace1) {
         console.log('EvidenceChain::buildEvidenceProofChainLeaf_::evidenceDid=<',evidenceDid,'>');
       }
-      const seedKeyId = evidenceDid.id.replace('did:otmc:','');
+      const leafKeyId = evidenceDid.id.replace('did:otmc:','');
       if(EvidenceChain.trace1) {
-        console.log('EvidenceChain::buildEvidenceProofChainLeaf_::seedKeyId=<',seedKeyId,'>');
+        console.log('EvidenceChain::buildEvidenceProofChainLeaf_::leafKeyId=<',leafKeyId,'>');
       }
       const isGoodDid = this.auth_.verifyDid(evidenceDid);
       if(EvidenceChain.trace1) {
         console.log('EvidenceChain::buildEvidenceProofChainLeaf_::isGoodDid=<',isGoodDid,'>');
       }
       if(isGoodDid && isGoodDid.proofList){
-        const authedControllerList = [];
+        const authedKeyList = [];
         for(const controller of evidenceDid.controller) {
           if(EvidenceChain.trace1) {
             console.log('EvidenceChain::buildEvidenceProofChainLeaf_::controller=<', controller,'>');
           }
-          const isAuthedControllerList = this.getIsAuthedControllerList_(controller);
+          const isAuthedControllerList = await this.getIsAuthedControllerList_(controller);
           if(EvidenceChain.trace1) {
             console.log('EvidenceChain::buildEvidenceProofChainLeaf_::isAuthedControllerList=<', isAuthedControllerList,'>');
           }
@@ -554,21 +570,81 @@ export class EvidenceChain {
               console.log('EvidenceChain::buildEvidenceProofChainLeaf_::authProof=<', authProof,'>');
             }
             if(isAuthedControllerList.includes(authProof)) {
+              if(EvidenceChain.trace1) {
+                console.log('EvidenceChain::buildEvidenceProofChainLeaf_::evidenceDid.authentication=<', evidenceDid.authentication,'>');
+              }
+              for(const auth of evidenceDid.authentication) {
+                authedKeyList.push(auth.split('#')[1]);
+              }
             }
           }
         }
         if(EvidenceChain.trace3) {
-          console.log('EvidenceChain::buildEvidenceProofChainLeaf_::authedControllerList=<', authedControllerList,'>');
+          console.log('EvidenceChain::buildEvidenceProofChainLeaf_::authedKeyList=<', authedKeyList,'>');
+        }
+        if(authedKeyList.length > 0) {
+          this.trySaveLeafEvidenceTree(evidenceDid,leafKeyId,authedKeyList);
         }
       }
     }
   }
-  getIsAuthedControllerList_(controller) {
+  async getIsAuthedControllerList_(controller) {
     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::getIsAuthedControllerList_::controller=<', controller,'>');
     }
+    const filter = {
+      didId:controller
+    };
+    const allAuthedKeyIds = await this.db.chain.where(filter).toArray();
+    if(EvidenceChain.trace3) {
+      console.log('EvidenceChain::getIsAuthedControllerList_::allAuthedKeyIds=<',allAuthedKeyIds,'>');
+    }
     const isAuthedControllerList = [];
+    allAuthedKeyIds.forEach((authed)=>{
+      if(EvidenceChain.trace3) {
+        console.log('EvidenceChain::getIsAuthedControllerList_::authed=<',authed,'>');
+      }
+      isAuthedControllerList.push(authed.authedAddress);
+    });
+
     return isAuthedControllerList;
+  }
+
+  async trySaveLeafEvidenceTree(evidenceDid,leafKeyId,authedList) {
+    if(EvidenceChain.trace3) {
+      console.log('EvidenceChain::trySaveLeafEvidenceTree::evidenceDid=<',evidenceDid,'>');
+      console.log('EvidenceChain::trySaveLeafEvidenceTree::leafKeyId=<',leafKeyId,'>');
+      console.log('EvidenceChain::trySaveLeafEvidenceTree::authedList=<',authedList,'>');
+    }
+    const filter = {
+      didId:evidenceDid.id,
+      keyAddress:leafKeyId
+    };
+    const allAuthedKeyIds = await this.db.chain.where(filter).toArray();
+    if(EvidenceChain.trace3) {
+      console.log('EvidenceChain::trySaveLeafEvidenceTree::allAuthedKeyIds=<',allAuthedKeyIds,'>');
+    }
+    for(const authed of authedList) {
+      const included = allAuthedKeyIds.reduce((acc,current) => acc || current.authedAddress ===authed ,false);
+        if(EvidenceChain.trace3) {
+          console.log('EvidenceChain::trySaveLeafEvidenceTree::included=<',included,'>');
+        }
+        if(!included) {
+        const storeObject = {
+          didId:evidenceDid.id,
+          keyAddress:leafKeyId,
+          authedAddress:authed,
+          seed:false,
+        }
+        const checkBeforeSave = await this.db.chain.where(storeObject).toArray();
+        if(EvidenceChain.trace3) {
+          console.log('EvidenceChain::trySaveLeafEvidenceTree::checkBeforeSave=<',checkBeforeSave,'>');
+        }
+        if(checkBeforeSave.length === 0) {
+          await this.db.chain.put(storeObject);
+        }
+      }
+    }
   }
 }
 

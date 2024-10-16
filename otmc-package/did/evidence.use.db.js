@@ -20,7 +20,7 @@ export class EvidenceChain {
     this.authsOfDid_ = {};
     this.db = new Dexie(StoreKey.open.did.chain.dbName);
     this.db.version(this.version).stores({
-      chain: '++autoId,keyAddress,authedList'
+      chain: '++autoId,didId,keyAddress,authedAddress,seed'
     });
   }
   
@@ -368,7 +368,7 @@ export class EvidenceChain {
     return chainType;
   }
 
-  collectAllAuthedKeyId(did,nodeId) {
+  collectAllAuthedKeyId(didId,nodeId) {
     if(EvidenceChain.trace3) {
       console.log('EvidenceChain::collectAllAuthedKeyId::this.tree_=<',this.tree_,'>');
     }
@@ -397,111 +397,57 @@ export class EvidenceChain {
   }
   
   
-  trySaveSeedEvidenceTree(evidenceDid,seedKeyId,authedList) {
+  async trySaveSeedEvidenceTree(evidenceDid,seedKeyId,authedList) {
     if(EvidenceChain.trace3) {
+      console.log('EvidenceChain::trySaveSeedEvidenceTree::evidenceDid=<',evidenceDid,'>');
+      console.log('EvidenceChain::trySaveSeedEvidenceTree::seedKeyId=<',seedKeyId,'>');
       console.log('EvidenceChain::trySaveSeedEvidenceTree::authedList=<',authedList,'>');
     }
-    const allAuthedKeyIds = this.collectAllAuthedKeyId(evidenceDid.id,seedKeyId);
+    const allAuthedKeyIds = await this.db.chain.where('keyAddress').equals(seedKeyId).toArray();
     if(EvidenceChain.trace3) {
       console.log('EvidenceChain::trySaveSeedEvidenceTree::allAuthedKeyIds=<',allAuthedKeyIds,'>');
     }
-    const savedNode = this.tree_[seedKeyId];
-    if(EvidenceChain.trace3) {
-      console.log('EvidenceChain::trySaveSeedEvidenceTree::savedNode=<',savedNode,'>');
-    }
-    if(savedNode) {
-      let newComing = false;
-      for(const authed of authedList) {
-        if(!allAuthedKeyIds.includes(authed)) {
-          savedNode.proof.push(authed);
-          newComing = true; 
-        }
-      }
-      if(EvidenceChain.trace3) {
-        console.log('EvidenceChain::trySaveSeedEvidenceTree::newComing=<',newComing,'>');
-      }
-      if(newComing) {
-        this.tree_[seedKeyId] = savedNode;
+    for(const authed of authedList) {
+      const included = allAuthedKeyIds.reduce((acc,current) => acc || current.authedAddress ===authed ,false);
         if(EvidenceChain.trace3) {
-          console.log('EvidenceChain::trySaveSeedEvidenceTree::this.tree_=<',this.tree_,'>');
+          console.log('EvidenceChain::trySaveSeedEvidenceTree::included=<',included,'>');
         }
+        if(!included) {
+        const storeObje = {
+          didId:evidenceDid.id,
+          keyAddress:seedKeyId,
+          authedAddress:authed,
+          seed:true,
+        }
+        await this.db.chain.add(storeObje);
       }
-      return;
-    }
-    const newNode = {};
-    newNode.did = evidenceDid.id;
-    newNode.keyid = seedKeyId;
-    newNode.seed = true;
-    newNode.roof = '';
-    newNode.proof = [...authedList];
-    if(EvidenceChain.trace3) {
-      console.log('EvidenceChain::trySaveSeedEvidenceTree::newNode=<',newNode,'>');
-    }
-    this.tree_[seedKeyId] = newNode;
-    if(EvidenceChain.trace3) {
-      console.log('EvidenceChain::trySaveSeedEvidenceTree::this.tree_=<',this.tree_,'>');
-    }
-    if(!this.authsOfDid_[evidenceDid.id]) {
-      this.authsOfDid_[evidenceDid.id] = []
-    }
-    this.authsOfDid_[evidenceDid.id].push(`${evidenceDid.id}#${seedKeyId}`);
-    if(EvidenceChain.trace3) {
-      console.log('EvidenceChain::trySaveSeedEvidenceTree::this.authsOfDid_=<',this.authsOfDid_,'>');
     }
   }
 
-
-
-
-  trySaveSproutEvidenceTree(evidenceDid,leafKeyId,authedList){
+ async trySaveSproutEvidenceTree(evidenceDid,leafKeyId,authedList){
     if(EvidenceChain.trace3) {
+      console.log('EvidenceChain::trySaveSproutEvidenceTree::evidenceDid=<',evidenceDid,'>');
+      console.log('EvidenceChain::trySaveSproutEvidenceTree::seedKeyId=<',seedKeyId,'>');
       console.log('EvidenceChain::trySaveSproutEvidenceTree::authedList=<',authedList,'>');
     }
-    const allAuthedKeyIds = this.collectAllAuthedKeyId(evidenceDid.id,leafKeyId);
+    const allAuthedKeyIds = await this.db.chain.where('keyAddress').equals(leafKeyId).toArray();
     if(EvidenceChain.trace3) {
-      console.log('EvidenceChain::trySaveSproutEvidenceTree::allAuthedKeyIds=<',allAuthedKeyIds,'>');
+      console.log('EvidenceChain::trySaveSeedEvtrySaveSproutEvidenceTreeidenceTree::allAuthedKeyIds=<',allAuthedKeyIds,'>');
     }
-    const savedNode = this.tree_[leafKeyId];
-    if(EvidenceChain.trace3) {
-      console.log('EvidenceChain::trySaveSproutEvidenceTree::savedNode=<',savedNode,'>');
-    }
-    if(savedNode) {
-      let newComing = false;
-      for(const authed of authedList) {
-        if(!allAuthedKeyIds.includes(authed)) {
-          savedNode.proof.push(authed);
-          newComing = true; 
-        }
-      }
-      if(newComing) {
-        this.tree_[leafKeyId] = savedNode;
-      }
-      return;
-    }
-    const newNode = {};
-    newNode.did = evidenceDid.id;
-    newNode.keyid = leafKeyId;
-    newNode.seed = false;
-    newNode.roof = '';
-    newNode.proof = [];
     for(const authed of authedList) {
-      if(!allAuthedKeyIds.includes(authed)) {
-        newNode.proof.push(authed);
+      const included = allAuthedKeyIds.reduce((acc,current) => acc || current.authedAddress ===authed ,false);
+        if(EvidenceChain.trace3) {
+          console.log('EvidenceChain::trySaveSproutEvidenceTree::included=<',included,'>');
+        }
+        if(!included) {
+        const storeObje = {
+          didId:evidenceDid.id,
+          keyAddress:leafKeyId,
+          authedAddress:authed,
+          seed:false,
+        }
+        await this.db.chain.add(storeObje);
       }
-    }
-    if(EvidenceChain.trace3) {
-      console.log('EvidenceChain::trySaveSproutEvidenceTree::newNode=<',newNode,'>');
-    }
-    this.tree_[leafKeyId] = newNode;
-    if(EvidenceChain.trace5) {
-      console.log('EvidenceChain::trySaveSproutEvidenceTree::this.tree_=<',this.tree_,'>');
-    }
-    if(!this.authsOfDid_[evidenceDid.id]) {
-      this.authsOfDid_[evidenceDid.id] = []
-    }
-    this.authsOfDid_[evidenceDid.id].push(`${evidenceDid.id}#${seedKeyId}`);
-    if(EvidenceChain.trace3) {
-      console.log('EvidenceChain::trySaveSproutEvidenceTree::this.authsOfDid_=<',this.authsOfDid_,'>');
     }
   }
 

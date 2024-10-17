@@ -131,11 +131,11 @@ export class EvidenceChain {
     return topElement;
   }
 
-  calcDidAuth() {
+  async calcDidAuth() {
     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::calcDidAuth::this.docTop_=<',this.docTop_,'>');
     }
-    const roleProof = this.calcDidAuthInternal_(this.docTop_);
+    const roleProof = await this.calcDidAuthInternal_(this.docTop_);
     if(EvidenceChain.trace) {
       console.log('EvidenceChain::calcDidAuth::roleProof=<',roleProof,'>');
     }
@@ -158,7 +158,7 @@ export class EvidenceChain {
     return 'guest.none.proof';
   }
 
-  calcDidAuthInternal_(didDoc) {
+  async calcDidAuthInternal_(didDoc) {
     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::calcDidAuthInternal_::didDoc=<',didDoc,'>');
     }
@@ -191,7 +191,7 @@ export class EvidenceChain {
     if(isRootChain) {
       proof = this.searchProofFromChainRoot_(isGoodDid.proofList,didAddress,myAddress,seedTracedIds);
     } else {
-      proof = this.searchProofFromChainLeaf_(isGoodDid.proofList,didAddress,myAddress,didDoc.controller);
+      proof = await this.searchProofFromChainLeaf_(isGoodDid.proofList,didAddress,myAddress,didDoc.controller);
     }
     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::calcDidAuthInternal_::proof=<',proof,'>');
@@ -297,7 +297,7 @@ export class EvidenceChain {
     }
     return proof;
   }
-  searchProofFromChainLeaf_(proofList,didAddress,myAddress,controllers) {
+  async searchProofFromChainLeaf_(proofList,didAddress,myAddress,controllers) {
     if(EvidenceChain.trace) {
       console.log('EvidenceChain::searchProofFromChainLeaf_::proofList=<',proofList,'>');
       console.log('EvidenceChain::searchProofFromChainLeaf_::didAddress=<',didAddress,'>');
@@ -306,9 +306,8 @@ export class EvidenceChain {
     }
     let proof = {
       auth:'leaf.auth.proof.by.none',
-      capability:'leaf.capability.proof.by.none',
     };
-    const authControlIds = this.collectAuthFromCotrollers_(controllers);
+    const authControlIds = await this.collectAuthFromControllers_(controllers);
     if(EvidenceChain.trace) {
       console.log('EvidenceChain::searchProofFromChainLeaf_::authControlIds=<',authControlIds,'>');
     }
@@ -328,18 +327,26 @@ export class EvidenceChain {
     }
     return proof;
   }
-  collectAuthFromCotrollers_(controllers) {
+  async collectAuthFromControllers_(controllers) {
     if(EvidenceChain.trace) {
-      console.log('EvidenceChain::collectAuthFromCotrollers_::controllers=<',controllers,'>');
+      console.log('EvidenceChain::collectAuthFromControllers_::controllers=<',controllers,'>');
     }
+
     const authsInCtrl = [];
     for(const control of controllers) {
-      if(this.authsOfDid_[control]) {
-        authsInCtrl.push(this.authsOfDid_[control]);
+      const filter = {
+        didId:control,
+      };
+      const allAuthedKeyIds = await this.db.chain.where(filter).toArray();
+      if(EvidenceChain.trace3) {
+        console.log('EvidenceChain::collectAuthFromControllers_::allAuthedKeyIds=<',allAuthedKeyIds,'>');
+      }
+      for(const authedKeyId of allAuthedKeyIds) {
+        authsInCtrl.push(authedKeyId.authedAddress);
       }
     }
     if(EvidenceChain.trace) {
-      console.log('EvidenceChain::collectAuthFromCotrollers_::controllers=<',controllers,'>');
+      console.log('EvidenceChain::collectAuthFromControllers_::controllers=<',controllers,'>');
     }
     return authsInCtrl.flat();
   }

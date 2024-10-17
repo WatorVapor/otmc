@@ -64,8 +64,8 @@ export class DidDocStateMachine {
       if(self.trace0) {
         console.log('DidDocStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      self.ee.emit('did.stm.runtime.chain',{chain:self.chain});
       self.actor.send({type:'chain.load'});  
+      self.ee.emit('did.stm.runtime.chain',{chain:self.chain});
     });
 
     this.ee.on('did.stm.docstate.internal.proof',(evt)=>{
@@ -195,7 +195,7 @@ const didDocActionTable = {
       console.log('DidDocStateMachine::didDocActionTable::init:chain=:<',chain,'>');
     }
   },
-  chainReady:(context, evt) => {
+  chainReady: async (context, evt) => {
     const ee = context.context.ee;
     const chain = context.context.chain;
     if(LOG.trace) {
@@ -203,7 +203,7 @@ const didDocActionTable = {
       console.log('DidDocStateMachine::didDocActionTable::chainReady:ee=:<',ee,'>');
       console.log('DidDocStateMachine::didDocActionTable::chainReady:chain=:<',chain,'>');
     }
-    const proof = chain.calcDidAuth();
+    const proof = await chain.calcDidAuth();
     if(LOG.trace) {
       console.log('DidDocStateMachine::didDocActionTable::chainReady:proof=:<',proof,'>');
     }

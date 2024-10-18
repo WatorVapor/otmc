@@ -203,6 +203,11 @@ const loadDidTeamApps = (evt) => {
       appDidVM.isSeed = false;
       appDidVM.isLeaf = true;
     }
+    if(auth.byCtrlLeaf) {
+      appDidVM.isRoot = false;
+      appDidVM.isSeed = false;
+      appDidVM.isLeaf = true;
+    }
   });
   /*
   otmc.on('otmc:mqtt:app',(appMsg) => {

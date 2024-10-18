@@ -55,6 +55,18 @@ layout: didteam.sidebar.ejs
             </span>
           </div>
           <div class="input-group mb-3">
+            <span class="input-group-text w-25">Team Type</span>
+            <span class="input-group-text w-25">
+              <input class="form-check-input" type="checkbox" disabled :checked="isRoot">Root</input>
+            </span>
+            <span class="input-group-text w-25">
+              <input class="form-check-input" type="checkbox" disabled :checked="isSeed">Seed</input>
+            </span>
+            <span class="input-group-text w-25">
+              <input class="form-check-input" type="checkbox" disabled :checked="isLeaf">Leaf</input>
+            </span>
+          </div>
+          <div class="input-group mb-3">
             <span class="input-group-text w-25">
               <input class="form-check-input" type="radio" value="create" :checked="teamType === 'create'" name="CreateOrJoinTeam" v-model="teamType">
               Create a new team

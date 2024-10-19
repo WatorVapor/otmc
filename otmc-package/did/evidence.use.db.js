@@ -316,11 +316,20 @@ export class EvidenceChain {
       if(EvidenceChain.trace1) {
         console.log('EvidenceChain::searchProofFromChainLeaf_::poofHint=<',poofHint,'>');
       }
-      if(poofHint) {
-        proof.auth = 'leaf.auth.proof.by.ctrl';
+      if(didAddress === myAddress) {
+        if(poofHint) {
+          proof.auth = 'leaf.seed.proof.by.ctrl';
+        } else {
+          proof.auth = 'leaf.seed.proof.by.none';
+        }
       } else {
-        proof.auth = 'leaf.auth.proof.by.none';
+        if(poofHint) {
+          proof.auth = 'leaf.auth.proof.by.ctrl';
+        } else {
+          proof.auth = 'leaf.auth.proof.by.none';
+        }
       }
+
     }
     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::searchProofFromChainLeaf_::proof=<',proof,'>');

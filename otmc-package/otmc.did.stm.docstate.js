@@ -132,6 +132,8 @@ const didDocStateTable = {
       'root.auth.proof.by.seed':'rootAuthBySeed',
       'root.auth.proof.by.auth':'rootAuthByAuth',
       'root.auth.proof.by.none':'rootAuthByNone',
+      'leaf.seed.proof.by.ctrl':'leafAuthSeedByCtrl',
+      'leaf.seed.proof.by.none':'leafAuthSeedByNoe',
       'leaf.auth.proof.by.ctrl':'leafAuthByCtrl',
       'leaf.auth.proof.by.none':'leafAuthByNoe',
     } 
@@ -143,6 +145,8 @@ const didDocStateTable = {
       'root.auth.proof.by.seed':'rootAuthBySeed',
       'root.auth.proof.by.auth':'rootAuthByAuth',
       'root.auth.proof.by.none':'rootAuthByNone',
+      'leaf.seed.proof.by.ctrl':'leafAuthSeedByCtrl',
+      'leaf.seed.proof.by.none':'leafAuthSeedByNoe',
       'leaf.auth.proof.by.ctrl':'leafAuthByCtrl',
       'leaf.auth.proof.by.none':'leafAuthByNoe',
     } 
@@ -170,6 +174,16 @@ const didDocStateTable = {
   },
   rootAuthByNone: {
     entry:['rootAuthByNone'],
+    on: {
+    }
+  },
+  leafAuthSeedByCtrl: {
+    entry:['leafAuthSeedByCtrl'],
+    on: {
+    }
+  },
+  leafAuthSeedByNoe: {
+    entry:['leafAuthSeedByNoe'],
     on: {
     }
   },
@@ -272,6 +286,32 @@ const didDocActionTable = {
     }
     const notify = {
       byNoneRoot:true,
+    };
+    ee.emit('did.evidence.auth',notify);
+  },
+  leafAuthSeedByCtrl:(context, evt) => {
+    const ee = context.context.ee;
+    const chain = context.context.chain;
+    if(LOG.trace) {
+      console.log('DidDocStateMachine::didDocActionTable::leafAuthSeedByCtrl:context=:<',context,'>');
+      console.log('DidDocStateMachine::didDocActionTable::leafAuthSeedByCtrl:ee=:<',ee,'>');
+      console.log('DidDocStateMachine::didDocActionTable::leafAuthSeedByCtrl:chain=:<',chain,'>');
+    }
+    const notify = {
+      byCtrlLeafSeed:true,
+    };
+    ee.emit('did.evidence.auth',notify);
+  },
+  leafAuthSeedByNoe:(context, evt) => {
+    const ee = context.context.ee;
+    const chain = context.context.chain;
+    if(LOG.trace) {
+      console.log('DidDocStateMachine::didDocActionTable::leafAuthSeedByNoe:context=:<',context,'>');
+      console.log('DidDocStateMachine::didDocActionTable::leafAuthSeedByNoe:ee=:<',ee,'>');
+      console.log('DidDocStateMachine::didDocActionTable::leafAuthSeedByNoe:chain=:<',chain,'>');
+    }
+    const notify = {
+      byNoneLeafSeed:true,
     };
     ee.emit('did.evidence.auth',notify);
   },

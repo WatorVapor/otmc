@@ -161,7 +161,9 @@
           </div>
         </div>
       </div>
-      <hr/>
+    </div>
+    <hr/>
+    <div class="container text-start mt-3">
       <div class="row justify-content-start">
         <div class="col-10" id="vue-ui-app-did-team">
           <div class="input-group mb-3">
@@ -182,30 +184,36 @@
           </div>
           <div class="input-group mb-3">
             <span class="input-group-text w-25">Team Type</span>
-            <span class="input-group-text w-25">
+            <span class="input-group-text me-3 ms-3">
+              <input class="form-check-input" type="checkbox" disabled :checked="isVerified">Verified</input>
+            </span>
+            <span class="input-group-text me-3">
               <input class="form-check-input" type="checkbox" disabled :checked="isRoot">Root</input>
             </span>
-            <span class="input-group-text w-25">
+            <span class="input-group-text me-3">
               <input class="form-check-input" type="checkbox" disabled :checked="isSeed">Seed</input>
             </span>
-            <span class="input-group-text w-25">
+            <span class="input-group-text me-3">
               <input class="form-check-input" type="checkbox" disabled :checked="isLeaf">Leaf</input>
             </span>
           </div>
-          <div class="input-group mb-3">
+          <hr/>
+          <div class="input-group mt-3 mb-3">
             <span class="input-group-text w-25">
               <input class="form-check-input" type="radio" value="create" :checked="teamType === 'create'" name="CreateOrJoinTeam" v-model="teamType">
               Create a new team
             </span>
-            <input type="text" class="form-control" placeholder="did:otmc: control" :disabled="teamType !== 'create' || isControlled === false" v-model="create.control">
             <span class="input-group-text w-25">
-              <button class="btn btn-success" type="button" @click="clickAddSeedControl()" :disabled="teamType !== 'create' && isControlled === true" 
+              <input type="text" class="form-control" placeholder="did:otmc: control" :disabled="teamType !== 'create' || createAsControlled === false" v-model="create.control">
+            </span>
+            <span class="input-group-text w-50">
+              <button class="btn btn-success me-3" type="button" @click="clickAddSeedControl()" :disabled="teamType !== 'create' && createAsControlled === true" 
                 data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Add controller to the new DidTeam">
                 <i class="fa-solid fa-plus"></i>
               </button>
-              <input class="form-check-input" type="checkbox" value="" :disabled="teamType !== 'create'" v-model="isControlled">
-              Controlled
-              <button class="btn btn-primary" type="button" @click="clickCreateDidTeamSeed()" :disabled="teamType !== 'create' && isControlled === true"
+              <input class="form-check-input ms-3" type="checkbox" value="" :disabled="teamType !== 'create'" v-model="createAsControlled">Controlled</input>
+              <input class="form-check-input ms-3" type="checkbox" value="" :disabled="teamType !== 'create'" v-model="createAsRoot">Root</input>
+              <button class="btn btn-primary ms-3" type="button" @click="clickCreateDidTeamSeed()" :disabled="teamType !== 'create' && createAsControlled === true"
                 data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create A New DidTeam">
                 <i class="fa-solid fa-seedling"></i>
                 <i class="fa-solid fa-user-gear"></i>
@@ -213,8 +221,8 @@
             </span>
           </div>
           <div class="input-group mb-3">
-            <span class="input-group-text w-25"></span>
-            <input type="text" class="form-control" readonly v-model="create.controls">
+            <span class="input-group-text text-end w-25">Added controller list</span>
+            <input type="text" class="form-control" placeholder="[did:otmc:xx,did:otmc:yy]" readonly v-model="create.controls">
           </div>
 
           <div class="input-group mb-3">
@@ -222,8 +230,10 @@
               <input class="form-check-input" type="radio" value="join" :checked="teamType === 'join'" name="CreateOrJoinTeam" v-model="teamType">
               Join an exist team
             </span>
-            <input type="text" class="form-control" placeholder="did:otmc: join" :disabled="teamType === 'create'" v-model="join.did">
             <span class="input-group-text w-25">
+              <input type="text" class="form-control" placeholder="did:otmc: join" :disabled="teamType === 'create'" v-model="join.did">
+            </span>
+            <span class="input-group-text w-50">
               <button class="btn btn-primary" type="button" @click="clickJoinDidTeam()" :disabled="teamType === 'create'" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Join An Exist DidTeam">
                 <i class="fa-solid fa-plus"></i>
                 <i class="fa-solid fa-link"></i>

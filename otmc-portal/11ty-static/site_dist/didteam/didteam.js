@@ -66,7 +66,8 @@ const didTeamOption = {
       hasAddress: false,
       isInTeam:false,
       teamType:'create',// 'create|join'
-      isControlled:true,
+      createAsControlled:true,
+      createAsRoot:true,
       isRoot:false,
       isSeed:false,
       isLeaf:false,
@@ -197,16 +198,31 @@ const loadDidTeamApps = (evt) => {
       appDidVM.isRoot = true;
       appDidVM.isSeed = true;
       appDidVM.isLeaf = false;
+      appDidVM.isVerified = true;
+    }
+    if(auth.byNoneLeafSeed) {
+      appDidVM.isRoot = false;
+      appDidVM.isSeed = true;
+      appDidVM.isLeaf = true;
+      appDidVM.isVerified = false;
+    }
+    if(auth.byCtrlLeafSeed) {
+      appDidVM.isRoot = false;
+      appDidVM.isSeed = true;
+      appDidVM.isLeaf = true;
+      appDidVM.isVerified = true;
     }
     if(auth.byNoneLeaf) {
       appDidVM.isRoot = false;
       appDidVM.isSeed = false;
       appDidVM.isLeaf = true;
+      appDidVM.isVerified = false;
     }
     if(auth.byCtrlLeaf) {
       appDidVM.isRoot = false;
       appDidVM.isSeed = false;
       appDidVM.isLeaf = true;
+      appDidVM.isVerified = true;
     }
   });
   /*

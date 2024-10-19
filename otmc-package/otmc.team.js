@@ -1,8 +1,8 @@
 import { EventEmitter } from 'eventemitter3';
 import { DidDocument } from './otmc.did.document.js';
 import { OtmcStateMachine } from './otmc.state.machine.js';
-import { WebWorkerLoaderBrowser,WebWorkerLoaderNode } from './otmc.webworker.loader.js';
-import { EdcryptKeyLoaderBrowser,EdcryptKeyLoaderNode } from './otmc.edcrypt.keyloader.js';
+import { WebWorkerLoader } from './otmc.webworker.loader.js';
+import { EdcryptKeyLoader } from './otmc.edcrypt.keyloader.js';
 
 /**
 *
@@ -17,7 +17,6 @@ export class OtmcTeam extends EventEmitter {
     this.debug = true;
     if(config) {
       this.config = config;
-      this.isNode = config.node;
     } else {
       this.config = {};
     }
@@ -25,13 +24,8 @@ export class OtmcTeam extends EventEmitter {
     if(this.trace) {
       console.log('OtmcTeam::constructor::this.eeInternal=:<',this.eeInternal,'>');
     }
-    if(this.isNode) {
-      this.worker = new WebWorkerLoaderNode(this.eeInternal);
-      this.edCryptKey = new EdcryptKeyLoaderNode(this.eeInternal,this);
-    } else {
-      this.worker = new WebWorkerLoaderBrowser(this.eeInternal);
-      this.edCryptKey = new EdcryptKeyLoaderBrowser(this.eeInternal,this);
-    }
+    this.worker = new WebWorkerLoader(this.eeInternal);
+    this.edCryptKey = new EdcryptKeyLoader(this.eeInternal,this);
     const self = this;
     setTimeout(() => {
       self.did = new DidDocument(this.eeInternal,this);

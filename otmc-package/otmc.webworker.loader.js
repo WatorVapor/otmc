@@ -1,22 +1,18 @@
-class WebWorkerLoader {
-  static trace = false;
-  static debug = true;
-  constructor() {
-    
-  }
-}
 /**
 *
 */
-export class WebWorkerLoaderBrowser {
+export class WebWorkerLoader {
   constructor(eeInternal) {
     this.trace = false;
     this.debug = true;
     this.otmc = false;
     this.eeInternal = eeInternal;
-    this.scriptPath = getScriptPath();
+    this.isNode = typeof global !== 'undefined' && typeof window === 'undefined';
+    if(!this.isNode) {
+      this.scriptPath = getScriptPathBrowser();
+    }
     if(this.trace) {
-      console.log('WebWorkerLoaderBrowser::constructor::this.scriptPath=:<',this.scriptPath,'>');
+      console.log('WebWorkerLoader::constructor::this.scriptPath=:<',this.scriptPath,'>');
     }
     this.ListenEventEmitter_();
   }
@@ -24,10 +20,10 @@ export class WebWorkerLoaderBrowser {
     const self = this;
     this.eeInternal.on('webwoker.create.worker',(evt)=>{
       if(this.trace) {
-        console.log('WebWorkerLoaderBrowser::ListenEventEmitter_::evt=:<',evt,'>');
+        console.log('WebWorkerLoader::ListenEventEmitter_::evt=:<',evt,'>');
       }
       if(this.trace) {
-        console.log('WebWorkerLoaderBrowser::ListenEventEmitter_::this.otmc=:<',this.otmc,'>');
+        console.log('WebWorkerLoader::ListenEventEmitter_::this.otmc=:<',this.otmc,'>');
       }
       self.createWorker();
     });
@@ -39,11 +35,11 @@ export class WebWorkerLoaderBrowser {
     .then((blob) => {
       const url = URL.createObjectURL(blob);
       if(self.trace) {
-        console.log('WebWorkerLoaderBrowser::createWorker::url=:<',url,'>');
+        console.log('WebWorkerLoader::createWorker::url=:<',url,'>');
       }
       const cryptWorker = new Worker(url);
       if(self.trace) {
-        console.log('WebWorkerLoaderBrowser::createWorker::cryptWorker=:<',cryptWorker,'>');
+        console.log('WebWorkerLoader::createWorker::cryptWorker=:<',cryptWorker,'>');
       }
       const initMsg = {
         init:{
@@ -58,11 +54,11 @@ export class WebWorkerLoaderBrowser {
     .then((blob) => {
       const url = URL.createObjectURL(blob);
       if(self.trace) {
-        console.log('WebWorkerLoaderBrowser::createWorker::url=:<',url,'>');
+        console.log('WebWorkerLoader::createWorker::url=:<',url,'>');
       }
       const resolverWorker = new Worker(url);
       if(self.trace) {
-        console.log('WebWorkerLoaderBrowser::createWorker::resolverWorker=:<',resolverWorker,'>');
+        console.log('WebWorkerLoader::createWorker::resolverWorker=:<',resolverWorker,'>');
       }
       const initMsg = {
         init:{
@@ -75,66 +71,7 @@ export class WebWorkerLoaderBrowser {
   }
 }
 
-/**
-*
-*/
-export class WebWorkerLoaderNode {
-  constructor(eeInternal) {
-    this.trace0 = false;
-    this.trace = true;
-    this.debug = true;
-    this.eeInternal = eeInternal;
-    this.ListenEventEmitter_();
-  }
-  ListenEventEmitter_() {
-    const self = this;
-    this.eeInternal.on('webwoker.create.worker',(evt)=>{
-      if(this.trace) {
-        console.log('WebWorkerLoaderNode::ListenEventEmitter_::evt=:<',evt,'>');
-      }
-      self.createWorker();
-    });
-  }
-  createWorker() {
-    const self = this;
-    fetch(`${this.scriptPath}/otmc.edcrypt.keyloader.worker.js`)
-    .then((response) => response.blob())
-    .then((blob) => {
-      const url = URL.createObjectURL(blob);
-      if(self.trace) {
-        console.log('WebWorkerLoaderBrowser::createWorker::url=:<',url,'>');
-      }
-      const cryptWorker = new Worker(url);
-      if(self.trace) {
-        console.log('WebWorkerLoaderBrowser::createWorker::cryptWorker=:<',cryptWorker,'>');
-      }
-      self.eeInternal.emit('webwoker.crypt.worker',{type:cryptWorker});
-    });
-    fetch(`${this.scriptPath}/otmc.did.resolver.worker.js`)
-    .then((response) => response.blob())
-    .then((blob) => {
-      const url = URL.createObjectURL(blob);
-      if(self.trace) {
-        console.log('WebWorkerLoaderBrowser::createWorker::url=:<',url,'>');
-      }
-      const resolverWorker = new Worker(url);
-      if(self.trace) {
-        console.log('WebWorkerLoaderBrowser::createWorker::resolverWorker=:<',resolverWorker,'>');
-      }
-      const initMsg = {
-        init:{
-          path:self.scriptPath,
-        }
-      };    
-      resolverWorker.postMessage(initMsg);
-      self.eeInternal.emit('webwoker.resolver.worker',{type:resolverWorker});
-    });
-  }
-}
-
-
-
-const getScriptPath = () => {
+const getScriptPathBrowser = () => {
   const browserName = () => {
     const agent = window.navigator.userAgent.toLowerCase();
     if(WebWorkerLoader.trace) {
@@ -154,41 +91,41 @@ const getScriptPath = () => {
 
   const browser = browserName();
   if(WebWorkerLoader.trace) {
-    console.log('::getScriptPath::browser=:<',browser,'>');
+    console.log('::getScriptPathBrowser::browser=:<',browser,'>');
   }
   const errorDummy = new Error();
   if(WebWorkerLoader.trace) {
-    console.log('::getScriptPath::errorDummy.stack.trim()=:<',errorDummy.stack.trim(),'>');
+    console.log('::getScriptPathBrowser::errorDummy.stack.trim()=:<',errorDummy.stack.trim(),'>');
   }
   let sepStackLine = '\n    at ';
   let indexOfStack = 1;
-  let replacePartern = 'getScriptPath (';
+  let replacePartern = 'getScriptPathBrowser (';
   if(browser === 'firefox') {
     sepStackLine = '\n';
     indexOfStack = 0;
-    replacePartern = 'getScriptPath@';
+    replacePartern = 'getScriptPathBrowser@';
   }
   let stackParams = errorDummy.stack.trim().split(sepStackLine);
   if(WebWorkerLoader.trace) {
-    console.log('::getScriptPath::stackParams=:<',stackParams,'>');
-    console.log('::getScriptPath::stackParams.length=:<',stackParams.length,'>');
+    console.log('::getScriptPathBrowser::stackParams=:<',stackParams,'>');
+    console.log('::getScriptPathBrowser::stackParams.length=:<',stackParams.length,'>');
   }
   if(stackParams.length > indexOfStack + 1) {
     const fileStack = stackParams[indexOfStack];
     if(WebWorkerLoader.trace) {
-      console.log('::getScriptPath::fileStack=:<',fileStack,'>');
+      console.log('::getScriptPathBrowser::fileStack=:<',fileStack,'>');
     }
     const fileLine = fileStack.replace(replacePartern,'').replace(')','');
     if(WebWorkerLoader.trace) {
-      console.log('::getScriptPath::fileLine=:<',fileLine,'>');
+      console.log('::getScriptPathBrowser::fileLine=:<',fileLine,'>');
     }
     const fileLineParams = fileLine.split('/');
     if(WebWorkerLoader.trace) {
-      console.log('::getScriptPath::fileLineParams=:<',fileLineParams,'>');
+      console.log('::getScriptPathBrowser::fileLineParams=:<',fileLineParams,'>');
     }
     const scriptPath = fileLineParams.slice(0,fileLineParams.length -1).join('/');
     if(WebWorkerLoader.trace) {
-      console.log('::getScriptPath::scriptPath=:<',scriptPath,'>');
+      console.log('::getScriptPathBrowser::scriptPath=:<',scriptPath,'>');
     }
     return scriptPath;
   }

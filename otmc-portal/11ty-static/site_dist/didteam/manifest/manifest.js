@@ -1,5 +1,5 @@
 import * as Vue from 'vue';
-import { Otmc } from 'otmc';
+import { OtmcTeam } from 'otmcTeam';
 
 document.addEventListener('DOMContentLoaded', async (evt) => {
   loadDidTeamManifestApps(evt);
@@ -10,6 +10,42 @@ const apps = {
   trace: true,
   debug: true,
 };
+const TEAM = {
+  trace:false,
+};
+
+const appStoreDidKeySelected = 'otmc/team/didkey/selected';
+const loadLastSavedKeyIdSelection = () => {
+  try {
+    const didKeySelected = localStorage.getItem(appStoreDidKeySelected);
+    if(TEAM.trace) {
+      console.log('loadLastSavedKeyIdSelection::didKeySelected=:<',didKeySelected,'>');
+    }
+    return didKeySelected;
+  } catch(err) {
+    console.error('loadLastSavedKeyIdSelection::err=:<',err,'>');
+  }
+  return null;
+}
+
+
+const edcryptKeyOption = {
+  data() {
+    return {
+      didKeyList:[],
+      didKeySelected: '',
+    };
+  },
+  methods: {
+    changeDidKeySelected(evt) {
+      console.log('changeDidKeySelected::this.didKeySelected=:<',this.didKeySelected,'>');
+      const otmc = this.otmc;
+      console.log('changeDidKeySelected::otmc=:<',otmc,'>');
+      localStorage.setItem(appStoreDidKeySelected,this.didKeySelected);
+      otmc.switchDidKey(this.didKeySelected);
+    },
+  }  
+}
 
 
 const manifestOption = {
@@ -58,17 +94,26 @@ const manifestOption = {
 
 
 const loadDidTeamManifestApps = (evt) => {
+  const appEdcryptKey = Vue.createApp(edcryptKeyOption);
+  const appEdKeyVM = appEdcryptKey.mount('#vue-ui-app-edcrypt-key');
+  console.log('loadDidTeamApps::appEdKeyVM=:<',appEdKeyVM,'>');
+  const selectedKeyId = loadLastSavedKeyIdSelection();
+  appEdKeyVM.didKeySelected = selectedKeyId;
+
+
   const appManifest = Vue.createApp(manifestOption);
   const appManifestVM = appManifest.mount('#vue-ui-app-did-manifest');
   if(apps.trace) {
     console.log('loadDidTeamManifestApps::appManifestVM=:<',appManifestVM,'>');
   }
   
-  const otmc = new Otmc();
+  const otmc = new OtmcTeam();
   if(apps.trace) {
     console.log('loadDidTeamManifestApps::otmc=:<',otmc,'>');
   }
-  otmc.on('edcrypt:address',(address)=>{
+  otmc.on('edcrypt:didKeyList',(didKeyList)=>{
+    onDidKeyRefreshKeyApp(didKeyList,appEdKeyVM);
+    otmc.switchDidKey(appEdKeyVM.didKeySelected);
   });
   otmc.on('did:manifest',(manifest) => {
     if(apps.trace) {
@@ -82,8 +127,13 @@ const loadDidTeamManifestApps = (evt) => {
     loadCodeEditorApps(manifestStr,appManifestVM);
     loadResultEditorApps('',appManifestVM);
   });
+
+  appEdKeyVM.otmc = otmc;
+  apps.edKey = appEdKeyVM;
+  
   appManifestVM.otmc = otmc;
   apps.manifest = appManifestVM;
+  
 }
 
 
@@ -120,3 +170,9 @@ const loadResultEditorApps = (textMsg,vm) => {
   editor.setReadOnly(true);
   vm.editorCheck = editor;
 }
+
+const onDidKeyRefreshKeyApp = (didKeys,app) => {
+  console.log('onDidKeyRefreshKeyApp::didKeys=:<',didKeys,'>');  
+  console.log('onDidKeyRefreshKeyApp::app=:<',app,'>');
+  app.didKeyList = didKeys;
+};

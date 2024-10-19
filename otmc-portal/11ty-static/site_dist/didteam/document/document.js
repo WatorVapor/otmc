@@ -8,8 +8,8 @@ const TEAM = {
 document.addEventListener('DOMContentLoaded', async (evt) => {
   loadDidTeamApps(evt);
 });
-const appStoreDidKeySelected = 'otmc/team/didkey/selected';
 
+const appStoreDidKeySelected = 'otmc/team/didkey/selected';
 const loadLastSavedKeyIdSelection = () => {
   try {
     const didKeySelected = localStorage.getItem(appStoreDidKeySelected);
@@ -59,10 +59,10 @@ const didTeamOption = {
 
 const loadDidTeamApps = (evt) => { 
   const appEdcryptKey = Vue.createApp(edcryptKeyOption);
-  const edcryptKeyVM = appEdcryptKey.mount('#vue-ui-app-edcrypt-key');
-  console.log('loadDidTeamApps::edcryptKeyVM=:<',edcryptKeyVM,'>');
+  const appEdKeyVM = appEdcryptKey.mount('#vue-ui-app-edcrypt-key');
+  console.log('loadDidTeamApps::appEdKeyVM=:<',appEdKeyVM,'>');
   const selectedKeyId = loadLastSavedKeyIdSelection();
-  edcryptKeyVM.didKeySelected = selectedKeyId;
+  appEdKeyVM.didKeySelected = selectedKeyId;
 
 
   const appDidTeam = Vue.createApp(didTeamOption);
@@ -71,8 +71,8 @@ const loadDidTeamApps = (evt) => {
   const otmc = new OtmcTeam();
   console.log('loadDidTeamApps::otmc=:<',otmc,'>');
   otmc.on('edcrypt:didKeyList',(didKeyList)=>{
-    onDidKeyRefreshKeyApp(didKeyList,edcryptKeyVM);
-    otmc.switchDidKey(edcryptKeyVM.didKeySelected);
+    onDidKeyRefreshKeyApp(didKeyList,appEdKeyVM);
+    otmc.switchDidKey(appEdKeyVM.didKeySelected);
   });
   otmc.on('did:document',(didDoc)=>{
     console.log('loadDidTeamApps::didDoc=:<',didDoc,'>');
@@ -82,7 +82,9 @@ const loadDidTeamApps = (evt) => {
   });
 
   
+  appEdKeyVM.otmc = otmc;
   appDidVM.otmc = otmc;
+  apps.edKey = appEdKeyVM;
   apps.did = appDidVM;
 
 }

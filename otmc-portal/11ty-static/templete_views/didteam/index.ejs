@@ -81,7 +81,7 @@ layout: didteam.sidebar.ejs
               <input type="text" class="form-control" placeholder="did:otmc: control" :disabled="teamType !== 'create' || createAsControlled === false" v-model="create.control">
             </span>
             <span class="input-group-text w-50">
-              <button class="btn btn-success me-3" type="button" @click="clickAddSeedControl()" :disabled="teamType !== 'create' && createAsControlled === true" 
+              <button class="btn btn-success me-3" type="button" @click="clickAddSeedControl()" :disabled="teamType !== 'create' || createAsControlled === false" 
                 data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Add controller to the new DidTeam">
                 <i class="fa-solid fa-plus"></i>
               </button>

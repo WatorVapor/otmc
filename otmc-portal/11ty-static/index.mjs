@@ -1,8 +1,11 @@
-LOG = {
+const LOG = {
   trace:false
 };
-const chokidar = require('chokidar');
-const execSync = require('child_process').execSync;
+
+//const chokidar = require('chokidar');
+import chokidar from 'chokidar';
+//const execSync = require('child_process').execSync;
+import {execSync} from 'child_process';
 // One-liner for current directory
 const inputWatcher = chokidar.watch('./templete_views',{
   persistent: true,

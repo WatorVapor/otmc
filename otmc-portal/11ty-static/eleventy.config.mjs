@@ -1,4 +1,6 @@
-module.exports = function(eleventyConfig) {
+import ejsPlugin from '@11ty/eleventy-plugin-ejs';
+export default async function(eleventyConfig) {
+  eleventyConfig.addPlugin(ejsPlugin);
 	eleventyConfig.setEjsOptions({
 		delimiter: '%',
 	});

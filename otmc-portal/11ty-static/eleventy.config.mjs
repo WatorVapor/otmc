@@ -1,9 +1,18 @@
 import ejsPlugin from '@11ty/eleventy-plugin-ejs';
+import { prettify } from 'htmlfy'
+
+
 export default async function(eleventyConfig) {
   eleventyConfig.addPlugin(ejsPlugin);
 	eleventyConfig.setEjsOptions({
 		delimiter: '%',
 	});
+  eleventyConfig.addTransform('htmlfy', (content) => {
+    const formatOpt = { tab_size: 2 };
+    const contentPretty = prettify(content,formatOpt);
+    //console.log('htmlfy::contentPretty:=<',contentPretty ,'>');
+    return contentPretty;
+  });
   eleventyConfig.addWatchTarget('templete_views');
   eleventyConfig.setWatchThrottleWaitTime(100); // in milliseconds
   eleventyConfig.addPassthroughCopy('templete_views/**/*.js');

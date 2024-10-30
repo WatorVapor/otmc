@@ -1,5 +1,5 @@
 import ejsPlugin from '@11ty/eleventy-plugin-ejs';
-import { prettify } from 'htmlfy'
+import pretty from 'pretty'
 
 
 export default async function(eleventyConfig) {
@@ -9,7 +9,7 @@ export default async function(eleventyConfig) {
 	});
   eleventyConfig.addTransform('htmlfy', (content) => {
     const formatOpt = { tab_size: 2 };
-    const contentPretty = prettify(content,formatOpt);
+    const contentPretty = pretty(content,formatOpt);
     //console.log('htmlfy::contentPretty:=<',contentPretty ,'>');
     return contentPretty;
   });

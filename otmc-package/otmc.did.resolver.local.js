@@ -32,6 +32,10 @@ export class DidResolverLocalStore {
     if(didValuesSorted.length > 0) {
       return didValuesSorted[0];
     }
+    const didMemberValuesJson = await this.didDocLS.getMemberAll(keyAddress);
+    if(this.trace) {
+      console.log('DidResolverLocalStore::resolver::didMemberValuesJson=:<',didMemberValuesJson,'>');
+    }
     return null;
   }
   async getDidDocumentAll(keyAddress){

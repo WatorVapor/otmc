@@ -57,6 +57,45 @@ export class DidStoreDocument {
     }
     return storeValuesJson;
   }
+  async getMemberAll(address) {
+    const storeObjects = await this.db.didDoc.toArray();
+    if(this.trace) {
+      console.log('DidStoreDocument::getMemberAll::storeObjects=:<',storeObjects,'>');
+    }
+    const storeValuesJson = [];
+    for(const storeValue of storeObjects) {
+      const storeDid = JSON.parse(storeValue.origDid);
+      if(this.trace) {
+        console.log('DidStoreDocument::getMemberAll::storeDid=:<',storeDid,'>');
+      }
+      if(this.isAuthMember(storeDid,address)){
+        storeValuesJson.push(storeDid);
+      }
+    }
+    if(this.trace) {
+      console.log('DidStoreDocument::getMemberAll::storeValuesJson=:<',storeValuesJson,'>');
+    }
+    return storeValuesJson;
+  }
+  isAuthMember(didJson,address) {
+    if(this.trace) {
+      console.log('DidStoreDocument::isAuthMember::didJson=:<',didJson,'>');
+      console.log('DidStoreDocument::isAuthMember::address=:<',address,'>');
+    }
+    try {
+      for(const auth of didJson.authentication) {
+        if(this.trace) {
+          console.log('DidStoreDocument::isAuthMember::auth=:<',auth,'>');
+        }
+        if(auth.endsWith(`#${address}`)) {
+          return true;
+        }
+      }
+    } catch (err) {
+      console.error('DidStoreDocument::isAuthMember::err=:<',err,'>');
+    }
+    return false;
+  }
   
   compare_(a,b) {
     if ( a.updated < b.updated ){

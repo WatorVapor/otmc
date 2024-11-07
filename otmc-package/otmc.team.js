@@ -57,6 +57,9 @@ export class OtmcTeam extends EventEmitter {
     this.eeInternal.emit('did.create.seed',{controls:controls,root:root});
   }
   joinDidTeamAsAuth(id) {
+    if(this.trace) {
+      console.log('OtmcTeam::joinDidTeamAsAuth::this.eeInternal=:<',this.eeInternal,'>');
+    }
     this.eeInternal.emit('did.join.as.auth',{did:id});
   }
   

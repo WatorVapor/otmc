@@ -120,12 +120,14 @@
             <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start" id="menu">
               <li data-bs-toggle="collapse" class="nav-link px-0 align-middle" v-for="menu in menuTree">
                 <a :href="menu.href" class="nav-link px-0 align-middle">
-                  <i :class="icon" v-for="icon in menu.icons"></i>
-                  <span class="ms-1 d-none d-sm-inline">{{menu.title}}</span>
+                  <span class="me-2" v-for="icon in menu.icons">
+                    <i :class="icon" ></i>
+                  </span>
+                  <span class="me-1 d-sm-inline">{{menu.title}}</span>
                 </a>
                 <ul class="collapse show nav flex-column ms-1" id="submenu1" data-bs-parent="#menu" v-if="menu.subMenu.length > 0">
                   <li class="w-100" v-for="subMenu in menu.subMenu">
-                    <a href="#" class="nav-link px-0"> <span class="d-none d-sm-inline">{{subMenu.title}}</span> 1 </a>
+                    <a href="#" class="nav-link px-0"> <span class="d-sm-inline">{{subMenu.title}}</span> 1 </a>
                   </li>
                 </ul>
               </li>
@@ -252,40 +254,65 @@
         <hr />
         <script src="./didteam.js" type="module"></script>
         <script>
-          window.otmc ||= {}
+          window.otmc ||= {};
           window.otmc.SideMenuItems = [{
               href: '/didteam/',
               title: 'Team',
               id: 'menu-item-id-top',
-              icons: ['fa-solid fa-user'],
+              icons: [
+                'fa-solid fa-user',
+                'fa-solid fa-people-group',
+              ],
               subMenu: [],
             },
             {
               href: '/didteam/join/',
               title: 'Join',
               id: 'menu-item-id-top',
-              icons: ['fa-solid fa-user-plus'],
+              icons: [
+                'fa-solid fa-link',
+                'fa-solid fa-user-plus',
+              ],
               subMenu: [],
             },
             {
               href: '/didteam/document/',
               title: 'Document',
               id: 'menu-item-id-top-sub',
-              icons: ['fa-solid fa-file'],
+              icons: [
+                'fa-solid fa-file',
+                'fa-solid fa-pencil',
+              ],
               subMenu: [],
             },
             {
               href: '/didteam/manifest/',
               title: 'Manifest',
               id: 'menu-item-id-top-sub',
-              icons: ['fa-solid fa-comments'],
+              icons: [
+                'fa-solid fa-comments',
+                'fa-solid fa-pencil',
+              ],
               subMenu: [],
             },
             {
               href: '/didteam/validate/',
               title: 'Validate',
               id: 'menu-item-id-top-sub',
-              icons: ['fa-solid fa-list-check'],
+              icons: [
+                'fa-solid fa-file-contract',
+                'fa-solid fa-list-check',
+              ],
+              subMenu: [],
+            },
+            {
+              href: '/didteam/keyexport/',
+              title: 'Export/Import',
+              id: 'menu-item-id-top-sub',
+              icons: [
+                'fa-solid fa-file-export',
+                'fa-solid fa-file-import',
+              ],
               subMenu: [],
             },
           ];

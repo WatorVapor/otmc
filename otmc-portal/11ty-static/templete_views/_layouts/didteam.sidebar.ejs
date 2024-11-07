@@ -115,12 +115,14 @@
             <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start" id="menu">
               <li data-bs-toggle="collapse" class="nav-link px-0 align-middle" v-for="menu in menuTree">
                 <a :href="menu.href" class="nav-link px-0 align-middle">
-                  <i :class="icon" v-for="icon in menu.icons"></i>
-                  <span class="ms-1 d-none d-sm-inline">{{menu.title}}</span>
+                  <span class="me-2" v-for="icon in menu.icons">
+                    <i :class="icon" ></i>
+                  </span>
+                  <span class="me-1 d-sm-inline">{{menu.title}}</span>
                 </a>
                 <ul class="collapse show nav flex-column ms-1" id="submenu1" data-bs-parent="#menu" v-if="menu.subMenu.length > 0">
                   <li class="w-100" v-for="subMenu in menu.subMenu">
-                    <a href="#" class="nav-link px-0"> <span class="d-none d-sm-inline">{{subMenu.title}}</span> 1 </a>
+                    <a href="#" class="nav-link px-0"> <span class="d-sm-inline">{{subMenu.title}}</span> 1 </a>
                   </li>
                 </ul>
               </li>

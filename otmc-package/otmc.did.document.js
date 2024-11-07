@@ -164,6 +164,12 @@ export class DidDocument {
       }
       self.rejectRequest(evt.storeHash);
     });
+    this.eeInternal.on('did.join.as.auth',(evt)=>{
+      if(self.trace) {
+        console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.createJoinAsAuth(evt.did);
+    });
 
     this.eeInternal.on('did.loadDocument',(evt)=>{
       if(self.trace0) {
@@ -382,20 +388,7 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::createJoinAsAuth::documentObj=:<',documentObj,'>');
     }
-    const documentStr = JSON.stringify(documentObj);
-    const storeKeyDid = `${this.guest.address()}.${this.util.calcAddress(documentStr)}`;
-    if(this.trace) {
-      console.log('DidDocument::createJoinAsAuth::storeKeyDid=:<',storeKeyDid,'>');
-    }
-    if(this.otmc.isNode) {
-      this.fs.writeFileSync(this.otmc.config.topDoc,JSON.stringify(documentObj,undefined,2));
-    } else {
-      this.didDocStore.put(storeKeyDid, documentStr, LEVEL_OPT,(err)=>{
-        if(this.trace) {
-          console.log('DidDocument::createJoinAsAuth::err=:<',err,'>');
-        }
-      });
-    }
+    this.resolver.storeDid(documentObj);
     return documentObj;
   }
 

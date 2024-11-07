@@ -1,39 +1,64 @@
     <script>
-      window.otmc ||= {}
+      window.otmc ||= {};
       window.otmc.SideMenuItems = [
         {
           href:'/didteam/',
           title:'Team',
           id:'menu-item-id-top',
-          icons:[ 'fa-solid fa-user' ],
+          icons:[ 
+            'fa-solid fa-user', 
+            'fa-solid fa-people-group', 
+          ],
           subMenu : [],
         },
         {
           href:'/didteam/join/',
           title:'Join',
           id:'menu-item-id-top',
-          icons:[ 'fa-solid fa-user-plus' ],
+          icons:[ 
+            'fa-solid fa-link',
+            'fa-solid fa-user-plus',
+          ],
           subMenu : [],
         },
         {
           href:'/didteam/document/',
           title:'Document',
           id:'menu-item-id-top-sub',
-          icons:[ 'fa-solid fa-file' ],
+          icons:[ 
+            'fa-solid fa-file', 
+            'fa-solid fa-pencil',
+          ],
           subMenu : [],
         },
         {
           href:'/didteam/manifest/',
           title:'Manifest',
           id:'menu-item-id-top-sub',
-          icons:[ 'fa-solid fa-comments' ],
+          icons:[ 
+            'fa-solid fa-comments',
+            'fa-solid fa-pencil',
+          ],
           subMenu : [],
         },
         {
           href:'/didteam/validate/',
           title:'Validate',
           id:'menu-item-id-top-sub',
-          icons:[ 'fa-solid fa-list-check' ],
+          icons:[ 
+            'fa-solid fa-file-contract', 
+            'fa-solid fa-list-check', 
+          ],
+          subMenu : [],
+        },
+        {
+          href:'/didteam/keyexport/',
+          title:'Export/Import',
+          id:'menu-item-id-top-sub',
+          icons:[ 
+            'fa-solid fa-file-export',
+            'fa-solid fa-file-import',
+          ],
           subMenu : [],
         },
       ];

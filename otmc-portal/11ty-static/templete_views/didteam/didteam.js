@@ -146,6 +146,7 @@ const didTeamOption = {
       const otmc = this.otmc;
       console.log('clickRequestJoinTeam::otmc=:<',otmc,'>');
       const didDoc = otmc.requestJoinDidTeam();
+      console.log('clickRequestJoinTeam::didDoc=:<',didDoc,'>');
     },
     clickCheckEvidenceChain(evt) {
       console.log('clickCheckEvidenceChain::this=:<',this,'>');

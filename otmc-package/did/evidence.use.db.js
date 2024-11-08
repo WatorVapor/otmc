@@ -453,7 +453,7 @@ export class EvidenceChain {
  async trySaveSproutEvidenceTree(evidenceDid,leafKeyId,authedList){
     if(EvidenceChain.trace3) {
       console.log('EvidenceChain::trySaveSproutEvidenceTree::evidenceDid=<',evidenceDid,'>');
-      console.log('EvidenceChain::trySaveSproutEvidenceTree::seedKeyId=<',seedKeyId,'>');
+      console.log('EvidenceChain::trySaveSproutEvidenceTree::leafKeyId=<',leafKeyId,'>');
       console.log('EvidenceChain::trySaveSproutEvidenceTree::authedList=<',authedList,'>');
     }
     const allAuthedKeyIds = await this.db.chain.where('keyAddress').equals(leafKeyId).toArray();

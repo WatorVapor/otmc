@@ -92,6 +92,7 @@ export class DIDGuestGuestDocument {
     const didDoc = {
       '@context':`${DIDConfig.context}`,
       id:this.address(),
+      controller:[],
       version:`${DIDConfig.version}`,
       created:(new Date()).toISOString(),
       updated:(new Date()).toISOString(),
@@ -143,6 +144,7 @@ export class DIDGuestAuthDocument {
     const didDoc = {
       '@context':`${DIDConfig.context}`,
       id:this.address(),
+      controller:[],
       version:`${DIDConfig.version}`,
       created:(new Date()).toISOString(),
       updated:(new Date()).toISOString(),
@@ -195,6 +197,7 @@ export class DIDGuestCapabilityDocument {
     const didDoc = {
       '@context':`${DIDConfig.context}`,
       id:this.address(),
+      controller:[],
       version:`${DIDConfig.version}`,
       created:(new Date()).toISOString(),
       updated:(new Date()).toISOString(),

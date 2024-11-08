@@ -36,6 +36,13 @@ export class DidResolverLocalStore {
     if(this.trace) {
       console.log('DidResolverLocalStore::resolver::didMemberValuesJson=:<',didMemberValuesJson,'>');
     }
+    const didMemberValuesSorted = didMemberValuesJson.sort((a,b) => new Date(b.updated) - new Date(a.updated));
+    if(this.trace) {
+      console.log('DidResolverLocalStore::resolver::didMemberValuesSorted=:<',didMemberValuesSorted,'>');
+    }
+    if(didMemberValuesSorted.length > 0) {
+      return didMemberValuesSorted[0];
+    }
     return null;
   }
   async getDidDocumentAll(keyAddress){

@@ -92,16 +92,27 @@ export class DidResolver {
     return localDidDoc;
   }
 
-  async storeDid(documentObj){
+  async storeStableDid(documentObj){
     const documentStr = JSON.stringify(documentObj);
     const storeDoc = {
       id:documentObj.id,
+      updated:documentObj.updated,
       hashDid:this.util.calcAddress(documentStr),
       origDid:documentStr
     }
-    this.localStore.storeDid(storeDoc);
-    this.webStore.storeDid(documentObj);
+    this.localStore.storeStableDid(storeDoc);
   }
+  async storeFickleDid(documentObj){
+    const documentStr = JSON.stringify(documentObj);
+    const storeDoc = {
+      id:documentObj.id,
+      updated:documentObj.updated,
+      hashDid:this.util.calcAddress(documentStr),
+      origDid:documentStr
+    }
+    this.localStore.storeFickleDid(storeDoc);
+  }
+
   async manifest(didAddress){
     if(this.trace) {
       console.log('DidResolver::manifest::didAddress=:<',didAddress,'>');

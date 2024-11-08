@@ -21,7 +21,7 @@ export class DidResolverLocalStore {
     if(this.trace) {
       console.log('DidResolverLocalStore::resolver::keyAddress=:<',keyAddress,'>');
     }
-    const didValuesJson = await this.didDocLS.getAll(keyAddress);
+    const didValuesJson = await this.didDocLS.getAllStable(keyAddress);
     if(this.trace) {
       console.log('DidResolverLocalStore::resolver::didValuesJson=:<',didValuesJson,'>');
     }
@@ -32,7 +32,7 @@ export class DidResolverLocalStore {
     if(didValuesSorted.length > 0) {
       return didValuesSorted[0];
     }
-    const didMemberValuesJson = await this.didDocLS.getMemberAll(keyAddress);
+    const didMemberValuesJson = await this.didDocLS.getMemberAllStable(keyAddress);
     if(this.trace) {
       console.log('DidResolverLocalStore::resolver::didMemberValuesJson=:<',didMemberValuesJson,'>');
     }
@@ -43,20 +43,48 @@ export class DidResolverLocalStore {
     if(didMemberValuesSorted.length > 0) {
       return didMemberValuesSorted[0];
     }
+
+    const didValuesJsonFickle = await this.didDocLS.getAllFickle(keyAddress);
+    if(this.trace) {
+      console.log('DidResolverLocalStore::resolver::didValuesJsonFickle=:<',didValuesJsonFickle,'>');
+    }
+    const didValuesFickleSorted = didValuesJsonFickle.sort((a,b) => new Date(b.updated) - new Date(a.updated));
+    if(this.trace) {
+      console.log('DidResolverLocalStore::resolver::didValuesFickleSorted=:<',didValuesFickleSorted,'>');
+    }
+    if(didValuesFickleSorted.length > 0) {
+      return didValuesFickleSorted[0];
+    }
+
+    const didMemberValuesJsonFickle = await this.didDocLS.getMemberAllFickle(keyAddress);
+    if(this.trace) {
+      console.log('DidResolverLocalStore::resolver::didMemberValuesJsonFickle=:<',didMemberValuesJsonFickle,'>');
+    }
+    const didMemberValuesFickleSorted = didMemberValuesJsonFickle.sort((a,b) => new Date(b.updated) - new Date(a.updated));
+    if(this.trace) {
+      console.log('DidResolverLocalStore::resolver::didMemberValuesFickleSorted=:<',didMemberValuesFickleSorted,'>');
+    }
+    if(didMemberValuesFickleSorted.length > 0) {
+      return didMemberValuesFickleSorted[0];
+    }
+
     return null;
   }
   async getDidDocumentAll(keyAddress){
     if(this.trace) {
       console.log('DidResolverLocalStore::resolver::keyAddress=:<',keyAddress,'>');
     }
-    const didValuesJson = await this.didDocLS.getAll(keyAddress);
+    const didValuesJson = await this.didDocLS.getAllStable(keyAddress);
     if(this.trace) {
       console.log('DidResolverLocalStore::resolver::didValuesJson=:<',didValuesJson,'>');
     }
     return didValuesJson;
   }
-  async storeDid(storeDid){
-    this.didDocLS.putDid(storeDid);
+  async storeStableDid(storeDid){
+    this.didDocLS.putStable(storeDid);
+  }
+  async storeFickleDid(storeDid){
+    this.didDocLS.putFickle(storeDid);
   }
   async manifest(didAddress){
     if(this.trace) {
@@ -94,7 +122,16 @@ export class DidResolverLocalStore {
       hashCR:this.util.calcAddress(credReqStr),
       origCredReq:credReqStr
     }
-    for(const holder of credReq.holder) {
+    let holders = []
+    if(credReq.holder.length < 1){
+      holders = await this.didDocLS.getControll(did);
+      if(this.trace) {
+        console.log('DidResolverLocalStore::storeCredentialRequest::holders=:<',holders,'>');
+      }
+    } else {
+      holders = credReq.holder;
+    }
+    for(const holder of holders) {
       credReqStore.control = holder;
       await this.joinStoreLS.putCredReq(credReqStore);
     }

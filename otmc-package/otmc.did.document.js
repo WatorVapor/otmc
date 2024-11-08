@@ -136,11 +136,17 @@ export class DidDocument {
       };
       self.eeInternal.emit('mqtt.jwt.agent.recoveryKey.ready',evt);
     });
-    this.eeInternal.on('did.create.seed',(evt)=>{
+    this.eeInternal.on('did.create.seed.root',(evt)=>{
       if(self.trace) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      self.createSeed(evt.controls,evt.root);
+      self.createSeedRoot(evt.controls,evt.root);
+    });
+    this.eeInternal.on('did.create.seed.end.entity',(evt)=>{
+      if(self.trace) {
+        console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.createSeedEndEntity(evt.controls);
     });
     this.eeInternal.on('did.vcr.join.team',(evt)=>{
       if(self.trace) {
@@ -337,43 +343,27 @@ export class DidDocument {
       console.error('DidDocument::loadDocument::err=:<',err,'>');
     }
   }
-  createSeed(controls,root) {
+  createSeedRoot(controls,root) {
+    const documentObj = this.createSeedRootDidDoc_(controls,root);
     if(this.trace) {
-      console.log('DidDocument::createSeed::controls=:<',controls,'>');
+      console.log('DidDocument::createSeedRoot::documentObj=:<',documentObj,'>');
     }
-    if(this.trace) {
-      console.log('DidDocument::createSeed::this.otmc=:<',this.otmc,'>');
-    }
-    this.checkEdcrypt_();
-    if(root) {
-      const rootDid = `did:otmc:${this.auth.address()}`;
-      controls.push(rootDid);
-    }
-    const checkedControls = controls.filter((ctrl) => ctrl.startsWith('did:otmc:'));
-    if(this.trace) {
-      console.log('DidDocument::createSeed::checkedControls=:<',checkedControls,'>');
-    }
-    const uniqControls = Array.from(new Set(checkedControls));
-    if(this.trace) {
-      console.log('DidDocument::createSeed::uniqControls=:<',uniqControls,'>');
-    }
-    this.seed = new DIDSeedDocument(this.auth,this.recovery,uniqControls);
-    if(this.trace) {
-      console.log('DidDocument::createSeed::this.seed=:<',this.seed,'>');
-    }
-    const address = this.seed.address();
-    if(this.trace) {
-      console.log('DidDocument::createSeed::address=:<',address,'>');
-    }
-    const documentObj = this.seed.document();
-    if(this.trace) {
-      console.log('DidDocument::createSeed::documentObj=:<',documentObj,'>');
-    }
-    this.resolver.storeDid(documentObj);
+    this.resolver.storeStableDid(documentObj);
     const manifest = DIDManifest.ruleChainGuestOpen(documentObj.id);
     this.resolver.storeManifest(manifest,documentObj.id);
     return documentObj;
   }
+  createSeedEndEntity(controls) {
+    const documentObj = this.createSeedRootDidDoc_(controls,false);
+    if(this.trace) {
+      console.log('DidDocument::createSeedEndEntity::documentObj=:<',documentObj,'>');
+    }
+    this.resolver.storeFickleDid(documentObj);
+    const manifest = DIDManifest.ruleChainGuestOpen(documentObj.id);
+    this.resolver.storeManifest(manifest,documentObj.id);
+    return documentObj;
+  }
+  
   createJoinAsAuth(id) {
     if(this.trace) {
       console.log('DidDocument::createJoinAsAuth::id=:<',id,'>');
@@ -388,7 +378,7 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::createJoinAsAuth::documentObj=:<',documentObj,'>');
     }
-    this.resolver.storeDid(documentObj);
+    this.resolver.storeFickleDid(documentObj);
     return documentObj;
   }
 
@@ -1093,4 +1083,41 @@ export class DidDocument {
     }
     return evidencesJson;
   }
+
+  createSeedRootDidDoc_(controls,root) {
+    if(this.trace) {
+      console.log('DidDocument::createSeedRootDidDoc_::controls=:<',controls,'>');
+    }
+    if(this.trace) {
+      console.log('DidDocument::createSeedRootDidDoc_::this.otmc=:<',this.otmc,'>');
+    }
+    this.checkEdcrypt_();
+    if(root) {
+      const rootDid = `did:otmc:${this.auth.address()}`;
+      controls.push(rootDid);
+    }
+    const checkedControls = controls.filter((ctrl) => ctrl.startsWith('did:otmc:'));
+    if(this.trace) {
+      console.log('DidDocument::createSeedRootDidDoc_::checkedControls=:<',checkedControls,'>');
+    }
+    const uniqControls = Array.from(new Set(checkedControls));
+    if(this.trace) {
+      console.log('DidDocument::createSeedRootDidDoc_::uniqControls=:<',uniqControls,'>');
+    }
+    this.seed = new DIDSeedDocument(this.auth,this.recovery,uniqControls);
+    if(this.trace) {
+      console.log('DidDocument::createSeedRootDidDoc_::this.seed=:<',this.seed,'>');
+    }
+    const address = this.seed.address();
+    if(this.trace) {
+      console.log('DidDocument::createSeedRootDidDoc_::address=:<',address,'>');
+    }
+    const documentObj = this.seed.document();
+    if(this.trace) {
+      console.log('DidDocument::createSeedRootDidDoc_::documentObj=:<',documentObj,'>');
+    }
+    return documentObj;
+  }
+
+
 }

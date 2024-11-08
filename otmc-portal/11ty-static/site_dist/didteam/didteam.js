@@ -69,6 +69,7 @@ const didTeamOption = {
       createAsControlled:true,
       createAsRoot:true,
       isRoot:false,
+      isEndEntity:false,
       isSeed:false,
       isLeaf:false,
       did: {
@@ -101,23 +102,44 @@ const didTeamOption = {
       controllers.push(this.create.control);
       this.create.controls = JSON.stringify(controllers);
     },
-    clickCreateDidTeamSeed(evt) {
-      console.log('clickCreateDidTeamSeed::this=:<',this,'>');
+    clickCreateDidTeamSeedRoot(evt) {
+      console.log('clickCreateDidTeamSeedRoot::this=:<',this,'>');
       const otmc = this.otmc;
-      console.log('clickCreateDidTeamSeed::otmc=:<',otmc,'>');
+      console.log('clickCreateDidTeamSeedRoot::otmc=:<',otmc,'>');
       let controllers = [];
-      try { 
-        controllers = JSON.parse(this.create.controls);
-        console.log('clickAddSeedControl::controllers=:<',controllers,'>');
+      try {
+        if(this.create.controls) {
+          controllers = JSON.parse(this.create.controls);
+          console.log('clickCreateDidTeamSeedRoot::controllers=:<',controllers,'>');
+        }
       } catch(err) {
-        console.error('clickAddSeedControl::err=:<',err,'>');
+        console.error('clickCreateDidTeamSeedRoot::err=:<',err,'>');
         controllers = [];
       }
       controllers.push(this.create.control);
       if(this.create.control) {
-        otmc.createDidTeamFromSeed(controllers);
+        otmc.createDidTeamFromSeedRoot(controllers);
       } else {
-        otmc.createDidTeamFromSeed(controllers,true);
+        otmc.createDidTeamFromSeedRoot(controllers,true);
+      }
+    },
+    clickCreateDidTeamSeedEndEntity(evt) {
+      console.log('clickCreateDidTeamSeedEndEntity::this=:<',this,'>');
+      const otmc = this.otmc;
+      console.log('clickCreateDidTeamSeedEndEntity::otmc=:<',otmc,'>');
+      let controllers = [];
+      try {
+        if(this.create.controls) {
+          controllers = JSON.parse(this.create.controls);
+          console.log('clickCreateDidTeamSeedEndEntity::controllers=:<',controllers,'>');
+        }
+      } catch(err) {
+        console.error('clickCreateDidTeamSeedEndEntity::err=:<',err,'>');
+        controllers = [];
+      }
+      controllers.push(this.create.control);
+      if(this.create.control) {
+        otmc.createDidTeamFromSeedEndEntity(controllers);
       }
     },
     clickSendJoinRequest2Controller(evt) {

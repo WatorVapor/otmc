@@ -8,7 +8,7 @@ if(LOG.trace) {
   console.log('::did::xstate=:<',xstate,'>');
 }
 import { createMachine, createActor, assign  }  from 'xstate';
-import { EvidenceChain } from './did/evidence.use.db.js';
+import { EvidenceChain } from './did/evidence.js';
 
 
 

@@ -336,7 +336,19 @@ export class DidDocument {
           if(this.trace) {
             console.log('DidDocument::loadDocument::joinList=:<',joinList,'>');
           }
-          this.eeOut.emit('didteam:joinLoaded',joinList);
+          if(this.trace) {
+            console.log('DidDocument::loadDocument::this.evidenceAuth=:<',this.evidenceAuth,'>');
+          }
+          this.stable = false;
+          if(this.evidenceAuth.isSeedRoot) {
+            this.stable = true;
+          }
+          if(this.trace) {
+            console.log('DidDocument::loadDocument::this.stable=:<',this.stable,'>');
+          }
+          if(this.stable) {
+            this.eeOut.emit('didteam:joinLoaded',joinList);
+          }
         }
       }
     } catch(err) {
@@ -650,15 +662,18 @@ export class DidDocument {
     if(!goodCredReq) {
       return null;
     }
-    const did2VC = credReq.credentialRequest.claims.did;
+    const claimsVC = credReq.credentialRequest.claims;
     if(this.trace) {
-      console.log('DidDocument::acceptRequest::did2VC=:<',did2VC,'>');
+      console.log('DidDocument::acceptRequest::claimsVC=:<',claimsVC,'>');
+    }
+    if(this.trace) {
+      console.log('DidDocument::acceptRequest::this.didDoc_=:<',this.didDoc_,'>');
     }
     const didVC = new DIDVerifiableCredential(this.auth,this.didDoc_,this.util);
     if(this.trace) {
       console.log('DidDocument::acceptRequest::didVC=:<',didVC,'>');
     }
-    const didVCDoc = didVC.verifiable(did2VC,storeHash);
+    const didVCDoc = didVC.verifiable(claimsVC,storeHash);
     if(this.trace) {
       console.log('DidDocument::acceptRequest::didVCDoc=:<',didVCDoc,'>');
     }

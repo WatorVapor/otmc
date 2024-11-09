@@ -223,6 +223,12 @@ const loadDidTeamApps = (evt) => {
       appDidVM.isLeaf = false;
       appDidVM.isVerified = true;
     }
+    if(auth.bySeedRoot) {
+      appDidVM.isRoot = true;
+      appDidVM.isSeed = false;
+      appDidVM.isLeaf = true;
+      appDidVM.isVerified = true;
+    }
     if(auth.byNoneLeafSeed) {
       appDidVM.isRoot = false;
       appDidVM.isSeed = true;

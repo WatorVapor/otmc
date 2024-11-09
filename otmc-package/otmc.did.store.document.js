@@ -92,10 +92,29 @@ export class DidStoreDocument {
     if(this.trace) {
       console.log('DidStoreDocument::getControll::did=:<',did,'>');
     }
-    const didJson = await this.getAllByDidAddress_(did,this.db.stable);
+    const didAllJson = await this.getAllByDidAddress_(did,this.db.stable);
     if(this.trace) {
-      console.log('DidStoreDocument::getControll::didJson=:<',didJson,'>');
+      console.log('DidStoreDocument::getControll::didAllJson=:<',didAllJson,'>');
     }
+    const didControls = [];
+    for(const didJson of didAllJson) {
+      if(this.trace) {
+        console.log('DidStoreDocument::getControll::didJson=:<',didJson,'>');
+      }
+      didControls.push(didJson.controller);
+    }
+    if(this.trace) {
+      console.log('DidStoreDocument::getControll::didControls=:<',didControls,'>');
+    }
+    const flatControls = didControls.flat();
+    if(this.trace) {
+      console.log('DidStoreDocument::getControll::flatControls=:<',flatControls,'>');
+    }
+    const uniqueControls = [...new Set(flatControls)];
+    if(this.trace) {
+      console.log('DidStoreDocument::getControll::uniqueControls=:<',uniqueControls,'>');
+    }
+    return uniqueControls;
   }
 
   async getAllByDidAddress_(didAddress,storeObject) {

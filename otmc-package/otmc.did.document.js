@@ -671,7 +671,7 @@ export class DidDocument {
       if(this.trace) {
         console.log('DidDocument::acceptRequest::didStoreLocal=:<',didStoreLocal,'>');
       }
-      await this.resolver.storeDid(didStoreLocal);
+      await this.resolver.storeStableDid(didStoreLocal);
       const resultMark = await this.resolver.markDoneJoinCredRequest(storeHash);
       if(this.trace) {
         console.log('DidDocument::acceptRequest::resultMark=:<',resultMark,'>');

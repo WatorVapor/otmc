@@ -140,7 +140,7 @@
             <div class="row justify-content-start">
               <div class="col-10" id="vue-ui-app-edcrypt-key">
                 <div class="input-group mb-1">
-                  <span class="input-group-text w-25">Did Keys Id</span>
+                  <span class="input-group-text w-25">Team Auth Keys</span>
                   <span class="input-group-text w-50">
               <select class="form-select" v-model="didKeySelected" @change="changeDidKeySelected()">
                 <option v-for="didKey in didKeyList" :selected="didKeySelected === didKey.auth.idOfKey">{{didKey.auth.idOfKey}}</option>
@@ -174,7 +174,7 @@
           <div class="row justify-content-start">
             <div class="col-10" id="vue-ui-app-did-team">
               <div class="input-group mb-3">
-                <span class="input-group-text w-25">Team Address</span>
+                <span class="input-group-text w-25">Team Sapce Address</span>
                 <input type="text" class="form-control" readonly placeholder="did:otmc: NOT in any team" v-model="did.id">
                 <span class="input-group-text w-25">
               <button class="btn btn-primary" type="button" v-if="isRoot && !isSeed" @click="clickSendJoinRequest2TeamMate()" :disabled="isInTeam == false" 
@@ -190,7 +190,7 @@
             </span>
               </div>
               <div class="input-group mb-3">
-                <span class="input-group-text w-25">Member Type</span>
+                <span class="input-group-text w-25">Team Member Type</span>
                 <span class="input-group-text me-3 ms-3">
               <input class="form-check-input" type="checkbox" disabled :checked="isVerified">Verified</input>
             </span>
@@ -314,7 +314,7 @@
               subMenu: [],
             },
             {
-              href: '/didteam/keyexport/',
+              href: '/didteam/key_export_import/',
               title: 'Export/Import',
               id: 'menu-item-id-top-sub',
               icons: [

@@ -116,6 +116,41 @@ export class DidStoreDocument {
     }
     return uniqueControls;
   }
+  async getConcernDidAddress() {
+    const storeValuesJson = [];
+    const storeObjects = await this.db.stable.toArray();
+    if(this.trace) {
+      console.log('DidStoreDocument::getConcernDidAddress::storeObjects=:<',storeObjects,'>');
+    }
+    for(const storeValue of storeObjects) {
+      const storeDid = JSON.parse(storeValue.origDid);
+      storeValuesJson.push(storeDid);
+    }
+    const storeObjects2 = await this.db.fickle.toArray();
+    if(this.trace) {
+      console.log('DidStoreDocument::getConcernDidAddress::storeObjects2=:<',storeObjects2,'>');
+    }
+    for(const storeValue of storeObjects2) {
+      const storeDid = JSON.parse(storeValue.origDid);
+      storeValuesJson.push(storeDid);
+    }
+    if(this.trace) {
+      console.log('DidStoreDocument::getConcernDidAddress::storeValuesJson=:<',storeValuesJson,'>');
+    }
+    const didAdresses = [];
+    for(const didJson of storeValuesJson) {
+      didAdresses.push(didJson.controller);
+      didAdresses.push(didJson.id);
+    }
+    if(this.trace) {
+      console.log('DidStoreDocument::getConcernDidAddress::didAdresses=:<',didAdresses,'>');
+    }
+    const uniquedDidAdresses = [...new Set(didAdresses.flat())];
+    if(this.trace) {
+      console.log('DidStoreDocument::getConcernDidAddress::uniquedDidAdresses=:<',uniquedDidAdresses,'>');
+    }
+    return uniquedDidAdresses;
+  }
 
   async getAllByDidAddress_(didAddress,storeObject) {
     if(this.trace) {

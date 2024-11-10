@@ -1,5 +1,5 @@
 import { DidResolverLocalStore } from './otmc.did.resolver.local.js';
-import { DidResolverWebStore } from './otmc.did.resolver.web.js';
+import { DidResolverSyncWebStore } from './otmc.did.resolver.web.js';
 
 import { StoreKey } from './otmc.const.js';
 
@@ -32,13 +32,13 @@ export class DidResolver {
       self.base32 = evt.base32;
       self.util = evt.util;
       self.localStore = new DidResolverLocalStore(evt);
-      self.webStore = new DidResolverWebStore(evt);
     });
     this.eeInternal.on('webwoker.resolver.worker',(evt)=>{
       if(self.trace) {
         console.log('DidResolver::ListenEventEmitter_::evt=:<',evt,'>');
       }
       self.worker = evt.worker;
+      self.webStore = new DidResolverSyncWebStore(self.eeInternal,self.worker);
     });
   }
 
@@ -54,16 +54,6 @@ export class DidResolver {
     if(this.trace) {
       console.log('DidResolver::resolver::didAddress=:<',didAddress,'>');
     }
-    try {
-      const webDidDoc = await this.webStore.resolver(didAddress);
-      if(this.trace) {
-        console.log('DidResolver::resolver::webDidDoc=:<',webDidDoc,'>');
-      }
-      const didDoc = localDidDoc || webDidDoc;
-      return didDoc;
-    } catch(err) {
-      console.log('DidResolver::resolver::err=:<',err,'>');
-    }
     return localDidDoc;
   }
 
@@ -78,16 +68,6 @@ export class DidResolver {
     const didAddress = `did:otmc:${keyAddress}`;
     if(this.trace) {
       console.log('DidResolver::getDidDocumentAll::didAddress=:<',didAddress,'>');
-    }
-    try {
-      const webDidDoc = await this.webStore.getDidDocumentAll(didAddress);
-      if(this.trace) {
-        console.log('DidResolver::getDidDocumentAll::webDidDoc=:<',webDidDoc,'>');
-      }
-      const didDoc = localDidDoc || webDidDoc;
-      return didDoc;
-    } catch(err) {
-      console.log('DidResolver::getDidDocumentAll::err=:<',err,'>');
     }
     return localDidDoc;
   }
@@ -124,16 +104,6 @@ export class DidResolver {
     if(this.trace) {
       console.log('DidResolver::manifest::didAddress=:<',didAddress,'>');
     }
-    try {
-      const webManifest = await this.webStore.manifest(didAddress);
-      if(this.trace) {
-        console.log('DidResolver::manifest::webManifest=:<',webManifest,'>');
-      }
-      const manifest = localManifest || webManifest;
-      return manifest;
-    } catch(err) {
-      console.log('DidResolver::manifest::err=:<',err,'>');
-    }
     return localManifest;
   }
   async storeManifest(manifestObj,did){
@@ -147,7 +117,6 @@ export class DidResolver {
       origManifest:manifestStr
     }
     this.localStore.storeManifest(manifestStore);
-    this.webStore.storeManifest(manifestObj,did);
   }
   async manifestAll(didAddress){
     if(this.trace) {
@@ -159,16 +128,6 @@ export class DidResolver {
     }
     if(this.trace) {
       console.log('DidResolver::manifestAll::didAddress=:<',didAddress,'>');
-    }
-    try {
-      const webManifest = await this.webStore.manifestAll(didAddress);
-      if(this.trace) {
-        console.log('DidResolver::manifestAll::webManifest=:<',webManifest,'>');
-      }
-      const manifest = localManifest || webManifest;
-      return manifest;
-    } catch(err) {
-      console.log('DidResolver::manifestAll::err=:<',err,'>');
     }
     return localManifest;
   }

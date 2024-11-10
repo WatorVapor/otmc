@@ -66,6 +66,7 @@ export class DidDocument {
     this.rtState = new DidRuntimeStateMachine(this.eeInternal);
     this.resolver = new DidResolver(this.eeInternal);
     this.evidenceAuth = {};
+    this.status = {};
     this.evidenceCapability = {};
     this.allEvidenceChain = {};
   }
@@ -220,7 +221,8 @@ export class DidDocument {
       if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::self.evidenceAuth=:<',self.evidenceAuth,'>');
       }
-      self.eeOut.emit('did:team:evidence.auth',self.evidenceAuth);
+      self.judgeStatusOfEvidenceType_();
+      self.eeOut.emit('did:team:evidence.auth',self.status);
     });
     this.eeInternal.on('did.evidence.capability',(evt)=>{
       if(self.trace0) {
@@ -335,13 +337,6 @@ export class DidDocument {
           this.joinList_ = joinList;
           if(this.trace) {
             console.log('DidDocument::loadDocument::joinList=:<',joinList,'>');
-          }
-          if(this.trace) {
-            console.log('DidDocument::loadDocument::this.evidenceAuth=:<',this.evidenceAuth,'>');
-          }
-          this.stable = false;
-          if(this.evidenceAuth.isSeedRoot) {
-            this.stable = true;
           }
           if(this.trace) {
             console.log('DidDocument::loadDocument::this.stable=:<',this.stable,'>');
@@ -1133,6 +1128,54 @@ export class DidDocument {
     }
     return documentObj;
   }
-
-
+  judgeStatusOfEvidenceType_() {
+    if(this.trace) {
+      console.log('DidDocument::judgeStatusOfEvidenceType_::this.evidenceAuth=:<',this.evidenceAuth,'>');
+    }
+    this.stable = false;
+    this.status = {};
+    if(this.evidenceAuth.isSeedRoot) {
+      this.status.isRoot = true;
+      this.status.isSeed = true;
+      this.status.isLeaf = false;
+      this.status.isVerified = true;
+      this.stable = true;
+    }
+    if(this.evidenceAuth.bySeedRoot) {
+      this.status.isRoot = true;
+      this.status.isSeed = false;
+      this.status.isLeaf = true;
+      this.status.isVerified = true;
+      this.stable = true;
+    }
+    if(this.evidenceAuth.byNoneLeafSeed) {
+      this.status.isRoot = false;
+      this.status.isSeed = true;
+      this.status.isLeaf = true;
+      this.status.isVerified = false;
+    }
+    if(this.evidenceAuth.byCtrlLeafSeed) {
+      this.status.isRoot = false;
+      this.status.isSeed = true;
+      this.status.isLeaf = true;
+      this.status.isVerified = true;
+      this.stable = true;
+    }
+    if(this.evidenceAuth.byNoneLeaf) {
+      this.status.isRoot = false;
+      this.status.isSeed = false;
+      this.status.isLeaf = true;
+      this.status.isVerified = false;
+    }
+    if(this.evidenceAuth.byCtrlLeaf) {
+      this.status.isRoot = false;
+      this.status.isSeed = false;
+      this.status.isLeaf = true;
+      this.status.isVerified = true;
+      this.stable = true;
+    }
+    if(this.trace) {
+      console.log('DidDocument::judgeStatusOfEvidenceType_::this.status=:<',this.status,'>');
+    }
+  }
 }

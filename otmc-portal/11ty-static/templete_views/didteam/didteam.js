@@ -68,10 +68,13 @@ const didTeamOption = {
       teamType:'create',// 'create|join'
       createAsControlled:true,
       createAsRoot:true,
-      isRoot:false,
-      isEndEntity:false,
-      isSeed:false,
-      isLeaf:false,
+      status: {
+        isVerified:false,
+        isRoot:false,
+        isEndEntity:false,
+        isSeed:false,
+        isLeaf:false,
+      },
       did: {
         id:'',
         doc:'',
@@ -215,8 +218,10 @@ const loadDidTeamApps = (evt) => {
     }
   });
   
-  otmc.on('did:team:evidence.auth',(auth) => {
-    console.log('loadDidTeamApps::auth=:<',auth,'>');
+  otmc.on('did:team:evidence.auth',(status) => {
+    console.log('loadDidTeamApps::status=:<',status,'>');
+    appDidVM.status = status;
+    /*
     if(auth.isSeedRoot) {
       appDidVM.isRoot = true;
       appDidVM.isSeed = true;
@@ -253,6 +258,7 @@ const loadDidTeamApps = (evt) => {
       appDidVM.isLeaf = true;
       appDidVM.isVerified = true;
     }
+    */
   });
   /*
   otmc.on('otmc:mqtt:app',(appMsg) => {

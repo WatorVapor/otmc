@@ -135,40 +135,43 @@
           </div>
         </div>
         <div class="col-10">
-
           <div class="container text-start mt-3">
             <div class="row justify-content-start">
               <div class="col-10" id="vue-ui-app-edcrypt-key">
                 <div class="input-group mb-1">
                   <span class="input-group-text w-25">Team Auth Keys</span>
                   <span class="input-group-text w-50">
-              <select class="form-select" v-model="didKeySelected" @change="changeDidKeySelected()">
-                <option v-for="didKey in didKeyList" :selected="didKeySelected === didKey.auth.idOfKey">{{didKey.auth.idOfKey}}</option>
-              </select>
-            </span>
+          <select class="form-select" v-model="didKeySelected" @change="changeDidKeySelected()">
+            <option v-for="didKey in didKeyList" :selected="didKeySelected === didKey.auth.idOfKey">{{didKey.auth.idOfKey}}</option>
+          </select>
+        </span>
                   <span class="input-group-text">
-              <button class="btn btn-primary" type="button" @click="clickStartMining()">
-                <i class="fa-solid fa-circle-plus"></i>
-              </button>
-            </span>
+          <button class="btn btn-primary" type="button" @click="clickStartMining()">
+            <i class="fa-solid fa-circle-plus"></i>
+          </button>
+        </span>
                   <span class="input-group-text" v-if="isMining">
-              <div class="spinner-border text-primary"  role="status">
-                <span class="visually-hidden"><i class="material-icons">refresh</i></span>
+          <div class="spinner-border text-primary"  role="status">
+            <span class="visually-hidden"><i class="material-icons">refresh</i></span>
                 </div>
                 <span class="badge bg-success">{{mining.counter}}</span>
                 </span>
               </div>
-              <div class="input-group mb-1">
-                <span class="input-group-text w-25">Auth Key Address</span>
-                <input type="text" class="form-control" id="edcrypt-auth-key-address" placeholder="otm" readonly v-model="address.auth">
-              </div>
-              <div class="input-group mb-1">
-                <span class="input-group-text w-25">Recovery Key Address</span>
-                <input type="text" class="form-control" id="edcrypt-recovery-key-address" placeholder="otm" readonly v-model="address.recovery">
-              </div>
+              <!--
+      <div class="input-group mb-1">
+        <span class="input-group-text w-25">Auth Key Address</span>
+        <input type="text" class="form-control" id="edcrypt-auth-key-address" placeholder="otm" readonly v-model="address.auth">
+      </div>
+      <div class="input-group mb-1">
+        <span class="input-group-text w-25">Recovery Key Address</span>
+        <input type="text" class="form-control" id="edcrypt-recovery-key-address" placeholder="otm" readonly v-model="address.recovery">
+      </div>
+      -->
             </div>
           </div>
         </div>
+
+
         <hr />
         <div class="container text-start mt-3">
           <div class="row justify-content-start">
@@ -177,63 +180,66 @@
                 <span class="input-group-text w-25">Team Sapce Address</span>
                 <input type="text" class="form-control" readonly placeholder="did:otmc: NOT in any team" v-model="did.id">
                 <span class="input-group-text w-25">
-              <button class="btn btn-primary" type="button" v-if="isRoot && !isSeed" @click="clickSendJoinRequest2TeamMate()" :disabled="isInTeam == false" 
-                data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Send a joining request to authed team mates">
-                <i class="fa-solid fa-share"></i>
-                <i class="fa-solid fa-people-group"></i>
-              </button>
-              <button class="btn btn-primary" type="button" v-if="isLeaf" @click="clickSendJoinRequest2Controller()" :disabled="isInTeam == false" 
-                data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Send a joining request to controllers">
-                <i class="fa-solid fa-share"></i>
-                <i class="fa-solid fa-people-roof"></i>
-              </button>
-            </span>
+          <button class="btn btn-primary" type="button" v-if="status.isRoot && !status.isVerified" @click="clickSendJoinRequest2TeamMate()" :disabled="isInTeam == false" 
+            data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Send a joining request to authed team mates">
+            <i class="fa-solid fa-share"></i>
+            <i class="fa-solid fa-people-group"></i>
+          </button>
+          <button class="btn btn-primary" type="button" v-if="status.isLeaf&& !status.isVerified" @click="clickSendJoinRequest2Controller()" :disabled="isInTeam == false" 
+            data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Send a joining request to controllers">
+            <i class="fa-solid fa-share"></i>
+            <i class="fa-solid fa-people-roof"></i>
+          </button>
+        </span>
+              </div>
+              <div class="input-group mb-3">
+                <span class="input-group-text w-25">Team Space Type</span>
+                <span class="input-group-text me-3 ms-3">
+          <input class="form-check-input" type="checkbox" disabled :checked="status.isRoot">Root</input>
+        </span>
+                <span class="input-group-text me-3">
+          <input class="form-check-input" type="checkbox" disabled :checked="status.isEndEntity">End Entity</input>
+        </span>
               </div>
               <div class="input-group mb-3">
                 <span class="input-group-text w-25">Team Member Type</span>
                 <span class="input-group-text me-3 ms-3">
-              <input class="form-check-input" type="checkbox" disabled :checked="isVerified">Verified</input>
-            </span>
+          <input class="form-check-input" type="checkbox" disabled :checked="status.isVerified">Verified</input>
+        </span>
                 <span class="input-group-text me-3">
-              <input class="form-check-input" type="checkbox" disabled :checked="isRoot">Root</input>
-            </span>
+          <input class="form-check-input" type="checkbox" disabled :checked="status.isSeed">Seed</input>
+        </span>
                 <span class="input-group-text me-3">
-              <input class="form-check-input" type="checkbox" disabled :checked="isEndEntity">End Entity</input>
-            </span>
-                <span class="input-group-text me-3">
-              <input class="form-check-input" type="checkbox" disabled :checked="isSeed">Seed</input>
-            </span>
-                <span class="input-group-text me-3">
-              <input class="form-check-input" type="checkbox" disabled :checked="isLeaf">Leaf</input>
-            </span>
+          <input class="form-check-input" type="checkbox" disabled :checked="status.isLeaf">Leaf</input>
+        </span>
               </div>
               <hr />
               <div class="input-group mt-3 mb-3">
                 <span class="input-group-text w-25">
-              <input class="form-check-input" type="radio" value="create" :checked="teamType === 'create'" name="CreateOrJoinTeam" v-model="teamType">
-              Create a new team
-            </span>
+          <input class="form-check-input" type="radio" value="create" :checked="teamType === 'create'" name="CreateOrJoinTeam" v-model="teamType">
+          Create a new team
+        </span>
                 <span class="input-group-text w-25">
-              <input type="text" class="form-control" placeholder="did:otmc: control" :disabled="teamType !== 'create' || createAsControlled === false" v-model="create.control">
-            </span>
+          <input type="text" class="form-control" placeholder="did:otmc: control" :disabled="teamType !== 'create' || createAsControlled === false" v-model="create.control">
+        </span>
                 <span class="input-group-text w-50">
-              <button class="btn btn-success me-3" type="button" @click="clickAddSeedControl()" :disabled="teamType !== 'create' || createAsControlled === false" 
-                data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Add controller to the new DidTeam">
-                <i class="fa-solid fa-plus"></i>
-              </button>
-              <input class="form-check-input ms-3" type="checkbox" :disabled="teamType !== 'create'" v-model="createAsControlled">Controlled</input>
-              <input class="form-check-input ms-3" type="checkbox" :disabled="teamType !== 'create'" v-model="createAsRoot">Root</input>
-              <button class="btn btn-primary ms-3" type="button" @click="clickCreateDidTeamSeedRoot()" :disabled="teamType !== 'create' || createAsRoot === false"
-                data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create A New Root DidTeam">
-                <i class="fa-solid fa-seedling"></i>
-                <i class="fa-solid fa-user-gear"></i>
-              </button>
-              <button class="btn btn-primary ms-3" type="button" @click="clickCreateDidTeamSeedEndEntity()" :disabled="teamType !== 'create' || createAsControlled === false || (createAsRoot === true && createAsControlled === true)"
-                data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create A New End Entity DidTeam">
-                <i class="fa-solid fa-user-gear"></i>
-                <i class="fa-solid fa-seedling"></i>
-              </button>
-            </span>
+          <button class="btn btn-success me-3" type="button" @click="clickAddSeedControl()" :disabled="teamType !== 'create' || createAsControlled === false" 
+            data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Add controller to the new DidTeam">
+            <i class="fa-solid fa-plus"></i>
+          </button>
+          <input class="form-check-input ms-3" type="checkbox" :disabled="teamType !== 'create'" v-model="createAsControlled">Controlled</input>
+          <input class="form-check-input ms-3" type="checkbox" :disabled="teamType !== 'create'" v-model="createAsRoot">Root</input>
+          <button class="btn btn-primary ms-3" type="button" @click="clickCreateDidTeamSeedRoot()" :disabled="teamType !== 'create' || createAsRoot === false"
+            data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create A New Root DidTeam">
+            <i class="fa-solid fa-seedling"></i>
+            <i class="fa-solid fa-user-gear"></i>
+          </button>
+          <button class="btn btn-primary ms-3" type="button" @click="clickCreateDidTeamSeedEndEntity()" :disabled="teamType !== 'create' || createAsControlled === false || (createAsRoot === true && createAsControlled === true)"
+            data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create A New End Entity DidTeam">
+            <i class="fa-solid fa-user-gear"></i>
+            <i class="fa-solid fa-seedling"></i>
+          </button>
+        </span>
               </div>
               <div class="input-group mb-3">
                 <span class="input-group-text text-end w-25">Added controller list</span>
@@ -242,19 +248,19 @@
 
               <div class="input-group mb-3">
                 <span class="input-group-text w-25">
-              <input class="form-check-input" type="radio" value="join" :checked="teamType === 'join'" name="CreateOrJoinTeam" v-model="teamType">
-              Join an exist team
-            </span>
+          <input class="form-check-input" type="radio" value="join" :checked="teamType === 'join'" name="CreateOrJoinTeam" v-model="teamType">
+          Join an exist team
+        </span>
                 <span class="input-group-text w-25">
-              <input type="text" class="form-control" placeholder="did:otmc: join" :disabled="teamType === 'create'" v-model="join.did">
-            </span>
+          <input type="text" class="form-control" placeholder="did:otmc: join" :disabled="teamType === 'create'" v-model="join.did">
+        </span>
                 <span class="input-group-text w-50">
-              <button class="btn btn-primary" type="button" @click="clickJoinDidTeam()" :disabled="teamType === 'create'" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Join An Exist DidTeam">
-                <i class="fa-solid fa-plus"></i>
-                <i class="fa-solid fa-link"></i>
-                <i class="fa-solid fa-people-group"></i>
-              </button>
-            </span>
+          <button class="btn btn-primary" type="button" @click="clickJoinDidTeam()" :disabled="teamType === 'create'" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Join An Exist DidTeam">
+            <i class="fa-solid fa-plus"></i>
+            <i class="fa-solid fa-link"></i>
+            <i class="fa-solid fa-people-group"></i>
+          </button>
+        </span>
               </div>
             </div>
           </div>

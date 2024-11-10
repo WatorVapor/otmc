@@ -48,7 +48,7 @@ export class DidResolverSyncWebStore {
     }
     const cloudRequests = [];
     for(const didAddress of concernDids) {
-      const didAllApi = `${didAddress}?fullchain=true`;
+      const didAllApi = `hash/document/${didAddress}?fullchain=true`;
       const requstObj = this.createCloudGetRequest_(didAllApi);
       cloudRequests.push(requstObj);
     }

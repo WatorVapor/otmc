@@ -1,9 +1,12 @@
 /**
 *
 */
+const ModuleOption = { type: 'module' };
+//const ModuleOption = { };
+
 export class WebWorkerLoader {
   constructor(eeInternal) {
-    this.trace = false;
+    this.trace = true;
     this.debug = true;
     this.otmc = false;
     this.eeInternal = eeInternal;
@@ -37,7 +40,7 @@ export class WebWorkerLoader {
       if(self.trace) {
         console.log('WebWorkerLoader::createWorker::url=:<',url,'>');
       }
-      const cryptWorker = new Worker(url);
+      const cryptWorker = new Worker(url, ModuleOption);
       if(self.trace) {
         console.log('WebWorkerLoader::createWorker::cryptWorker=:<',cryptWorker,'>');
       }
@@ -56,7 +59,7 @@ export class WebWorkerLoader {
       if(self.trace) {
         console.log('WebWorkerLoader::createWorker::url=:<',url,'>');
       }
-      const resolverWorker = new Worker(url);
+      const resolverWorker = new Worker(url, ModuleOption);
       if(self.trace) {
         console.log('WebWorkerLoader::createWorker::resolverWorker=:<',resolverWorker,'>');
       }

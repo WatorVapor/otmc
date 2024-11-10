@@ -1,5 +1,12 @@
 self.trace = true;
 self.debug = true;
+/*
+import { DidStoreDocument } from './otmc.did.store.document.js';
+if(self.trace) {
+  console.log('otmc.worker.resolver::DidStoreDocument=:<',DidStoreDocument,'>');
+}
+*/
+
 
 self.addEventListener('message', (evt) =>{
   if(self.trace) {
@@ -21,9 +28,9 @@ const onInitCmd = async (initMsg) => {
   if(self.trace) {
     console.log('otmc.worker.resolver::onInitCmd::initMsg=:<',initMsg,'>');
   }
-  modulePath.base32 = `${initMsg.path}/edcrypto/base32.js`;
-  modulePath.edkey = `${initMsg.path}/edcrypto/edkey.js`;
-  modulePath.edutils = `${initMsg.path}/edcrypto/edutils.js`;
+  modulePath.storeDocument = `${initMsg.path}/otmc.did.store.document.js`;
+  modulePath.storeManifest = `${initMsg.path}/otmc.did.store.manifest.js`;
+  modulePath.storeTeamJoin = `${initMsg.path}/otmc.did.store.team.join.js`;
   if(self.trace) {
     console.log('otmc.worker.resolver::onInitCmd::modulePath=:<',modulePath,'>');
   }

@@ -31,10 +31,6 @@ const edcryptKeyOption = {
       ],
       didKeySelected: '',
       hasAddress: false,
-      address:{
-        auth:'',
-        recovery:'',
-      },
       isMining: false,
       mining:{
         counter: 0,
@@ -221,54 +217,7 @@ const loadDidTeamApps = (evt) => {
   otmc.on('did:team:evidence.auth',(status) => {
     console.log('loadDidTeamApps::status=:<',status,'>');
     appDidVM.status = status;
-    /*
-    if(auth.isSeedRoot) {
-      appDidVM.isRoot = true;
-      appDidVM.isSeed = true;
-      appDidVM.isLeaf = false;
-      appDidVM.isVerified = true;
-    }
-    if(auth.bySeedRoot) {
-      appDidVM.isRoot = true;
-      appDidVM.isSeed = false;
-      appDidVM.isLeaf = true;
-      appDidVM.isVerified = true;
-    }
-    if(auth.byNoneLeafSeed) {
-      appDidVM.isRoot = false;
-      appDidVM.isSeed = true;
-      appDidVM.isLeaf = true;
-      appDidVM.isVerified = false;
-    }
-    if(auth.byCtrlLeafSeed) {
-      appDidVM.isRoot = false;
-      appDidVM.isSeed = true;
-      appDidVM.isLeaf = true;
-      appDidVM.isVerified = true;
-    }
-    if(auth.byNoneLeaf) {
-      appDidVM.isRoot = false;
-      appDidVM.isSeed = false;
-      appDidVM.isLeaf = true;
-      appDidVM.isVerified = false;
-    }
-    if(auth.byCtrlLeaf) {
-      appDidVM.isRoot = false;
-      appDidVM.isSeed = false;
-      appDidVM.isLeaf = true;
-      appDidVM.isVerified = true;
-    }
-    */
   });
-  /*
-  otmc.on('otmc:mqtt:app',(appMsg) => {
-    console.log('loadDidTeamApps::appMsg=:<',appMsg,'>');
-  });
-  otmc.on('otmc:mqtt:all',(mqttMsg) => {
-    console.log('loadDidTeamApps::mqttMsg=:<',mqttMsg,'>');
-  });
-  */
-  
   edcryptKeyVM.otmc = otmc;
   appDidVM.otmc = otmc;
   
@@ -282,7 +231,6 @@ const onAddressRefreshKeyApp = (address,app) => {
   console.log('onAddressRefreshKeyApp::app=:<',app,'>');
   app.hasAddress = true;
   app.isMining = false;
-  app.address = address;
 };
 
 const onAddressRefreshTeamApp = (address,app) => {

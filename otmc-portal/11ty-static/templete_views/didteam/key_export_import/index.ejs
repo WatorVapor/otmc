@@ -2,59 +2,48 @@
 title: 'validate'
 layout: didteam.sidebar.ejs
 ---
-    <div class="container text-start mt-3">
-      <div class="row justify-content-start">
-        <div class="col-10" id="vue-ui-app-edcrypt-key">
-          <div class="input-group mb-1">
-            <span class="input-group-text w-25">Team Auth Keys</span>
-            <span class="input-group-text w-50">
-              <select class="form-select" v-model="didKeySelected" @change="changeDidKeySelected()">
-                <option v-for="didKey in didKeyList" :selected="didKeySelected === didKey.auth.idOfKey">{{didKey.auth.idOfKey}}</option>
-              </select>
-            </span>
-            <span class="input-group-text">
-              <button class="btn btn-primary" type="button" @click="clickStartMining()">
-                <i class="fa-solid fa-circle-plus"></i>
-              </button>
-            </span>
-            <span class="input-group-text" v-if="isMining">
-              <div class="spinner-border text-primary"  role="status">
-                <span class="visually-hidden"><i class="material-icons">refresh</i></span>
-              </div>
-              <span class="badge bg-success">{{mining.counter}}</span>
-            </span>
-          </div>
-          <div class="input-group mb-1">
-            <span class="input-group-text w-25">Auth Key Address</span>
-            <input type="text" class="form-control" id="edcrypt-auth-key-address" placeholder="otm" readonly v-model="address.auth">
-          </div>
-          <div class="input-group mb-1">
-            <span class="input-group-text w-25">Recovery Key Address</span>
-            <input type="text" class="form-control" id="edcrypt-recovery-key-address" placeholder="otm" readonly v-model="address.recovery">
+<div class="container text-start mt-3">
+  <div class="row justify-content-start">
+    <div class="col-10" id="vue-ui-app-edcrypt-key">
+      <div class="input-group mb-1">
+        <span class="input-group-text w-25">Team Auth Keys</span>
+        <span class="input-group-text w-50">
+          <select class="form-select" v-model="didKeySelected" @change="changeDidKeySelected()">
+            <option v-for="didKey in didKeyList" :selected="didKeySelected === didKey.auth.idOfKey">{{didKey.auth.idOfKey}}</option>
+          </select>
+        </span>
+      </div>
+      <div class="input-group mb-1">
+        <span class="input-group-text w-25">Auth Key Address</span>
+        <input type="text" class="form-control" id="edcrypt-auth-key-address" placeholder="otm" readonly v-model="address.auth">
+      </div>
+      <div class="input-group mb-1">
+        <span class="input-group-text w-25">Recovery Key Address</span>
+        <input type="text" class="form-control" id="edcrypt-recovery-key-address" placeholder="otm" readonly v-model="address.recovery">
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr/>
+<div class="container text-center mt-3">
+  <div class="row justify-content-center">
+    <div class="col-12" id="vue-ui-app-did-team">
+      <div class="card card-default">
+        <div class="card-body">
+          <div id="vue-ui-app-did-validate-editor" style="height: 1080px;">
           </div>
         </div>
       </div>
     </div>
+  </div>
+  
+</div>
+<script src="https://cdn.jsdelivr.net/npm/ace-builds@1.31.2/src-min-noconflict/ace.js" integrity="sha256-ScWQ2xfi8beTMGHcIj8J03x83jnNG/1Fz6OG+UCsHnw=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/ace-builds@1.31.2/src-min-noconflict/theme-monokai.js" integrity="sha256-QYtRGCAF2FEla9w5pwlaEgKvuf3SEAqk+QdbliP7HBU=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/ace-builds@1.31.2/src-min-noconflict/mode-json.js" integrity="sha256-AQ/qtz/XXPze4wzccb3Mho5PkURlpZpxQcXuSYOor+w=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.28.2/dist/editorjs.umd.js" integrity="sha256-jZHY2Vd0A1MWFmdaD2fySEIfAfKBUHiwWhLppacS24M=" crossorigin="anonymous"></script> 
+<script src="./key_export_import.js" type="module"></script>
 
-    <hr/>
-    <div class="container text-center mt-3">
-      <div class="row justify-content-center">
-        <div class="col-12" id="vue-ui-app-did-team">
-          <div class="card card-default">
-            <div class="card-body">
-              <div id="vue-ui-app-did-validate-editor" style="height: 1080px;">
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.31.2/src-min-noconflict/ace.js" integrity="sha256-ScWQ2xfi8beTMGHcIj8J03x83jnNG/1Fz6OG+UCsHnw=" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.31.2/src-min-noconflict/theme-monokai.js" integrity="sha256-QYtRGCAF2FEla9w5pwlaEgKvuf3SEAqk+QdbliP7HBU=" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.31.2/src-min-noconflict/mode-json.js" integrity="sha256-AQ/qtz/XXPze4wzccb3Mho5PkURlpZpxQcXuSYOor+w=" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.28.2/dist/editorjs.umd.js" integrity="sha256-jZHY2Vd0A1MWFmdaD2fySEIfAfKBUHiwWhLppacS24M=" crossorigin="anonymous"></script> 
-    <script src="./key_export_import.js" type="module"></script>
-
-    <%- include(`../_sidebar.ejs`) %>
+<%- include(`../_sidebar.ejs`) %>
     

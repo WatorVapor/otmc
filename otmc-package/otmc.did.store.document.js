@@ -151,6 +151,49 @@ export class DidStoreDocument {
     }
     return uniquedDidAdresses;
   }
+  async getHashListOfStable(didAddress) {
+    if(this.trace) {
+      console.log('DidStoreDocument::getHashListOfStable::did=:<',didAddress,'>');
+    }
+    const storeObjects = await this.db.stable.where('id').equals(didAddress).toArray();
+    if(this.trace) {
+      console.log('DidStoreDocument::getAllByDidAddress_::storeObjects=:<',storeObjects,'>');
+    }
+    const hashList = [];
+    for(const storeValue of storeObjects) {
+      if(this.trace) {
+        console.log('DidStoreDocument::getHashListOfStable::storeValue=:<',storeValue,'>');
+      }
+      hashList.push(storeValue.hashDid);
+    }
+    if(this.trace) {
+      console.log('DidStoreDocument::getHashListOfStable::hashList=:<',hashList,'>');
+    }
+    return hashList;
+  }
+  async getStableDidDocument (didUL,hashUL) {
+    if(this.trace) {
+      console.log('DidStoreDocument::getStableDidDocument::didUL=:<',didUL,'>');
+      console.log('DidStoreDocument::getStableDidDocument::hashUL=:<',hashUL,'>');
+    }
+    const filter = {
+      id: didUL,
+      hashDid: hashUL
+    };
+    const storeObject = await this.db.stable.where(filter).first();
+    if(this.trace) {
+      console.log('DidStoreDocument::getStableDidDocument::storeObject=:<',storeObject,'>');
+    }
+    if(storeObject) {
+      const storeDid = JSON.parse(storeObject.origDid);
+      if(this.trace) {
+        console.log('DidStoreDocument::getStableDidDocument::storeDid=:<',storeDid,'>');
+      }
+      return storeDid;
+    } else {
+      return null;
+    }
+  }
 
   async getAllByDidAddress_(didAddress,storeObject) {
     if(this.trace) {

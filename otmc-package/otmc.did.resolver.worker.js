@@ -75,6 +75,7 @@ const rollOutOneRequest_ = async (reqMsg) => {
     if(self.trace) {
       console.log('otmc.worker.resolver::rollOutOneRequest_::responseGet=:<',responseGet,'>');
     }
+    self.postMessage(responseGet);
   }
 }
 

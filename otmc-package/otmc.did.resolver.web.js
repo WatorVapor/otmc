@@ -133,7 +133,18 @@ export class DidResolverSyncWebStore {
     if(this.trace) {
       console.log('DidResolverSyncWebStore::tryStoreLocalDid2Cloud_::apiPath=:<',apiPath,'>');
     }
-    const requstObj = this.createCloudPostRequest_(apiPath,localDid);
+    const b64Did = this.util.encodeBase64Str(JSON.stringify(localDid));
+    const syncObject = {
+      did: didUL, 
+      hash: hashUL,
+      updated: localDid.updated,
+      docB64: b64Did
+    }
+    const syncObjectSigned =this.auth.sign(syncObject);
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::tryStoreLocalDid2Cloud_::syncObjectSigned=:<',syncObjectSigned,'>');
+    }
+    const requstObj = this.createCloudPostRequest_(apiPath,syncObjectSigned);
     if(this.trace) {
       console.log('DidResolverSyncWebStore::tryStoreLocalDid2Cloud_::requstObj=:<',requstObj,'>');
     }
@@ -255,7 +266,7 @@ export class DidResolverSyncWebStore {
       POST:{
         url:reqURl,
         Authorization:authToken,
-        body:JSON.stringify(reqBody)
+        body:reqBody
       }
     }
     return reqObj;

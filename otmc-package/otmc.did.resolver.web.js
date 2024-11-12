@@ -78,7 +78,9 @@ export class DidResolverSyncWebStore {
     }
     if(msgCloud.reqDid && msgCloud.content && msgCloud.content.hash) {
       this.onCloudDidResponsedHash_(msgCloud.reqDid,msgCloud.content.hash)
-      
+    }
+    if(msgCloud.reqDid && msgCloud.content && msgCloud.content.didDocument) {
+      this.onCloudDidResponsedDocument_(msgCloud.reqDid,msgCloud.content.didDocument)
     }
   }
   async onCloudDidResponsedHash_(reqDid,cloudHashList) {
@@ -156,6 +158,25 @@ export class DidResolverSyncWebStore {
       console.log('DidResolverSyncWebStore::tryStoreLocalDid2Cloud_::requstObj=:<',requstObj,'>');
     }
     this.worker.postMessage({postUL:requstObj});
+  }
+
+  onCloudDidResponsedDocument_(reqDid,cloudDids) {
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::onCloudDidResponsedDocument_::reqDid=:<',reqDid,'>');
+      console.log('DidResolverSyncWebStore::onCloudDidResponsedDocument_::cloudDids=:<',cloudDids,'>');
+    }
+    for(const cloudDid of cloudDids) {
+      if(this.trace) {
+        console.log('DidResolverSyncWebStore::onCloudDidResponsedDocument_::cloudDid=:<',cloudDid,'>');
+      }
+      this.onCloudDidSyncDocument_(cloudDid.hash,cloudDid.didJson);
+    }
+  }
+  onCloudDidSyncDocument_(hash,remoteDid) {
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::onCloudDidSyncDocument_::hash=:<',hash,'>');
+      console.log('DidResolverSyncWebStore::onCloudDidSyncDocument_::remoteDid=:<',remoteDid,'>');
+    }
   }
 
 

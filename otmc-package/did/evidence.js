@@ -29,6 +29,9 @@ export class EvidenceChain {
       console.log('EvidenceChain::tryMergeStoredDidDocument::this.docTop_=<',this.docTop_,'>');
       console.log('EvidenceChain::tryMergeStoredDidDocument::this.evidencesJson_=<',this.evidencesJson_,'>');
     }
+    if(!this.evidencesJson_) {
+      return  false;
+    }
     const topVerifyMethod = this.filtTopByArrayLength_(this.evidencesJson_,'verificationMethod');
      if(EvidenceChain.trace1) {
       console.log('EvidenceChain::tryMergeStoredDidDocument::topVerifyMethod=<',topVerifyMethod,'>');

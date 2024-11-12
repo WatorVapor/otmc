@@ -42,6 +42,7 @@ export class DidResolverSyncWebStore {
     this.trySyncCloudManifest_();
     this.trySyncCloudTeamJoin_();
   }
+
   async trySyncCloudDocument_() {
     if(this.trace) {
       console.log('DidResolverSyncWebStore::trySyncCloudDocument_::this.document=:<',this.document,'>');

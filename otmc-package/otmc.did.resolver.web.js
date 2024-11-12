@@ -117,6 +117,12 @@ export class DidResolverSyncWebStore {
       console.log('DidResolverSyncWebStore::tryStoreCloudDid2Local_::hashDL=:<',hashDL,'>');
       console.log('DidResolverSyncWebStore::tryStoreCloudDid2Local_::hashContent=:<',hashContent,'>');
     }
+    const didAllApi = `${didDL}?didHash=${hashDL}`;
+    const requstObj = this.createCloudGetRequest_(didAllApi);
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::tryStoreCloudDid2Local_::didrequstObjDL=:<',requstObj,'>');
+    }
+    this.worker.postMessage({reqDL:[requstObj]});
   }
   async tryStoreLocalDid2Cloud_(didUL,hashUL) {
     if(this.trace) {

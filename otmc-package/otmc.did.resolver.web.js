@@ -3,7 +3,7 @@ import { DidStoreDocument } from './otmc.did.store.document.js';
 import { DidStoreManifest } from './otmc.did.store.manifest.js';
 import { DidStoreTeamJoin } from './otmc.did.store.team.join.js';
 
-const context = 'https://otmc.wator.xyz/ns/did';
+const context = 'https://otmc.wator.xyz/ns/did/evidence';
 export class DidResolverSyncWebStore {
   constructor(eeInternal,worker) {
     this.trace = true;;

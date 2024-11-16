@@ -18,6 +18,9 @@ export class DidStoreDocument {
     this.db.version(this.version).stores({
       fickle: '++autoId,id,updated,hashDid,origDid'
     });
+    this.db.version(this.version).stores({
+      tentative: '++autoId,id,updated,hashDid,origDid'
+    });
   }
   async putStable(didStore) {
     if(this.trace) {
@@ -27,9 +30,15 @@ export class DidStoreDocument {
   }
   async putFickle(didStore) {
     if(this.trace) {
-      console.log('DidStoreDocument::fickle::didStore=:<',didStore,'>');
+      console.log('DidStoreDocument::putFickle::didStore=:<',didStore,'>');
     }
     await this.db.fickle.put(didStore);
+  }
+  async putTentative(didStore) {
+    if(this.trace) {
+      console.log('DidStoreDocument::putTentative::didStore=:<',didStore,'>');
+    }
+    await this.db.tentative.put(didStore);
   }
   async getTop(address) {
     const didAddress = `did:otmc:${address}`;

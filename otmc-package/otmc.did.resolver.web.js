@@ -172,11 +172,29 @@ export class DidResolverSyncWebStore {
       this.onCloudDidSyncDocument_(cloudDid.hash,cloudDid.didJson);
     }
   }
-  onCloudDidSyncDocument_(hash,remoteDid) {
+  onCloudDidSyncDocument_(remoteHash,remoteDid) {
     if(this.trace) {
-      console.log('DidResolverSyncWebStore::onCloudDidSyncDocument_::hash=:<',hash,'>');
+      console.log('DidResolverSyncWebStore::onCloudDidSyncDocument_::remoteHash=:<',remoteHash,'>');
       console.log('DidResolverSyncWebStore::onCloudDidSyncDocument_::remoteDid=:<',remoteDid,'>');
     }
+    const documentStr = JSON.stringify(remoteDid);
+    const calcHash = this.util.calcAddress(documentStr);
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::onCloudDidSyncDocument_::calcHash=:<',calcHash,'>');
+    }
+    if(calcHash !== remoteHash) {
+      return;
+    }
+    const storeDoc = {
+      id:remoteDid.id,
+      updated:remoteDid.updated,
+      hashDid:calcHash,
+      origDid:documentStr
+    }
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::onCloudDidSyncDocument_::storeDoc=:<',storeDoc,'>');
+    }
+    this.document.putTentative(storeDoc);
   }
 
 

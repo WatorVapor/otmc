@@ -64,19 +64,41 @@ export class DidDocumentStateMachine {
     if(this.trace2) {
       console.log('DidDocumentStateMachine::loadEvidenceChain_::evidencesJson=<',evidencesJson,'>');
     }
-    return evidencesJson;
+    const evidencesOfAddress = {};
+    for(const evidenceJson of evidencesJson){
+      if(this.trace2) {
+        console.log('DidDocumentStateMachine::loadEvidenceChain_::evidenceJson=<',evidenceJson,'>');
+      }
+      const address = evidenceJson.id;
+      if(!evidencesOfAddress[address]) {
+        evidencesOfAddress[address] = [];
+      }
+      evidencesOfAddress[address].push(evidenceJson);
+    }
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::loadEvidenceChain_::evidencesOfAddress=<',evidencesOfAddress,'>');
+    }
+    const evidences = {};
+    for(const didAddress in evidencesOfAddress) {
+      const manifest = await this.loadDidRuleFromManifest_(didAddress);
+      evidences[didAddress] = {
+        did:evidencesOfAddress[didAddress],
+        manifest:manifest
+      }
+    }
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::loadEvidenceChain_::evidences=<',evidences,'>');
+    }
+    return evidences;
   }  
   
   async loadDidRuleFromManifest_(didId) {
-    if(!didId) {
-      didId = this.didDoc_.id;
-    }
-    const manifestsJson = await this.resolver.manifestAll(didId);
+    const manifestTop = await this.manifest.getTop(didId);
     if(this.trace2) {
-      console.log('DidDocumentStateMachine::loadDidRuleFromManifest_::manifestsJson=<',manifestsJson,'>');
+      console.log('DidDocumentStateMachine::loadDidRuleFromManifest_::manifestTop=<',manifestTop,'>');
     }
-    if(manifestsJson.length > 0) {
-      return manifestsJson[0].diddoc;
+    if(manifestTop && manifestTop.diddoc) {
+      return manifestTop.diddoc;
     }
     return false;
   }

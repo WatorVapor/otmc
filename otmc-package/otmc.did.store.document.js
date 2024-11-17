@@ -226,6 +226,38 @@ export class DidStoreDocument {
     }
   }
 
+  async getAnyDidDocument () {
+    const storeValuesJson = [];
+    const storeObject1 = await this.db.stable.toArray();
+    if(this.trace) {
+      console.log('DidStoreDocument::getAnyDidDocument::storeObject1=:<',storeObject1,'>');
+    }
+    for(const storeValue of storeObject1) {
+      const storeDid = JSON.parse(storeValue.origDid);
+      storeValuesJson.push(storeDid);
+    }
+    const storeObject2 = await this.db.fickle.toArray();
+    if(this.trace) {
+      console.log('DidStoreDocument::getAnyDidDocument::storeObject2=:<',storeObject2,'>');
+    }
+    for(const storeValue of storeObject2) {
+      const storeDid = JSON.parse(storeValue.origDid);
+      storeValuesJson.push(storeDid);
+    }
+    const storeObject3 = await this.db.tentative.toArray();
+    if(this.trace) {
+      console.log('DidStoreDocument::getAnyDidDocument::storeObject3=:<',storeObject3,'>');
+    }
+    for(const storeValue of storeObject3) {
+      const storeDid = JSON.parse(storeValue.origDid);
+      storeValuesJson.push(storeDid);
+    }
+    if(this.trace) {
+      console.log('DidStoreDocument::getAnyDidDocument::storeValuesJson=:<',storeValuesJson,'>');
+    }
+    return storeValuesJson;
+  }  
+
   async getAllByDidAddress_(didAddress,storeObject) {
     if(this.trace) {
       console.log('DidStoreDocument::getAllByDidAddress_::didAddress=:<',didAddress,'>');

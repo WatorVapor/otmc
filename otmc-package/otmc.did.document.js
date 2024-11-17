@@ -26,9 +26,10 @@ import {
   DIDAscentDocument,
   DIDMergeDocument
 } from './did/document.js';
-import {DidDocStateMachine} from './otmc.did.stm.docstate.js';
-import {DidRuntimeStateMachine} from './otmc.did.stm.runtime.js';
+import { DidDocStateMachine } from './otmc.did.stm.docstate.js';
+import { DidRuntimeStateMachine } from './otmc.did.stm.runtime.js';
 import { DidResolver } from './otmc.did.resolver.js';
+import { DidDocumentStateMachine } from './otmc.did.document.state.machine.js';
 import { 
   DIDCredentialRequestJoinController,
   DIDCredentialRequestJoinTeamMate
@@ -65,6 +66,7 @@ export class DidDocument {
     this.docState = new DidDocStateMachine(this.eeInternal);
     this.rtState = new DidRuntimeStateMachine(this.eeInternal);
     this.resolver = new DidResolver(this.eeInternal);
+    this.docSM = new DidDocumentStateMachine(this.eeInternal,this.eeOut);
     this.evidenceAuth = {};
     this.status = {};
     this.evidenceCapability = {};
@@ -186,32 +188,6 @@ export class DidDocument {
         console.log('DidDocument::ListenEventEmitter_::self.otmc=:<',self.otmc,'>');
       }
       self.loadDocument();
-    });
-    this.eeInternal.on('did.evidence.load.storage',async (evt)=>{
-      if(self.trace0) {
-        console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
-      }
-      await self.loadEvidenceChain_();
-      if(self.trace0) {
-        console.log('DidDocument::ListenEventEmitter_::this.allEvidenceChain=:<',this.allEvidenceChain,'>');
-      }
-      for(const chainId in this.allEvidenceChain) {
-        if(self.trace0) {
-          console.log('DidDocument::ListenEventEmitter_::chainId=:<',chainId,'>');
-        }
-        const manifest = await self.loadDidRuleFromManifest_(chainId);
-        if(self.trace0) {
-          console.log('DidDocument::ListenEventEmitter_::manifest=:<',manifest,'>');
-        }
-        this.allEvidenceChain[chainId].manifest = manifest;
-        const evidence = this.allEvidenceChain[chainId].did;
-        const evidenceChain = {
-          manifest:manifest,
-          evidence:evidence,
-        };
-        self.eeInternal.emit('did:document:evidence.chain',evidenceChain);
-      }
-      self.eeInternal.emit('did:document:evidence.complete',{});
     });
     this.eeInternal.on('did.evidence.auth',(evt)=>{
       if(self.trace0) {
@@ -1049,50 +1025,8 @@ export class DidDocument {
     return uniqueArray;
   }
   
-  
-  async loadDidRuleFromManifest_(didId) {
-    if(!didId) {
-      didId = this.didDoc_.id;
-    }
-    const manifestsJson = await this.resolver.manifestAll(didId);
-    if(this.trace2) {
-      console.log('DidDocument::loadDidRuleFromManifest_::manifestsJson=<',manifestsJson,'>');
-    }
-    if(manifestsJson.length > 0) {
-      return manifestsJson[0].diddoc;
-    }
-    return false;
-  }
-  async loadEvidenceChain_(didId) {
-    if(!didId) {
-      didId = this.didDoc_.id;
-    }
-    const keyAddress = didId.replace('did:otmc:','')
-    const evidencesJson = await this.resolver.getDidDocumentAll(keyAddress);
-    if(this.trace2) {
-      console.log('DidDocument::loadEvidenceChain_::evidencesJson=<',evidencesJson,'>');
-    }
-    for(const evidenceJson of evidencesJson) {
-      if(this.trace2) {
-        console.log('DidDocument::loadEvidenceChain_::evidenceJson=<',evidenceJson,'>');
-      }
-      for(const ctrlId of evidenceJson.controller ) {
-        if(this.trace2) {
-          console.log('DidDocument::loadEvidenceChain_::ctrlId=<',ctrlId,'>');
-        }
-        if(ctrlId && ctrlId !== evidenceJson.id && ctrlId !== didId)  {
-          await this.loadEvidenceChain_(ctrlId);
-        }
-      }  
-    }
-    this.allEvidenceChain[didId] = {
-      did:evidencesJson
-    };
-    if(this.trace2) {
-      console.log('DidDocument::loadEvidenceChain_::this.allEvidenceChain=<',this.allEvidenceChain,'>');
-    }
-    return evidencesJson;
-  }
+
+
 
   createSeedRootDidDoc_(controls,root) {
     if(this.trace) {

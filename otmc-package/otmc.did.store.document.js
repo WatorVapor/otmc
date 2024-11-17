@@ -26,19 +26,41 @@ export class DidStoreDocument {
     if(this.trace) {
       console.log('DidStoreDocument::putStable::didStore=:<',didStore,'>');
     }
-    await this.db.stable.put(didStore);
+    const storeObject = await this.db.stable.where(filter).first();
+    if(this.trace) {
+      console.log('DidStoreDocument::putStable::storeObject=:<',storeObject,'>');
+    }
+    if(!storeObject) {
+      await this.db.stable.put(didStore);
+    }
   }
   async putFickle(didStore) {
     if(this.trace) {
       console.log('DidStoreDocument::putFickle::didStore=:<',didStore,'>');
     }
-    await this.db.fickle.put(didStore);
+    const storeObject = await this.db.fickle.where(filter).first();
+    if(this.trace) {
+      console.log('DidStoreDocument::putFickle::storeObject=:<',storeObject,'>');
+    }
+    if(!storeObject) {  
+      await this.db.fickle.put(didStore);
+    }
   }
   async putTentative(didStore) {
     if(this.trace) {
       console.log('DidStoreDocument::putTentative::didStore=:<',didStore,'>');
     }
-    await this.db.tentative.put(didStore);
+    const filter = {
+      id: didStore.id,
+      hashDid: didStore.hashDid
+    };
+    const storeObject = await this.db.tentative.where(filter).first();
+    if(this.trace) {
+      console.log('DidStoreDocument::putTentative::storeObject=:<',storeObject,'>');
+    }
+    if(!storeObject) { 
+      await this.db.tentative.put(didStore);
+    }
   }
   async getTop(address) {
     const didAddress = `did:otmc:${address}`;

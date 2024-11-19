@@ -4,7 +4,6 @@ const LOG = {
 };
 import { DidStoreDocument } from './otmc.did.store.document.js';
 import { DidStoreManifest } from './otmc.did.store.manifest.js';
-import { createMachine, createActor, assign  }  from 'xstate';
 
 /**
 *
@@ -115,6 +114,7 @@ export class DidDocumentStateMachine {
   }
 }
 
+import { createMachine, createActor, assign  }  from 'xstate';
 
 class DidChainStateMachine {
   constructor() {
@@ -122,12 +122,13 @@ class DidChainStateMachine {
     this.trace1 = true;
     this.trace = true;
     this.debug = true;
+    this.value = false;
     this.createStateMachine_();
   }
   
   createStateMachine_() {
     const stmConfig = {
-      initial: 'genesis',
+      initial: 'none',
       context: {},
       states: didDocStateTable,
     }
@@ -152,6 +153,7 @@ class DidChainStateMachine {
       if(self.trace) {
         console.log('DidDocumentStateMachine::createStateMachine_::state.value=:<',state.value,'>');
       }
+      self.value = state.value;
     });
     this.actor.start();
     setTimeout(()=>{
@@ -161,7 +163,7 @@ class DidChainStateMachine {
 }
 
 const didDocStateTable = {
-  genesis: {
+  none: {
     on: {
       'init': {
         actions: ['init']

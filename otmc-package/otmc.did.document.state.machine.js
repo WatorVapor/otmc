@@ -4,6 +4,7 @@ const LOG = {
 };
 import { DidStoreDocument } from './otmc.did.store.document.js';
 import { DidStoreManifest } from './otmc.did.store.manifest.js';
+import { DidStoreEvidence } from './otmc.did.store.evidence.js';
 
 /**
 *
@@ -36,6 +37,7 @@ export class DidDocumentStateMachine {
       self.util = evt.util;
       self.document = new DidStoreDocument(evt);
       self.manifest = new DidStoreManifest(evt);
+      self.manifest = new DidStoreManifest(evt);
     });
     this.eeInternal.on('did.evidence.load.storage',async (evt)=>{
       if(self.trace0) {
@@ -58,12 +60,14 @@ export class DidDocumentStateMachine {
         console.log('DidDocumentStateMachine::loadEvidence::chain=:<',chain,'>');
       }
       if(!this.chainState[chainId]) {
-        this.chainState[chainId] = new DidChainStateMachine();
+        this.chainState[chainId] = new DidChainStateMachine(self);
       }
       if(this.trace0) {
         console.log('DidDocumentStateMachine::loadEvidence::this.chainState=:<',this.chainState,'>');
       }
       //this.eeInternal.emit('did:document:evidence.chain',chain);
+      this.caclChainAndManifest_(chainId,chain);
+      this.dumpState_();
     }
     this.eeInternal.emit('did:document:evidence.complete',{});
     return;
@@ -112,46 +116,69 @@ export class DidDocumentStateMachine {
     }
     return false;
   }
+  async caclChainAndManifest_(chainId,chain) {
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::caclChainAndManifest_::chainId=<',chainId,'>');
+      console.log('DidDocumentStateMachine::caclChainAndManifest_::chain=<',chain,'>');
+    }
+    if(chain.manifest) {
+      this.chainState[chainId].actor.send({type:'manifest'});
+    } else {
+      this.chainState[chainId].actor.send({type:'manifest.lack'});
+    }
+    
+  }
+  dumpState_() {
+    for(const chainId in this.chainState) {
+      const state = this.chainState[chainId];
+      if(this.trace2) {
+        console.log('DidDocumentStateMachine::dumpState_::state.value=<',state.value,'>');
+      }
+    }
+  }
 }
 
 import { createMachine, createActor, assign  }  from 'xstate';
 
 class DidChainStateMachine {
-  constructor() {
+  constructor(docState) {
     this.trace0 = true;
     this.trace1 = true;
     this.trace = true;
     this.debug = true;
     this.value = false;
+    this.docState = docState;
     this.createStateMachine_();
   }
   
   createStateMachine_() {
     const stmConfig = {
       initial: 'none',
-      context: {},
+      context: {
+        docState:this.docState,
+      },
       states: didDocStateTable,
     }
     const stmOption = {
       actions:didDocActionTable,
     }
     if(this.trace) {
-      console.log('DidDocumentStateMachine::createStateMachine_::stmConfig=:<',stmConfig,'>');
+      console.log('DidChainStateMachine::createStateMachine_::stmConfig=:<',stmConfig,'>');
     }
     this.stm = createMachine(stmConfig,stmOption);
     if(this.trace0) {
-      console.log('DidDocumentStateMachine::createStateMachine_::this.stm=:<',this.stm,'>');
+      console.log('DidChainStateMachine::createStateMachine_::this.stm=:<',this.stm,'>');
     }
     this.actor = createActor(this.stm);
     
     const self = this;
     this.actor.subscribe((state) => {
       if(self.trace0) {
-        console.log('DidDocumentStateMachine::createStateMachine_::state=:<',state,'>');
-        console.log('DidDocumentStateMachine::createStateMachine_::self.stm=:<',self.stm,'>');
+        console.log('DidChainStateMachine::createStateMachine_::state=:<',state,'>');
+        console.log('DidChainStateMachine::createStateMachine_::self.stm=:<',self.stm,'>');
       }
       if(self.trace) {
-        console.log('DidDocumentStateMachine::createStateMachine_::state.value=:<',state.value,'>');
+        console.log('DidChainStateMachine::createStateMachine_::state.value=:<',state.value,'>');
       }
       self.value = state.value;
     });
@@ -168,8 +195,34 @@ const didDocStateTable = {
       'init': {
         actions: ['init']
       },
-      'chain.load':'evidenceChainReady',
-      'manifest.lack':'evidenceChainWithoutManifest',
+      'manifest':'manifest',
+      'manifest.lack':'manifestNone',
+    } 
+  },
+  manifest: {
+    entry:['manifest'],
+    on: {
+      'root.auth.proof.is.seed':'rootAuthIsSeed',
+      'root.auth.proof.by.seed':'rootAuthBySeed',
+      'root.auth.proof.by.auth':'rootAuthByAuth',
+      'root.auth.proof.by.none':'rootAuthByNone',
+      'leaf.seed.proof.by.ctrl':'leafAuthSeedByCtrl',
+      'leaf.seed.proof.by.none':'leafAuthSeedByNoe',
+      'leaf.auth.proof.by.ctrl':'leafAuthByCtrl',
+      'leaf.auth.proof.by.none':'leafAuthByNoe',
+    } 
+  },
+  manifestNone: {
+    entry:['manifestNone'],
+    on: {
+      'root.auth.proof.is.seed':'rootAuthIsSeed',
+      'root.auth.proof.by.seed':'rootAuthBySeed',
+      'root.auth.proof.by.auth':'rootAuthByAuth',
+      'root.auth.proof.by.none':'rootAuthByNone',
+      'leaf.seed.proof.by.ctrl':'leafAuthSeedByCtrl',
+      'leaf.seed.proof.by.none':'leafAuthSeedByNoe',
+      'leaf.auth.proof.by.ctrl':'leafAuthByCtrl',
+      'leaf.auth.proof.by.none':'leafAuthByNoe',
     } 
   },
   evidenceChainReady: {
@@ -251,22 +304,22 @@ const didDocActionTable = {
     const ee = context.context.ee;
     const chain = context.context.chain;
     if(LOG.trace) {
-      console.log('DidDocumentStateMachine::didDocActionTable::init:context=:<',context,'>');
-      console.log('DidDocumentStateMachine::didDocActionTable::init:ee=:<',ee,'>');
-      console.log('DidDocumentStateMachine::didDocActionTable::init:chain=:<',chain,'>');
+      console.log('DidChainStateMachine::didDocActionTable::init:context=:<',context,'>');
+      console.log('DidChainStateMachine::didDocActionTable::init:ee=:<',ee,'>');
+      console.log('DidChainStateMachine::didDocActionTable::init:chain=:<',chain,'>');
     }
   },
   chainReady: async (context, evt) => {
     const ee = context.context.ee;
     const chain = context.context.chain;
     if(LOG.trace) {
-      console.log('DidDocumentStateMachine::didDocActionTable::chainReady:context=:<',context,'>');
-      console.log('v::didDocActionTable::chainReady:ee=:<',ee,'>');
-      console.log('DidDocumentStateMachine::didDocActionTable::chainReady:chain=:<',chain,'>');
+      console.log('DidChainStateMachine::didDocActionTable::chainReady:context=:<',context,'>');
+      console.log('DidChainStateMachine::didDocActionTable::chainReady:ee=:<',ee,'>');
+      console.log('DidChainStateMachine::didDocActionTable::chainReady:chain=:<',chain,'>');
     }
     const proof = await chain.calcDidAuth();
     if(LOG.trace) {
-      console.log('DidDocumentStateMachine::didDocActionTable::chainReady:proof=:<',proof,'>');
+      console.log('DidChainStateMachine::didDocActionTable::chainReady:proof=:<',proof,'>');
     }
     ee.emit('did.stm.docstate.internal.proof',{proof:proof});
   },
@@ -274,13 +327,13 @@ const didDocActionTable = {
     const ee = context.context.ee;
     const chain = context.context.chain;
     if(LOG.trace) {
-      console.log('DidDocumentStateMachine::didDocActionTable::chainFail:context=:<',context,'>');
-      console.log('DidDocumentStateMachine::didDocActionTable::chainFail:ee=:<',ee,'>');
-      console.log('DidDocumentStateMachine::didDocActionTable::chainFail:chain=:<',chain,'>');
+      console.log('DidChainStateMachine::didDocActionTable::chainFail:context=:<',context,'>');
+      console.log('DidChainStateMachine::didDocActionTable::chainFail:ee=:<',ee,'>');
+      console.log('DidChainStateMachine::didDocActionTable::chainFail:chain=:<',chain,'>');
     }
     const proof = chain.calcDidAuth();
     if(LOG.trace) {
-      console.log('DidDocumentStateMachine::didDocActionTable::chainFail:proof=:<',proof,'>');
+      console.log('DidChainStateMachine::didDocActionTable::chainFail:proof=:<',proof,'>');
     }
     ee.emit('did.stm.docstate.internal.proof',{proof:proof});
   },
@@ -288,9 +341,9 @@ const didDocActionTable = {
     const ee = context.context.ee;
     const chain = context.context.chain;
     if(LOG.trace) {
-      console.log('DidDocumentStateMachine::didDocActionTable::authIsSeed:context=:<',context,'>');
-      console.log('DidDocumentStateMachine::didDocActionTable::authIsSeed:ee=:<',ee,'>');
-      console.log('DidDocumentStateMachine::didDocActionTable::authIsSeed:chain=:<',chain,'>');
+      console.log('DidChainStateMachine::didDocActionTable::authIsSeed:context=:<',context,'>');
+      console.log('DidChainStateMachine::didDocActionTable::authIsSeed:ee=:<',ee,'>');
+      console.log('DidChainStateMachine::didDocActionTable::authIsSeed:chain=:<',chain,'>');
     }
     const notify = {
       isSeedRoot:true,
@@ -301,9 +354,9 @@ const didDocActionTable = {
     const ee = context.context.ee;
     const chain = context.context.chain;
     if(LOG.trace) {
-      console.log('DidDocumentStateMachine::didDocActionTable::rootAuthBySeed:context=:<',context,'>');
-      console.log('DidDocumentStateMachine::didDocActionTable::rootAuthBySeed:ee=:<',ee,'>');
-      console.log('DidDocumentStateMachine::didDocActionTable::rootAuthBySeed:chain=:<',chain,'>');
+      console.log('DidChainStateMachine::didDocActionTable::rootAuthBySeed:context=:<',context,'>');
+      console.log('DidChainStateMachine::didDocActionTable::rootAuthBySeed:ee=:<',ee,'>');
+      console.log('DidChainStateMachine::didDocActionTable::rootAuthBySeed:chain=:<',chain,'>');
     }
     const notify = {
       bySeedRoot:true,
@@ -314,9 +367,9 @@ const didDocActionTable = {
     const ee = context.context.ee;
     const chain = context.context.chain;
     if(LOG.trace) {
-      console.log('DidDocumentStateMachine::didDocActionTable::rootAuthByAuth:context=:<',context,'>');
-      console.log('DidDocumentStateMachine::didDocActionTable::rootAuthByAuth:ee=:<',ee,'>');
-      console.log('DidDocumentStateMachine::didDocActionTable::rootAuthByAuth:chain=:<',chain,'>');
+      console.log('DidChainStateMachine::didDocActionTable::rootAuthByAuth:context=:<',context,'>');
+      console.log('DidChainStateMachine::didDocActionTable::rootAuthByAuth:ee=:<',ee,'>');
+      console.log('DidChainStateMachine::didDocActionTable::rootAuthByAuth:chain=:<',chain,'>');
     }
     const notify = {
       byAuthRoot:true,
@@ -327,9 +380,9 @@ const didDocActionTable = {
     const ee = context.context.ee;
     const chain = context.context.chain;
     if(LOG.trace) {
-      console.log('DidDocumentStateMachine::didDocActionTable::rootAuthByNone:context=:<',context,'>');
-      console.log('DidDocumentStateMachine::didDocActionTable::rootAuthByNone:ee=:<',ee,'>');
-      console.log('DidDocumentStateMachine::didDocActionTable::rootAuthByNone:chain=:<',chain,'>');
+      console.log('DidChainStateMachine::didDocActionTable::rootAuthByNone:context=:<',context,'>');
+      console.log('DidChainStateMachine::didDocActionTable::rootAuthByNone:ee=:<',ee,'>');
+      console.log('DidChainStateMachine::didDocActionTable::rootAuthByNone:chain=:<',chain,'>');
     }
     const notify = {
       byNoneRoot:true,
@@ -340,9 +393,9 @@ const didDocActionTable = {
     const ee = context.context.ee;
     const chain = context.context.chain;
     if(LOG.trace) {
-      console.log('DidDocumentStateMachine::didDocActionTable::leafAuthSeedByCtrl:context=:<',context,'>');
-      console.log('DidDocumentStateMachine::didDocActionTable::leafAuthSeedByCtrl:ee=:<',ee,'>');
-      console.log('DidDocumentStateMachine::didDocActionTable::leafAuthSeedByCtrl:chain=:<',chain,'>');
+      console.log('DidChainStateMachine::didDocActionTable::leafAuthSeedByCtrl:context=:<',context,'>');
+      console.log('DidChainStateMachine::didDocActionTable::leafAuthSeedByCtrl:ee=:<',ee,'>');
+      console.log('DidChainStateMachine::didDocActionTable::leafAuthSeedByCtrl:chain=:<',chain,'>');
     }
     const notify = {
       byCtrlLeafSeed:true,
@@ -353,9 +406,9 @@ const didDocActionTable = {
     const ee = context.context.ee;
     const chain = context.context.chain;
     if(LOG.trace) {
-      console.log('DidDocumentStateMachine::didDocActionTable::leafAuthSeedByNoe:context=:<',context,'>');
-      console.log('DidDocumentStateMachine::didDocActionTable::leafAuthSeedByNoe:ee=:<',ee,'>');
-      console.log('DidDocumentStateMachine::didDocActionTable::leafAuthSeedByNoe:chain=:<',chain,'>');
+      console.log('DidChainStateMachine::didDocActionTable::leafAuthSeedByNoe:context=:<',context,'>');
+      console.log('DidChainStateMachine::didDocActionTable::leafAuthSeedByNoe:ee=:<',ee,'>');
+      console.log('DidChainStateMachine::didDocActionTable::leafAuthSeedByNoe:chain=:<',chain,'>');
     }
     const notify = {
       byNoneLeafSeed:true,
@@ -366,9 +419,9 @@ const didDocActionTable = {
     const ee = context.context.ee;
     const chain = context.context.chain;
     if(LOG.trace) {
-      console.log('DidDocumentStateMachine::didDocActionTable::leafAuthByCtrl:context=:<',context,'>');
-      console.log('DidDocumentStateMachine::didDocActionTable::leafAuthByCtrl:ee=:<',ee,'>');
-      console.log('DidDocumentStateMachine::didDocActionTable::leafAuthByCtrl:chain=:<',chain,'>');
+      console.log('DidChainStateMachine::didDocActionTable::leafAuthByCtrl:context=:<',context,'>');
+      console.log('DidChainStateMachine::didDocActionTable::leafAuthByCtrl:ee=:<',ee,'>');
+      console.log('DidChainStateMachine::didDocActionTable::leafAuthByCtrl:chain=:<',chain,'>');
     }
     const notify = {
       byCtrlLeaf:true,
@@ -379,9 +432,9 @@ const didDocActionTable = {
     const ee = context.context.ee;
     const chain = context.context.chain;
     if(LOG.trace) {
-      console.log('DidDocumentStateMachine::didDocActionTable::leafAuthByNoe:context=:<',context,'>');
-      console.log('DidDocumentStateMachine::didDocActionTable::leafAuthByNoe:ee=:<',ee,'>');
-      console.log('DidDocumentStateMachine::didDocActionTable::leafAuthByNoe:chain=:<',chain,'>');
+      console.log('DidChainStateMachine::didDocActionTable::leafAuthByNoe:context=:<',context,'>');
+      console.log('DidChainStateMachine::didDocActionTable::leafAuthByNoe:ee=:<',ee,'>');
+      console.log('DidChainStateMachine::didDocActionTable::leafAuthByNoe:chain=:<',chain,'>');
     }
     const notify = {
       byNoneLeaf:true,

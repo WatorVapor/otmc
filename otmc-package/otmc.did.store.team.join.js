@@ -4,7 +4,7 @@ import { StoreKey } from './otmc.const.js';
 *
 */
 export class DidStoreTeamJoin {
-  constructor(dbName) {
+  constructor() {
     this.version = '1.0';
     this.trace0 = true;
     this.trace1 = false;

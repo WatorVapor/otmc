@@ -5,6 +5,7 @@ const LOG = {
 import { DidStoreDocument } from './otmc.did.store.document.js';
 import { DidStoreManifest } from './otmc.did.store.manifest.js';
 import { DidStoreEvidence } from './otmc.did.store.evidence.js';
+import { EvidenceChain } from './did/evidence.thin.js';
 
 /**
 *
@@ -35,9 +36,12 @@ export class DidDocumentStateMachine {
       self.otmc = evt.otmc;
       self.base32 = evt.base32;
       self.util = evt.util;
-      self.document = new DidStoreDocument(evt);
-      self.manifest = new DidStoreManifest(evt);
-      self.manifest = new DidStoreManifest(evt);
+
+      self.chain = new EvidenceChain(self.auth);
+
+      self.document = new DidStoreDocument();
+      self.manifest = new DidStoreManifest();
+      self.evidence = new DidStoreEvidence();
     });
     this.eeInternal.on('did.evidence.load.storage',async (evt)=>{
       if(self.trace0) {

@@ -1,5 +1,5 @@
 const includesAnyByDidKey = (setArr,value ) => setArr.some(attr => attr.endsWith(value));
-export class EvidenceChain {
+export class EvidenceChainBuilder {
   static trace1 = true;
   static trace2 = true;
   static trace3 = true;
@@ -9,12 +9,125 @@ export class EvidenceChain {
   static debug = true;
 
   constructor(auth) {
+    this.trace1 = true;
+    this.trace2 = true;
+    this.trace3 = true;
+    this.trace4 = true;
+    this.trace5 = true;
+    this.trace = true;
+    this.debug = true;
     this.auth_ = auth;
     this.tree_ = {};
     this.seed_ = {};
     this.didRule_ = {};
     this.authsOfDid_ = {};
   }
+  buildEvidenceProof(evidence,manifest,proofTree) {
+    if(this.trace1) {
+      console.log('EvidenceChainBuilder::buildEvidenceProof::evidence=<',evidence,'>');
+      console.log('EvidenceChainBuilder::buildEvidenceProof::manifest=<',manifest,'>');
+      console.log('EvidenceChainBuilder::buildEvidenceProof::proofTree=<',proofTree,'>');
+    }
+    const docType = this.judgeEvidenceDidType_(evidence);
+    if(this.trace1) {
+      console.log('EvidenceChainBuilder::buildEvidenceProof::docType=<',docType,'>');
+    }
+    let buildResult = false;
+    if(docType.root) {
+      buildResult = this.buildEvidenceProofChainRoot_(evidence,manifest,proofTree);
+    } else {
+      
+    }
+    const proofResult = {};
+    return proofResult;
+  }
+  judgeEvidenceDidType_(evidenceDid) {
+    let isRoot = false;
+    let controllers = [];
+    if(this.trace1) {
+      console.log('EvidenceChainBuilder::judgeEvidenceDidType_::evidenceDid=<',evidenceDid,'>');
+    }
+    const isInController = evidenceDid.controller.includes(evidenceDid.id);
+    if(this.trace1) {
+      console.log('EvidenceChainBuilder::judgeEvidenceDidType_::isInController=<',isInController,'>');
+    }
+    if(isInController) {
+      isRoot = true;
+    } else {
+      controllers.push(evidenceDid.controller);
+    }
+    controllers = controllers.flat();
+    if(this.trace1) {
+      console.log('EvidenceChainBuilder::judgeEvidenceDidType_::controllers=<',controllers,'>');
+    }
+    controllers = [...new Set(controllers)];
+    if(this.trace1) {
+      console.log('EvidenceChainBuilder::judgeEvidenceDidType_::controllers=<',controllers,'>');
+    }
+    const chainType = {
+      root:isRoot,
+      controllers:controllers
+    };
+    return chainType;
+  }
+  buildEvidenceProofChainRoot_(evidenceDid,manifest,proofTree) {
+    if(this.trace1) {
+      console.log('EvidenceChainBuilder::buildEvidenceProofChainRoot_::evidenceDid=<',evidenceDid,'>');
+    }
+    const seedKeyId = evidenceDid.id.replace('did:otmc:','');
+    if(this.trace1) {
+      console.log('EvidenceChainBuilder::buildEvidenceProofChainRoot_::seedKeyId=<',seedKeyId,'>');
+    }
+    const isGoodDid = this.auth_.verifyDid(evidenceDid);
+    if(this.trace1) {
+      console.log('EvidenceChainBuilder::buildEvidenceProofChainRoot_::isGoodDid=<',isGoodDid,'>');
+    }
+    const result = {
+      isAuthed:false,
+      isSeed:false,
+      isLeaf:false,
+    };
+    if(isGoodDid && isGoodDid.proofList){
+      const authedList = [];
+      for(const authDid of evidenceDid.authentication) {
+        const authId = authDid.split('#').slice(-1)[0];
+        authedList.push(authId);
+      }
+      if(this.trace3) {
+        console.log('EvidenceChainBuilder::buildEvidenceProofChainRoot_::authedList=<',authedList,'>');
+      }
+      if(isGoodDid.proofList && isGoodDid.proofList.authProof && isGoodDid.proofList.authProof.length > 0){
+        for(const authProof of isGoodDid.proofList.authProof) {
+          if(this.trace3) {
+            console.log('EvidenceChainBuilder::buildEvidenceProofChainRoot_::authProof=<',authProof,'>');
+            console.log('EvidenceChainBuilder::buildEvidenceProofChainRoot_::evidenceDid=<',evidenceDid,'>');
+          }
+          if(seedKeyId === authProof) {
+            result.isSeed = true;
+          }
+        }
+        if(result.isSeed) {
+          result.isAuthed = true;
+          result.authedList = authedList;
+        } else {
+          result.isLeaf = true;
+          const authedByChain = this.collectAuthedFromeChain_(isGoodDid.proofList.authProof,manifest,proofTree);
+          if(authedResult) {
+            result.isAuthed = true;
+            result.authedList = authedList;
+          }
+        }
+      }
+    }
+    if(this.trace3) {
+      console.log('EvidenceChainBuilder::buildEvidenceProofChainRoot_::result=<',result,'>');
+    }
+    return result;
+  }
+  collectAuthedFromeChain_(authProof,manifest,proofTree) {
+    return false;
+  }
+
   
   tryMergeStoredDidDocument() {
     if(EvidenceChain.trace1) {
@@ -509,47 +622,6 @@ export class EvidenceChain {
     };
     return chainType;
   }
-  buildEvidenceProofChainRoot_() {
-    if(EvidenceChain.trace1) {
-      console.log('EvidenceChain::buildEvidenceProofChainRoot_::this.evidencesJson_=<',this.evidencesJson_,'>');
-    }
-    for(const evidenceDid of this.evidencesJson_) {
-      if(EvidenceChain.trace1) {
-        console.log('EvidenceChain::buildEvidenceProofChainRoot_::evidenceDid=<',evidenceDid,'>');
-      }
-      const seedKeyId = evidenceDid.id.replace('did:otmc:','');
-      if(EvidenceChain.trace1) {
-        console.log('EvidenceChain::buildEvidenceProofChainRoot_::seedKeyId=<',seedKeyId,'>');
-      }
-      const isGoodDid = this.auth_.verifyDid(evidenceDid);
-      if(EvidenceChain.trace1) {
-        console.log('EvidenceChain::buildEvidenceProofChainRoot_::isGoodDid=<',isGoodDid,'>');
-      }
-      if(isGoodDid && isGoodDid.proofList){
-        const authedList = [];
-        for(const authDid of evidenceDid.authentication) {
-          const authId = authDid.split('#').slice(-1)[0];
-          authedList.push(authId);
-        }
-        if(EvidenceChain.trace3) {
-          console.log('EvidenceChain::buildEvidenceProofChainRoot_::authedList=<',authedList,'>');
-        }
-        if(isGoodDid.proofList && isGoodDid.proofList.authProof && isGoodDid.proofList.authProof.length > 0){
-          for(const authProof of isGoodDid.proofList.authProof) {
-            if(EvidenceChain.trace3) {
-              console.log('EvidenceChain::buildEvidenceProofChainRoot_::authProof=<',authProof,'>');
-              console.log('EvidenceChain::buildEvidenceProofChainRoot_::evidenceDid=<',evidenceDid,'>');
-            }
-            if(seedKeyId === authProof) {
-              this.trySaveSeedEvidenceTree(evidenceDid,seedKeyId,authedList);
-            } else {
-              this.trySaveSproutEvidenceTree(evidenceDid,authProof,authedList);
-            }
-          }
-        }
-      }
-    }
-  } 
   async buildEvidenceProofChainLeaf_() {
     if(EvidenceChain.trace1) {
       console.log('EvidenceChain::buildEvidenceProofChainLeaf_::this.evidencesJson_=<',this.evidencesJson_,'>');

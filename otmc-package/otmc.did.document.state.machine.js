@@ -5,7 +5,7 @@ const LOG = {
 import { DidStoreDocument } from './otmc.did.store.document.js';
 import { DidStoreManifest } from './otmc.did.store.manifest.js';
 import { DidStoreEvidence } from './otmc.did.store.evidence.js';
-import { EvidenceChain } from './did/evidence.thin.js';
+import { EvidenceChainBuilder } from './did/evidence.thin.js';
 
 /**
 *
@@ -37,7 +37,7 @@ export class DidDocumentStateMachine {
       self.base32 = evt.base32;
       self.util = evt.util;
 
-      self.chain = new EvidenceChain(self.auth);
+      self.builder = new EvidenceChainBuilder(self.auth);
 
       self.document = new DidStoreDocument();
       self.manifest = new DidStoreManifest();
@@ -51,6 +51,10 @@ export class DidDocumentStateMachine {
     });
   }
   async loadEvidence() {
+    this.stableTree = await this.evidence.getAllStable();
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::loadEvidence::this.stableTree=<',this.stableTree,'>');
+    }
     this.allEvidenceChain = await this.loadEvidenceChain_();
     if(self.trace0) {
       console.log('DidDocumentStateMachine::loadEvidence::this.allEvidenceChain=:<',this.allEvidenceChain,'>');
@@ -130,7 +134,16 @@ export class DidDocumentStateMachine {
     } else {
       this.chainState[chainId].actor.send({type:'manifest.lack'});
     }
-    
+    const sortedDidByUpdated = sortDidByUpdated(chain.did);
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::caclChainAndManifest_::sortedDidByUpdated=<',sortedDidByUpdated,'>');
+    }
+    for(const didDoc of sortedDidByUpdated) {
+      const docProofResult = this.builder.buildEvidenceProof(didDoc,chain.manifest,this.stableTree);
+      if(this.trace2) {
+        console.log('DidDocumentStateMachine::caclChainAndManifest_::docProofResult=<',docProofResult,'>');
+      }
+    }
   }
   dumpState_() {
     for(const chainId in this.chainState) {
@@ -140,6 +153,12 @@ export class DidDocumentStateMachine {
       }
     }
   }
+}
+
+const sortDidByUpdated = (didArray) => {
+  return didArray.sort((a,b)=> { 
+    return new Date(a.updated) - new Date(a.updated);
+  });
 }
 
 import { createMachine, createActor, assign  }  from 'xstate';

@@ -16,4 +16,8 @@ export class DidStoreEvidence {
       chain: '++autoId,didId,keyAddress,authedAddress,seed'
     });
   }
+  async getAllStable() {
+    const stable = {};
+    return stable;
+  }
 }

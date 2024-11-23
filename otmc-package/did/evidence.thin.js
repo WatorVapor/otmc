@@ -112,9 +112,14 @@ export class EvidenceChainBuilder {
         } else {
           result.isLeaf = true;
           const authedByChain = this.collectAuthedFromeChain_(isGoodDid.proofList.authProof,manifest,proofTree);
-          if(authedResult) {
-            result.isAuthed = true;
-            result.authedList = authedList;
+          if(authedByChain) {
+            if(authedByChain.isAuthed) {
+              result.isAuthed = true;
+            }
+            if(authedByChain.conductive) {
+              result.conductive = true;
+              result.authedList = authedList;
+            }
           }
         }
       }
@@ -163,8 +168,13 @@ export class EvidenceChainBuilder {
         result.isLeaf = true;
         const authedByChain = this.collectAuthedFromeChain_(isGoodDid.proofList.authProof,manifest,proofTree);
         if(authedByChain) {
-          result.isAuthed = true;
-          result.authedList = authedList;
+          if(authedByChain.isAuthed) {
+            result.isAuthed = true;
+          }
+          if(authedByChain.conductive) {
+            result.conductive = true;
+            result.authedList = authedList;
+          }
         }
       }
     }

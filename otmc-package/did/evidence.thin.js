@@ -38,8 +38,10 @@ export class EvidenceChainBuilder {
     } else {
       buildResult = this.buildEvidenceProofChainEndEntity_(evidence,manifest,proofTree);      
     }
-    const proofResult = {};
-    return proofResult;
+    if(this.trace1) {
+      console.log('EvidenceChainBuilder::buildEvidenceProof::buildResult=<',buildResult,'>');
+    }
+    return buildResult;
   }
   judgeEvidenceDidType_(evidenceDid) {
     let isRoot = false;
@@ -84,6 +86,8 @@ export class EvidenceChainBuilder {
     }
     const result = {
       isAuthed:false,
+      isRoot:true,
+      isEndEntity:false,
       isSeed:false,
       isLeaf:false,
     };
@@ -108,7 +112,18 @@ export class EvidenceChainBuilder {
         }
         if(result.isSeed) {
           result.isAuthed = true;
-          result.authedList = authedList;
+          if(manifest && manifest.authentication) {
+            switch(manifest.authentication.policy) {
+              case 'Seed.Dogma':
+                result.authedList = [seedKeyId];
+                break;
+              case 'Root.Dogma':
+              case 'Proof.Chain':
+                result.authedList = authedList;
+                default:
+                break;
+            }
+          }
         } else {
           result.isLeaf = true;
           const authedByChain = this.collectAuthedFromeChain_(isGoodDid.proofList.authProof,manifest,proofTree);
@@ -117,7 +132,6 @@ export class EvidenceChainBuilder {
               result.isAuthed = true;
             }
             if(authedByChain.conductive) {
-              result.conductive = true;
               result.authedList = authedList;
             }
           }
@@ -143,6 +157,8 @@ export class EvidenceChainBuilder {
     }
     const result = {
       isAuthed:false,
+      isRoot:false,
+      isEndEntity:true,
       isSeed:false,
       isLeaf:false,
     };
@@ -165,14 +181,15 @@ export class EvidenceChainBuilder {
             result.isSeed = true;
           }
         }
-        result.isLeaf = true;
+        if(!result.isSeed) {
+          result.isLeaf = true;
+        }
         const authedByChain = this.collectAuthedFromeChain_(isGoodDid.proofList.authProof,manifest,proofTree);
         if(authedByChain) {
           if(authedByChain.isAuthed) {
             result.isAuthed = true;
           }
           if(authedByChain.conductive) {
-            result.conductive = true;
             result.authedList = authedList;
           }
         }

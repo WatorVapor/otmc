@@ -124,7 +124,7 @@ export class DidDocumentStateMachine {
     }
     return false;
   }
-  async caclChainAndManifest_(chainId,chain) {
+  caclChainAndManifest_(chainId,chain) {
     if(this.trace2) {
       console.log('DidDocumentStateMachine::caclChainAndManifest_::chainId=<',chainId,'>');
       console.log('DidDocumentStateMachine::caclChainAndManifest_::chain=<',chain,'>');
@@ -139,8 +139,12 @@ export class DidDocumentStateMachine {
       console.log('DidDocumentStateMachine::caclChainAndManifest_::sortedDidByUpdated=<',sortedDidByUpdated,'>');
     }
     for(const didDoc of sortedDidByUpdated) {
+      if(this.trace2) {
+        console.log('DidDocumentStateMachine::caclChainAndManifest_::didDoc=<',didDoc,'>');
+      }
       const docProofResult = this.builder.buildEvidenceProof(didDoc,chain.manifest,this.stableTree);
       if(this.trace2) {
+        console.log('DidDocumentStateMachine::caclChainAndManifest_::chainId=<',chainId,'>');
         console.log('DidDocumentStateMachine::caclChainAndManifest_::docProofResult=<',docProofResult,'>');
       }
     }
@@ -156,9 +160,14 @@ export class DidDocumentStateMachine {
 }
 
 const sortDidByUpdated = (didArray) => {
-  return didArray.sort((a,b)=> { 
-    return new Date(a.updated) - new Date(a.updated);
+  console.log('DidDocumentStateMachine::sortDidByUpdated::didArray=<',didArray,'>');
+  didArray.sort((a,b)=> { 
+    const escape_ms_sort = new Date(a.updated) - new Date(b.updated);
+    console.log('DidDocumentStateMachine::sortDidByUpdated::escape_ms_sort=<',escape_ms_sort,'>');
+    return escape_ms_sort;
   });
+  console.log('DidDocumentStateMachine::sortDidByUpdated::didArray=<',didArray,'>');
+  return didArray;
 }
 
 import { createMachine, createActor, assign  }  from 'xstate';

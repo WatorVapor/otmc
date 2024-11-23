@@ -1,15 +1,12 @@
 export class DIDManifest {
   static trace = false;
   static debug = true;
-  static dogmaRule = {
+  static dogmaRuleSeed = {
     id:'',
     did: {
       authentication:{
         policy:'Seed.Dogma'
       },
-      capabilityInvocation: {
-        policy:'Agree.By.Seed'
-      },
     },
     acl:{
       seed:[
@@ -18,6 +15,11 @@ export class DIDManifest {
           action: 'all',
           topic:'${did.id}/#'
         },
+        {
+          permission: 'allow',
+          action: 'subscribe',
+          topic:'${did.controller}/broadcast/auth/#'
+        },
       ],
       authentication:[
         {
@@ -25,43 +27,21 @@ export class DIDManifest {
           action: 'all',
           topic:'${did.id}/#'
         },
-      ],
-      capability: [
         {
           permission: 'allow',
-          action: 'publish',
-          topic:'${did.id}/broadcast/${key.id}/#'
-        },
-        {
-          permission: 'allow',
-          action: 'all',
-          topic:'${did.id}/${key.id}/sys/did/capability/#'
-        },
-        {
-          permission: 'allow',
-          action: 'all',
-          topic:'${did.id}/${key.id}/capability/#'
-        },
-      ],
-      invitation: [
-        {
-          permission: 'allow',
-          action: 'all',
-          topic:'${did.id}/${key.id}/sys/did/invitation/#'
+          action: 'subscribe',
+          topic:'${did.controller}/broadcast/auth/#'
         },
       ],
       guest:[
       ],
     }
   };
-  static capabilityCloseRule = {
+  static dogmaRuleRoot = {
     id:'',
-    diddoc: {
+    did: {
       authentication:{
-        policy:'Proof.Chain'
-      },
-      capabilityInvocation: {
-        policy:'Agree.By.Once'
+        policy:'Root.Dogma'
       },
     },
     acl:{
@@ -71,6 +51,11 @@ export class DIDManifest {
           action: 'all',
           topic:'${did.id}/#'
         },
+        {
+          permission: 'allow',
+          action: 'subscribe',
+          topic:'${did.controller}/broadcast/auth/#'
+        },
       ],
       authentication:[
         {
@@ -78,28 +63,21 @@ export class DIDManifest {
           action: 'all',
           topic:'${did.id}/#'
         },
-      ],
-      capability: [
-      ],
-      invitation: [
         {
           permission: 'allow',
-          action: 'all',
-          topic:'${did.id}/${key.id}/sys/did/invitation/#'
+          action: 'subscribe',
+          topic:'${did.controller}/broadcast/auth/#'
         },
       ],
       guest:[
-      ]
+      ],
     }
   };
-  static ruleChainGuestClose = {
+  static chainRuleGuestClose = {
     id:'',
     diddoc: {
       authentication:{
         policy:'Proof.Chain'
-      },
-      capabilityInvocation: {
-        policy:'Agree.By.Once'
       },
     },
     acl:{
@@ -109,6 +87,11 @@ export class DIDManifest {
           action: 'all',
           topic:'${did.id}/#'
         },
+        {
+          permission: 'allow',
+          action: 'subscribe',
+          topic:'${did.controller}/broadcast/auth/#'
+        },
       ],
       authentication:[
         {
@@ -116,43 +99,21 @@ export class DIDManifest {
           action: 'all',
           topic:'${did.id}/#'
         },
-      ],
-      capability: [
         {
           permission: 'allow',
-          action: 'publish',
-          topic:'${did.id}/broadcast/${key.id}/#'
-        },
-        {
-          permission: 'allow',
-          action: 'all',
-          topic:'${did.id}/${key.id}/sys/did/capability/#'
-        },
-        {
-          permission: 'allow',
-          action: 'all',
-          topic:'${did.id}/${key.id}/capability/#'
-        },
-      ],
-      invitation: [
-        {
-          permission: 'allow',
-          action: 'all',
-          topic:'${did.id}/${key.id}/sys/did/invitation/#'
+          action: 'subscribe',
+          topic:'${did.controller}/broadcast/auth/#'
         },
       ],
       guest:[
       ]
     }
   };
-  static GuestOpenRule = {
+  static chainRuleGuestOpen = {
     id:'',
     diddoc: {
       authentication:{
         policy:'Proof.Chain'
-      },
-      capabilityInvocation: {
-        policy:'Agree.By.Once'
       },
     },
     acl:{
@@ -162,6 +123,11 @@ export class DIDManifest {
           action: 'all',
           topic:'${did.id}/#'
         },
+        {
+          permission: 'allow',
+          action: 'subscribe',
+          topic:'${did.controller}/broadcast/auth/#'
+        },
       ],
       authentication:[
         {
@@ -169,65 +135,49 @@ export class DIDManifest {
           action: 'all',
           topic:'${did.id}/#'
         },
-      ],
-      capability: [
         {
           permission: 'allow',
-          action: 'publish',
-          topic:'${did.id}/broadcast/${key.id}/#'
-        },
-        {
-          permission: 'allow',
-          action: 'all',
-          topic:'${did.id}/${key.id}/sys/did/capability/#'
-        },
-        {
-          permission: 'allow',
-          action: 'all',
-          topic:'${did.id}/${key.id}/capability/#'
-        },
-      ],
-      invitation: [
-        {
-          permission: 'allow',
-          action: 'all',
-          topic:'${did.id}/${key.id}/sys/did/invitation/#'
+          action: 'subscribe',
+          topic:'${did.controller}/broadcast/auth/#'
         },
       ],
       guest:[
         {
           permission: 'allow',
           action: 'subscribe',
-          topic:'${did.id}/broadcast/#'
+          topic:'${did.controller}/broadcast/guest/#'
         },
         {
           permission: 'allow',
-          action: 'all',
-          topic:'${did.id}/${key.id}/sys/did/guest/#'
+          action: 'subscribe',
+          topic:'${did.id}/broadcast/guest/#'
         },
       ]
     }
   };
+/**
+ * Initializes a new instance of the DIDManifest class.
+ */
   constructor() {
+    
   }
-
-  static ruleDogma(did) {
-    const myRule = JSON.parse(JSON.stringify(DIDManifest.dogmaRule));
+  static ruleDogmaSeed(did) {
+    const myRule = JSON.parse(JSON.stringify(DIDManifest.dogmaRuleSeed));
     myRule.id = did;
     return myRule;
   }
-  static ruleChainCapClose(did) {
-    const myRule = JSON.parse(JSON.stringify(DIDManifest.capabilityCloseRule));
+  static ruleDogmaRoot(did) {
+    const myRule = JSON.parse(JSON.stringify(DIDManifest.dogmaRuleRoot));
     myRule.id = did;
     return myRule;
   }
   static ruleChainGuestClose(did) {
-    const myRule = JSON.parse(JSON.stringify(DIDManifest.ruleChainGuestClose));
+    const myRule = JSON.parse(JSON.stringify(DIDManifest.chainRuleGuestClose));
     myRule.id = did;
     return myRule;
   }
   static ruleChainGuestOpen(did) {
-    const myRule = JSON.parse(JSON.stringify(DIDManifest.GuestOpenRule));
+    const myRule = JSON.parse(JSON.stringify(DIDManifest.chainRuleGuestOpen));
     myRule.id = did;
     return myRule;
   }

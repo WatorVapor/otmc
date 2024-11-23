@@ -36,7 +36,7 @@ export class EvidenceChainBuilder {
     if(docType.root) {
       buildResult = this.buildEvidenceProofChainRoot_(evidence,manifest,proofTree);
     } else {
-      
+      buildResult = this.buildEvidenceProofChainEndEntity_(evidence,manifest,proofTree);      
     }
     const proofResult = {};
     return proofResult;
@@ -124,7 +124,97 @@ export class EvidenceChainBuilder {
     }
     return result;
   }
+  buildEvidenceProofChainEndEntity_(evidenceDid,manifest,proofTree) {
+    if(this.trace1) {
+      console.log('EvidenceChainBuilder::buildEvidenceProofChainEndEntity_::evidenceDid=<',evidenceDid,'>');
+    }
+    const seedKeyId = evidenceDid.id.replace('did:otmc:','');
+    if(this.trace1) {
+      console.log('EvidenceChainBuilder::buildEvidenceProofChainEndEntity_::seedKeyId=<',seedKeyId,'>');
+    }
+    const isGoodDid = this.auth_.verifyDid(evidenceDid);
+    if(this.trace1) {
+      console.log('EvidenceChainBuilder::buildEvidenceProofChainEndEntity_::isGoodDid=<',isGoodDid,'>');
+    }
+    const result = {
+      isAuthed:false,
+      isSeed:false,
+      isLeaf:false,
+    };
+    if(isGoodDid && isGoodDid.proofList){
+      const authedList = [];
+      for(const authDid of evidenceDid.authentication) {
+        const authId = authDid.split('#').slice(-1)[0];
+        authedList.push(authId);
+      }
+      if(this.trace3) {
+        console.log('EvidenceChainBuilder::buildEvidenceProofChainEndEntity_::authedList=<',authedList,'>');
+      }
+      if(isGoodDid.proofList && isGoodDid.proofList.authProof && isGoodDid.proofList.authProof.length > 0){
+        for(const authProof of isGoodDid.proofList.authProof) {
+          if(this.trace3) {
+            console.log('EvidenceChainBuilder::buildEvidenceProofChainEndEntity_::authProof=<',authProof,'>');
+            console.log('EvidenceChainBuilder::buildEvidenceProofChainEndEntity_::evidenceDid=<',evidenceDid,'>');
+          }
+          if(seedKeyId === authProof) {
+            result.isSeed = true;
+          }
+        }
+        result.isLeaf = true;
+        const authedByChain = this.collectAuthedFromeChain_(isGoodDid.proofList.authProof,manifest,proofTree);
+        if(authedByChain) {
+          result.isAuthed = true;
+          result.authedList = authedList;
+        }
+      }
+    }
+    if(this.trace3) {
+      console.log('EvidenceChainBuilder::buildEvidenceProofChainEndEntity_::result=<',result,'>');
+    }
+    return result;
+  }
+
   collectAuthedFromeChain_(authProof,manifest,proofTree) {
+    if(this.trace3) {
+      console.log('EvidenceChainBuilder::collectAuthedFromeChain_::authProof=<',authProof,'>');
+      console.log('EvidenceChainBuilder::collectAuthedFromeChain_::manifest=<',manifest,'>');
+      console.log('EvidenceChainBuilder::collectAuthedFromeChain_::proofTree=<',proofTree,'>');
+    }
+    for(const authId of authProof) {
+      const authedDid = proofTree[authId];
+      if(this.trace3) {
+        console.log('EvidenceChainBuilder::collectAuthedFromeChain_::authedDid=<',authedDid,'>');
+      }
+      if(authedDid) {
+        if(manifest && manifest.authentication) {
+          switch(manifest.authentication.policy) {
+            case 'Seed.Dogma':
+              if(authedDid.isSeed) {
+                return {
+                  isAuthed:true,
+                  conductive:false,
+                };
+              }
+              break;
+            case 'Root.Dogma':
+              if(authedDid.isRoot) {
+                return {
+                  isAuthed:true,
+                  conductive:false,
+                };
+              }
+              break;
+            case 'Proof.Chain':
+              return {
+                isAuthed:true,
+                conductive:true,
+              };
+            default:
+              break;
+          }
+        }
+      }
+    } 
     return false;
   }
 

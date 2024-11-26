@@ -147,6 +147,9 @@ export class DidDocumentStateMachine {
         console.log('DidDocumentStateMachine::caclChainAndManifest_::chainId=<',chainId,'>');
         console.log('DidDocumentStateMachine::caclChainAndManifest_::docProofResult=<',docProofResult,'>');
       }
+      if(docProofResult && docProofResult.isAuthed && docProofResult.proofList && docProofResult.authedList) {
+        this.saveAuthedDid2Tree_(chainId,didDoc,docProofResult.proofList,docProofResult.authedList);
+      }
     }
   }
   dumpState_() {
@@ -156,6 +159,28 @@ export class DidDocumentStateMachine {
         console.log('DidDocumentStateMachine::dumpState_::state.value=<',state.value,'>');
       }
     }
+  }
+  async saveAuthedDid2Tree_(chainId,didDoc,proofList,authedList) {
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::saveAuthedDid2Tree_::chainId=<',chainId,'>');
+      console.log('DidDocumentStateMachine::saveAuthedDid2Tree_::didDoc=<',didDoc,'>');
+      console.log('DidDocumentStateMachine::saveAuthedDid2Tree_::proofList=<',proofList,'>');
+      console.log('DidDocumentStateMachine::saveAuthedDid2Tree_::authedList=<',authedList,'>');
+    }
+    for(const proofKeyId of proofList) {
+      if(this.trace2) {
+        console.log('DidDocumentStateMachine::saveAuthedDid2Tree_::proofKeyId=<',proofKeyId,'>');
+      }
+      for(const authedKeyId in authedList) {
+        const authedKeyState = authedList[authedKeyId];
+        if(this.trace2) {
+          console.log('DidDocumentStateMachine::saveAuthedDid2Tree_::authedKeyId=<',authedKeyId,'>');
+          console.log('DidDocumentStateMachine::saveAuthedDid2Tree_::authedKeyState=<',authedKeyState,'>');
+        }
+        await this.evidence.putStable(chainId,proofKeyId,authedKeyId,authedKeyState);
+      }
+    }
+    this.stableTree = await this.evidence.getAllStable();
   }
 }
 

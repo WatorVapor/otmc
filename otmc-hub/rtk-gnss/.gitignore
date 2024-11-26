@@ -133,3 +133,5 @@ package-lock.json
 node_modules
 
 .store
+
+core

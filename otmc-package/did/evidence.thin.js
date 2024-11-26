@@ -90,36 +90,48 @@ export class EvidenceChainBuilder {
       isEndEntity:false,
       isSeed:false,
       isLeaf:false,
+      proofList:{},
+      authedList:{},
     };
     if(isGoodDid && isGoodDid.proofList){
       const authedList = [];
+      const authedDict = {};
       for(const authDid of evidenceDid.authentication) {
         const authId = authDid.split('#').slice(-1)[0];
         authedList.push(authId);
+        if(seedKeyId === authId) {
+          authedDict[authId] ={
+            isRoot:true,
+            isEndEntity:false,
+            isSeed:true,
+            isLeaf:false
+          }
+        } else {
+          authedDict[authId] = {
+            isRoot:true,
+            isEndEntity:false,
+            isSeed:false,
+            isLeaf:true
+          }
+        }
       }
       if(this.trace3) {
         console.log('EvidenceChainBuilder::buildEvidenceProofChainRoot_::authedList=<',authedList,'>');
+        console.log('EvidenceChainBuilder::buildEvidenceProofChainRoot_::authedDict=<',authedDict,'>');
       }
       if(isGoodDid.proofList && isGoodDid.proofList.authProof && isGoodDid.proofList.authProof.length > 0){
-        for(const authProof of isGoodDid.proofList.authProof) {
-          if(this.trace3) {
-            console.log('EvidenceChainBuilder::buildEvidenceProofChainRoot_::authProof=<',authProof,'>');
-            console.log('EvidenceChainBuilder::buildEvidenceProofChainRoot_::evidenceDid=<',evidenceDid,'>');
-          }
-          if(seedKeyId === authProof) {
-            result.isSeed = true;
-          }
-        }
+        result.isSeed = isGoodDid.proofList.authProof.includes(seedKeyId);
         if(result.isSeed) {
           result.isAuthed = true;
+          result.proofList = isGoodDid.proofList.authProof;
           if(manifest && manifest.authentication) {
             switch(manifest.authentication.policy) {
               case 'Seed.Dogma':
-                result.authedList = [seedKeyId];
+                result.authedList[seedKeyId] = authedDict[seedKeyId];
                 break;
               case 'Root.Dogma':
               case 'Proof.Chain':
-                result.authedList = authedList;
+                result.authedList = authedDict;
                 default:
                 break;
             }
@@ -128,11 +140,12 @@ export class EvidenceChainBuilder {
           result.isLeaf = true;
           const authedByChain = this.collectAuthedFromeChain_(isGoodDid.proofList.authProof,manifest,proofTree);
           if(authedByChain) {
+            result.proofList = isGoodDid.proofList.authProof;
             if(authedByChain.isAuthed) {
               result.isAuthed = true;
             }
             if(authedByChain.conductive) {
-              result.authedList = authedList;
+              result.authedList = authedDict;
             }
           }
         }
@@ -161,15 +174,34 @@ export class EvidenceChainBuilder {
       isEndEntity:true,
       isSeed:false,
       isLeaf:false,
+      proofList:{},
+      authedList:{},
     };
     if(isGoodDid && isGoodDid.proofList){
       const authedList = [];
+      const authedDict = {};
       for(const authDid of evidenceDid.authentication) {
         const authId = authDid.split('#').slice(-1)[0];
         authedList.push(authId);
+        if(seedKeyId === authId) {
+          authedDict[authId] ={
+            isRoot:false,
+            isEndEntity:true,
+            isSeed:true,
+            isLeaf:false
+          }
+        } else {
+          authedDict[authId] = {
+            isRoot:false,
+            isEndEntity:true,
+            isSeed:false,
+            isLeaf:true
+          }
+        }
       }
       if(this.trace3) {
         console.log('EvidenceChainBuilder::buildEvidenceProofChainEndEntity_::authedList=<',authedList,'>');
+        console.log('EvidenceChainBuilder::buildEvidenceProofChainEndEntity_::authedDict=<',authedDict,'>');
       }
       if(isGoodDid.proofList && isGoodDid.proofList.authProof && isGoodDid.proofList.authProof.length > 0){
         for(const authProof of isGoodDid.proofList.authProof) {
@@ -188,9 +220,10 @@ export class EvidenceChainBuilder {
         if(authedByChain) {
           if(authedByChain.isAuthed) {
             result.isAuthed = true;
+            result.proofList= isGoodDid.proofList.authProof;
           }
           if(authedByChain.conductive) {
-            result.authedList = authedList;
+            result.authedList = authedDict;
           }
         }
       }

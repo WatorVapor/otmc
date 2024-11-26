@@ -21,11 +21,39 @@ export class DidStoreEvidence {
     return stable;
   }
   async putStable(chainId,proofKeyId,authedKeyId,authedKeyState) {
-    if(this.trace2) {
+    if(this.trace0) {
       console.log('DidStoreEvidence::putStable::chainId=<',chainId,'>');
       console.log('DidStoreEvidence::putStable::proofKeyId=<',proofKeyId,'>');
       console.log('DidStoreEvidence::putStable::authedKeyId=<',authedKeyId,'>');
       console.log('DidStoreEvidence::putStable::authedKeyState=<',authedKeyState,'>');
+    }
+    const filter =  {
+      didId: chainId,
+      proofAddress: proofKeyId,
+      authedAddress: authedKeyId
+    };
+    const storedAuthedKey = await this.db.chain.where(filter).first();
+    if(this.trace0) {
+      console.log('DidStoreEvidence::putStable::storedAuthedKey=<',storedAuthedKey,'>');
+    }
+    if(storedAuthedKey) {
+      await this.db.chain.update(storedAuthedKey.autoId, {
+        root: authedKeyState.isRoot,
+        endEntity: authedKeyState.isEndEntity,
+        seed: authedKeyState.isSeed,
+        leaf: authedKeyState.isLeaf
+      });
+    } else {
+      const evidStore = {
+        didId: chainId,
+        proofAddress: proofKeyId,
+        authedAddress: authedKeyId,
+        root: authedKeyState.isRoot,
+        endEntity: authedKeyState.isEndEntity,
+        seed: authedKeyState.isSeed,
+        leaf: authedKeyState.isLeaf
+      };
+      await this.db.chain.put(evidStore);  
     }
   }
 }

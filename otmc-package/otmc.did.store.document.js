@@ -26,6 +26,10 @@ export class DidStoreDocument {
     if(this.trace) {
       console.log('DidStoreDocument::putStable::didStore=:<',didStore,'>');
     }
+    const filter = {
+      id: didStore.id,
+      hashDid: didStore.hashDid
+    };
     const storeObject = await this.db.stable.where(filter).first();
     if(this.trace) {
       console.log('DidStoreDocument::putStable::storeObject=:<',storeObject,'>');
@@ -38,6 +42,10 @@ export class DidStoreDocument {
     if(this.trace) {
       console.log('DidStoreDocument::putFickle::didStore=:<',didStore,'>');
     }
+    const filter = {
+      id: didStore.id,
+      hashDid: didStore.hashDid
+    };
     const storeObject = await this.db.fickle.where(filter).first();
     if(this.trace) {
       console.log('DidStoreDocument::putFickle::storeObject=:<',storeObject,'>');

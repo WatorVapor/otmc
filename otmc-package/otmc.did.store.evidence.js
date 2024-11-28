@@ -18,6 +18,24 @@ export class DidStoreEvidence {
   }
   async getAllStable() {
     const stable = {};
+    const allAuthed = await this.db.chain.toArray();
+    if(this.trace0) {
+      console.log('DidStoreEvidence::getAllStable::allAuthed=<',allAuthed,'>');
+    }
+    for(const authed of allAuthed) {
+      if(this.trace0) {
+        console.log('DidStoreEvidence::getAllStable::authed=<',authed,'>');
+      }
+      const authedKeyId = authed.authedAddress;
+      const filter =  {
+        authedAddress: authedKeyId
+      };
+      const storedAuthedKey = await this.db.chain.where(filter).toArray();
+      if(this.trace0) {
+        console.log('DidStoreEvidence::getAllStable::storedAuthedKey=<',storedAuthedKey,'>');
+      }
+      stable[authedKeyId] = storedAuthedKey;
+    }
     return stable;
   }
   async putStable(chainId,proofKeyId,authedKeyId,authedKeyState) {
@@ -37,23 +55,29 @@ export class DidStoreEvidence {
       console.log('DidStoreEvidence::putStable::storedAuthedKey=<',storedAuthedKey,'>');
     }
     if(storedAuthedKey) {
-      await this.db.chain.update(storedAuthedKey.autoId, {
-        root: authedKeyState.isRoot,
-        endEntity: authedKeyState.isEndEntity,
-        seed: authedKeyState.isSeed,
-        leaf: authedKeyState.isLeaf
+      const updateResult = await this.db.chain.update(storedAuthedKey.autoId, {
+        root: authedKeyState.root,
+        endEntity: authedKeyState.endEntity,
+        seed: authedKeyState.seed,
+        leaf: authedKeyState.leaf
       });
+      if(this.trace0) {
+        console.log('DidStoreEvidence::putStable::updateResult=<',updateResult,'>');
+      }
     } else {
       const evidStore = {
         didId: chainId,
         proofAddress: proofKeyId,
         authedAddress: authedKeyId,
-        root: authedKeyState.isRoot,
-        endEntity: authedKeyState.isEndEntity,
-        seed: authedKeyState.isSeed,
-        leaf: authedKeyState.isLeaf
+        root: authedKeyState.root,
+        endEntity: authedKeyState.endEntity,
+        seed: authedKeyState.seed,
+        leaf: authedKeyState.leaf
       };
-      await this.db.chain.put(evidStore);  
+      const putResult = await this.db.chain.put(evidStore);  
+      if(this.trace0) {
+        console.log('DidStoreEvidence::putStable::putResult=<',putResult,'>');
+      }
     }
   }
 }

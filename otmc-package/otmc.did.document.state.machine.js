@@ -73,8 +73,7 @@ export class DidDocumentStateMachine {
       if(this.trace0) {
         console.log('DidDocumentStateMachine::loadEvidence::this.chainState=:<',this.chainState,'>');
       }
-      //this.eeInternal.emit('did:document:evidence.chain',chain);
-      this.caclChainAndManifest_(chainId,chain);
+      await this.caclChainAndManifest_(chainId,chain);
       this.dumpState_();
     }
     this.eeInternal.emit('did:document:evidence.complete',{});
@@ -124,7 +123,7 @@ export class DidDocumentStateMachine {
     }
     return false;
   }
-  caclChainAndManifest_(chainId,chain) {
+  async caclChainAndManifest_(chainId,chain) {
     if(this.trace2) {
       console.log('DidDocumentStateMachine::caclChainAndManifest_::chainId=<',chainId,'>');
       console.log('DidDocumentStateMachine::caclChainAndManifest_::chain=<',chain,'>');
@@ -147,8 +146,8 @@ export class DidDocumentStateMachine {
         console.log('DidDocumentStateMachine::caclChainAndManifest_::chainId=<',chainId,'>');
         console.log('DidDocumentStateMachine::caclChainAndManifest_::docProofResult=<',docProofResult,'>');
       }
-      if(docProofResult && docProofResult.isAuthed && docProofResult.proofList && docProofResult.authedList) {
-        this.saveAuthedDid2Tree_(chainId,didDoc,docProofResult.proofList,docProofResult.authedList);
+      if(docProofResult && docProofResult.authed && docProofResult.proofList && docProofResult.authedList) {
+        await this.saveAuthedDid2Tree_(chainId,didDoc,docProofResult.proofList,docProofResult.authedList);
       }
     }
   }

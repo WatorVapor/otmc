@@ -85,11 +85,11 @@ export class EvidenceChainBuilder {
       console.log('EvidenceChainBuilder::buildEvidenceProofChainRoot_::isGoodDid=<',isGoodDid,'>');
     }
     const result = {
-      isAuthed:false,
-      isRoot:true,
-      isEndEntity:false,
-      isSeed:false,
-      isLeaf:false,
+      authed:false,
+      root:true,
+      endEntity:false,
+      seed:false,
+      leaf:false,
       proofList:{},
       authedList:{},
     };
@@ -101,17 +101,17 @@ export class EvidenceChainBuilder {
         authedList.push(authId);
         if(seedKeyId === authId) {
           authedDict[authId] ={
-            isRoot:true,
-            isEndEntity:false,
-            isSeed:true,
-            isLeaf:false
+            root:true,
+            endEntity:false,
+            seed:true,
+            leaf:false
           }
         } else {
           authedDict[authId] = {
-            isRoot:true,
-            isEndEntity:false,
-            isSeed:false,
-            isLeaf:true
+            root:true,
+            endEntity:false,
+            seed:false,
+            leaf:true
           }
         }
       }
@@ -120,9 +120,9 @@ export class EvidenceChainBuilder {
         console.log('EvidenceChainBuilder::buildEvidenceProofChainRoot_::authedDict=<',authedDict,'>');
       }
       if(isGoodDid.proofList && isGoodDid.proofList.authProof && isGoodDid.proofList.authProof.length > 0){
-        result.isSeed = isGoodDid.proofList.authProof.includes(seedKeyId);
-        if(result.isSeed) {
-          result.isAuthed = true;
+        result.seed = isGoodDid.proofList.authProof.includes(seedKeyId);
+        if(result.seed) {
+          result.authed = true;
           result.proofList = isGoodDid.proofList.authProof;
           if(manifest && manifest.authentication) {
             switch(manifest.authentication.policy) {
@@ -137,12 +137,12 @@ export class EvidenceChainBuilder {
             }
           }
         } else {
-          result.isLeaf = true;
+          result.leaf = true;
           const authedByChain = this.collectAuthedFromeChain_(isGoodDid.proofList.authProof,manifest,proofTree);
           if(authedByChain) {
             result.proofList = isGoodDid.proofList.authProof;
             if(authedByChain.isAuthed) {
-              result.isAuthed = true;
+              result.authed = true;
             }
             if(authedByChain.conductive) {
               result.authedList = authedDict;
@@ -169,11 +169,11 @@ export class EvidenceChainBuilder {
       console.log('EvidenceChainBuilder::buildEvidenceProofChainEndEntity_::isGoodDid=<',isGoodDid,'>');
     }
     const result = {
-      isAuthed:false,
-      isRoot:false,
-      isEndEntity:true,
-      isSeed:false,
-      isLeaf:false,
+      authed:false,
+      root:false,
+      endEntity:true,
+      seed:false,
+      leaf:false,
       proofList:{},
       authedList:{},
     };
@@ -185,17 +185,17 @@ export class EvidenceChainBuilder {
         authedList.push(authId);
         if(seedKeyId === authId) {
           authedDict[authId] ={
-            isRoot:false,
-            isEndEntity:true,
-            isSeed:true,
-            isLeaf:false
+            root:false,
+            endEntity:true,
+            seed:true,
+            leaf:false
           }
         } else {
           authedDict[authId] = {
-            isRoot:false,
-            isEndEntity:true,
-            isSeed:false,
-            isLeaf:true
+            root:false,
+            endEntity:true,
+            seed:false,
+            leaf:true
           }
         }
       }
@@ -210,16 +210,16 @@ export class EvidenceChainBuilder {
             console.log('EvidenceChainBuilder::buildEvidenceProofChainEndEntity_::evidenceDid=<',evidenceDid,'>');
           }
           if(seedKeyId === authProof) {
-            result.isSeed = true;
+            result.seed = true;
           }
         }
-        if(!result.isSeed) {
-          result.isLeaf = true;
+        if(!result.seed) {
+          result.leaf = true;
         }
         const authedByChain = this.collectAuthedFromeChain_(isGoodDid.proofList.authProof,manifest,proofTree);
         if(authedByChain) {
-          if(authedByChain.isAuthed) {
-            result.isAuthed = true;
+          if(authedByChain.authed) {
+            result.authed = true;
             result.proofList= isGoodDid.proofList.authProof;
           }
           if(authedByChain.conductive) {
@@ -249,9 +249,9 @@ export class EvidenceChainBuilder {
         if(manifest && manifest.authentication) {
           switch(manifest.authentication.policy) {
             case 'Seed.Dogma':
-              if(authedDid.isSeed) {
+              if(authedDid.seed) {
                 return {
-                  isAuthed:true,
+                  authed:true,
                   conductive:false,
                 };
               }
@@ -259,14 +259,14 @@ export class EvidenceChainBuilder {
             case 'Root.Dogma':
               if(authedDid.isRoot) {
                 return {
-                  isAuthed:true,
+                  authed:true,
                   conductive:false,
                 };
               }
               break;
             case 'Proof.Chain':
               return {
-                isAuthed:true,
+                authed:true,
                 conductive:true,
               };
             default:

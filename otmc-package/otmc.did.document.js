@@ -290,7 +290,7 @@ export class DidDocument {
       }
       this.eeOut.emit('did:document',didDoc);
       this.didDoc_ = didDoc;
-      this.eeInternal.emit('did:document',{didDoc:this});
+      this.eeInternal.emit('did:document',{didDoc:didDoc});
 
       if(this.didDoc_) {
         let manifest = await this.resolver.manifest(this.didDoc_.id);

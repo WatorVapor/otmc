@@ -49,6 +49,12 @@ export class DidDocumentStateMachine {
       }
       self.loadEvidence();
     });
+    this.eeInternal.on('did:document',async (evt)=>{
+      if(self.trace0) {
+        console.log('DidDocumentStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.caclDidDocument(evt.didDoc);
+    });
   }
   async loadEvidence() {
     this.stableTree = await this.evidence.getAllStable();
@@ -78,6 +84,21 @@ export class DidDocumentStateMachine {
     }
     this.eeInternal.emit('did:document:evidence.complete',{});
     return;
+  }
+  async caclDidDocument(didDoc) {
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::caclDidDocument::didDoc=<',didDoc,'>');
+    }
+    const didAddress = didDoc.id;
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::caclDidDocument::didAddress=<',didAddress,'>');
+    }
+    const manifest = await this.loadDidRuleFromManifest_(didAddress);
+    const stableTreeOfAddress = await this.evidence.getAddressStable(didAddress);
+    const docProofResult = this.builder.caclDidDocument(didDoc,manifest,stableTreeOfAddress);
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::caclDidDocument::docProofResult=<',docProofResult,'>');
+    }
   }
 
   async loadEvidenceChain_() {

@@ -38,6 +38,32 @@ export class DidStoreEvidence {
     }
     return stable;
   }
+  async getAddressStable(didAddress) {
+    const stable = {};
+    const filterAddress =  {
+      didId: didAddress
+    };
+    const allAuthed = await this.db.chain.where(filterAddress).toArray();
+    if(this.trace0) {
+      console.log('DidStoreEvidence::getAddressStable::allAuthed=<',allAuthed,'>');
+    }
+    for(const authed of allAuthed) {
+      if(this.trace0) {
+        console.log('DidStoreEvidence::getAddressStable::authed=<',authed,'>');
+      }
+      const authedKeyId = authed.authedAddress;
+      const filter =  {
+        didId: didAddress,
+        authedAddress: authedKeyId
+      };
+      const storedAuthedKey = await this.db.chain.where(filter).toArray();
+      if(this.trace0) {
+        console.log('DidStoreEvidence::getAddressStable::storedAuthedKey=<',storedAuthedKey,'>');
+      }
+      stable[authedKeyId] = storedAuthedKey;
+    }
+    return stable;
+  }  
   async putStable(chainId,proofKeyId,authedKeyId,authedKeyState) {
     if(this.trace0) {
       console.log('DidStoreEvidence::putStable::chainId=<',chainId,'>');

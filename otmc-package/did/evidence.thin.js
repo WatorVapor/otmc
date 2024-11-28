@@ -277,6 +277,32 @@ export class EvidenceChainBuilder {
     } 
     return false;
   }
+  caclDidDocument(didDoc,manifest,stableTreeOfAddress) {
+    if(this.trace1) {
+      console.log('EvidenceChainBuilder::caclDidDocument::didDoc=<',didDoc,'>');
+      console.log('EvidenceChainBuilder::caclDidDocument::manifest=<',manifest,'>');
+      console.log('EvidenceChainBuilder::caclDidDocument::stableTreeOfAddress=<',stableTreeOfAddress,'>');
+    }
+    const isGoodDid = this.auth_.verifyDid(didDoc);
+    if(this.trace1) {
+      console.log('EvidenceChainBuilder::caclDidDocument::isGoodDid=<',isGoodDid,'>');
+    }
+    if(isGoodDid && isGoodDid.proofList && isGoodDid.proofList.authProof){ 
+      for(const authProof of isGoodDid.proofList.authProof) {
+        if(this.trace1) {
+          console.log('EvidenceChainBuilder::caclDidDocument::authProof=<',authProof,'>');
+        }
+        const authedDid = stableTreeOfAddress[authProof];
+        if(this.trace1) {
+          console.log('EvidenceChainBuilder::caclDidDocument::authedDid=<',authedDid,'>');
+        }
+        if(authedDid) {
+
+        }
+      }
+    }
+    return false;
+  }
 
   
   tryMergeStoredDidDocument() {

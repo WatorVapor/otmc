@@ -287,18 +287,25 @@ export class EvidenceChainBuilder {
     if(this.trace1) {
       console.log('EvidenceChainBuilder::caclDidDocument::isGoodDid=<',isGoodDid,'>');
     }
-    if(isGoodDid && isGoodDid.proofList && isGoodDid.proofList.authProof){ 
-      for(const authProof of isGoodDid.proofList.authProof) {
-        if(this.trace1) {
-          console.log('EvidenceChainBuilder::caclDidDocument::authProof=<',authProof,'>');
-        }
-        const authedDid = stableTreeOfAddress[authProof];
-        if(this.trace1) {
-          console.log('EvidenceChainBuilder::caclDidDocument::authedDid=<',authedDid,'>');
-        }
-        if(authedDid) {
-
-        }
+    if(isGoodDid && isGoodDid.proofList && isGoodDid.proofList.authProof) {
+      return this.judgeDidAuthProof_(isGoodDid.proofList.authProof,manifest,stableTreeOfAddress); 
+    }
+    return false;
+  }
+  judgeDidAuthProof_(authProofList,manifest,stableTreeOfAddress) {
+    if(this.trace1) {
+      console.log('EvidenceChainBuilder::judgeDidAuthProof_::authProofList=<',authProofList,'>');
+    }
+    for(const authProof of authProofList) {
+      if(this.trace1) {
+        console.log('EvidenceChainBuilder::judgeDidAuthProof_::authProof=<',authProof,'>');
+      }
+      const authedDid = stableTreeOfAddress[authProof];
+      if(this.trace1) {
+        console.log('EvidenceChainBuilder::judgeDidAuthProof_::authedDid=<',authedDid,'>');
+      }
+      if(authedDid) {
+        return authedDid;
       }
     }
     return false;

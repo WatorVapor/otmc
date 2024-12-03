@@ -94,8 +94,12 @@ export class DidDocumentStateMachine {
       console.log('DidDocumentStateMachine::caclDidDocument::didAddress=<',didAddress,'>');
     }
     const manifest = await this.loadDidRuleFromManifest_(didAddress);
-    const stableTreeOfAddress = await this.evidence.getAddressStable(didAddress);
-    const docProofResult = this.builder.caclDidDocument(didDoc,manifest,stableTreeOfAddress);
+    const concernAddress = Array.from(new Set(didDoc.controller.concat([didDoc.id])));
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::caclDidDocument::concernAddress=<',concernAddress,'>');
+    }
+    const stableTree = await this.evidence.getAddressStable(concernAddress);
+    const docProofResult = this.builder.caclDidDocument(didDoc,manifest,stableTree);
     if(this.trace2) {
       console.log('DidDocumentStateMachine::caclDidDocument::docProofResult=<',docProofResult,'>');
     }

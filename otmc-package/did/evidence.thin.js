@@ -295,7 +295,10 @@ export class EvidenceChainBuilder {
   judgeDidAuthProof_(authProofList,manifest,stableTreeOfAddress) {
     if(this.trace1) {
       console.log('EvidenceChainBuilder::judgeDidAuthProof_::authProofList=<',authProofList,'>');
+      console.log('EvidenceChainBuilder::judgeDidAuthProof_::manifest=<',manifest,'>');
+      console.log('EvidenceChainBuilder::judgeDidAuthProof_::stableTreeOfAddress=<',stableTreeOfAddress,'>');
     }
+    const allAuthed = [];
     for(const authProof of authProofList) {
       if(this.trace1) {
         console.log('EvidenceChainBuilder::judgeDidAuthProof_::authProof=<',authProof,'>');
@@ -305,10 +308,14 @@ export class EvidenceChainBuilder {
         console.log('EvidenceChainBuilder::judgeDidAuthProof_::authedDid=<',authedDid,'>');
       }
       if(authedDid) {
-        return authedDid;
+        allAuthed.push(authedDid);
       }
     }
-    return false;
+    const uniqueAuthed = Array.from(new Set(allAuthed)).flat();
+    if(this.trace1) {
+      console.log('EvidenceChainBuilder::judgeDidAuthProof_::uniqueAuthed=<',uniqueAuthed,'>');
+    }
+    return { proofBy:uniqueAuthed };
   }
 
   

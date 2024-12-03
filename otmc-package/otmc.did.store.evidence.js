@@ -64,7 +64,11 @@ export class DidStoreEvidence {
         if(this.trace0) {
           console.log('DidStoreEvidence::getAddressStable::storedAuthedKey=<',storedAuthedKey,'>');
         }
-        stable[authedKeyId] = storedAuthedKey;
+        if(stable[authedKeyId]) {
+          stable[authedKeyId] = stable[authedKeyId].concat(storedAuthedKey);
+        } else {
+          stable[authedKeyId] = storedAuthedKey;
+        }
       }
     }
     return stable;

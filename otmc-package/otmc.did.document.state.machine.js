@@ -103,6 +103,14 @@ export class DidDocumentStateMachine {
     if(this.trace2) {
       console.log('DidDocumentStateMachine::caclDidDocument::docProofResult=<',docProofResult,'>');
     }
+    const myAddress = this.auth.address();
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::caclDidDocument::myAddress=<',myAddress,'>');
+    }
+    const myInAuthed = stableTree[myAddress];
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::caclDidDocument::myInAuthed=<',myInAuthed,'>');
+    }
   }
 
   async loadEvidenceChain_() {

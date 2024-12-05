@@ -107,9 +107,12 @@ export class DidDocumentStateMachine {
     if(this.trace2) {
       console.log('DidDocumentStateMachine::caclDidDocument::myAddress=<',myAddress,'>');
     }
-    const myInAuthed = stableTree[myAddress];
+    let seed = false;
+    if(didAddress.endsWith(myAddress)) {
+      seed = true;
+    }
     if(this.trace2) {
-      console.log('DidDocumentStateMachine::caclDidDocument::myInAuthed=<',myInAuthed,'>');
+      console.log('DidDocumentStateMachine::caclDidDocument::seed=<',seed,'>');
     }
   }
 

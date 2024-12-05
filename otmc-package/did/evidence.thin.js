@@ -288,7 +288,18 @@ export class EvidenceChainBuilder {
       console.log('EvidenceChainBuilder::caclDidDocument::isGoodDid=<',isGoodDid,'>');
     }
     if(isGoodDid && isGoodDid.proofList && isGoodDid.proofList.authProof) {
-      return this.judgeDidAuthProof_(isGoodDid.proofList.authProof,manifest,stableTreeOfAddress); 
+      const result = {}
+      result.proofBy = this.judgeDidAuthProof_(isGoodDid.proofList.authProof,manifest,stableTreeOfAddress);
+      const chainType = this.judgeEvidenceDidType_(didDoc);
+      if(this.trace1) {
+        console.log('EvidenceChainBuilder::caclDidDocument::chainType=<',chainType,'>');
+      }
+      if(chainType.root) {
+        result.rootChain = true;
+      } else {
+        result.rootChain = false;
+      }
+      return result;
     }
     return false;
   }
@@ -315,7 +326,7 @@ export class EvidenceChainBuilder {
     if(this.trace1) {
       console.log('EvidenceChainBuilder::judgeDidAuthProof_::uniqueAuthed=<',uniqueAuthed,'>');
     }
-    return { proofBy:uniqueAuthed };
+    return uniqueAuthed;
   }
 
   

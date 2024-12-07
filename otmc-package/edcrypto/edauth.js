@@ -205,7 +205,8 @@ export class EdAuth {
       console.log('EdAuth::verifyDid::hashCalcledB64=<',hashCalcledB64,'>');
     }
     const results = {
-      hashCalcledB64:hashCalcledB64
+      hashCalcledB64:hashCalcledB64,
+      prooferAddress:[]
     }
     for(const proof of didDoc.proof) {
       if(this.trace2) {
@@ -226,6 +227,7 @@ export class EdAuth {
         console.log('EdAuth::verifyDid::verifyResult=<',verifyResult,'>');
         return false;        
       }
+      results.prooferAddress.push(proof.creator);
     }
     results.proofList = this.collectVerificationMember_(didDoc);
     if(this.trace2) {
@@ -475,6 +477,13 @@ export class EdAuth {
     return Object.assign(resultAuth, resultCapability);
   }
 
+  /**
+   * @function collectAuthentication_
+   * @description collects the proofs that is in authentication members.
+   * @param {Array} proofs - array of proofs
+   * @param {Array} authentication - array of member identifiers in authentication
+   * @returns {Object} result - an object with property authProof which is an array of member identifiers that are in authentication
+   */
   collectAuthentication_(proofs,authentication) {
     if(this.trace) {
       console.log('EdAuth::collectAuthentication_::proofs=<',proofs,'>');

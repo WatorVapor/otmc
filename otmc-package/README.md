@@ -33,39 +33,39 @@ C4Deployment
 
 ```
 
-## DidDocument root, end entity, seed, fork:
+## DidDocument ctrler, ctrlee, seed, bud:
 
 ```mermaid
 C4Deployment
-    Deployment_Node(didRoot, "Did Document Root") {
+    Deployment_Node(didCtrler, "Did Document Ctrler") {
         Container(didAddress, "Did Address","id:'did:otmc:otm...'")
         Deployment_Node(authhMembers, "authentication:[]") {
             Container(authMember, "Did Auth Member 1","'did:otmc:otm...#otm...'")
             Container(authMemberSeed, "Did Auth Seed Member ...","'did:otmc:otm...#otm...'")
-            Container(authMemberFork, "Did Auth Fork Member ...","'did:otmc:otm...#otm...'")
+            Container(authMemberbud, "Did Auth bud Member ...","'did:otmc:otm...#otm...'")
         }
         Rel(didAddress, authMember,  "${didAddress}#${keyAddress}", "")
-        BiRel(authMemberSeed, authMemberFork,  "IF 'Member keyAddress' = 'didAddress' -> Seed  ELSE Fork", "")
-        UpdateRelStyle(authMemberSeed, authMemberFork, "red", "blue")
+        BiRel(authMemberSeed, authMemberbud,  "IF 'Member keyAddress' = 'didAddress' -> Seed  ELSE bud", "")
+        UpdateRelStyle(authMemberSeed, authMemberbud, "red", "blue")
         Deployment_Node(controllers, "controller:[]") {
             Container(controller, "Did controller Member 1","'did:otmc:otm...'")
         }
-        Rel(controller, didAddress,  "use mine did in controller,root", "")
-        UpdateRelStyle(controller, didAddress, "red", "blue","-40","-40")
+        Rel(controller, didAddress,  "use mine did in controller,didCtrler", "")
+        UpdateRelStyle(controller, didAddress, "red", "red","-40","-40")
     }
 
-    Deployment_Node(didEndEntity, "Did Document End Entity") {
+    Deployment_Node(diddidCtrlee, "Did Document didCtrlee") {
         Container(didAddressEE, "Did Address","id:'did:otmc:otm...'")
-        Deployment_Node(authhMembersEE, "authentication:[]") {
-            Container(authMemberEE, "Did Auth Member 1","'did:otmc:otm...#otm...'")
-            Container(authMemberEE2, "Did Auth Member ...","'did:otmc:otm...#otm...'")
+        Deployment_Node(authhMembersLE, "authentication:[]") {
+            Container(authMemberLE, "Did Auth Member 1","'did:otmc:otm...#otm...'")
+            Container(authMemberLE2, "Did Auth Member ...","'did:otmc:otm...#otm...'")
         }
-        Rel(didAddressEE, authMemberEE,  "${didAddress}#${keyAddress}", "")
-        Deployment_Node(controllersEE, "controller:[]") {
-            Container(controllerEE, "Did controller Member 1","'did:otmc:otm...'")
+        Rel(didAddressEE, authMemberLE,  "${didAddress}#${keyAddress}", "")
+        Deployment_Node(controllersLE, "controller:[]") {
+            Container(controllerLE, "Did controller Member 1","'did:otmc:otm...'")
         }
-        Rel(controllerEE, didAddress,  "Use other did in controller,end entity ", "")
-        UpdateRelStyle(controllerEE, didAddress, "red", "blue","-40","-40")
+        Rel(controllerLE, didAddress,  "Use other did in controller,didCtrlee ", "")
+        UpdateRelStyle(controllerLE, didAddress, "red", "red","-40","-40")
 
     }
 
@@ -82,11 +82,11 @@ C4Deployment
         Deployment_Node(authhMembers, "authentication:[]") {
             Container(authMember, "Did Auth Member 1","'did:otmc:otm...#otm...'")
             Container(authMemberSeed, "Did Auth Seed Member ...","'did:otmc:otm...#otm...'")
-            Container(authMemberFork, "Did Auth Fork Member ...","'did:otmc:otm...#otm...'")
+            Container(authMemberBud, "Did Auth Bud Member ...","'did:otmc:otm...#otm...'")
         }
         Rel(didAddress, authMember,  "${didAddress}#${keyAddress}", "")
-        BiRel(authMemberSeed, authMemberFork,  "IF 'Member keyAddress' = 'didAddress' -> Seed  ELSE Fork", "")
-        UpdateRelStyle(authMemberSeed, authMemberFork, "red", "blue")
+        BiRel(authMemberSeed, authMemberBud,  "IF 'Member keyAddress' = 'didAddress' -> Seed  ELSE Bud", "")
+        UpdateRelStyle(authMemberSeed, authMemberBud, "red", "blue")
         Deployment_Node(controllers, "controller:[]") {
             Container(controller, "Did controller Member 1","'did:otmc:otm...'")
         }

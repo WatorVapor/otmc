@@ -13,7 +13,7 @@ export class DidStoreEvidence {
     this.debug = true;
     this.db = new Dexie(StoreKey.open.did.chain.dbName);
     this.db.version(this.version).stores({
-      chain: '++autoId,didId,proofAddress,authedAddress,root,endEntity,seed,leaf'
+      chain: '++autoId,didId,proofAddress,authAddress,ctrler,ctrlee,seed,bud'
     });
   }
   async getAllStable() {
@@ -26,9 +26,9 @@ export class DidStoreEvidence {
       if(this.trace0) {
         console.log('DidStoreEvidence::getAllStable::authed=<',authed,'>');
       }
-      const authedKeyId = authed.authedAddress;
+      const authedKeyId = authed.authAddress;
       const filter =  {
-        authedAddress: authedKeyId
+        authAddress: authedKeyId
       };
       const storedAuthedKey = await this.db.chain.where(filter).toArray();
       if(this.trace0) {
@@ -55,10 +55,10 @@ export class DidStoreEvidence {
         if(this.trace0) {
           console.log('DidStoreEvidence::getAddressStable::authed=<',authed,'>');
         }
-        const authedKeyId = authed.authedAddress;
+        const authedKeyId = authed.authAddress;
         const filter =  {
           didId: didAddress,
-          authedAddress: authedKeyId
+          authAddress: authedKeyId
         };
         const storedAuthedKey = await this.db.chain.where(filter).toArray();
         if(this.trace0) {
@@ -83,7 +83,7 @@ export class DidStoreEvidence {
     const filter =  {
       didId: chainId,
       proofAddress: proofKeyId,
-      authedAddress: authedKeyId
+      authAddress: authedKeyId
     };
     const storedAuthedKey = await this.db.chain.where(filter).first();
     if(this.trace0) {
@@ -91,8 +91,8 @@ export class DidStoreEvidence {
     }
     if(storedAuthedKey) {
       const updateResult = await this.db.chain.update(storedAuthedKey.autoId, {
-        root: authedKeyState.root,
-        endEntity: authedKeyState.endEntity,
+        ctrler: authedKeyState.ctrler,
+        ctrlee: authedKeyState.ctrlee,
         seed: authedKeyState.seed,
         leaf: authedKeyState.leaf
       });
@@ -103,11 +103,11 @@ export class DidStoreEvidence {
       const evidStore = {
         didId: chainId,
         proofAddress: proofKeyId,
-        authedAddress: authedKeyId,
-        root: authedKeyState.root,
-        endEntity: authedKeyState.endEntity,
+        authAddress: authedKeyId,
+        ctrler: authedKeyState.ctrler,
+        ctrlee: authedKeyState.ctrlee,
         seed: authedKeyState.seed,
-        leaf: authedKeyState.leaf
+        bud: authedKeyState.bud
       };
       const putResult = await this.db.chain.put(evidStore);  
       if(this.trace0) {

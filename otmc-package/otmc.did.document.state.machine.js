@@ -42,12 +42,8 @@ export class DidDocumentStateMachine {
       self.document = new DidStoreDocument();
       self.manifest = new DidStoreManifest();
       self.evidence = new DidStoreEvidence();
-    });
-    this.eeInternal.on('did.evidence.load.storage',async (evt)=>{
-      if(self.trace0) {
-        console.log('DidDocumentStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
-      }
-      self.loadEvidence();
+
+      self.loadEvidence();      
     });
     this.eeInternal.on('did:document',async (evt)=>{
       if(self.trace0) {

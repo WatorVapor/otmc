@@ -327,22 +327,28 @@ export class DidDocument {
     }
   }
   createSeedRoot(controls,root) {
-    const documentObj = this.createSeedRootDidDoc_(controls,root);
+    const manifest = DIDManifest.ruleChainGuestClose();
+    if(this.trace) {
+      console.log('DidDocument::createSeedRoot::manifest=:<',manifest,'>');
+    }
+    const documentObj = this.createSeedRootDidDoc_(controls,root,manifest);
     if(this.trace) {
       console.log('DidDocument::createSeedRoot::documentObj=:<',documentObj,'>');
     }
     this.resolver.storeStableDid(documentObj);
-    const manifest = DIDManifest.ruleChainGuestOpen(documentObj.id);
     this.resolver.storeManifest(manifest,documentObj.id);
     return documentObj;
   }
   createSeedEndEntity(controls) {
-    const documentObj = this.createSeedRootDidDoc_(controls,false);
+    const manifest = DIDManifest.ruleChainGuestClose();
+    if(this.trace) {
+      console.log('DidDocument::createSeedEndEntity::manifest=:<',manifest,'>');
+    }
+    const documentObj = this.createSeedRootDidDoc_(controls,false,manifest);
     if(this.trace) {
       console.log('DidDocument::createSeedEndEntity::documentObj=:<',documentObj,'>');
     }
     this.resolver.storeFickleDid(documentObj);
-    const manifest = DIDManifest.ruleChainGuestOpen(documentObj.id);
     this.resolver.storeManifest(manifest,documentObj.id);
     return documentObj;
   }
@@ -1028,9 +1034,11 @@ export class DidDocument {
 
 
 
-  createSeedRootDidDoc_(controls,root) {
+  createSeedRootDidDoc_(controls,root,manifest) {
     if(this.trace) {
       console.log('DidDocument::createSeedRootDidDoc_::controls=:<',controls,'>');
+      console.log('DidDocument::createSeedRootDidDoc_::root=:<',root,'>');
+      console.log('DidDocument::createSeedRootDidDoc_::manifest=:<',manifest,'>');
     }
     if(this.trace) {
       console.log('DidDocument::createSeedRootDidDoc_::this.otmc=:<',this.otmc,'>');
@@ -1048,7 +1056,7 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::createSeedRootDidDoc_::uniqControls=:<',uniqControls,'>');
     }
-    this.seed = new DIDSeedDocument(this.auth,this.recovery,uniqControls);
+    this.seed = new DIDSeedDocument(this.auth,this.recovery,uniqControls,manifest);
     if(this.trace) {
       console.log('DidDocument::createSeedRootDidDoc_::this.seed=:<',this.seed,'>');
     }

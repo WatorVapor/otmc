@@ -1,6 +1,13 @@
+import mqtt from "mqtt";
+
 class DIDConfig {
   static method = 'otmc';
-  static context = 'https://otmc.wator.xyz/ns/did';
+  static context = [ 
+    'https://www.w3.org/ns/did/v1',
+     {
+      otmc:'https://otmc.wator.xyz/ns/did'
+     }
+  ];
   static end_point = 'wss://mqtt.wator.xyz/jwt/mqtt/otmc/public/ws';
   static version = '1.0';
   constructor() {
@@ -10,10 +17,11 @@ class DIDConfig {
 export class DIDSeedDocument {
   static trace = false;
   static debug = true;
-  constructor(auth,recovery,controllers) {
+  constructor(auth,recovery,controllers,manifest) {
     this.auth_ = auth;
     this.recovery_ = recovery;
-    this.didCode_ = `did:${DIDConfig.method}:${auth.address()}`;;
+    this.didCode_ = `did:${DIDConfig.method}:${auth.address()}`;
+    this.manifest_ = manifest;
     if(controllers) {
       this.controllers_ = [controllers].flat();
     } else {
@@ -25,7 +33,7 @@ export class DIDSeedDocument {
   }
   document() {
     const didDoc = {
-      '@context':`${DIDConfig.context}`,
+      '@context':JSON.parse(JSON.stringify(DIDConfig.context)),
       id:this.didCode_,
       controller:this.controllers_,
       version:`${DIDConfig.version}`,
@@ -52,6 +60,14 @@ export class DIDSeedDocument {
        `${this.didCode_}#${this.recovery_.address()}`,
       ],
       capabilityInvocation:[],
+      otmc: {
+        manifest:{
+          did: this.manifest_.did,
+        },
+        mqtt: {
+          acl: this.manifest_.acl,
+        },
+      },
       service: [
         {
           id:`${this.didCode_}#${this.auth_.address()}`,
@@ -90,7 +106,7 @@ export class DIDGuestGuestDocument {
   }
   document() {
     const didDoc = {
-      '@context':`${DIDConfig.context}`,
+      '@context':JSON.parse(JSON.stringify(DIDConfig.context)),
       id:this.address(),
       controller:[],
       version:`${DIDConfig.version}`,
@@ -107,6 +123,7 @@ export class DIDGuestGuestDocument {
       authentication:[],
       recovery:[ ],
       capabilityInvocation:[ ],
+      otmc: {},
       service: [
         {
           id:`${this.address()}#${this.auth_.address()}`,
@@ -142,7 +159,7 @@ export class DIDGuestAuthDocument {
   }
   document() {
     const didDoc = {
-      '@context':`${DIDConfig.context}`,
+      '@context':JSON.parse(JSON.stringify(DIDConfig.context)),
       id:this.address(),
       controller:[],
       version:`${DIDConfig.version}`,
@@ -161,6 +178,7 @@ export class DIDGuestAuthDocument {
       ],
       recovery:[ ],
       capabilityInvocation:[ ],
+      otmc: {},
       service: [
         {
           id:`${this.address()}#${this.auth_.address()}`,
@@ -195,7 +213,7 @@ export class DIDGuestCapabilityDocument {
   }
   document() {
     const didDoc = {
-      '@context':`${DIDConfig.context}`,
+      '@context':JSON.parse(JSON.stringify(DIDConfig.context)),
       id:this.address(),
       controller:[],
       version:`${DIDConfig.version}`,
@@ -214,6 +232,7 @@ export class DIDGuestCapabilityDocument {
       capabilityInvocation:[
         `${this.address()}#${this.auth_.address()}`,
       ],
+      otmc: {},
       service: [
         {
           id:`${this.address()}#${this.auth_.address()}`,

@@ -2,7 +2,6 @@ export class DIDManifest {
   static trace = false;
   static debug = true;
   static dogmaRuleSeed = {
-    id:'',
     did: {
       authentication:{
         policy:'Seed.Dogma'
@@ -38,7 +37,6 @@ export class DIDManifest {
     }
   };
   static dogmaRuleRoot = {
-    id:'',
     did: {
       authentication:{
         policy:'Root.Dogma'
@@ -74,8 +72,7 @@ export class DIDManifest {
     }
   };
   static chainRuleGuestClose = {
-    id:'',
-    diddoc: {
+    did: {
       authentication:{
         policy:'Proof.Chain'
       },
@@ -110,8 +107,7 @@ export class DIDManifest {
     }
   };
   static chainRuleGuestOpen = {
-    id:'',
-    diddoc: {
+    did: {
       authentication:{
         policy:'Proof.Chain'
       },
@@ -167,31 +163,35 @@ export class DIDManifest {
    * @param {string} did - The did to generate a manifest rule for.
    * @returns {Object} A manifest rule for the given did.
    */
-  static ruleDogmaSeed(did) {
+  static ruleDogmaSeed() {
     const myRule = JSON.parse(JSON.stringify(DIDManifest.dogmaRuleSeed));
-    myRule.id = did;
     return myRule;
   }
   /**
    * @function
    * @description Returns a manifest rule for dogmaRoot of the given did.
-   * @param {string} did - The did to generate a manifest rule for.
    * @returns {Object} A manifest rule for the given did.
    */
-  static ruleDogmaRoot(did) {
+  static ruleDogmaRoot() {
     const myRule = JSON.parse(JSON.stringify(DIDManifest.dogmaRuleRoot));
-    myRule.id = did;
     return myRule;
   }
   /**
    * @function
    * @description Returns a manifest rule for chain guest close of the given did.
-   * @param {string} did - The did to generate a manifest rule for.
    * @returns {Object} A manifest rule for the given did.
    */
-  static ruleChainGuestClose(did) {
+  static ruleChainGuestClose() {
     const myRule = JSON.parse(JSON.stringify(DIDManifest.chainRuleGuestClose));
-    myRule.id = did;
+    return myRule;
+  }
+  /**
+   * @function
+   * @description Returns a manifest rule for chain guest close of the given did.
+   * @returns {Object} A manifest rule for the given did.
+   */
+  static ruleChainGuestOpen() {
+    const myRule = JSON.parse(JSON.stringify(DIDManifest.chainRuleGuestOpen));
     return myRule;
   }
 }

@@ -73,7 +73,7 @@ C4Deployment
 
 ```
 
-## DidDocument Proof (in progress):
+## DidDocument And Team Manifest:
 
 ```mermaid
 C4Deployment

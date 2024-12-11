@@ -49,7 +49,9 @@ export class DidDocumentStateMachine {
       if(self.trace0) {
         console.log('DidDocumentStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      self.caclDidDocument(evt.didDoc);
+      if(evt.didDoc) {
+        self.caclDidDocument(evt.didDoc);
+      }
     });
   }
   async loadEvidence() {
@@ -89,13 +91,12 @@ export class DidDocumentStateMachine {
     if(this.trace2) {
       console.log('DidDocumentStateMachine::caclDidDocument::didAddress=<',didAddress,'>');
     }
-    const manifest = await this.loadDidRuleFromManifest_(didAddress);
     const concernAddress = Array.from(new Set(didDoc.controller.concat([didDoc.id])));
     if(this.trace2) {
       console.log('DidDocumentStateMachine::caclDidDocument::concernAddress=<',concernAddress,'>');
     }
     const stableTree = await this.evidence.getAddressStable(concernAddress);
-    const docProofResult = this.builder.caclDidDocument(didDoc,manifest,stableTree);
+    const docProofResult = this.builder.caclDidDocument(didDoc,stableTree);
     if(this.trace2) {
       console.log('DidDocumentStateMachine::caclDidDocument::docProofResult=<',docProofResult,'>');
     }
@@ -133,10 +134,8 @@ export class DidDocumentStateMachine {
     }
     const evidences = {};
     for(const didAddress in evidencesOfAddress) {
-      const manifest = await this.loadDidRuleFromManifest_(didAddress);
       evidences[didAddress] = {
-        did:evidencesOfAddress[didAddress],
-        manifest:manifest
+        did:evidencesOfAddress[didAddress]
       }
     }
     if(this.trace2) {
@@ -145,16 +144,6 @@ export class DidDocumentStateMachine {
     return evidences;
   }  
   
-  async loadDidRuleFromManifest_(didId) {
-    const manifestTop = await this.manifest.getTop(didId);
-    if(this.trace2) {
-      console.log('DidDocumentStateMachine::loadDidRuleFromManifest_::manifestTop=<',manifestTop,'>');
-    }
-    if(manifestTop && manifestTop.diddoc) {
-      return manifestTop.diddoc;
-    }
-    return false;
-  }
   async caclChainAndManifest_(chainId,chain) {
     if(this.trace2) {
       console.log('DidDocumentStateMachine::caclChainAndManifest_::chainId=<',chainId,'>');

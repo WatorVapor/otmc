@@ -22,15 +22,18 @@ export class EvidenceChainBuilder {
     this.didRule_ = {};
     this.authsOfDid_ = {};
   }
-  buildEvidenceProof(evidence,manifest,proofTree) {
+  buildEvidenceProof(evidence,proofTree) {
     if(this.trace1) {
       console.log('EvidenceChainBuilder::buildEvidenceProof::evidence=<',evidence,'>');
-      console.log('EvidenceChainBuilder::buildEvidenceProof::manifest=<',manifest,'>');
       console.log('EvidenceChainBuilder::buildEvidenceProof::proofTree=<',proofTree,'>');
     }
     const docType = this.judgeEvidenceDidType_(evidence);
     if(this.trace1) {
       console.log('EvidenceChainBuilder::buildEvidenceProof::docType=<',docType,'>');
+    }
+    const manifest = evidence.otmc.manifest;
+    if(this.trace1) {
+      console.log('EvidenceChainBuilder::buildEvidenceProof::manifest=<',manifest,'>');
     }
     let buildResult = false;
     if(docType.ctrler) {
@@ -277,15 +280,18 @@ export class EvidenceChainBuilder {
     } 
     return false;
   }
-  caclDidDocument(didDoc,manifest,stableTreeOfAddress) {
+  caclDidDocument(didDoc,stableTreeOfAddress) {
     if(this.trace1) {
       console.log('EvidenceChainBuilder::caclDidDocument::didDoc=<',didDoc,'>');
-      console.log('EvidenceChainBuilder::caclDidDocument::manifest=<',manifest,'>');
       console.log('EvidenceChainBuilder::caclDidDocument::stableTreeOfAddress=<',stableTreeOfAddress,'>');
     }
     const isGoodDid = this.auth_.verifyDid(didDoc);
     if(this.trace1) {
       console.log('EvidenceChainBuilder::caclDidDocument::isGoodDid=<',isGoodDid,'>');
+    }
+    const manifest = didDoc.otmc.manifest;
+    if(this.trace1) {
+      console.log('EvidenceChainBuilder::caclDidDocument::manifest=<',manifest,'>');
     }
     if(isGoodDid && isGoodDid.proofList && isGoodDid.proofList.authProof) {
       const result = {}

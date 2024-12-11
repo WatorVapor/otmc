@@ -35,7 +35,7 @@ export class DidDocStateMachine {
       if(self.trace0) {
         console.log('DidDocStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      if(evt.didDoc.auth && evt.didDoc.didDoc_) {
+      if(evt.didDoc && evt.didDoc.auth && evt.didDoc.didDoc_) {
         self.chain = new EvidenceChain(evt.didDoc.auth,evt.didDoc.didDoc_,StoreKey);
         if(self.trace0) {
           console.log('DidDocStateMachine::ListenEventEmitter_::this.stm=:<',this.stm,'>');
@@ -121,7 +121,7 @@ const didDocStateTable = {
       'init': {
         actions: ['init']
       },
-      'chain.load':'evidenceChainReady',
+      //'chain.load':'evidenceChainReady',
       'manifest.lack':'evidenceChainWithoutManifest',
     } 
   },

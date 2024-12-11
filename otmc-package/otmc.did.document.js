@@ -21,7 +21,6 @@ import {
   DIDSeedDocument,
   DIDGuestGuestDocument,
   DIDGuestAuthDocument,
-  DIDGuestCapabilityDocument,
   DIDExpandDocument,
   DIDAscentDocument,
   DIDMergeDocument

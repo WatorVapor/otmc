@@ -11,10 +11,12 @@ export class DidStoreManifest {
     this.trace2 = false;
     this.trace = true;;
     this.debug = true;
+    /*
     this.db = new Dexie(StoreKey.open.did.manifest.dbName);
     this.db.version(this.version).stores({
       manifest: '++autoId,did,hash,origManifest'
     });
+    */
   }
   put(key,value,option,cb) {
     this.store.put(key,value,option,cb);

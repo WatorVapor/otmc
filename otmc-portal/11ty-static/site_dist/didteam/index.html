@@ -214,15 +214,15 @@
             data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Add controller to the new DidTeam">
             <i class="fa-solid fa-plus"></i>
           </button>
-          <input class="form-check-input ms-3" type="checkbox" :disabled="teamType !== 'create'" v-model="createAsControlled">Controlled</input>
-          <input class="form-check-input ms-3" type="checkbox" :disabled="teamType !== 'create'" v-model="createAsRoot">Root</input>
+          <input class="form-check-input ms-3" type="checkbox" :disabled="teamType !== 'create'" v-model="createAsControlled">Add Controller</input>
+          <input class="form-check-input ms-3" type="checkbox" :disabled="teamType !== 'create'" v-model="createAsRoot">Controller</input>
           <button class="btn btn-primary ms-3" type="button" @click="clickCreateDidTeamSeedCtrler()" :disabled="teamType !== 'create' || createAsRoot === false"
-            data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create A New Root DidTeam">
+            data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create A New Controller DidTeam">
             <i class="fa-solid fa-seedling"></i>
             <i class="fa-solid fa-user-gear"></i>
           </button>
           <button class="btn btn-primary ms-3" type="button" @click="clickCreateDidTeamSeedCtrlee()" :disabled="teamType !== 'create' || createAsControlled === false || (createAsRoot === true && createAsControlled === true)"
-            data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create A New End Entity DidTeam">
+            data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create A New Controllee DidTeam">
             <i class="fa-solid fa-user-gear"></i>
             <i class="fa-solid fa-seedling"></i>
           </button>

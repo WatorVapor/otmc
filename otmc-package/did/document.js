@@ -67,6 +67,7 @@ export class DIDSeedDocument {
         mqtt: {
           acl: this.manifest_.acl,
         },
+        revision:'1.0',
       },
       service: [
         {
@@ -201,6 +202,7 @@ export class DIDGuestAuthDocument {
   }
 }
 
+/*
 export class DIDGuestCapabilityDocument {
   static trace = false;
   static debug = true;
@@ -240,6 +242,7 @@ export class DIDGuestCapabilityDocument {
           serviceEndpoint: `${DIDConfig.end_point}`
         },
       ],
+      revision:'1.0',
     };
     const proofs = [];
     const signedMsg = this.auth_.signWithoutTS(didDoc);
@@ -254,7 +257,7 @@ export class DIDGuestCapabilityDocument {
     return didDoc;
   }
 }
-
+*/
 
 
 export class DIDExpandDocument {

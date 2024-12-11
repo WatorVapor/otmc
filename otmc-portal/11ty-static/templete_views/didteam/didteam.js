@@ -101,44 +101,44 @@ const didTeamOption = {
       controllers.push(this.create.control);
       this.create.controls = JSON.stringify(controllers);
     },
-    clickCreateDidTeamSeedRoot(evt) {
-      console.log('clickCreateDidTeamSeedRoot::this=:<',this,'>');
+    clickCreateDidTeamSeedCtrler(evt) {
+      console.log('clickCreateDidTeamSeedCtrler::this=:<',this,'>');
       const otmc = this.otmc;
-      console.log('clickCreateDidTeamSeedRoot::otmc=:<',otmc,'>');
+      console.log('clickCreateDidTeamSeedCtrler::otmc=:<',otmc,'>');
       let controllers = [];
       try {
         if(this.create.controls) {
           controllers = JSON.parse(this.create.controls);
-          console.log('clickCreateDidTeamSeedRoot::controllers=:<',controllers,'>');
+          console.log('clickCreateDidTeamSeedCtrler::controllers=:<',controllers,'>');
         }
       } catch(err) {
-        console.error('clickCreateDidTeamSeedRoot::err=:<',err,'>');
+        console.error('clickCreateDidTeamSeedCtrler::err=:<',err,'>');
         controllers = [];
       }
       controllers.push(this.create.control);
       if(this.create.control) {
-        otmc.createDidTeamFromSeedRoot(controllers);
+        otmc.createDidTeamFromSeedCtrler(controllers);
       } else {
-        otmc.createDidTeamFromSeedRoot(controllers,true);
+        otmc.createDidTeamFromSeedCtrler(controllers,true);
       }
     },
-    clickCreateDidTeamSeedEndEntity(evt) {
-      console.log('clickCreateDidTeamSeedEndEntity::this=:<',this,'>');
+    clickCreateDidTeamSeedCtrlee(evt) {
+      console.log('clickCreateDidTeamSeedCtrlee::this=:<',this,'>');
       const otmc = this.otmc;
-      console.log('clickCreateDidTeamSeedEndEntity::otmc=:<',otmc,'>');
+      console.log('clickCreateDidTeamSeedCtrlee::otmc=:<',otmc,'>');
       let controllers = [];
       try {
         if(this.create.controls) {
           controllers = JSON.parse(this.create.controls);
-          console.log('clickCreateDidTeamSeedEndEntity::controllers=:<',controllers,'>');
+          console.log('clickCreateDidTeamSeedCtrlee::controllers=:<',controllers,'>');
         }
       } catch(err) {
-        console.error('clickCreateDidTeamSeedEndEntity::err=:<',err,'>');
+        console.error('clickCreateDidTeamSeedCtrlee::err=:<',err,'>');
         controllers = [];
       }
       controllers.push(this.create.control);
       if(this.create.control) {
-        otmc.createDidTeamFromSeedEndEntity(controllers);
+        otmc.createDidTeamFromSeedCtrlee(controllers);
       }
     },
     clickSendJoinRequest2Controller(evt) {

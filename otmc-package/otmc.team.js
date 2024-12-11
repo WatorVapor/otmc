@@ -50,17 +50,17 @@ export class OtmcTeam extends EventEmitter {
     }
     this.eeInternal.emit('edCryptKey.loader.mining',data);
   }
-  createDidTeamFromSeedRoot(controls,root) {
+  createDidTeamFromSeedCtrler(controls,root) {
     if(this.trace) {
-      console.log('OtmcTeam::createDidTeamFromSeedRoot::this.eeInternal=:<',this.eeInternal,'>');
+      console.log('OtmcTeam::createDidTeamFromSeedCtrler::this.eeInternal=:<',this.eeInternal,'>');
     }
-    this.eeInternal.emit('did.create.seed.root',{controls:controls,root:root});
+    this.eeInternal.emit('did.create.seed.controller',{controls:controls,root:root});
   }
-  createDidTeamFromSeedEndEntity(controls) {
+  createDidTeamFromSeedCtrlee(controls) {
     if(this.trace) {
-      console.log('OtmcTeam::createDidTeamFromSeedEndEntity::this.eeInternal=:<',this.eeInternal,'>');
+      console.log('OtmcTeam::createDidTeamFromSeedCtrlee::this.eeInternal=:<',this.eeInternal,'>');
     }
-    this.eeInternal.emit('did.create.seed.end.entity',{controls:controls});
+    this.eeInternal.emit('did.create.seed.controllee',{controls:controls});
   }
   joinDidTeamAsAuth(id) {
     if(this.trace) {

@@ -1,5 +1,5 @@
 import { DidStoreDocument } from './otmc.did.store.document.js';
-import { DidStoreManifest } from './otmc.did.store.manifest.js';
+//import { DidStoreManifest } from './otmc.did.store.manifest.js';
 import { DidStoreTeamJoin } from './otmc.did.store.team.join.js';
 import { StoreKey } from './otmc.const.js';
 
@@ -13,7 +13,7 @@ export class DidResolverLocalStore {
     this.util = wrapper.util;
 
     this.didDocLS = new DidStoreDocument(StoreKey.open.did.document);
-    this.manifestLS = new DidStoreManifest(StoreKey.open.did.manifest);
+    //this.manifestLS = new DidStoreManifest(StoreKey.open.did.manifest);
     this.joinStoreLS = new DidStoreTeamJoin();
   }
 

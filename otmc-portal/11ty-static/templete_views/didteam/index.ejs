@@ -86,12 +86,12 @@ layout: didteam.sidebar.ejs
           </button>
           <input class="form-check-input ms-3" type="checkbox" :disabled="teamType !== 'create'" v-model="createAsControlled">Controlled</input>
           <input class="form-check-input ms-3" type="checkbox" :disabled="teamType !== 'create'" v-model="createAsRoot">Root</input>
-          <button class="btn btn-primary ms-3" type="button" @click="clickCreateDidTeamSeedRoot()" :disabled="teamType !== 'create' || createAsRoot === false"
+          <button class="btn btn-primary ms-3" type="button" @click="clickCreateDidTeamSeedCtrler()" :disabled="teamType !== 'create' || createAsRoot === false"
             data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create A New Root DidTeam">
             <i class="fa-solid fa-seedling"></i>
             <i class="fa-solid fa-user-gear"></i>
           </button>
-          <button class="btn btn-primary ms-3" type="button" @click="clickCreateDidTeamSeedEndEntity()" :disabled="teamType !== 'create' || createAsControlled === false || (createAsRoot === true && createAsControlled === true)"
+          <button class="btn btn-primary ms-3" type="button" @click="clickCreateDidTeamSeedCtrlee()" :disabled="teamType !== 'create' || createAsControlled === false || (createAsRoot === true && createAsControlled === true)"
             data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create A New End Entity DidTeam">
             <i class="fa-solid fa-user-gear"></i>
             <i class="fa-solid fa-seedling"></i>

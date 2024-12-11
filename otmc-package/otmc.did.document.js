@@ -139,17 +139,17 @@ export class DidDocument {
       };
       self.eeInternal.emit('mqtt.jwt.agent.recoveryKey.ready',evt);
     });
-    this.eeInternal.on('did.create.seed.root',(evt)=>{
+    this.eeInternal.on('did.create.seed.controller',(evt)=>{
       if(self.trace) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      self.createSeedRoot(evt.controls,evt.root);
+      self.createControllerSeed(evt.controls,evt.root);
     });
-    this.eeInternal.on('did.create.seed.end.entity',(evt)=>{
+    this.eeInternal.on('did.create.seed.controllee',(evt)=>{
       if(self.trace) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      self.createSeedEndEntity(evt.controls);
+      self.createControlleeSeed(evt.controls);
     });
     this.eeInternal.on('did.vcr.join.team',(evt)=>{
       if(self.trace) {
@@ -293,17 +293,7 @@ export class DidDocument {
       this.eeInternal.emit('did:document',{didDoc:didDoc});
 
       if(this.didDoc_) {
-        let manifest = await this.resolver.manifest(this.didDoc_.id);
-        if(this.trace) {
-          console.log('DidDocument::loadDocument::manifest=:<',manifest,'>');
-        }
-        if(manifest) {
-          this.eeOut.emit('did:manifest',manifest);
-          this.eeInternal.emit('OtmcStateMachine.actor.send',{type:'did:document_manifest'});
-          this.didManifest_ = manifest;
-        } else {
-          this.eeInternal.emit('OtmcStateMachine.actor.send',{type:'did:document'});
-        }
+        this.eeInternal.emit('OtmcStateMachine.actor.send',{type:'did:document'});
         const results = this.auth.verifyDid(this.didDoc_);
         if(this.trace) {
           console.log('DidDocument::loadDocument::results=:<',results,'>');
@@ -326,30 +316,28 @@ export class DidDocument {
       console.error('DidDocument::loadDocument::err=:<',err,'>');
     }
   }
-  createSeedRoot(controls,root) {
+  createControllerSeed(controls,root) {
     const manifest = DIDManifest.ruleChainGuestClose();
     if(this.trace) {
-      console.log('DidDocument::createSeedRoot::manifest=:<',manifest,'>');
+      console.log('DidDocument::createControllerSeed::manifest=:<',manifest,'>');
     }
     const documentObj = this.createSeedRootDidDoc_(controls,root,manifest);
     if(this.trace) {
-      console.log('DidDocument::createSeedRoot::documentObj=:<',documentObj,'>');
+      console.log('DidDocument::createControllerSeed::documentObj=:<',documentObj,'>');
     }
     this.resolver.storeStableDid(documentObj);
-    this.resolver.storeManifest(manifest,documentObj.id);
     return documentObj;
   }
-  createSeedEndEntity(controls) {
+  createControlleeSeed(controls) {
     const manifest = DIDManifest.ruleChainGuestClose();
     if(this.trace) {
-      console.log('DidDocument::createSeedEndEntity::manifest=:<',manifest,'>');
+      console.log('DidDocument::createControlleeSeed::manifest=:<',manifest,'>');
     }
     const documentObj = this.createSeedRootDidDoc_(controls,false,manifest);
     if(this.trace) {
-      console.log('DidDocument::createSeedEndEntity::documentObj=:<',documentObj,'>');
+      console.log('DidDocument::createControlleeSeed::documentObj=:<',documentObj,'>');
     }
     this.resolver.storeFickleDid(documentObj);
-    this.resolver.storeManifest(manifest,documentObj.id);
     return documentObj;
   }
   

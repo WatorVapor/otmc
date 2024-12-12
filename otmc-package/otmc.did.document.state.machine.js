@@ -5,7 +5,7 @@ const LOG = {
 import {Graph} from 'graphology';
 import {dijkstra} from 'graphologyShortestPath';
 import { DidStoreDocument } from './otmc.did.store.document.js';
-import { DidStoreManifest } from './otmc.did.store.manifest.js';
+//import { DidStoreManifest } from './otmc.did.store.manifest.js';
 import { DidStoreEvidence } from './otmc.did.store.evidence.js';
 import { EvidenceChainBuilder } from './did/evidence.thin.js';
 
@@ -27,6 +27,7 @@ export class DidDocumentStateMachine {
     this.eeOut = eeOut;
     this.chainState = {};
     this.ListenEventEmitter_();
+    this.didSpaceGraphs = {};
   }
     
   ListenEventEmitter_() {
@@ -46,7 +47,6 @@ export class DidDocumentStateMachine {
       self.builder = new EvidenceChainBuilder(self.auth);
 
       self.document = new DidStoreDocument();
-      self.manifest = new DidStoreManifest();
       self.evidence = new DidStoreEvidence();
 
       self.loadEvidence();      
@@ -61,10 +61,6 @@ export class DidDocumentStateMachine {
     });
   }
   async loadEvidence() {
-    this.stableTree = await this.evidence.getAllStable();
-    if(this.trace2) {
-      console.log('DidDocumentStateMachine::loadEvidence::this.stableTree=<',this.stableTree,'>');
-    }
     this.allEvidenceChain = await this.loadEvidenceChain_();
     if(self.trace0) {
       console.log('DidDocumentStateMachine::loadEvidence::this.allEvidenceChain=:<',this.allEvidenceChain,'>');
@@ -84,21 +80,28 @@ export class DidDocumentStateMachine {
         console.log('DidDocumentStateMachine::loadEvidence::this.chainState=:<',this.chainState,'>');
       }
       await this.caclChainEvidence_(chainId,chain);
-      /* 
-      const graph = new Graph();
-      graph.addNode('John');
-      graph.addNode('Martha');
-      graph.addNode('Mary');
-      graph.addEdge('John', 'Martha');
-      const path1 = dijkstra.bidirectional(graph, 'John', 'Martha');
-      if(this.trace0) {
-        console.log('DidDocumentStateMachine::loadEvidence::path1=:<',path1,'>');
+      const proofLinks = await this.evidence.getAllProofLinks();
+      if(this.trace2) {
+        console.log('DidDocumentStateMachine::loadEvidence::proofLinks=<',proofLinks,'>');
       }
-      const path2 = dijkstra.bidirectional(graph, 'John', 'Mary');
-      if(this.trace0) {
-        console.log('DidDocumentStateMachine::loadEvidence::path2=:<',path2,'>');
+      for(const proofLink of proofLinks) {
+        if(!this.didSpaceGraphs[proofLink.didId]) {
+          this.didSpaceGraphs[proofLink.didId] = new Graph();
+        }
+        const graph = this.didSpaceGraphs[proofLink.didId];
+        if(!graph.hasNode(proofLink.proofer)) {
+          graph.addNode(proofLink.proofer);
+        }
+        if(!graph.hasNode(proofLink.proofee)) {
+          graph.addNode(proofLink.proofee);
+        }
+        if(!graph.hasEdge(proofLink.proofer,proofLink.proofee)) {
+          graph.addEdge(proofLink.proofer,proofLink.proofee);
+        }
       }
-      */
+      if(this.trace2) {
+        console.log('DidDocumentStateMachine::loadEvidence::this.didSpaceGraphs=<',this.didSpaceGraphs,'>');
+      }
       this.dumpState_();
     }
     this.eeInternal.emit('did:document:evidence.complete',{});
@@ -183,13 +186,17 @@ export class DidDocumentStateMachine {
       if(this.trace2) {
         console.log('DidDocumentStateMachine::caclChainEvidence_::didDoc=<',didDoc,'>');
       }
-      const docProofResult = this.builder.buildEvidenceProof(didDoc,chain.manifest,this.stableTree);
+      const proofLink = this.builder.buildEvidenceChainProof(didDoc,chain.manifest,this.stableTree);
       if(this.trace2) {
         console.log('DidDocumentStateMachine::caclChainEvidence_::chainId=<',chainId,'>');
-        console.log('DidDocumentStateMachine::caclChainEvidence_::docProofResult=<',docProofResult,'>');
+        console.log('DidDocumentStateMachine::caclChainEvidence_::proofLink=<',proofLink,'>');
       }
-      if(docProofResult && docProofResult.authed && docProofResult.proofList && docProofResult.authedList) {
-        await this.saveAuthedDid2Tree_(chainId,didDoc,docProofResult.proofList,docProofResult.authedList);
+      if(proofLink && proofLink.proofers && proofLink.proofees && proofLink.proofers.length > 0 && proofLink.proofees.length > 0) {
+        for(const proofer of proofLink.proofers) {
+          for(const proofee of proofLink.proofees) {            
+            await this.evidence.putStable(chainId,proofer,proofee);
+          }
+        }
       }
     }
   }
@@ -201,6 +208,7 @@ export class DidDocumentStateMachine {
       }
     }
   }
+  /*
   async saveAuthedDid2Tree_(chainId,didDoc,proofList,authedList) {
     if(this.trace2) {
       console.log('DidDocumentStateMachine::saveAuthedDid2Tree_::chainId=<',chainId,'>');
@@ -223,6 +231,7 @@ export class DidDocumentStateMachine {
     }
     this.stableTree = await this.evidence.getAllStable();
   }
+*/
 }
 
 const sortDidByUpdated = (didArray) => {

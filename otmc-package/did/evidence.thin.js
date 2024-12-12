@@ -22,29 +22,32 @@ export class EvidenceChainBuilder {
     this.didRule_ = {};
     this.authsOfDid_ = {};
   }
-  buildEvidenceProof(evidence,proofTree) {
+  buildEvidenceChainProof(evidence) {
     if(this.trace1) {
-      console.log('EvidenceChainBuilder::buildEvidenceProof::evidence=<',evidence,'>');
-      console.log('EvidenceChainBuilder::buildEvidenceProof::proofTree=<',proofTree,'>');
+      console.log('EvidenceChainBuilder::buildEvidenceChainProof::evidence=<',evidence,'>');
     }
-    const docType = this.judgeEvidenceDidType_(evidence);
+    const seedKeyId = evidence.id.replace('did:otmc:','');
     if(this.trace1) {
-      console.log('EvidenceChainBuilder::buildEvidenceProof::docType=<',docType,'>');
+      console.log('EvidenceChainBuilder::buildEvidenceChainProof::seedKeyId=<',seedKeyId,'>');
     }
-    const manifest = evidence.otmc.manifest;
+    const isGoodDid = this.auth_.verifyDid(evidence);
     if(this.trace1) {
-      console.log('EvidenceChainBuilder::buildEvidenceProof::manifest=<',manifest,'>');
+      console.log('EvidenceChainBuilder::buildEvidenceChainProof::isGoodDid=<',isGoodDid,'>');
     }
-    let buildResult = false;
-    if(docType.ctrler) {
-      buildResult = this.buildEvidenceProofChainCtrler_(evidence,manifest,proofTree);
-    } else {
-      buildResult = this.buildEvidenceProofChainCtrlee_(evidence,manifest,proofTree);      
+    if(!isGoodDid) {
+      return result;
     }
-    if(this.trace1) {
-      console.log('EvidenceChainBuilder::buildEvidenceProof::buildResult=<',buildResult,'>');
+    if(!isGoodDid.prooferAddress) {
+      return result;
     }
-    return buildResult;
+    if(isGoodDid.prooferAddress.length < 1) {
+      return result;
+    }
+    const result = {
+      proofers:isGoodDid.prooferAddress,
+      proofees:evidence.authentication
+    }
+    return result;
   }
   judgeEvidenceDidType_(evidenceDid) {
     let isCtrler = false;
@@ -88,68 +91,68 @@ export class EvidenceChainBuilder {
       console.log('EvidenceChainBuilder::buildEvidenceProofChainCtrler_::isGoodDid=<',isGoodDid,'>');
     }
     const result = {
-      authed:false,
       ctrler:true,
       ctrlee:false,
       seed:false,
       bud:false,
-      proofList:{},
-      authedList:{},
+      proofers:[],
+      proofees:{},
     };
-    if(isGoodDid && isGoodDid.proofList){
-      const authedList = [];
-      const authedDict = {};
-      for(const authDid of evidenceDid.authentication) {
-        const authId = authDid.split('#').slice(-1)[0];
-        authedList.push(authId);
-        if(seedKeyId === authId) {
-          authedDict[authId] ={
-            ctrler:true,
-            ctrlee:false,
-            seed:true,
-            bud:false
-          }
-        } else {
-          authedDict[authId] = {
-            ctrler:true,
-            ctrlee:false,
-            seed:false,
-            bud:true
+    if(!isGoodDid) {
+      return result;
+    }
+    if(!isGoodDid.prooferAddress) {
+      return result;
+    }
+    if(isGoodDid.prooferAddress.length < 1) {
+      return result;
+    }
+
+    const isSeedProofed = isGoodDid.prooferAddress.reduce((found,current) => {
+      return found || current.endsWith(seedKeyId);
+    },false);
+
+    if(this.trace1) {
+      console.log('EvidenceChainBuilder::buildEvidenceProofChainCtrler_::isSeedProofed=<',isSeedProofed,'>');
+    }
+    const {authedList,authedDict} = this.collectAuthKeyAddress_(evidenceDid.authentication,seedKeyId);
+    if(this.trace1) {
+      console.log('EvidenceChainBuilder::buildEvidenceProofChainCtrler_::authedList=<',authedList,'>');
+      console.log('EvidenceChainBuilder::buildEvidenceProofChainCtrler_::authedDict=<',authedDict,'>');
+    }
+    if(isSeedProofed) {
+      result.proofers = isGoodDid.prooferAddress;
+      result.proofees = authedDict;
+    } else {
+    }
+
+    if(isGoodDid.proofList && isGoodDid.proofList.authProof && isGoodDid.proofList.authProof.length > 0){
+      result.seed = isGoodDid.proofList.authProof.includes(seedKeyId);
+      if(result.seed) {
+        result.authed = true;
+        result.proofList = isGoodDid.proofList.authProof;
+        if(manifest && manifest.authentication) {
+          switch(manifest.authentication.policy) {
+            case 'Seed.Dogma':
+              result.authedList[seedKeyId] = authedDict[seedKeyId];
+              break;
+            case 'Root.Dogma':
+            case 'Proof.Chain':
+              result.authedList = authedDict;
+              default:
+              break;
           }
         }
-      }
-      if(this.trace3) {
-        console.log('EvidenceChainBuilder::buildEvidenceProofChainCtrler_::authedList=<',authedList,'>');
-        console.log('EvidenceChainBuilder::buildEvidenceProofChainCtrler_::authedDict=<',authedDict,'>');
-      }
-      if(isGoodDid.proofList && isGoodDid.proofList.authProof && isGoodDid.proofList.authProof.length > 0){
-        result.seed = isGoodDid.proofList.authProof.includes(seedKeyId);
-        if(result.seed) {
-          result.authed = true;
+      } else {
+        result.bud = true;
+        const authedByChain = this.collectAuthedFromeChain_(isGoodDid.proofList.authProof,manifest,proofTree);
+        if(authedByChain) {
           result.proofList = isGoodDid.proofList.authProof;
-          if(manifest && manifest.authentication) {
-            switch(manifest.authentication.policy) {
-              case 'Seed.Dogma':
-                result.authedList[seedKeyId] = authedDict[seedKeyId];
-                break;
-              case 'Root.Dogma':
-              case 'Proof.Chain':
-                result.authedList = authedDict;
-                default:
-                break;
-            }
+          if(authedByChain.isAuthed) {
+            result.authed = true;
           }
-        } else {
-          result.bud = true;
-          const authedByChain = this.collectAuthedFromeChain_(isGoodDid.proofList.authProof,manifest,proofTree);
-          if(authedByChain) {
-            result.proofList = isGoodDid.proofList.authProof;
-            if(authedByChain.isAuthed) {
-              result.authed = true;
-            }
-            if(authedByChain.conductive) {
-              result.authedList = authedDict;
-            }
+          if(authedByChain.conductive) {
+            result.authedList = authedDict;
           }
         }
       }
@@ -159,6 +162,36 @@ export class EvidenceChainBuilder {
     }
     return result;
   }
+
+  collectAuthKeyAddress_(authentication,seedKeyId) {
+    const authedList = [];
+    const authedDict = {};
+    for(const authDid of authentication) {
+      const authId = authDid.split('#').slice(-1)[0];
+      authedList.push(authId);
+      if(seedKeyId === authId) {
+        authedDict[authId] ={
+          ctrler:true,
+          ctrlee:false,
+          seed:true,
+          bud:false
+        }
+      } else {
+        authedDict[authId] = {
+          ctrler:true,
+          ctrlee:false,
+          seed:false,
+          bud:true
+        }
+      }
+    }
+    if(this.trace3) {
+      console.log('EvidenceChainBuilder::collectAuthKeyAddress_::authedList=<',authedList,'>');
+      console.log('EvidenceChainBuilder::collectAuthKeyAddress_::authedDict=<',authedDict,'>');
+    }
+    return {authedList:authedList,authedDict:authedDict};
+  }
+
   buildEvidenceProofChainCtrlee_(evidenceDid,manifest,proofTree) {
     if(this.trace1) {
       console.log('EvidenceChainBuilder::buildEvidenceProofChainCtrlee_::evidenceDid=<',evidenceDid,'>');
@@ -236,6 +269,7 @@ export class EvidenceChainBuilder {
     }
     return result;
   }
+
 
   collectAuthedFromeChain_(authProof,manifest,proofTree) {
     if(this.trace3) {

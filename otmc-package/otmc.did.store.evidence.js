@@ -13,15 +13,25 @@ export class DidStoreEvidence {
     this.debug = true;
     this.db = new Dexie(StoreKey.open.did.chain.dbName);
     this.db.version(this.version).stores({
-      chain: '++autoId,didId,proofAddress,authAddress,ctrler,ctrlee,seed,bud'
+      chain: '++autoId,didId,proofer,proofee'
     });
+  }
+  async getAllProofLinks() {
+    const stable = {};
+    const allInProof = await this.db.chain.toArray();
+    if(this.trace0) {
+      console.log('DidStoreEvidence::getAllProofLinks::allInProof=<',allInProof,'>');
+    }
+    return allInProof;
   }
   async getAllStable() {
     const stable = {};
-    const allAuthed = await this.db.chain.toArray();
+    const allInProof = await this.db.chain.toArray();
     if(this.trace0) {
-      console.log('DidStoreEvidence::getAllStable::allAuthed=<',allAuthed,'>');
+      console.log('DidStoreEvidence::getAllStable::allInProof=<',allInProof,'>');
     }
+    return allInProof;
+    /*
     for(const authed of allAuthed) {
       if(this.trace0) {
         console.log('DidStoreEvidence::getAllStable::authed=<',authed,'>');
@@ -37,6 +47,7 @@ export class DidStoreEvidence {
       stable[authedKeyId] = storedAuthedKey;
     }
     return stable;
+    */
   }
   async getAddressStable(concernAddress) {
     if(this.trace0) {
@@ -73,41 +84,26 @@ export class DidStoreEvidence {
     }
     return stable;
   }  
-  async putStable(chainId,proofKeyId,authedKeyId,authedKeyState) {
+  async putStable(chainId,proofer,proofee) {
     if(this.trace0) {
       console.log('DidStoreEvidence::putStable::chainId=<',chainId,'>');
-      console.log('DidStoreEvidence::putStable::proofKeyId=<',proofKeyId,'>');
-      console.log('DidStoreEvidence::putStable::authedKeyId=<',authedKeyId,'>');
-      console.log('DidStoreEvidence::putStable::authedKeyState=<',authedKeyState,'>');
+      console.log('DidStoreEvidence::putStable::proofer=<',proofer,'>');
+      console.log('DidStoreEvidence::putStable::proofee=<',proofee,'>');
     }
     const filter =  {
       didId: chainId,
-      proofAddress: proofKeyId,
-      authAddress: authedKeyId
+      proofer: proofer,
+      proofee: proofee
     };
     const storedAuthedKey = await this.db.chain.where(filter).first();
     if(this.trace0) {
       console.log('DidStoreEvidence::putStable::storedAuthedKey=<',storedAuthedKey,'>');
     }
-    if(storedAuthedKey) {
-      const updateResult = await this.db.chain.update(storedAuthedKey.autoId, {
-        ctrler: authedKeyState.ctrler,
-        ctrlee: authedKeyState.ctrlee,
-        seed: authedKeyState.seed,
-        leaf: authedKeyState.leaf
-      });
-      if(this.trace0) {
-        console.log('DidStoreEvidence::putStable::updateResult=<',updateResult,'>');
-      }
-    } else {
+    if(!storedAuthedKey) {
       const evidStore = {
         didId: chainId,
-        proofAddress: proofKeyId,
-        authAddress: authedKeyId,
-        ctrler: authedKeyState.ctrler,
-        ctrlee: authedKeyState.ctrlee,
-        seed: authedKeyState.seed,
-        bud: authedKeyState.bud
+        proofer: proofer,
+        proofee: proofee,
       };
       const putResult = await this.db.chain.put(evidStore);  
       if(this.trace0) {

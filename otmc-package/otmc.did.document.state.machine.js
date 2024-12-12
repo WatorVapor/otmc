@@ -2,11 +2,17 @@ const LOG = {
   trace:true,
   debug:true,
 };
+import {Graph} from 'graphology';
+import {dijkstra} from 'graphologyShortestPath';
 import { DidStoreDocument } from './otmc.did.store.document.js';
 import { DidStoreManifest } from './otmc.did.store.manifest.js';
 import { DidStoreEvidence } from './otmc.did.store.evidence.js';
 import { EvidenceChainBuilder } from './did/evidence.thin.js';
 
+if(LOG.debug) {
+  console.log('::Graph=<',Graph,'>');
+  console.log('::dijkstra=<',dijkstra,'>');
+}
 /**
 *
 */
@@ -77,7 +83,22 @@ export class DidDocumentStateMachine {
       if(this.trace0) {
         console.log('DidDocumentStateMachine::loadEvidence::this.chainState=:<',this.chainState,'>');
       }
-      await this.caclChainAndManifest_(chainId,chain);
+      await this.caclChainEvidence_(chainId,chain);
+      /* 
+      const graph = new Graph();
+      graph.addNode('John');
+      graph.addNode('Martha');
+      graph.addNode('Mary');
+      graph.addEdge('John', 'Martha');
+      const path1 = dijkstra.bidirectional(graph, 'John', 'Martha');
+      if(this.trace0) {
+        console.log('DidDocumentStateMachine::loadEvidence::path1=:<',path1,'>');
+      }
+      const path2 = dijkstra.bidirectional(graph, 'John', 'Mary');
+      if(this.trace0) {
+        console.log('DidDocumentStateMachine::loadEvidence::path2=:<',path2,'>');
+      }
+      */
       this.dumpState_();
     }
     this.eeInternal.emit('did:document:evidence.complete',{});
@@ -144,10 +165,10 @@ export class DidDocumentStateMachine {
     return evidences;
   }  
   
-  async caclChainAndManifest_(chainId,chain) {
+  async caclChainEvidence_(chainId,chain) {
     if(this.trace2) {
-      console.log('DidDocumentStateMachine::caclChainAndManifest_::chainId=<',chainId,'>');
-      console.log('DidDocumentStateMachine::caclChainAndManifest_::chain=<',chain,'>');
+      console.log('DidDocumentStateMachine::caclChainEvidence_::chainId=<',chainId,'>');
+      console.log('DidDocumentStateMachine::caclChainEvidence_::chain=<',chain,'>');
     }
     if(chain.manifest) {
       this.chainState[chainId].actor.send({type:'manifest'});
@@ -156,16 +177,16 @@ export class DidDocumentStateMachine {
     }
     const sortedDidByUpdated = sortDidByUpdated(chain.did);
     if(this.trace2) {
-      console.log('DidDocumentStateMachine::caclChainAndManifest_::sortedDidByUpdated=<',sortedDidByUpdated,'>');
+      console.log('DidDocumentStateMachine::caclChainEvidence_::sortedDidByUpdated=<',sortedDidByUpdated,'>');
     }
     for(const didDoc of sortedDidByUpdated) {
       if(this.trace2) {
-        console.log('DidDocumentStateMachine::caclChainAndManifest_::didDoc=<',didDoc,'>');
+        console.log('DidDocumentStateMachine::caclChainEvidence_::didDoc=<',didDoc,'>');
       }
       const docProofResult = this.builder.buildEvidenceProof(didDoc,chain.manifest,this.stableTree);
       if(this.trace2) {
-        console.log('DidDocumentStateMachine::caclChainAndManifest_::chainId=<',chainId,'>');
-        console.log('DidDocumentStateMachine::caclChainAndManifest_::docProofResult=<',docProofResult,'>');
+        console.log('DidDocumentStateMachine::caclChainEvidence_::chainId=<',chainId,'>');
+        console.log('DidDocumentStateMachine::caclChainEvidence_::docProofResult=<',docProofResult,'>');
       }
       if(docProofResult && docProofResult.authed && docProofResult.proofList && docProofResult.authedList) {
         await this.saveAuthedDid2Tree_(chainId,didDoc,docProofResult.proofList,docProofResult.authedList);

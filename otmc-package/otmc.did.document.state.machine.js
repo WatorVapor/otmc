@@ -61,7 +61,7 @@ export class DidDocumentStateMachine {
     });
   }
   async loadEvidence() {
-    this.allEvidenceChain = await this.loadEvidenceChain_();
+    this.allEvidenceChain = await this.loadEvidenceChainFromStorage_();
     if(self.trace0) {
       console.log('DidDocumentStateMachine::loadEvidence::this.allEvidenceChain=:<',this.allEvidenceChain,'>');
     }
@@ -84,26 +84,13 @@ export class DidDocumentStateMachine {
       if(this.trace2) {
         console.log('DidDocumentStateMachine::loadEvidence::proofLinks=<',proofLinks,'>');
       }
-      for(const proofLink of proofLinks) {
-        if(!this.didSpaceGraphs[proofLink.didId]) {
-          this.didSpaceGraphs[proofLink.didId] = new Graph();
-        }
-        const graph = this.didSpaceGraphs[proofLink.didId];
-        if(!graph.hasNode(proofLink.proofer)) {
-          graph.addNode(proofLink.proofer);
-        }
-        if(!graph.hasNode(proofLink.proofee)) {
-          graph.addNode(proofLink.proofee);
-        }
-        if(!graph.hasEdge(proofLink.proofer,proofLink.proofee)) {
-          graph.addEdge(proofLink.proofer,proofLink.proofee);
-        }
-      }
+      this.buildChainGraph_(proofLinks);
       if(this.trace2) {
         console.log('DidDocumentStateMachine::loadEvidence::this.didSpaceGraphs=<',this.didSpaceGraphs,'>');
       }
       this.dumpState_();
     }
+    this.caclWholeChainProofPath_();
     this.eeInternal.emit('did:document:evidence.complete',{});
     return;
   }
@@ -137,15 +124,15 @@ export class DidDocumentStateMachine {
     }
   }
 
-  async loadEvidenceChain_() {
+  async loadEvidenceChainFromStorage_() {
     const evidencesJson = await this.document.getAnyDidDocument();
     if(this.trace2) {
-      console.log('DidDocumentStateMachine::loadEvidenceChain_::evidencesJson=<',evidencesJson,'>');
+      console.log('DidDocumentStateMachine::loadEvidenceChainFromStorage_::evidencesJson=<',evidencesJson,'>');
     }
     const evidencesOfAddress = {};
     for(const evidenceJson of evidencesJson){
       if(this.trace2) {
-        console.log('DidDocumentStateMachine::loadEvidenceChain_::evidenceJson=<',evidenceJson,'>');
+        console.log('DidDocumentStateMachine::loadEvidenceChainFromStorage_::evidenceJson=<',evidenceJson,'>');
       }
       const address = evidenceJson.id;
       if(!evidencesOfAddress[address]) {
@@ -154,18 +141,9 @@ export class DidDocumentStateMachine {
       evidencesOfAddress[address].push(evidenceJson);
     }
     if(this.trace2) {
-      console.log('DidDocumentStateMachine::loadEvidenceChain_::evidencesOfAddress=<',evidencesOfAddress,'>');
+      console.log('DidDocumentStateMachine::loadEvidenceChainFromStorage_::evidencesOfAddress=<',evidencesOfAddress,'>');
     }
-    const evidences = {};
-    for(const didAddress in evidencesOfAddress) {
-      evidences[didAddress] = {
-        did:evidencesOfAddress[didAddress]
-      }
-    }
-    if(this.trace2) {
-      console.log('DidDocumentStateMachine::loadEvidenceChain_::evidences=<',evidences,'>');
-    }
-    return evidences;
+    return evidencesOfAddress;
   }  
   
   async caclChainEvidence_(chainId,chain) {
@@ -173,12 +151,7 @@ export class DidDocumentStateMachine {
       console.log('DidDocumentStateMachine::caclChainEvidence_::chainId=<',chainId,'>');
       console.log('DidDocumentStateMachine::caclChainEvidence_::chain=<',chain,'>');
     }
-    if(chain.manifest) {
-      this.chainState[chainId].actor.send({type:'manifest'});
-    } else {
-      this.chainState[chainId].actor.send({type:'manifest.lack'});
-    }
-    const sortedDidByUpdated = sortDidByUpdated(chain.did);
+    const sortedDidByUpdated = sortDidByUpdated(chain);
     if(this.trace2) {
       console.log('DidDocumentStateMachine::caclChainEvidence_::sortedDidByUpdated=<',sortedDidByUpdated,'>');
     }
@@ -186,7 +159,7 @@ export class DidDocumentStateMachine {
       if(this.trace2) {
         console.log('DidDocumentStateMachine::caclChainEvidence_::didDoc=<',didDoc,'>');
       }
-      const proofLink = this.builder.buildEvidenceChainProof(didDoc,chain.manifest,this.stableTree);
+      const proofLink = this.builder.buildEvidenceChainProof(didDoc);
       if(this.trace2) {
         console.log('DidDocumentStateMachine::caclChainEvidence_::chainId=<',chainId,'>');
         console.log('DidDocumentStateMachine::caclChainEvidence_::proofLink=<',proofLink,'>');
@@ -200,6 +173,79 @@ export class DidDocumentStateMachine {
       }
     }
   }
+  buildChainGraph_(proofLinks) {
+    for(const proofLink of proofLinks) {
+      if(!this.didSpaceGraphs[proofLink.didId]) {
+        this.didSpaceGraphs[proofLink.didId] = new Graph();
+      }
+      const graph = this.didSpaceGraphs[proofLink.didId];
+      if(!graph.hasNode(proofLink.proofer)) {
+        graph.addNode(proofLink.proofer);
+      }
+      if(!graph.hasNode(proofLink.proofee)) {
+        graph.addNode(proofLink.proofee);
+      }
+      if(!graph.hasEdge(proofLink.proofer,proofLink.proofee)) {
+        graph.addEdge(proofLink.proofer,proofLink.proofee);
+      }
+    }
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::buildChainGraph_::this.didSpaceGraphs=<',this.didSpaceGraphs,'>');
+    }
+  }
+  caclWholeChainProofPath_() {
+    for(const chainId in this.allEvidenceChain) {
+      if(this.trace0) {
+        console.log('DidDocumentStateMachine::caclWholeChainProofPath_::chainId=:<',chainId,'>');
+      }
+      const chain = this.allEvidenceChain[chainId];
+      if(!chain) {
+        continue;
+      }
+      if(this.trace0) {
+        console.log('DidDocumentStateMachine::caclWholeChainProofPath_::chain=:<',chain,'>');
+      }
+      const chainGraph = this.didSpaceGraphs[chainId];
+      if(this.trace0) {
+        console.log('DidDocumentStateMachine::caclWholeChainProofPath_::chainGraph=:<',chainGraph,'>');
+      }
+      if(!chainGraph) {
+        continue;
+      }
+      this.caclOneChainProofPath_(chain,chainGraph);
+      //this.buildChainGraph_(proofLinks);
+    }    
+  }
+  caclOneChainProofPath_(chain,chainGraph) {
+    if(this.trace0) {
+      console.log('DidDocumentStateMachine::caclWholeChainProofPath_::chain=:<',chain,'>');
+      console.log('DidDocumentStateMachine::caclWholeChainProofPath_::chainGraph=:<',chainGraph,'>');
+    }
+    for(const didDoc of chain) {
+      this.caclDidDocumentProofPath_(didDoc,chainGraph);
+    }
+  }
+  caclDidDocumentProofPath_(didDoc,chainGraph) {
+    if(this.trace0) {
+      console.log('DidDocumentStateMachine::caclDidDocumentProofPath_::didDoc=:<',didDoc,'>');
+      console.log('DidDocumentStateMachine::caclDidDocumentProofPath_::chainGraph=:<',chainGraph,'>');
+    }
+    for(const auth of didDoc.authentication) {
+      if(this.trace0) {
+        console.log('DidDocumentStateMachine::caclDidDocumentProofPath_::auth=:<',auth,'>');
+      }
+      const seedId = didDoc.id.replace('did:otmc:','');
+      const targetSeedNode = `${didDoc.id}#${seedId}`;
+      if(this.trace0) {
+        console.log('DidDocumentStateMachine::caclDidDocumentProofPath_::targetSeedNode=:<',targetSeedNode,'>');
+      }
+      const path = dijkstra.bidirectional(chainGraph, auth, targetSeedNode);
+      if(this.trace0) {
+        console.log('DidDocumentStateMachine::caclDidDocumentProofPath_::path=:<',path,'>');
+      }
+    }
+  }
+  
   dumpState_() {
     for(const chainId in this.chainState) {
       const state = this.chainState[chainId];

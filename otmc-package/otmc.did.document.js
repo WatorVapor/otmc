@@ -178,7 +178,16 @@ export class DidDocument {
       }
       self.createJoinAsAuth(evt.did);
     });
-
+    this.eeInternal.on('did:document:evidence.chain.build.complete',(evt)=>{
+      if(self.trace0) {
+        console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      if(self.trace0) {
+        console.log('DidDocument::ListenEventEmitter_::self.otmc=:<',self.otmc,'>');
+      }
+      self.loadDocument();
+    });
+    /*
     this.eeInternal.on('did.loadDocument',(evt)=>{
       if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
@@ -188,6 +197,7 @@ export class DidDocument {
       }
       self.loadDocument();
     });
+    */
     this.eeInternal.on('did.evidence.auth',(evt)=>{
       if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');

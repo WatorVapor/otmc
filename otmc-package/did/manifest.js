@@ -36,10 +36,10 @@ export class DIDManifest {
       ],
     }
   };
-  static dogmaRuleRoot = {
+  static dogmaRuleController = {
     did: {
       authentication:{
-        policy:'Root.Dogma'
+        policy:'Controller.Dogma'
       },
     },
     acl:{
@@ -172,8 +172,8 @@ export class DIDManifest {
    * @description Returns a manifest rule for dogmaRoot of the given did.
    * @returns {Object} A manifest rule for the given did.
    */
-  static ruleDogmaRoot() {
-    const myRule = JSON.parse(JSON.stringify(DIDManifest.dogmaRuleRoot));
+  static ruleDogmaController() {
+    const myRule = JSON.parse(JSON.stringify(DIDManifest.dogmaRuleController));
     return myRule;
   }
   /**

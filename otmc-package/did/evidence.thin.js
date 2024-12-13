@@ -49,15 +49,15 @@ export class EvidenceChainBuilder {
     }
     return result;
   }
-  judgeEvidenceDidType_(evidenceDid) {
+  judgeEvidenceDidType(evidenceDid) {
     let isCtrler = false;
     let controllers = [];
     if(this.trace1) {
-      console.log('EvidenceChainBuilder::judgeEvidenceDidType_::evidenceDid=<',evidenceDid,'>');
+      console.log('EvidenceChainBuilder::judgeEvidenceDidType::evidenceDid=<',evidenceDid,'>');
     }
     const isInController = evidenceDid.controller.includes(evidenceDid.id);
     if(this.trace1) {
-      console.log('EvidenceChainBuilder::judgeEvidenceDidType_::isInController=<',isInController,'>');
+      console.log('EvidenceChainBuilder::judgeEvidenceDidType::isInController=<',isInController,'>');
     }
     if(isInController) {
       isCtrler = true;
@@ -66,11 +66,11 @@ export class EvidenceChainBuilder {
     }
     controllers = controllers.flat();
     if(this.trace1) {
-      console.log('EvidenceChainBuilder::judgeEvidenceDidType_::controllers=<',controllers,'>');
+      console.log('EvidenceChainBuilder::judgeEvidenceDidType::controllers=<',controllers,'>');
     }
     controllers = [...new Set(controllers)];
     if(this.trace1) {
-      console.log('EvidenceChainBuilder::judgeEvidenceDidType_::controllers=<',controllers,'>');
+      console.log('EvidenceChainBuilder::judgeEvidenceDidType::controllers=<',controllers,'>');
     }
     const chainType = {
       ctrler:isCtrler,
@@ -314,34 +314,75 @@ export class EvidenceChainBuilder {
     } 
     return false;
   }
-  caclDidDocument(didDoc,stableTreeOfAddress) {
+  /**
+   * calculate the evidence chain for a given did document
+   * @param {Object} didDoc - the did document to be calculated
+   * @param {Object} seedReachTable - the seed reach table
+   * @returns {Object} - the calculated evidence chain
+   */
+  caclStoredDidDocument(didDoc,seedReachTable) {
     if(this.trace1) {
-      console.log('EvidenceChainBuilder::caclDidDocument::didDoc=<',didDoc,'>');
-      console.log('EvidenceChainBuilder::caclDidDocument::stableTreeOfAddress=<',stableTreeOfAddress,'>');
+      console.log('EvidenceChainBuilder::caclStoredDidDocument::didDoc=<',didDoc,'>');
+      console.log('EvidenceChainBuilder::caclStoredDidDocument::seedReachTable=<',seedReachTable,'>');
+    }
+    const concernAddress = Array.from(new Set(didDoc.controller.concat([didDoc.id])));
+    if(this.trace2) {
+      console.log('EvidenceChainBuilder::caclStoredDidDocument::concernAddress=<',concernAddress,'>');
     }
     const isGoodDid = this.auth_.verifyDid(didDoc);
     if(this.trace1) {
-      console.log('EvidenceChainBuilder::caclDidDocument::isGoodDid=<',isGoodDid,'>');
+      console.log('EvidenceChainBuilder::caclStoredDidDocument::isGoodDid=<',isGoodDid,'>');
     }
     const manifest = didDoc.otmc.manifest;
     if(this.trace1) {
-      console.log('EvidenceChainBuilder::caclDidDocument::manifest=<',manifest,'>');
+      console.log('EvidenceChainBuilder::caclStoredDidDocument::manifest=<',manifest,'>');
     }
-    if(isGoodDid && isGoodDid.proofList && isGoodDid.proofList.authProof) {
-      const result = {}
-      result.proofBy = this.judgeDidAuthProof_(isGoodDid.proofList.authProof,manifest,stableTreeOfAddress);
-      const chainType = this.judgeEvidenceDidType_(didDoc);
+    if(isGoodDid) {
+      const result = {};
+      const chainType = this.judgeEvidenceDidType(didDoc);
       if(this.trace1) {
-        console.log('EvidenceChainBuilder::caclDidDocument::chainType=<',chainType,'>');
+        console.log('EvidenceChainBuilder::caclStoredDidDocument::chainType=<',chainType,'>');
       }
       if(chainType.ctrler) {
-        result.ctrlerChain = true;
+        result.authList = this.collectControllerAuthFromReachTable_(didDoc.authentication,seedReachTable[didDoc.id],manifest.did.authentication);
       } else {
-        result.ctrlerChain = false;
+        //
       }
       return result;
     }
     return false;
+  }
+  /**
+   * Collect the authentication from the reach table, given a list of authentication, the seed reach table, and the manifest.
+   * @param {Array} authentication - the list of authentication
+   * @param {Object} reachTable - the seed reach table
+   * @param {Object} manifest - the manifest
+   * @returns {Object} - the collected authentication
+   */
+  collectControllerAuthFromReachTable_(authentication,reachTable,manifest) {
+    if(this.trace1) {
+      console.log('EvidenceChainBuilder::collectControllerAuthFromReachTable_::authentication=<',authentication,'>');
+      console.log('EvidenceChainBuilder::collectControllerAuthFromReachTable_::reachTable=<',reachTable,'>');
+      console.log('EvidenceChainBuilder::collectControllerAuthFromReachTable_::manifest=<',manifest,'>');
+    }
+    const resultAuthed = [];
+    for(const auth of authentication) {
+      const seedReach = reachTable[auth];
+      if(this.trace1) {
+        console.log('EvidenceChainBuilder::collectControllerAuthFromReachTable_::seedReach=<',seedReach,'>');
+      }
+      if(seedReach.reachable) {
+        if(manifest.policy === 'Proof.Chain') {
+          resultAuthed.push(auth);
+        }
+        if(manifest.policy === 'Seed.Dogma') {
+          if(seedReach.path.length === 1) {
+            resultAuthed.push(auth);
+          }
+        }
+      }
+    }
+    return resultAuthed;   
   }
   judgeDidAuthProof_(authProofList,manifest,stableTreeOfAddress) {
     if(this.trace1) {

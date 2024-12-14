@@ -184,6 +184,30 @@ export class EvidenceChainBuilder {
     }
     return resultAuthed;   
   }
+
+  collectControlleeAuth(didDoc,seedReachTable,ctrleeReachTable) {
+    if(this.trace1) {
+      console.log('EvidenceChainBuilder::caclStoredDidDocument::didDoc=<',didDoc,'>');
+      console.log('EvidenceChainBuilder::caclStoredDidDocument::seedReachTable=<',seedReachTable,'>');
+      console.log('EvidenceChainBuilder::caclStoredDidDocument::ctrleeReachTable=<',ctrleeReachTable,'>');
+    }
+    const isGoodDid = this.auth_.verifyDid(didDoc);
+    if(this.trace1) {
+      console.log('EvidenceChainBuilder::caclStoredDidDocument::isGoodDid=<',isGoodDid,'>');
+    }
+    const manifest = didDoc.otmc.manifest;
+    if(this.trace1) {
+      console.log('EvidenceChainBuilder::caclStoredDidDocument::manifest=<',manifest,'>');
+    }
+    if(!manifest) {
+      return false;
+    }
+    if(isGoodDid) {
+      const authList = this.collectControllerAuthFromReachTable_(didDoc.authentication,seedReachTable[didDoc.id],manifest.did.authentication);
+      return {authList:authList}
+    }
+    return false;
+  }  
   /**
    * Collect the authentication from the reach table, given a list of authentication, the seed reach table, the controller, and the manifest.
    * @param {Array} authentication - the list of authentication

@@ -78,198 +78,6 @@ export class EvidenceChainBuilder {
     };
     return chainType;
   }
-  buildEvidenceProofChainCtrler_(evidenceDid,manifest,proofTree) {
-    if(this.trace1) {
-      console.log('EvidenceChainBuilder::buildEvidenceProofChainCtrler_::evidenceDid=<',evidenceDid,'>');
-    }
-    const seedKeyId = evidenceDid.id.replace('did:otmc:','');
-    if(this.trace1) {
-      console.log('EvidenceChainBuilder::buildEvidenceProofChainCtrler_::seedKeyId=<',seedKeyId,'>');
-    }
-    const isGoodDid = this.auth_.verifyDid(evidenceDid);
-    if(this.trace1) {
-      console.log('EvidenceChainBuilder::buildEvidenceProofChainCtrler_::isGoodDid=<',isGoodDid,'>');
-    }
-    const result = {
-      ctrler:true,
-      ctrlee:false,
-      seed:false,
-      bud:false,
-      proofers:[],
-      proofees:{},
-    };
-    if(!isGoodDid) {
-      return result;
-    }
-    if(!isGoodDid.prooferAddress) {
-      return result;
-    }
-    if(isGoodDid.prooferAddress.length < 1) {
-      return result;
-    }
-
-    const isSeedProofed = isGoodDid.prooferAddress.reduce((found,current) => {
-      return found || current.endsWith(seedKeyId);
-    },false);
-
-    if(this.trace1) {
-      console.log('EvidenceChainBuilder::buildEvidenceProofChainCtrler_::isSeedProofed=<',isSeedProofed,'>');
-    }
-    const {authedList,authedDict} = this.collectAuthKeyAddress_(evidenceDid.authentication,seedKeyId);
-    if(this.trace1) {
-      console.log('EvidenceChainBuilder::buildEvidenceProofChainCtrler_::authedList=<',authedList,'>');
-      console.log('EvidenceChainBuilder::buildEvidenceProofChainCtrler_::authedDict=<',authedDict,'>');
-    }
-    if(isSeedProofed) {
-      result.proofers = isGoodDid.prooferAddress;
-      result.proofees = authedDict;
-    } else {
-    }
-
-    if(isGoodDid.proofList && isGoodDid.proofList.authProof && isGoodDid.proofList.authProof.length > 0){
-      result.seed = isGoodDid.proofList.authProof.includes(seedKeyId);
-      if(result.seed) {
-        result.authed = true;
-        result.proofList = isGoodDid.proofList.authProof;
-        if(manifest && manifest.authentication) {
-          switch(manifest.authentication.policy) {
-            case 'Seed.Dogma':
-              result.authedList[seedKeyId] = authedDict[seedKeyId];
-              break;
-            case 'Root.Dogma':
-            case 'Proof.Chain':
-              result.authedList = authedDict;
-              default:
-              break;
-          }
-        }
-      } else {
-        result.bud = true;
-        const authedByChain = this.collectAuthedFromeChain_(isGoodDid.proofList.authProof,manifest,proofTree);
-        if(authedByChain) {
-          result.proofList = isGoodDid.proofList.authProof;
-          if(authedByChain.isAuthed) {
-            result.authed = true;
-          }
-          if(authedByChain.conductive) {
-            result.authedList = authedDict;
-          }
-        }
-      }
-    }
-    if(this.trace3) {
-      console.log('EvidenceChainBuilder::buildEvidenceProofChainCtrler_::result=<',result,'>');
-    }
-    return result;
-  }
-
-  collectAuthKeyAddress_(authentication,seedKeyId) {
-    const authedList = [];
-    const authedDict = {};
-    for(const authDid of authentication) {
-      const authId = authDid.split('#').slice(-1)[0];
-      authedList.push(authId);
-      if(seedKeyId === authId) {
-        authedDict[authId] ={
-          ctrler:true,
-          ctrlee:false,
-          seed:true,
-          bud:false
-        }
-      } else {
-        authedDict[authId] = {
-          ctrler:true,
-          ctrlee:false,
-          seed:false,
-          bud:true
-        }
-      }
-    }
-    if(this.trace3) {
-      console.log('EvidenceChainBuilder::collectAuthKeyAddress_::authedList=<',authedList,'>');
-      console.log('EvidenceChainBuilder::collectAuthKeyAddress_::authedDict=<',authedDict,'>');
-    }
-    return {authedList:authedList,authedDict:authedDict};
-  }
-
-  buildEvidenceProofChainCtrlee_(evidenceDid,manifest,proofTree) {
-    if(this.trace1) {
-      console.log('EvidenceChainBuilder::buildEvidenceProofChainCtrlee_::evidenceDid=<',evidenceDid,'>');
-    }
-    const seedKeyId = evidenceDid.id.replace('did:otmc:','');
-    if(this.trace1) {
-      console.log('EvidenceChainBuilder::buildEvidenceProofChainCtrlee_::seedKeyId=<',seedKeyId,'>');
-    }
-    const isGoodDid = this.auth_.verifyDid(evidenceDid);
-    if(this.trace1) {
-      console.log('EvidenceChainBuilder::buildEvidenceProofChainCtrlee_::isGoodDid=<',isGoodDid,'>');
-    }
-    const result = {
-      authed:false,
-      ctrler:false,
-      ctrlee:true,
-      seed:false,
-      bud:false,
-      proofList:{},
-      authedList:{},
-    };
-    if(isGoodDid && isGoodDid.proofList){
-      const authedList = [];
-      const authedDict = {};
-      for(const authDid of evidenceDid.authentication) {
-        const authId = authDid.split('#').slice(-1)[0];
-        authedList.push(authId);
-        if(seedKeyId === authId) {
-          authedDict[authId] ={
-            ctrler:false,
-            ctrlee:true,
-            seed:true,
-            bud:false
-          }
-        } else {
-          authedDict[authId] = {
-            ctrler:false,
-            ctrlee:true,
-            seed:false,
-            bud:true
-          }
-        }
-      }
-      if(this.trace3) {
-        console.log('EvidenceChainBuilder::buildEvidenceProofChainCtrlee_::authedList=<',authedList,'>');
-        console.log('EvidenceChainBuilder::buildEvidenceProofChainCtrlee_::authedDict=<',authedDict,'>');
-      }
-      if(isGoodDid.proofList && isGoodDid.proofList.authProof && isGoodDid.proofList.authProof.length > 0){
-        for(const authProof of isGoodDid.proofList.authProof) {
-          if(this.trace3) {
-            console.log('EvidenceChainBuilder::buildEvidenceProofChainCtrlee_::authProof=<',authProof,'>');
-            console.log('EvidenceChainBuilder::buildEvidenceProofChainCtrlee_::evidenceDid=<',evidenceDid,'>');
-          }
-          if(seedKeyId === authProof) {
-            result.seed = true;
-          }
-        }
-        if(!result.seed) {
-          result.bud = true;
-        }
-        const authedByChain = this.collectAuthedFromeChain_(isGoodDid.proofList.authProof,manifest,proofTree);
-        if(authedByChain) {
-          if(authedByChain.authed) {
-            result.authed = true;
-            result.proofList= isGoodDid.proofList.authProof;
-          }
-          if(authedByChain.conductive) {
-            result.authedList = authedDict;
-          }
-        }
-      }
-    }
-    if(this.trace3) {
-      console.log('EvidenceChainBuilder::buildEvidenceProofChainCtrlee_::result=<',result,'>');
-    }
-    return result;
-  }
-
 
   collectAuthedFromeChain_(authProof,manifest,proofTree) {
     if(this.trace3) {
@@ -315,19 +123,16 @@ export class EvidenceChainBuilder {
     return false;
   }
   /**
-   * calculate the evidence chain for a given did document
-   * @param {Object} didDoc - the did document to be calculated
-   * @param {Object} seedReachTable - the seed reach table
-   * @returns {Object} - the calculated evidence chain
+   * Given a did document, collect the controller's authentication from the reach table
+   * @param {Object} didDoc - the did document
+   * @param {Object} seedReachTable - the reach table
+   * @returns {Object} - an object with a single property, authList, which is an array of strings
+   *                     which are the authentication controllers of the did document
    */
-  caclStoredDidDocument(didDoc,seedReachTable,evidenceChain) {
+  collectControllerAuth(didDoc,seedReachTable) {
     if(this.trace1) {
       console.log('EvidenceChainBuilder::caclStoredDidDocument::didDoc=<',didDoc,'>');
       console.log('EvidenceChainBuilder::caclStoredDidDocument::seedReachTable=<',seedReachTable,'>');
-    }
-    const concernAddress = Array.from(new Set(didDoc.controller.concat([didDoc.id])));
-    if(this.trace2) {
-      console.log('EvidenceChainBuilder::caclStoredDidDocument::concernAddress=<',concernAddress,'>');
     }
     const isGoodDid = this.auth_.verifyDid(didDoc);
     if(this.trace1) {
@@ -341,20 +146,12 @@ export class EvidenceChainBuilder {
       return false;
     }
     if(isGoodDid) {
-      const result = {};
-      const chainType = this.judgeEvidenceDidType(didDoc,evidenceChain);
-      if(this.trace1) {
-        console.log('EvidenceChainBuilder::caclStoredDidDocument::chainType=<',chainType,'>');
-      }
-      if(chainType.ctrler) {
-        result.authList = this.collectControllerAuthFromReachTable_(didDoc.authentication,seedReachTable[didDoc.id],manifest.did.authentication);
-      } else {
-        //
-      }
-      return result;
+      const authList = this.collectControllerAuthFromReachTable_(didDoc.authentication,seedReachTable[didDoc.id],manifest.did.authentication);
+      return {authList:authList}
     }
     return false;
   }
+
   /**
    * Collect the authentication from the reach table, given a list of authentication, the seed reach table, and the manifest.
    * @param {Array} authentication - the list of authentication
@@ -387,52 +184,38 @@ export class EvidenceChainBuilder {
     }
     return resultAuthed;   
   }
-  judgeDidAuthProof_(authProofList,manifest,stableTreeOfAddress) {
+  /**
+   * Collect the authentication from the reach table, given a list of authentication, the seed reach table, the controller, and the manifest.
+   * @param {Array} authentication - the list of authentication
+   * @param {String} controller - the controller
+   * @param {Object} seedReachTable - the seed reach table
+   * @param {Object} manifest - the manifest
+   * @returns {Array} - the collected authentication
+   */
+  collectControlleeAuthFromReachTable_(authentication,controller,seedReachTable,manifest) {
     if(this.trace1) {
-      console.log('EvidenceChainBuilder::judgeDidAuthProof_::authProofList=<',authProofList,'>');
-      console.log('EvidenceChainBuilder::judgeDidAuthProof_::manifest=<',manifest,'>');
-      console.log('EvidenceChainBuilder::judgeDidAuthProof_::stableTreeOfAddress=<',stableTreeOfAddress,'>');
+      console.log('EvidenceChainBuilder::collectControlleeAuthFromReachTable_::authentication=<',authentication,'>');
+      console.log('EvidenceChainBuilder::collectControlleeAuthFromReachTable_::controller=<',controller,'>');
+      console.log('EvidenceChainBuilder::collectControlleeAuthFromReachTable_::seedReachTable=<',seedReachTable,'>');
+      console.log('EvidenceChainBuilder::collectControlleeAuthFromReachTable_::manifest=<',manifest,'>');
     }
-    const allAuthed = [];
-    for(const authProof of authProofList) {
+    const resultAuthed = [];
+    for(const auth of authentication) {
+      const seedReach = reachTable[auth];
       if(this.trace1) {
-        console.log('EvidenceChainBuilder::judgeDidAuthProof_::authProof=<',authProof,'>');
+        console.log('EvidenceChainBuilder::collectControlleeAuthFromReachTable_::seedReach=<',seedReach,'>');
       }
-      const authedDid = stableTreeOfAddress[authProof];
-      if(this.trace1) {
-        console.log('EvidenceChainBuilder::judgeDidAuthProof_::authedDid=<',authedDid,'>');
-      }
-      if(authedDid) {
-        allAuthed.push(authedDid);
+      if(seedReach.reachable) {
+        if(manifest.policy === 'Proof.Chain') {
+          resultAuthed.push(auth);
+        }
+        if(manifest.policy === 'Seed.Dogma') {
+          if(seedReach.path.length === 1) {
+            resultAuthed.push(auth);
+          }
+        }
       }
     }
-    const uniqueAuthed = Array.from(new Set(allAuthed)).flat();
-    if(this.trace1) {
-      console.log('EvidenceChainBuilder::judgeDidAuthProof_::uniqueAuthed=<',uniqueAuthed,'>');
-    }
-    return uniqueAuthed;
+    return resultAuthed;   
   }
 }
-
-const includesAny = (arr, values) => values.some(v => arr.includes(v));
-const isSubsetById = (subset, superset) => {
-  if(!subset || !superset) {
-    return false;
-  }
-  return subset.every(subsetItem => 
-    superset.some(supersetItem => 
-      subsetItem.id === supersetItem.id
-    )
-  );  
-};
-
-const isSubsetByElem = (subset, superset) => {
-  if(!subset || !superset) {
-    return false;
-  }
-  return subset.every(subsetItem => 
-    superset.some(supersetItem => 
-      subsetItem === supersetItem
-    )
-  );  
-};

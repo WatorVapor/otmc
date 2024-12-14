@@ -213,7 +213,9 @@ export class DidDocument {
       if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      self.eeOut.emit('did:team:document.auth.result',evt); 
+      self.evidenceAuth = Object.assign({}, evt);
+      self.judgeStatusOfEvidenceType_();
+      self.eeOut.emit('did:team:document.auth.result',self.status); 
     })
     this.eeInternal.on('did.evidence.capability',(evt)=>{
       if(self.trace0) {
@@ -1097,6 +1099,7 @@ export class DidDocument {
     }
     return documentObj;
   }
+  /*
   judgeStatusOfEvidenceType_() {
     if(this.trace) {
       console.log('DidDocument::judgeStatusOfEvidenceType_::this.evidenceAuth=:<',this.evidenceAuth,'>');
@@ -1143,6 +1146,22 @@ export class DidDocument {
       this.status.isVerified = true;
       this.stable = true;
     }
+    if(this.trace) {
+      console.log('DidDocument::judgeStatusOfEvidenceType_::this.status=:<',this.status,'>');
+    }
+  }
+  */
+  judgeStatusOfEvidenceType_() {
+    if(this.trace) {
+      console.log('DidDocument::judgeStatusOfEvidenceType_::this.evidenceAuth=:<',this.evidenceAuth,'>');
+    }
+    this.status = {};
+    this.status.isController = this.evidenceAuth.ctrler,
+    this.status.isControllee = this.evidenceAuth.ctrlee,
+    this.status.isProofed = this.evidenceAuth.proofed,
+    this.status.isSeed = this.evidenceAuth.seed,
+    this.status.isBud = this.evidenceAuth.bud,
+    this.stable = this.evidenceAuth.proofed;
     if(this.trace) {
       console.log('DidDocument::judgeStatusOfEvidenceType_::this.status=:<',this.status,'>');
     }

@@ -102,14 +102,21 @@ export class DidDocumentStateMachine {
     if(this.trace2) {
       console.log('DidDocumentStateMachine::caclDidDocument::didAddress=<',didAddress,'>');
     }
-    const docProofResult = this.builder.caclStoredDidDocument(didDoc,this.seedReachTable,this.allEvidenceChain[didDoc.id]);
-    if(this.trace2) {
-      console.log('DidDocumentStateMachine::caclDidDocument::docProofResult=<',docProofResult,'>');
-      console.log('DidDocumentStateMachine::caclDidDocument::this.allEvidenceChain=<',this.allEvidenceChain,'>');
-    }
     const didType = this.builder.judgeEvidenceDidType(didDoc,this.allEvidenceChain[didDoc.id]);
     if(this.trace2) {
       console.log('DidDocumentStateMachine::caclDidDocument::didType=<',didType,'>');
+    }
+    let docProofResult = false;
+    if(didType.ctrler){
+      docProofResult = this.builder.collectControllerAuth(didDoc,this.seedReachTable);
+    }
+    if(didType.ctrlee){
+      const controlleeReachTable = this.buildControlleeReachTable_(didDoc);
+      docProofResult = this.builder.collectControlleeAuth(didDoc,controlleeReachTable);
+    }
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::caclDidDocument::docProofResult=<',docProofResult,'>');
+      console.log('DidDocumentStateMachine::caclDidDocument::this.allEvidenceChain=<',this.allEvidenceChain,'>');
     }
     const myAddress = this.auth.address();
     if(this.trace2) {
@@ -123,7 +130,6 @@ export class DidDocumentStateMachine {
       console.log('DidDocumentStateMachine::caclDidDocument::seed=<',seed,'>');
     }
     const result = {
-      did:didDoc,
       proofed : false,
       ctrler:didType.ctrler,
       ctrlee:didType.ctrlee,
@@ -211,8 +217,8 @@ export class DidDocumentStateMachine {
       if(!graph.hasNode(proofLink.proofee)) {
         graph.addNode(proofLink.proofee);
       }
-      if(!graph.hasEdge(proofLink.proofer,proofLink.proofee)) {
-        graph.addEdge(proofLink.proofer,proofLink.proofee);
+      if(!graph.hasEdge(proofLink.proofee,proofLink.proofer)) {
+        graph.addEdge(proofLink.proofee,proofLink.proofer);
       }
     }
     if(this.trace2) {
@@ -289,7 +295,61 @@ export class DidDocumentStateMachine {
       console.log('DidDocumentStateMachine::buildDidDocumentProofPath_::this.seedReachTable=:<',this.seedReachTable,'>');
     }
   }
-  
+  /**
+   * Given a did document, build the controllee reach table
+   * @param {Object} didDoc - the did document
+   */
+  buildControlleeReachTable_(didDoc) {
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::buildControlleeReachTable_::didDoc=<',didDoc,'>');
+      console.log('DidDocumentStateMachine::buildControlleeReachTable_::this.didSpaceGraphs=<',this.didSpaceGraphs,'>');
+    }
+    const ctrleeReachTable = {};
+    const chainGraph = this.didSpaceGraphs[didDoc.id];
+    for(const controller of didDoc.controller) {
+      if(this.trace2) {
+        console.log('DidDocumentStateMachine::buildControlleeReachTable_::controller=<',controller,'>');
+      }
+      const ctrlerReachTable = this.seedReachTable[controller];
+      if(this.trace2) {
+        console.log('DidDocumentStateMachine::buildControlleeReachTable_::ctrlerReachTable=<',ctrlerReachTable,'>');
+      }
+      for(const reachAuth in ctrlerReachTable) {
+        const reachObj = ctrlerReachTable[reachAuth];
+        if(this.trace2) {
+          console.log('DidDocumentStateMachine::buildControlleeReachTable_::reachAuth=<',reachAuth,'>');
+          console.log('DidDocumentStateMachine::buildControlleeReachTable_::reachObj=<',reachObj,'>');
+        }
+        if(reachObj.reachable) {
+          for(const auth of didDoc.authentication) {
+            try {
+              const path = dijkstra.bidirectional(chainGraph, auth, reachAuth);
+              if(this.trace2) {
+                console.log('DidDocumentStateMachine::buildControlleeReachTable_::path=<',path,'>');
+              }
+              if(path){
+                ctrleeReachTable[auth] = {
+                  reachable: true,
+                  path: path
+                };        
+              } else {
+                ctrleeReachTable[auth] = {
+                  reachable: false,
+                };        
+              }
+            }
+            catch(e) {
+              //console.log('DidDocumentStateMachine::buildControlleeReachTable_::e=<',e,'>');
+            }
+          }
+        }
+      }
+    }
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::buildControlleeReachTable_::ctrleeReachTable=<',ctrleeReachTable,'>');
+    }
+  }
+
   dumpState_() {
     for(const chainId in this.chainState) {
       const state = this.chainState[chainId];

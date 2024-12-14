@@ -230,15 +230,8 @@ const loadDidTeamApps = (evt) => {
     console.log('loadDidTeamApps::status=:<',status,'>');
     appDidVM.status = status;
   });
-  otmc.on('did:team:document.auth.result',(authResult) => {
-    console.log('loadDidTeamApps::authResult=:<',authResult,'>');
-    const status = {
-      isController: authResult.ctrler,
-      isControllee: authResult.ctrlee,
-      isProofed: authResult.proofed,
-      isSeed: authResult.seed,
-      isBud: authResult.bud,
-    }
+  otmc.on('did:team:document.auth.result',(status) => {
+    console.log('loadDidTeamApps::status=:<',status,'>');
     appDidVM.status = status;
   });  
   edcryptKeyVM.otmc = otmc;

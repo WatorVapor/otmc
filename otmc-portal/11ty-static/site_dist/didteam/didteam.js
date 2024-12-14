@@ -82,6 +82,18 @@ const didTeamOption = {
       join: {
         did:'',
       },
+      teamOperation:'create',// 'create|join'
+      teamType:{
+        controller:true
+      },
+      growPolicy:{
+        seedDogma:false,
+        controllerDogma:false,
+        proofChain:true,
+      },
+      guestPolicy:{
+        open:false
+      }
     };
   },
   methods: {

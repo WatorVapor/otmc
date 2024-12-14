@@ -65,11 +65,11 @@ const didTeamOption = {
       createAsControlled:true,
       createAsRoot:true,
       status: {
-        isVerified:false,
-        isRoot:false,
-        isEndEntity:false,
+        isController:false,
+        isControllee:false,
+        isProofed:false,
         isSeed:false,
-        isLeaf:false,
+        isBud:false,
       },
       did: {
         id:'',
@@ -230,6 +230,17 @@ const loadDidTeamApps = (evt) => {
     console.log('loadDidTeamApps::status=:<',status,'>');
     appDidVM.status = status;
   });
+  otmc.on('did:team:document.auth.result',(authResult) => {
+    console.log('loadDidTeamApps::authResult=:<',authResult,'>');
+    const status = {
+      isController: authResult.ctrler,
+      isControllee: ! authResult.ctrler,
+      isProofed: authResult.proofed,
+      isSeed: authResult.seed,
+      isBud: ! authResult.seed,
+    }
+    appDidVM.status = status;
+  });  
   edcryptKeyVM.otmc = otmc;
   appDidVM.otmc = otmc;
   

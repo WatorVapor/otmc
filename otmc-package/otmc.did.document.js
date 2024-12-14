@@ -209,6 +209,12 @@ export class DidDocument {
       self.judgeStatusOfEvidenceType_();
       self.eeOut.emit('did:team:evidence.auth',self.status);
     });
+    this.eeInternal.on('did:document.auth.result',(evt)=>{
+      if(self.trace0) {
+        console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.eeOut.emit('did:team:document.auth.result',evt); 
+    })
     this.eeInternal.on('did.evidence.capability',(evt)=>{
       if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');

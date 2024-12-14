@@ -106,12 +106,6 @@ export class DidDocumentStateMachine {
     if(this.trace2) {
       console.log('DidDocumentStateMachine::caclDidDocument::docProofResult=<',docProofResult,'>');
     }
-    if(!docProofResult) {
-      return;
-    }
-    if(!docProofResult.authList) {
-      return;
-    }
     const didType = this.builder.judgeEvidenceDidType(didDoc);
     if(this.trace2) {
       console.log('DidDocumentStateMachine::caclDidDocument::didType=<',didType,'>');
@@ -120,14 +114,6 @@ export class DidDocumentStateMachine {
     if(this.trace2) {
       console.log('DidDocumentStateMachine::caclDidDocument::myAddress=<',myAddress,'>');
     }
-    const myAuthId = `${didAddress}#${myAddress}`;
-    if(this.trace2) {
-      console.log('DidDocumentStateMachine::caclDidDocument::myAuthId=<',myAuthId,'>');
-    }
-    const isAuthedNode = docProofResult.authList.includes(myAuthId);
-    if(this.trace2) {
-      console.log('DidDocumentStateMachine::caclDidDocument::isAuthedNode=<',isAuthedNode,'>');
-    }
     let seed = false;
     if(didAddress.endsWith(myAddress)) {
       seed = true;
@@ -135,6 +121,30 @@ export class DidDocumentStateMachine {
     if(this.trace2) {
       console.log('DidDocumentStateMachine::caclDidDocument::seed=<',seed,'>');
     }
+    const result = {
+      did:didDoc,
+      proofed : false,
+      ctrler:didType.ctrler,
+      seed:seed
+    }
+    if(!docProofResult) {
+      this.eeInternal.emit('did:document.auth.result', result);
+      return;
+    }
+    if(!docProofResult.authList) {
+      this.eeInternal.emit('did:document.auth.result', result);
+      return;
+    }
+    const myAuthId = `${didAddress}#${myAddress}`;
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::caclDidDocument::myAuthId=<',myAuthId,'>');
+    }
+    const isProofedNode = docProofResult.authList.includes(myAuthId);
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::caclDidDocument::isProofedNode=<',isProofedNode,'>');
+    }
+    result.proofed = isProofedNode;
+    this.eeInternal.emit('did:document.auth.result', result);
   }
 
   async loadEvidenceChainFromStorage_() {

@@ -49,12 +49,13 @@ export class EvidenceChainBuilder {
     }
     return result;
   }
-  judgeEvidenceDidType(evidenceDid) {
-    let isCtrler = false;
-    let controllers = [];
+  judgeEvidenceDidType(evidenceDid,evidenceChain) {
     if(this.trace1) {
       console.log('EvidenceChainBuilder::judgeEvidenceDidType::evidenceDid=<',evidenceDid,'>');
+      console.log('EvidenceChainBuilder::judgeEvidenceDidType::evidenceChain=<',evidenceChain,'>');
     }
+    let isCtrler = false;
+    let isCtrlee = false;
     const isInController = evidenceDid.controller.includes(evidenceDid.id);
     if(this.trace1) {
       console.log('EvidenceChainBuilder::judgeEvidenceDidType::isInController=<',isInController,'>');
@@ -62,19 +63,18 @@ export class EvidenceChainBuilder {
     if(isInController) {
       isCtrler = true;
     } else {
-      controllers.push(evidenceDid.controller);
+      isCtrlee = true;
     }
-    controllers = controllers.flat();
-    if(this.trace1) {
-      console.log('EvidenceChainBuilder::judgeEvidenceDidType::controllers=<',controllers,'>');
-    }
-    controllers = [...new Set(controllers)];
-    if(this.trace1) {
-      console.log('EvidenceChainBuilder::judgeEvidenceDidType::controllers=<',controllers,'>');
+    if(evidenceDid.controller.length  < 1) {
+      for(const evidence of evidenceChain) {
+        if(evidence.controller.length > 0) {
+          return this.judgeEvidenceDidType(evidence,evidenceChain);
+        }
+      }
     }
     const chainType = {
       ctrler:isCtrler,
-      controllers:controllers
+      ctrlee:isCtrlee,
     };
     return chainType;
   }
@@ -320,7 +320,7 @@ export class EvidenceChainBuilder {
    * @param {Object} seedReachTable - the seed reach table
    * @returns {Object} - the calculated evidence chain
    */
-  caclStoredDidDocument(didDoc,seedReachTable) {
+  caclStoredDidDocument(didDoc,seedReachTable,evidenceChain) {
     if(this.trace1) {
       console.log('EvidenceChainBuilder::caclStoredDidDocument::didDoc=<',didDoc,'>');
       console.log('EvidenceChainBuilder::caclStoredDidDocument::seedReachTable=<',seedReachTable,'>');
@@ -337,9 +337,12 @@ export class EvidenceChainBuilder {
     if(this.trace1) {
       console.log('EvidenceChainBuilder::caclStoredDidDocument::manifest=<',manifest,'>');
     }
+    if(!manifest) {
+      return false;
+    }
     if(isGoodDid) {
       const result = {};
-      const chainType = this.judgeEvidenceDidType(didDoc);
+      const chainType = this.judgeEvidenceDidType(didDoc,evidenceChain);
       if(this.trace1) {
         console.log('EvidenceChainBuilder::caclStoredDidDocument::chainType=<',chainType,'>');
       }

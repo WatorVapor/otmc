@@ -234,10 +234,10 @@ const loadDidTeamApps = (evt) => {
     console.log('loadDidTeamApps::authResult=:<',authResult,'>');
     const status = {
       isController: authResult.ctrler,
-      isControllee: ! authResult.ctrler,
+      isControllee: authResult.ctrlee,
       isProofed: authResult.proofed,
       isSeed: authResult.seed,
-      isBud: ! authResult.seed,
+      isBud: authResult.bud,
     }
     appDidVM.status = status;
   });  

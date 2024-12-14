@@ -588,6 +588,13 @@ export class DidDocument {
   }
 
 
+  /**
+   * Creates and stores a join request credential for the controller.
+   * 
+   * This method constructs a join request credential object using the configured
+   * authentication method and the DID document. It then stores the credential
+   * using the configured resolver.
+   */
   joinRequest2Controller() {
     this.checkEdcrypt_();
     if(this.trace) {
@@ -603,27 +610,44 @@ export class DidDocument {
     }
     this.resolver.storeCredentialRequest(credReqDoc,this.didDoc_.id);
   }
+  /**
+   * Creates and signs a join request message for a team mate with the 'invitation' role.
+   * 
+   * This method constructs a join request object containing the DID document and a
+   * topic string based on the DID document ID and the authenticated address. It then
+   * signs the join request using the configured authentication method.
+   * 
+   * @returns {Object} The signed join request object
+   */
   joinRequest2TeamMate() {
-    if(this.trace) {
-      console.log('DidDocument::joinRequest2TeamMate::this.otmc=:<',this.otmc,'>');
-    }
     this.checkEdcrypt_();    
-    const role = 'invitation';
-    const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
-    const joinDid = {
-      topic:`${prefixDidToTopic}/${this.auth.address()}/sys/did/${role}/join`,
-      did:this.didDoc_,
-    };
     if(this.trace) {
-      console.log('DidDocument::joinRequest2TeamMate::joinDid=:<',joinDid,'>');
+      console.log('DidDocument::joinRequest2TeamMate::this.didDoc_=:<',this.didDoc_,'>');
     }
-    const joinDidSigned = this.auth.sign(joinDid);
+    const credReq = new DIDCredentialRequestJoinTeamMate(this.auth,this.didDoc_,this.util);
     if(this.trace) {
-      console.log('DidDocument::joinRequest2TeamMate::joinDidSigned=:<',joinDidSigned,'>');
+      console.log('DidDocument::joinRequest2TeamMate::credReq=:<',credReq,'>');
     }
-    return joinDidSigned;
-
+    const credReqDoc = credReq.credential();
+    if(this.trace) {
+      console.log('DidDocument::joinRequest2TeamMate::credReqDoc=:<',credReqDoc,'>');
+    }
+    this.resolver.storeCredentialRequest(credReqDoc,this.didDoc_.id);
   }
+  /**
+   * Accepts a join request by verifying the provided credential request and storing
+   * the associated verifiable credential.
+   *
+   * This method retrieves the credential request associated with the given store hash.
+   * It verifies the authenticity of the credential request and extracts claims to 
+   * create a verifiable credential. The verifiable credential is then stored and
+   * marked as completed.
+   *
+   * @param {string} storeHash - The hash used to retrieve and process the join request.
+   * @returns {Promise<null|void>} - Returns null if the credential request is invalid
+   * or void when the process is complete.
+   */
+
   async acceptRequest(storeHash) {
     if(this.trace) {
       console.log('DidDocument::acceptRequest::storeHash=:<',storeHash,'>');

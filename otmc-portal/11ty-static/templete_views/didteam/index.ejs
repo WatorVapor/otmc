@@ -37,13 +37,13 @@ layout: didteam.sidebar.ejs
         <span class="input-group-text w-25">Team Sapce Address</span>
         <input type="text" class="form-control" readonly placeholder="did:otmc: NOT in any team" v-model="did.id">
         <span class="input-group-text w-25">
-          <button class="btn btn-primary" type="button" v-if="status.isRoot && !status.isVerified" @click="clickSendJoinRequest2TeamMate()" :disabled="isInTeam == false" 
-            data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Send a joining request to authed team mates">
+          <button class="btn btn-primary" type="button" v-if="status.isController && !status.isProofed" @click="clickSendJoinRequest2TeamMate()" :disabled="isInTeam == false" 
+            data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Send a joining request to authed team mates">
             <i class="fa-solid fa-share"></i>
             <i class="fa-solid fa-people-group"></i>
           </button>
-          <button class="btn btn-primary" type="button" v-if="status.isLeaf&& !status.isVerified" @click="clickSendJoinRequest2Controller()" :disabled="isInTeam == false" 
-            data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Send a joining request to controllers">
+          <button class="btn btn-primary" type="button" v-if="status.isControllee && !status.isProofed" @click="clickSendJoinRequest2Controller()" :disabled="isInTeam == false" 
+            data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Send a joining request to controllers">
             <i class="fa-solid fa-share"></i>
             <i class="fa-solid fa-people-roof"></i>
           </button>

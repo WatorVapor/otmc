@@ -61,7 +61,7 @@ export class DidDocumentStateMachine {
   }
   async loadEvidenceChain() {
     this.allEvidenceChain = await this.loadEvidenceChainFromStorage_();
-    if(self.trace0) {
+    if(this.trace0) {
       console.log('DidDocumentStateMachine::loadEvidenceChain::this.allEvidenceChain=:<',this.allEvidenceChain,'>');
     }
     for(const chainId in this.allEvidenceChain) {
@@ -102,11 +102,12 @@ export class DidDocumentStateMachine {
     if(this.trace2) {
       console.log('DidDocumentStateMachine::caclDidDocument::didAddress=<',didAddress,'>');
     }
-    const docProofResult = this.builder.caclStoredDidDocument(didDoc,this.seedReachTable);
+    const docProofResult = this.builder.caclStoredDidDocument(didDoc,this.seedReachTable,this.allEvidenceChain[didDoc.id]);
     if(this.trace2) {
       console.log('DidDocumentStateMachine::caclDidDocument::docProofResult=<',docProofResult,'>');
+      console.log('DidDocumentStateMachine::caclDidDocument::this.allEvidenceChain=<',this.allEvidenceChain,'>');
     }
-    const didType = this.builder.judgeEvidenceDidType(didDoc);
+    const didType = this.builder.judgeEvidenceDidType(didDoc,this.allEvidenceChain[didDoc.id]);
     if(this.trace2) {
       console.log('DidDocumentStateMachine::caclDidDocument::didType=<',didType,'>');
     }
@@ -125,7 +126,9 @@ export class DidDocumentStateMachine {
       did:didDoc,
       proofed : false,
       ctrler:didType.ctrler,
-      seed:seed
+      ctrlee:didType.ctrlee,
+      seed:seed,
+      bud:!seed
     }
     if(!docProofResult) {
       this.eeInternal.emit('did:document.auth.result', result);

@@ -185,7 +185,14 @@ export class EvidenceChainBuilder {
     return resultAuthed;   
   }
 
-  collectControlleeAuth(didDoc,seedReachTable,ctrleeReachTable) {
+  /**
+   * Collect the authentication from the reach table, given a did document, the seed reach table, and the controllee reach table.
+   * @param {Object} didDoc - the did document
+   * @param {Object} seedReachTable - the seed reach table
+   * @param {Object} ctrleeReachTable - the controllee reach table
+   * @returns {Object} - the collected authentication
+   */
+  collectControlleeAuth(didDoc,ctrleeReachTable,seedReachTable) {
     if(this.trace1) {
       console.log('EvidenceChainBuilder::caclStoredDidDocument::didDoc=<',didDoc,'>');
       console.log('EvidenceChainBuilder::caclStoredDidDocument::seedReachTable=<',seedReachTable,'>');
@@ -203,7 +210,7 @@ export class EvidenceChainBuilder {
       return false;
     }
     if(isGoodDid) {
-      const authList = this.collectControllerAuthFromReachTable_(didDoc.authentication,seedReachTable[didDoc.id],manifest.did.authentication);
+      const authList = this.collectControlleeAuthFromReachTable_(didDoc.authentication,ctrleeReachTable,seedReachTable,didDoc.controller,manifest.did.authentication);
       return {authList:authList}
     }
     return false;
@@ -216,30 +223,61 @@ export class EvidenceChainBuilder {
    * @param {Object} manifest - the manifest
    * @returns {Array} - the collected authentication
    */
-  collectControlleeAuthFromReachTable_(authentication,controller,seedReachTable,manifest) {
+  collectControlleeAuthFromReachTable_(authentication,ctrleeReachTable,seedReachTable,controllers,manifest) {
     if(this.trace1) {
       console.log('EvidenceChainBuilder::collectControlleeAuthFromReachTable_::authentication=<',authentication,'>');
-      console.log('EvidenceChainBuilder::collectControlleeAuthFromReachTable_::controller=<',controller,'>');
+      console.log('EvidenceChainBuilder::collectControlleeAuthFromReachTable_::controller=<',controllers,'>');
       console.log('EvidenceChainBuilder::collectControlleeAuthFromReachTable_::seedReachTable=<',seedReachTable,'>');
+      console.log('EvidenceChainBuilder::collectControlleeAuthFromReachTable_::ctrleeReachTable=<',ctrleeReachTable,'>');
       console.log('EvidenceChainBuilder::collectControlleeAuthFromReachTable_::manifest=<',manifest,'>');
     }
     const resultAuthed = [];
     for(const auth of authentication) {
-      const seedReach = reachTable[auth];
+      const seedReach = ctrleeReachTable[auth];
       if(this.trace1) {
         console.log('EvidenceChainBuilder::collectControlleeAuthFromReachTable_::seedReach=<',seedReach,'>');
       }
       if(seedReach.reachable) {
+        const lastProofNode = seedReach.path[seedReach.path.length - 1];
+        if(this.trace1) {
+          console.log('EvidenceChainBuilder::collectControlleeAuthFromReachTable_::lastProofNode=<',lastProofNode,'>');
+        }
+        const isProofedNode = this.isProofedNode_(lastProofNode,seedReachTable,controllers);
+        if(this.trace1) {
+          console.log('EvidenceChainBuilder::collectControlleeAuthFromReachTable_::isProofedNode=<',isProofedNode,'>');
+        }
+        if(!isProofedNode) {
+          continue;
+        }
         if(manifest.policy === 'Proof.Chain') {
           resultAuthed.push(auth);
         }
-        if(manifest.policy === 'Seed.Dogma') {
+        if(manifest.policy === 'Controller.Dogma') {
           if(seedReach.path.length === 1) {
             resultAuthed.push(auth);
           }
         }
+        if(manifest.policy === 'Controller.Dogma|Proof.Chain') {
+          resultAuthed.push(auth);
+        }
       }
     }
     return resultAuthed;   
+  }
+  isProofedNode_(proofee,seedReachTable,controllers) {
+    for(const controller of controllers) {
+      const seedReachTable = seedReachTable[controller];
+      if(this.trace1) {
+        console.log('EvidenceChainBuilder::isProofedNode_::seedReachTable=<',seedReachTable,'>');
+      }
+      const seedReach = seedReachTable[proofee];
+      if(this.trace1) {
+        console.log('EvidenceChainBuilder::isProofedNode_::seedReach=<',seedReach,'>');
+      }
+      if(seedReach &&seedReach.reachable) {
+        return true;
+      }
+    }
+    return false;
   }
 }

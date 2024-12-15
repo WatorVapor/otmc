@@ -112,7 +112,7 @@ export class DidDocumentStateMachine {
     }
     if(didType.ctrlee){
       const controlleeReachTable = this.buildControlleeReachTable_(didDoc);
-      docProofResult = this.builder.collectControlleeAuth(didDoc,controlleeReachTable);
+      docProofResult = this.builder.collectControlleeAuth(didDoc,controlleeReachTable,this.seedReachTable);
     }
     if(this.trace2) {
       console.log('DidDocumentStateMachine::caclDidDocument::docProofResult=<',docProofResult,'>');
@@ -322,6 +322,9 @@ export class DidDocumentStateMachine {
         }
         if(reachObj.reachable) {
           for(const auth of didDoc.authentication) {
+            if(this.trace2) {
+              console.log('DidDocumentStateMachine::buildControlleeReachTable_::auth=<',auth,'>');
+            }    
             try {
               const path = dijkstra.bidirectional(chainGraph, auth, reachAuth);
               if(this.trace2) {
@@ -338,8 +341,11 @@ export class DidDocumentStateMachine {
                 };        
               }
             }
-            catch(e) {
-              //console.log('DidDocumentStateMachine::buildControlleeReachTable_::e=<',e,'>');
+            catch(err) {
+              //console.log('DidDocumentStateMachine::buildControlleeReachTable_::err=<',err,'>');
+              ctrleeReachTable[auth] = {
+                reachable: false,
+              };
             }
           }
         }
@@ -348,6 +354,7 @@ export class DidDocumentStateMachine {
     if(this.trace2) {
       console.log('DidDocumentStateMachine::buildControlleeReachTable_::ctrleeReachTable=<',ctrleeReachTable,'>');
     }
+    return ctrleeReachTable;
   }
 
   dumpState_() {

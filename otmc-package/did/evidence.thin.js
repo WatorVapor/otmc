@@ -266,11 +266,11 @@ export class EvidenceChainBuilder {
   }
   isProofedNode_(proofee,seedReachTable,controllers) {
     for(const controller of controllers) {
-      const seedReachTable = seedReachTable[controller];
+      const controllerReachTable = seedReachTable[controller];
       if(this.trace1) {
-        console.log('EvidenceChainBuilder::isProofedNode_::seedReachTable=<',seedReachTable,'>');
+        console.log('EvidenceChainBuilder::isProofedNode_::controllerReachTable=<',controllerReachTable,'>');
       }
-      const seedReach = seedReachTable[proofee];
+      const seedReach = controllerReachTable[proofee];
       if(this.trace1) {
         console.log('EvidenceChainBuilder::isProofedNode_::seedReach=<',seedReach,'>');
       }

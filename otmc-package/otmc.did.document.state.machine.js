@@ -336,16 +336,20 @@ export class DidDocumentStateMachine {
                   path: path
                 };        
               } else {
-                ctrleeReachTable[auth] = {
-                  reachable: false,
-                };        
+                if(!ctrleeReachTable[auth]) {
+                  ctrleeReachTable[auth] = {
+                    reachable: false,
+                  };
+                }        
               }
             }
             catch(err) {
               //console.log('DidDocumentStateMachine::buildControlleeReachTable_::err=<',err,'>');
-              ctrleeReachTable[auth] = {
-                reachable: false,
-              };
+              if(!ctrleeReachTable[auth]) {
+                ctrleeReachTable[auth] = {
+                  reachable: false,
+                };
+              }
             }
           }
         }

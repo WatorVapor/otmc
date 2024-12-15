@@ -21,7 +21,7 @@ export class DIDVerifiableCredential {
         return this.verifiableIncreaseAuthMyself_(claimsVC.memberAsAuthentication,claimsVC.did,storeHash);
       }
     } else {
-      return this.verifiableOtherEndEntity_(claimsVC.did,storeHash);
+      return this.verifiableOtherControllee_(claimsVC.did,storeHash);
     }
   }
   
@@ -97,15 +97,15 @@ export class DIDVerifiableCredential {
   }
 
 
-  verifiableOtherEndEntity_(did2VC,storeHash) {
+  verifiableOtherControllee_(did2VC,storeHash) {
     if(this.trace) {
-      console.log('DIDVerifiableCredential::verifiableOtherEndEntity_::this.auth_=:<',this.auth_,'>');
-      console.log('DIDVerifiableCredential::verifiableOtherEndEntity_::did2VC=:<',did2VC,'>');
+      console.log('DIDVerifiableCredential::verifiableOtherControllee_::this.auth_=:<',this.auth_,'>');
+      console.log('DIDVerifiableCredential::verifiableOtherControllee_::did2VC=:<',did2VC,'>');
     }
     const didVCNew = JSON.parse(JSON.stringify(did2VC));
     const oldDidProof = didVCNew.proof;
     if(this.trace) {
-      console.log('DIDVerifiableCredential::verifiableOtherEndEntity_::oldDidProof=:<',oldDidProof,'>');
+      console.log('DIDVerifiableCredential::verifiableOtherControllee_::oldDidProof=:<',oldDidProof,'>');
     }
     delete didVCNew.proof;
     const methodId = `${this.didDoc_.id}#${this.auth_.address()}`;
@@ -119,7 +119,7 @@ export class DIDVerifiableCredential {
     };
     didVCNew.verificationMethod.push(verificationMethod);
     if(this.trace) {
-      console.log('DIDVerifiableCredential::verifiableOtherEndEntity_::didVCNew=:<',didVCNew,'>');
+      console.log('DIDVerifiableCredential::verifiableOtherControllee_::didVCNew=:<',didVCNew,'>');
     }
     const signedMsgVC = this.auth_.signWithoutTS(didVCNew);
     const proofVC = {
@@ -129,7 +129,7 @@ export class DIDVerifiableCredential {
     };
     didVCNew.proof = [proofVC];
     if(this.trace) {
-      console.log('DIDVerifiableCredential::verifiableOtherEndEntity_::didVCNew=:<',didVCNew,'>');
+      console.log('DIDVerifiableCredential::verifiableOtherControllee_::didVCNew=:<',didVCNew,'>');
     }
     
     const verifiableJson = {

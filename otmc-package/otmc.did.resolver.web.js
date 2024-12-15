@@ -39,7 +39,6 @@ export class DidResolverSyncWebStore {
   }
   trySyncCloudEvidence_() {
     this.trySyncCloudDocument_();
-    this.trySyncCloudManifest_();
     this.trySyncCloudTeamJoin_();
   }
 
@@ -61,11 +60,6 @@ export class DidResolverSyncWebStore {
       console.log('DidResolverSyncWebStore::trySyncCloudDocument_::cloudRequests=:<',cloudRequests,'>');
     }
     this.worker.postMessage({reqDL:cloudRequests});
-  }
-  async trySyncCloudManifest_() {
-    if(this.trace) {
-      console.log('DidResolverSyncWebStore::trySyncCloudManifest_::this.manifest=:<',this.manifest,'>');
-    }
   }
   async trySyncCloudTeamJoin_() {
     if(this.trace) {
@@ -227,36 +221,6 @@ export class DidResolverSyncWebStore {
       console.log('DidResolverSyncWebStore::storeDid::didDocSigned=:<',didDocSigned,'>');
     }
     const result = await this.postRequestAPI_(apiPath,didDocSigned);
-    return result;
-  }
-  async manifest(didAddress){
-    if(this.trace) {
-      console.log('DidResolverSyncWebStore::manifest::didAddress=:<',didAddress,'>');
-    }
-    const manifest = await this.GetRequestAPI_(`manifest/${didAddress}`);
-    return manifest;
-  }
-  async manifestAll(didAddress){
-    if(this.trace) {
-      console.log('DidResolverSyncWebStore::manifestAll::didAddress=:<',didAddress,'>');
-    }
-    const manifest = await this.GetRequestAPI_(`manifest/${didAddress}?all=true`);
-    return manifest;
-  }
-
-  async storeManifest(manifest,did){
-    if(this.trace) {
-      console.log('DidResolverSyncWebStore::storeManifest::manifest=:<',manifest,'>');
-    }
-    const apiPath = `manifest/upload/${did}`
-    if(this.trace) {
-      console.log('DidResolverSyncWebStore::storeManifest::apiPath=:<',apiPath,'>');
-    }
-    const manifestSigned =this.auth.sign({manifest:manifest});
-    if(this.trace) {
-      console.log('DidResolverSyncWebStore::storeManifest::manifestSigned=:<',manifestSigned,'>');
-    }
-    const result = await this.postRequestAPI_(apiPath,manifestSigned);
     return result;
   }
   createCloudGetRequest_(apiPath) {

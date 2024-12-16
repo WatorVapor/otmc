@@ -62,29 +62,54 @@ export class DidStoreTeamJoin {
       return null;
     }
   }
-  async getInProgressAll(didAddress) {
+  async getInProgressOfAddress(didAddress) {
     const asign2Me = await this.db.inProgress.where('control').equals(didAddress).toArray();
     if(this.trace) {
-      console.log('DidStoreTeamJoin::getInProgressAll::asign2Me=:<',asign2Me,'>');
+      console.log('DidStoreTeamJoin::getInProgressOfAddress::asign2Me=:<',asign2Me,'>');
     }
     const storeValuesJson = {};
     for(const storeReq of asign2Me) {
       if(this.trace) {
-        console.log('DidStoreTeamJoin::getInProgressAll::storeReq=:<',storeReq,'>');
+        console.log('DidStoreTeamJoin::getInProgressOfAddress::storeReq=:<',storeReq,'>');
       }
       const storeKey = storeReq.hashCR;
       const storeValueStr = storeReq.origCredReq;
       const storeValue = JSON.parse(storeValueStr);
       if(this.trace) {
-        console.log('DidStoreTeamJoin::getInProgressAll::storeValue=:<',storeValue,'>');
+        console.log('DidStoreTeamJoin::getInProgressOfAddress::storeValue=:<',storeValue,'>');
       }
       storeValuesJson[storeKey] = storeValue;
     }
     if(this.trace) {
-      console.log('DidStoreTeamJoin::getInProgressAll::storeValuesJson=:<',storeValuesJson,'>');
+      console.log('DidStoreTeamJoin::getInProgressOfAddress::storeValuesJson=:<',storeValuesJson,'>');
     }
     return storeValuesJson;
   }
+
+  async getInProgressAny() {
+    const asign2Any = await this.db.inProgress.toArray();
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::getInProgressAny::asign2Any=:<',asign2Any,'>');
+    }
+    const storeValuesJson = {};
+    for(const storeReq of asign2Any) {
+      if(this.trace) {
+        console.log('DidStoreTeamJoin::getInProgressAny::storeReq=:<',storeReq,'>');
+      }
+      const storeKey = storeReq.hashCR;
+      const storeValueStr = storeReq.origCredReq;
+      const storeValue = JSON.parse(storeValueStr);
+      if(this.trace) {
+        console.log('DidStoreTeamJoin::getInProgressAny::storeValue=:<',storeValue,'>');
+      }
+      storeValuesJson[storeKey] = storeValue;
+    }
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::getInProgressAny::storeValuesJson=:<',storeValuesJson,'>');
+    }
+    return storeValuesJson;
+  }
+  
   async getJoinCredRequest(storeHash) {
     const storeRequest = await this.db.inProgress.where('hashCR').equals(storeHash).first();
     if(this.trace) {

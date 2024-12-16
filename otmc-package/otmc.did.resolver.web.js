@@ -1,6 +1,5 @@
 import { StoreKey } from './otmc.const.js';
 import { DidStoreDocument } from './otmc.did.store.document.js';
-import { DidStoreManifest } from './otmc.did.store.manifest.js';
 import { DidStoreTeamJoin } from './otmc.did.store.team.join.js';
 
 const context = 'https://otmc.wator.xyz/ns/did/evidence';
@@ -30,7 +29,6 @@ export class DidResolverSyncWebStore {
       self.base32 = evt.base32;
       self.util = evt.util;
       self.document = new DidStoreDocument(evt);
-      self.manifest = new DidStoreManifest(evt);
       self.teamJoin = new DidStoreTeamJoin(evt);
       setTimeout(()=>{
         self.trySyncCloudEvidence_();
@@ -64,6 +62,40 @@ export class DidResolverSyncWebStore {
   async trySyncCloudTeamJoin_() {
     if(this.trace) {
       console.log('DidResolverSyncWebStore::trySyncCloudTeamJoin_::this.teamJoin=:<',this.teamJoin,'>');
+    }
+    const joinInProgressAll = await this.teamJoin.getInProgressAny();
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::trySyncCloudTeamJoin_::joinInProgressAll=:<',joinInProgressAll,'>');
+    }
+    const cloudRequests = [];
+    for(const joinInHash in joinInProgressAll) {
+      if(this.trace) {
+        console.log('DidResolverSyncWebStore::trySyncCloudTeamJoin_::joinInHash=:<',joinInHash,'>');
+      }
+      const joinInProgress = joinInProgressAll[joinInHash];
+      if(this.trace) {
+        console.log('DidResolverSyncWebStore::trySyncCloudTeamJoin_::joinInProgress=:<',joinInProgress,'>');
+      }
+      const didJoin = joinInProgress.credentialRequest.claims.did.id;
+      const apiPath = `team/join/upload/${didJoin}`
+      if(this.trace) {
+        console.log('DidResolverSyncWebStore::trySyncCloudTeamJoin_::apiPath=:<',apiPath,'>');
+      }
+      const b64Join = this.util.encodeBase64Str(JSON.stringify(joinInProgress));
+      const syncObject = {
+        did: didJoin,
+        hash: joinInHash,
+        joinB64: b64Join
+      }
+      const syncObjectSigned =this.auth.sign(syncObject);
+      if(this.trace) {
+        console.log('DidResolverSyncWebStore::trySyncCloudTeamJoin_::syncObjectSigned=:<',syncObjectSigned,'>');
+      }
+      const requstObj = this.createCloudPostRequest_(apiPath,syncObjectSigned);
+      if(this.trace) {
+        console.log('DidResolverSyncWebStore::trySyncCloudTeamJoin_::requstObj=:<',requstObj,'>');
+      }
+      this.worker.postMessage({postUL:[requstObj]});
     }
   }
   onCloudMsg_(msgCloud) {

@@ -86,32 +86,6 @@ export class DidResolverLocalStore {
   async storeFickleDid(storeDid){
     this.didDocLS.putFickle(storeDid);
   }
-  async manifest(didAddress){
-    if(this.trace) {
-      console.log('DidResolverLocalStore::manifest::didAddress=:<',didAddress,'>');
-    }
-    const manifestValuesJson = await this.manifestLS.getAll(didAddress);
-    if(this.trace) {
-      console.log('DidResolverLocalStore::manifest::manifestValuesJson=:<',manifestValuesJson,'>');
-    }
-    if(manifestValuesJson.length > 0) {
-      return manifestValuesJson[0];
-    }
-    return null;
-  }
-  async storeManifest(storeManifest){
-    this.manifestLS.putManifest(storeManifest);
-  }
-  async manifestAll(didAddress){
-    if(this.trace) {
-      console.log('DidResolverLocalStore::manifestAll::didAddress=:<',didAddress,'>');
-    }
-    const manifestValuesJson = await this.manifestLS.getAll(didAddress);
-    if(this.trace) {
-      console.log('DidResolverLocalStore::manifest::manifestValuesJson=:<',manifestValuesJson,'>');
-    }
-    return manifestValuesJson;
-  }
   async storeCredentialRequest(did,credReq){
     if(this.trace) {
       console.log('DidResolverLocalStore::storeCredentialRequest::credReq=:<',credReq,'>');
@@ -140,7 +114,7 @@ export class DidResolverLocalStore {
     if(this.trace) {
       console.log('DidResolverLocalStore::getJoinInProgress::didAddress=:<',didAddress,'>');
     }
-    const joinList = await this.joinStoreLS.getInProgressAll(didAddress);
+    const joinList = await this.joinStoreLS.getInProgressOfAddress(didAddress);
     if(this.trace) {
       console.log('DidResolverLocalStore::getJoinInProgress::joinList=:<',joinList,'>');
     }

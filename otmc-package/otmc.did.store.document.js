@@ -112,6 +112,18 @@ export class DidStoreDocument {
     }
     return storeValuesJson;
   }
+
+  async getAllTentative(address) {
+    const didAddress = `did:otmc:${address}`;
+    if(this.trace) {
+      console.log('DidStoreDocument::getAllTentative::didAddress=:<',didAddress,'>');
+    }
+    const storeValuesJson = await this.getAllByDidAddress_(didAddress,this.db.tentative);
+    if(this.trace) {
+      console.log('DidStoreDocument::getAllTentative::storeValuesJson=:<',storeValuesJson,'>');
+    }
+    return storeValuesJson;
+  }  
   async getMemberAllStable(address) {
     const storeValuesJson = await this.getAllAuthMember_(address,this.db.stable);
     if(this.trace) {
@@ -232,6 +244,32 @@ export class DidStoreDocument {
     } else {
       return null;
     }
+  }
+  async getTentativeAll () {
+    const storeValuesJson = [];
+    const storeObject = await this.db.tentative.toArray();
+    if(this.trace) {
+      console.log('DidStoreDocument::getTentativeDidDocument::storeObject=:<',storeObject,'>');
+    }
+    for(const storeValue of storeObject) {
+      const storeDid = JSON.parse(storeValue.origDid);
+      storeValuesJson.push(storeDid);
+    }
+    return storeValuesJson;
+  }
+  async moveTentative2Stable (moveDid) {
+    if(this.trace) {
+      console.log('DidStoreDocument::moveTentative2Stable::moveDid=:<',moveDid,'>');
+    }
+    const filter = {
+      id: moveDid.id,
+      hashDid: moveDid.hashDid
+    };
+    const storeObject1 = await this.db.stable.where(filter).first();
+    if(!storeObject1) {
+      await this.db.stable.put(moveDid);
+    }
+    await this.db.tentative.where('hashDid').equals(moveDid.hashDid).delete(); 
   }
 
   async getAnyDidDocument () {

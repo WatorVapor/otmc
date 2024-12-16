@@ -36,7 +36,7 @@ export class DidDocumentStateMachine {
       console.log('DidDocumentStateMachine::ListenEventEmitter_::this.eeInternal=:<',this.eeInternal,'>');
     }
     const self = this;
-    this.eeInternal.on('sys.authKey.ready',(evt)=>{
+    this.eeInternal.on('sys.authKey.ready',async (evt)=>{
       if(self.trace) {
         console.log('DidDocumentStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
       }
@@ -48,15 +48,28 @@ export class DidDocumentStateMachine {
       self.builder = new EvidenceChainBuilder(self.auth);
       self.document = new DidStoreDocument();
       self.evidence = new DidStoreEvidence();
-      self.loadEvidenceChain();      
+      await self.loadEvidenceChain();
+      self.reCalculateTentative();
     });
     this.eeInternal.on('did:document',async (evt)=>{
       if(self.trace0) {
         console.log('DidDocumentStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
       }
       if(evt.didDoc) {
-        self.caclDidDocument(evt.didDoc);
+        const result =  await self.caclDidDocument(evt.didDoc);
+        self.eeInternal.emit('did:document.auth.result', result);
       }
+    });
+    this.eeInternal.on('did:document:tentative',async (evt)=>{
+      if(self.trace0) {
+        console.log('DidDocumentStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      if(evt.didDoc) {
+        const resultTentative =  await self.caclDidDocument(evt.didDoc);
+        if(self.trace0) {
+          console.log('DidDocumentStateMachine::ListenEventEmitter_::resultTentative=:<',resultTentative,'>');
+        }
+        }
     });
   }
   async loadEvidenceChain() {
@@ -131,18 +144,17 @@ export class DidDocumentStateMachine {
     }
     const result = {
       proofed : false,
+      stable : false,
       ctrler:didType.ctrler,
       ctrlee:didType.ctrlee,
       seed:seed,
       bud:!seed
     }
     if(!docProofResult) {
-      this.eeInternal.emit('did:document.auth.result', result);
-      return;
+      return result;
     }
     if(!docProofResult.authList) {
-      this.eeInternal.emit('did:document.auth.result', result);
-      return;
+      return result;
     }
     const myAuthId = `${didAddress}#${myAddress}`;
     if(this.trace2) {
@@ -152,8 +164,41 @@ export class DidDocumentStateMachine {
     if(this.trace2) {
       console.log('DidDocumentStateMachine::caclDidDocument::isProofedNode=<',isProofedNode,'>');
     }
+    result.stable = true;
     result.proofed = isProofedNode;
-    this.eeInternal.emit('did:document.auth.result', result);
+    return result;
+  }
+  async reCalculateTentative() {
+    const evidenceTentative = await this.loadEvidenceTentativeFromStorage_();
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::reCalculateTentative::evidenceTentative=<',evidenceTentative,'>');
+    }
+    for(const chainId in evidenceTentative){
+      const chain = evidenceTentative[chainId];
+      if(this.trace2) {
+        console.log('DidDocumentStateMachine::reCalculateTentative::chainId=<',chainId,'>');
+        console.log('DidDocumentStateMachine::reCalculateTentative::chain=<',chain,'>');
+      }
+      for(const evidence of chain){
+        if(this.trace2) {
+          console.log('DidDocumentStateMachine::reCalculateTentative::evidence=<',evidence,'>');
+        }
+        const docResult = await this.caclDidDocument(evidence);
+        if(this.trace2) {
+          console.log('DidDocumentStateMachine::reCalculateTentative::docResult=<',docResult,'>');
+        }
+        if(docResult.stable) {
+          const documentStr = JSON.stringify(evidence);
+          const moveDoc = {
+            id:evidence.id,
+            updated:evidence.updated,
+            hashDid:this.util.calcAddress(documentStr),
+            origDid:documentStr
+          }
+          await this.document.moveTentative2Stable(moveDoc);
+        }
+      }
+    }
   }
 
   async loadEvidenceChainFromStorage_() {
@@ -176,7 +221,28 @@ export class DidDocumentStateMachine {
       console.log('DidDocumentStateMachine::loadEvidenceChainFromStorage_::evidencesOfAddress=<',evidencesOfAddress,'>');
     }
     return evidencesOfAddress;
-  }  
+  }
+  async loadEvidenceTentativeFromStorage_(){
+    const evidencesJson = await this.document.getTentativeAll();
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::loadEvidenceTentativeFromStorage_::evidencesJson=<',evidencesJson,'>');
+    }
+    const evidencesOfAddress = {};
+    for(const evidenceJson of evidencesJson){
+      if(this.trace2) {
+        console.log('DidDocumentStateMachine::loadEvidenceTentativeFromStorage_::evidenceJson=<',evidenceJson,'>');
+      }
+      const address = evidenceJson.id;
+      if(!evidencesOfAddress[address]) {
+        evidencesOfAddress[address] = [];
+      }
+      evidencesOfAddress[address].push(evidenceJson);
+    }
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::loadEvidenceTentativeFromStorage_::evidencesOfAddress=<',evidencesOfAddress,'>');
+    }
+    return evidencesOfAddress;
+  }
   
   async buildChainEvidence_(chainId,chain) {
     if(this.trace2) {
@@ -274,21 +340,31 @@ export class DidDocumentStateMachine {
       if(this.trace0) {
         console.log('DidDocumentStateMachine::buildDidDocumentProofPath_::targetSeedNode=:<',targetSeedNode,'>');
       }
-      const path = dijkstra.bidirectional(chainGraph, auth, targetSeedNode);
-      if(this.trace0) {
-        console.log('DidDocumentStateMachine::buildDidDocumentProofPath_::auth=:<',auth,'>');
-        console.log('DidDocumentStateMachine::buildDidDocumentProofPath_::targetSeedNode=:<',targetSeedNode,'>');
-        console.log('DidDocumentStateMachine::buildDidDocumentProofPath_::path=:<',path,'>');
-      }
-      if(path) {
-        seedReach[auth] = {
-          reachable: true,
-          path: path
-        };
-      } else {
-        seedReach[auth] = {
-          reachable: false
-        };
+      try {
+        const path = dijkstra.bidirectional(chainGraph, auth, targetSeedNode);
+        if(this.trace0) {
+          console.log('DidDocumentStateMachine::buildDidDocumentProofPath_::auth=:<',auth,'>');
+          console.log('DidDocumentStateMachine::buildDidDocumentProofPath_::targetSeedNode=:<',targetSeedNode,'>');
+          console.log('DidDocumentStateMachine::buildDidDocumentProofPath_::path=:<',path,'>');
+        }
+        if(path) {
+          seedReach[auth] = {
+            reachable: true,
+            path: path
+          };
+        } else {
+          if(!seedReach[auth]) {
+            seedReach[auth] = {
+              reachable: false
+            };
+          }
+        }
+      } catch(err) {  
+        if(!seedReach[auth]) {
+          seedReach[auth] = {
+            reachable: false,
+          };
+        }
       }
     }
     if(this.trace0) {

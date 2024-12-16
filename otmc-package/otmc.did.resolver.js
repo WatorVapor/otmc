@@ -93,44 +93,6 @@ export class DidResolver {
     this.localStore.storeFickleDid(storeDoc);
   }
 
-  async manifest(didAddress){
-    if(this.trace) {
-      console.log('DidResolver::manifest::didAddress=:<',didAddress,'>');
-    }
-    const localManifest = await this.localStore.manifest(didAddress);
-    if(this.trace) {
-      console.log('DidResolver::manifest::localManifest=:<',localManifest,'>');
-    }
-    if(this.trace) {
-      console.log('DidResolver::manifest::didAddress=:<',didAddress,'>');
-    }
-    return localManifest;
-  }
-  async storeManifest(manifestObj,did){
-    if(this.trace) {
-      console.log('DidResolver::storeManifest::did=:<',did,'>');
-    }
-    const manifestStr = JSON.stringify(manifestObj);
-    const manifestStore = {
-      did:did,
-      hash:this.util.calcAddress(manifestStr),
-      origManifest:manifestStr
-    }
-    this.localStore.storeManifest(manifestStore);
-  }
-  async manifestAll(didAddress){
-    if(this.trace) {
-      console.log('DidResolver::manifestAll::didAddress=:<',didAddress,'>');
-    }
-    const localManifest = await this.localStore.manifestAll(didAddress);
-    if(this.trace) {
-      console.log('DidResolver::manifestAll::localManifest=:<',localManifest,'>');
-    }
-    if(this.trace) {
-      console.log('DidResolver::manifestAll::didAddress=:<',didAddress,'>');
-    }
-    return localManifest;
-  }
 
   async storeCredentialRequest(credReqObj,reqDid){
     if(this.trace) {

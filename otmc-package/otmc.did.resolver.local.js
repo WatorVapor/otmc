@@ -105,6 +105,9 @@ export class DidResolverLocalStore {
     } else {
       holders = credReq.holder;
     }
+    if(this.trace) {
+      console.log('DidResolverLocalStore::storeCredentialRequest::holders=:<',holders,'>');
+    }
     for(const holder of holders) {
       credReqStore.control = holder;
       await this.joinStoreLS.putCredReq(credReqStore);

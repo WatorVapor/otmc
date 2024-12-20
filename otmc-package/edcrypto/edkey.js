@@ -1,4 +1,11 @@
 export class EdDsaKey {
+  /**
+   * Constructs an instance of the EdDsaKey class.
+   * 
+   * @param {Object} util - Utility object containing necessary dependencies.
+   * @param {Object} util.nacl - NaCl (Networking and Cryptography library) object.
+   * @param {Object} [util.nacl.default] - Default export of the NaCl library, if available.
+   */
   constructor(util) {
     this.trace = false;
     this.debug = true;
@@ -14,9 +21,24 @@ export class EdDsaKey {
       console.log('EdDsaKey::constructor:this.nacl=<',this.nacl,'>');
     }
   }
+  /**
+   * Retrieves the ID of the key from the keyJson object.
+   *
+   * @returns {string} The ID of the key.
+   */
   id() {
     return this.keyJson.idOfKey;
   }
+  /**
+   * Creates a new EdDSA key pair, encodes the keys in Base64, and calculates the key ID.
+   * The generated key object contains the key ID, public key, secret key, and creation timestamp.
+   * 
+   * @returns {Object} The generated key object containing:
+   * - `idOfKey` {string}: The calculated key ID.
+   * - `publicKey` {string}: The Base64 encoded public key.
+   * - `secretKey` {string}: The Base64 encoded secret key.
+   * - `created` {string}: The ISO string representation of the creation date.
+   */
   createKey() {
     if(this.trace) {
       console.log('EdDsaKey::createKeys:nacl=<',nacl,'>');

@@ -1,6 +1,13 @@
 const iConstLengAddress = 32;
 const iConstLengMessage = 32;
 export class EdUtil {
+  /**
+   * Constructs an instance of EdUtil.
+   * 
+   * @constructor
+   * @param {Object} base32 - The base32 encoding/decoding library.
+   * @param {Object} nacl - The NaCl cryptographic library. If it has a default property, it will be used.
+   */
   constructor(base32,nacl) {
     this.trace = false;
     this.debug = true;
@@ -20,6 +27,15 @@ export class EdUtil {
       console.log('EdUtil::constructor:this.nacl=<',this.nacl,'>');
     }
   } 
+  /**
+   * Calculates an address from a given text message.
+   *
+   * This function takes a text message, hashes it twice using the SHA-256 algorithm,
+   * and then slices the resulting hash to generate an address of a specified length.
+   *
+   * @param {string} textMsg - The input text message to be hashed.
+   * @returns {string} The calculated address.
+   */
   calcAddress(textMsg) {
     const shaS1 = this.sha2b32_(textMsg);
     const shaS2 = this.sha2b32_(shaS1);
@@ -32,6 +48,16 @@ export class EdUtil {
     }
     return address;
   }
+  /**
+   * Generates a random address.
+   * 
+   * This function creates a random hexadecimal value using the NaCl library's
+   * randomBytes method with a size of 1024 bytes. If tracing is enabled, it logs
+   * the generated random hexadecimal value. Finally, it calculates and returns
+   * the address based on the generated random hexadecimal value.
+   * 
+   * @returns {string} The calculated address based on the random hexadecimal value.
+   */
   randomAddress() {
     const randomHex = this.nacl.randomBytes(1024);
     if(this.trace) {
@@ -39,6 +65,14 @@ export class EdUtil {
     }
     return this.calcAddress(randomHex);
   }
+  /**
+   * Calculates a message address based on the provided text message.
+   * It performs a double SHA-256 hash on the input text message and returns
+   * a portion of the resulting hash as the address.
+   *
+   * @param {string} textMsg - The input text message to be hashed.
+   * @returns {string} The calculated address derived from the double-hashed message.
+   */
   calcMessage(textMsg) {
     if(this.trace) {
       console.log('EdUtil::calcMessage:textMsg=<',textMsg,'>');
@@ -54,24 +88,49 @@ export class EdUtil {
     }
     return address;
   }
+  /**
+   * Encodes a given string message to Base64 format.
+   *
+   * @param {string} strMsg - The string message to be encoded.
+   * @returns {string} The Base64 encoded string.
+   */
   encodeBase64Str(strMsg) {
     const encoder = new TextEncoder();
     const data = encoder.encode(strMsg);
     return this.encodeBase64(data);
   }
+  /**
+   * Encodes a given array of bytes into a Base64 string.
+   *
+   * @param {Uint8Array} arr - The array of bytes to encode.
+   * @returns {string} The Base64 encoded string.
+   */
   encodeBase64(arr) {
     let i, s = [], len = arr.length;
     for (i = 0; i < len; i++) s.push(String.fromCharCode(arr[i]));
     return btoa(s.join(''));    
   }
+  /**
+   * Decodes a Base64 encoded string into a Uint8Array.
+   *
+   * @param {string} s - The Base64 encoded string to decode.
+   * @returns {Uint8Array} - The decoded byte array.
+   * @throws {Error} - Throws an error if the input string is not valid Base64.
+   */
   decodeBase64(s) {
     validateBase64(s);
     let i, d = atob(s), b = new Uint8Array(d.length);
     for (i = 0; i < d.length; i++) b[i] = d.charCodeAt(i);
     return b;    
   }
-
-  
+ 
+  /**
+   * Generates a base32-encoded SHA-512 hash of the given text message.
+   *
+   * @param {string} textMsg - The text message to be hashed.
+   * @param {Function} typeFn - A function parameter (not used in the current implementation).
+   * @returns {string} The base32-encoded SHA-512 hash of the input text message, in lowercase.
+   */
   sha2b32_(textMsg,typeFn) {
     const encoder = new TextEncoder();
     const data = encoder.encode(textMsg);
@@ -84,6 +143,13 @@ export class EdUtil {
     return b32Hash.toLowerCase();
   }
 
+  /**
+   * Generates a SHA-256 hash of the given text message and encodes it in Base64.
+   *
+   * @param {string} textMsg - The text message to hash.
+   * @param {Function} typeFn - A function parameter (not used in the current implementation).
+   * @returns {string} The Base64 encoded SHA-256 hash of the input text message.
+   */
   sha2b64_(textMsg,typeFn) {
     const encoder = new TextEncoder();
     const data = encoder.encode(textMsg);

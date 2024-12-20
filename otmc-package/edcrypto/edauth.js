@@ -1,5 +1,13 @@
 const strConstAddressPrefix = 'otm';
 export class EdAuth {
+  /**
+   * Constructs an instance of the EdAuth class.
+   * 
+   * @param {Object} edKey - The Ed25519 key object.
+   * @param {Object} util - Utility object containing necessary functions and libraries.
+   * @param {Object} util.nacl - NaCl cryptographic library.
+   * @param {Object} [util.nacl.default] - Default export of the NaCl library, if available.
+   */
   constructor(edKey,util) {
     this.trace = false;
     this.trace1 = false;
@@ -18,8 +26,12 @@ export class EdAuth {
       console.log('EdAuth::constructor:this.nacl=<',this.nacl,'>');
     }
   }
-  
-  
+  /**
+   * Retrieves the ID of the current key.
+   * If tracing is enabled, logs the key information to the console.
+   *
+   * @returns {string|null} The ID of the current key if it exists, otherwise null.
+   */
   address() {
     if(this.trace) {
       console.log('EdAuth::address::this.edKey_=<',this.edKey_,'>');
@@ -30,6 +42,12 @@ export class EdAuth {
       return null;
     }    
   }
+  /**
+   * Retrieves the public key from the edKey_ object.
+   * If the trace flag is set, logs the edKey_ object to the console.
+   *
+   * @returns {Object|null} The public key if edKey_ is defined, otherwise null.
+   */
   pub() {
     if(this.trace) {
       console.log('EdAuth::pub::this.edKey_=<',this.edKey_,'>');
@@ -40,12 +58,24 @@ export class EdAuth {
       return null;
     }    
   }
-  
-  
+  /**
+   * Signs a message by adding a timestamp and then signing it.
+   *
+   * @param {Object} msgOrig - The original message object to be signed.
+   * @param {Object} edKey - The key used for signing the message.
+   * @returns {Object} - The signed message.
+   */
   sign(msgOrig,edKey) {
     msgOrig.ts = new Date().toISOString();
     return this.signWithoutTS(msgOrig,edKey);
   }
+  /**
+   * Signs a message without a timestamp using the provided Ed25519 key.
+   *
+   * @param {Object} msgOrig - The original message object to be signed.
+   * @param {Object} [edKey] - Optional Ed25519 key object containing `secretKey` and `publicKey`.
+   * @returns {Object} The signed message object with an added `auth` property containing the public key and signature.
+   */
   signWithoutTS(msgOrig,edKey) {
     if(this.trace) {
       console.log('EdAuth::signWithoutTS::msgOrig=<',msgOrig,'>');
@@ -83,8 +113,16 @@ export class EdAuth {
     signMsgObj.auth.sign = signedB64;
     return signMsgObj;
   }
-
-
+  /**
+   * Verifies the authenticity and integrity of a given message.
+   *
+   * @param {Object} msg - The message object to verify.
+   * @param {string} msg.ts - The timestamp of the message.
+   * @param {Object} msg.auth - The authentication object containing public key and signature.
+   * @param {string} msg.auth.pub - The base64 encoded public key.
+   * @param {string} msg.auth.sign - The base64 encoded signature.
+   * @returns {boolean} - Returns true if the message is verified successfully, otherwise false.
+   */
   verify(msg) {
     if(this.trace) {
       console.log('EdAuth::verify::msg=<',msg,'>');
@@ -138,6 +176,15 @@ export class EdAuth {
     }
     return false;
   }
+  /**
+   * Verifies the authenticity of a message without a timestamp.
+   *
+   * @param {Object} msg - The message object to verify.
+   * @param {Object} msg.auth - The authentication object within the message.
+   * @param {string} msg.auth.pub - The public key in base64 format.
+   * @param {string} msg.auth.sign - The signature in base64 format.
+   * @returns {boolean} - Returns true if the message is verified successfully, otherwise false.
+   */
   verifyWithoutTS(msg) {
     if(this.trace) {
       console.log('EdAuth::verifyWithoutTS::msg=<',msg,'>');
@@ -181,6 +228,16 @@ export class EdAuth {
     }
     return false;
   }
+  /**
+   * Verifies the DID Document.
+   *
+   * @param {Object} didDoc - The DID Document to verify.
+   * @param {Array} didDoc.verificationMethod - Array of verification methods.
+   * @param {Array} didDoc.proof - Array of proofs.
+   * @param {string} didDoc.id - The DID Document ID.
+   * @param {string} didDoc.controller - The DID Document controller.
+   * @returns {Object|boolean} - Returns an object containing the calculated hash and proofer addresses if verification is successful, otherwise returns false.
+   */
   verifyDid(didDoc) {
     if(this.trace2) {
       console.log('EdAuth::verifyDid::didDoc=<',didDoc,'>');
@@ -235,6 +292,16 @@ export class EdAuth {
     }
     return results;
   }
+  /**
+   * Verifies the authenticity and integrity of a message using a weak verification method.
+   *
+   * @param {Object} msg - The message object to verify.
+   * @param {string} msg.ts - The timestamp of the message.
+   * @param {Object} msg.auth - The authentication object containing public key and signature.
+   * @param {string} msg.auth.pub - The base64 encoded public key.
+   * @param {string} msg.auth.sign - The base64 encoded signature.
+   * @returns {boolean} - Returns true if the message is verified successfully, otherwise false.
+   */
   verifyWeak(msg) {
     if(this.trace) {
       console.log('EdAuth::verifyWeak::msg=<',msg,'>');
@@ -281,6 +348,16 @@ export class EdAuth {
     }
     return false;
   }
+  /**
+   * Verifies the credential request.
+   *
+   * @param {Object} credReq - The credential request object to verify.
+   * @param {Object} credReq.credentialRequest - The credential request details.
+   * @param {Object} credReq.credentialRequest.claims - The claims within the credential request.
+   * @param {Object} credReq.credentialRequest.claims.did - The DID (Decentralized Identifier) within the claims.
+   * @param {Array} credReq.proof - The proof array within the credential request.
+   * @returns {Object|boolean} - Returns an object containing the calculated hash and proof list if verification is successful, otherwise returns false.
+   */
   verifyCredReq(credReq) {
     if(this.trace1) {
       console.log('EdAuth::verifyCredReq::credReq=<',credReq,'>');
@@ -343,8 +420,16 @@ export class EdAuth {
     results.proofList = resultAuth;
     return results;
   }
-
-  
+  /**
+   * Generates a random address.
+   * 
+   * This function creates a random hexadecimal value using the NaCl library's
+   * randomBytes method with a size of 1024 bytes. If tracing is enabled, it logs
+   * the generated random hexadecimal value. Finally, it calculates and returns
+   * the address using the utility's calcAddress method.
+   * 
+   * @returns {string} The calculated address based on the random hexadecimal value.
+   */
   randomAddress() {
     const randomHex = this.nacl.randomBytes(1024);
     if(this.trace) {
@@ -352,6 +437,17 @@ export class EdAuth {
     }
     return this.util_.calcAddress(randomHex);
   }
+  /**
+   * Generates a random password.
+   * 
+   * This function generates a random password by creating a random hex value
+   * using the `nacl.randomBytes` method with a length of 1024 bytes. It then
+   * calculates an address from this random hex value using the `calcAddress`
+   * method of the `util_` object. The resulting address is sliced to the first
+   * 6 characters and returned as the password.
+   * 
+   * @returns {string} A random password consisting of the first 6 characters of the calculated address.
+   */
   randomPassword() {
     const randomHex = this.nacl.randomBytes(1024);
     if(this.trace) {
@@ -360,6 +456,16 @@ export class EdAuth {
     const address = this.util_.calcAddress(randomHex);
     return address.slice(0,6);
   }
+  /**
+   * Generates a Key ID (KID) from a PEM encoded string.
+   * 
+   * This function takes a PEM encoded string, trims any whitespace, 
+   * and generates a Key ID (KID) by first hashing the PEM string 
+   * using SHA-512 and then hashing the result using RIPEMD-160.
+   * 
+   * @param {string} pem - The PEM encoded string.
+   * @returns {string} The generated Key ID (KID) in base64 format.
+   */
   cacKeyIdOfPem (pem) {
     const crypto = require('node:crypto');
     const encoder = new TextEncoder();
@@ -377,9 +483,14 @@ export class EdAuth {
     }
     return kid;
   }
-
-
-
+  /**
+   * Verifies the given verification method against the provided document ID and controller.
+   *
+   * @param {Object} verificationMethod - The verification method object containing the public key and ID.
+   * @param {string} docId - The document ID to be used for verification.
+   * @param {Array<string>} controller - An array of controller IDs.
+   * @returns {boolean} - Returns true if the verification method is valid, otherwise false.
+   */
   verificationMethod_(verificationMethod,docId,controller) {
     if(this.trace2) {
       console.log('EdAuth::verificationMethod_::verificationMethod=<',verificationMethod,'>');
@@ -418,6 +529,15 @@ export class EdAuth {
     }
     return true;
   }
+  /**
+   * Verifies the given proof using the provided verification methods.
+   *
+   * @param {Object} proof - The proof object containing the signature to verify.
+   * @param {Array<Object>} verificationMethods - An array of verification methods to use for verification.
+   * @param {string} verificationMethods[].id - The ID of the verification method.
+   * @param {string} verificationMethods[].publicKeyMultibase - The public key in multibase format.
+   * @returns {Object|boolean} - Returns an object containing the signed hash in base64 format and a flag indicating if it is a seed proof, or false if verification fails.
+   */
   verificationProof_(proof,verificationMethods) {
     if(this.trace) {
       console.log('EdAuth::verificationProof_::proof=<',proof,'>');
@@ -466,8 +586,16 @@ export class EdAuth {
     }
     return results;
   }
-  
-  
+  /**
+   * Collects and combines authentication and capability invocation members from a DID document.
+   *
+   * @param {Object} didDoc - The DID document containing proof, authentication, and capability invocation information.
+   * @param {Object} didDoc.proof - The proof object within the DID document.
+   * @param {Array} didDoc.authentication - The authentication array within the DID document.
+   * @param {Array} didDoc.capabilityInvocation - The capability invocation array within the DID document.
+   * @returns {Object} An object containing combined authentication and capability invocation members.
+   * @private
+   */
   collectVerificationMember_(didDoc) {
     if(this.trace) {
       console.log('EdAuth::collectVerificationMember_::didDoc=<',didDoc,'>');
@@ -515,7 +643,13 @@ export class EdAuth {
     }
     return result;
   }
-
+  /**
+   * Collects capability proofs from the provided proofs array based on the given capability.
+   *
+   * @param {Array} proofs - An array of proof objects, each containing a `creator` property.
+   * @param {Array} capability - An array of strings representing the allowed creators.
+   * @returns {Object} An object containing an array of `capabilityProof` with the member parts of the creators.
+   */
   collectCapability_(proofs,capability) {
     if(this.trace) {
       console.log('EdAuth::collectCapability_::proofs=<',proofs,'>');
@@ -547,5 +681,4 @@ export class EdAuth {
     }
     return result;
   }
-  
 }

@@ -94,6 +94,9 @@ export class DidDocument {
       console.log('DidDocument::ListenEventEmitter_::base64urlnopad=:<',base64urlnopad,'>');
     }
     if(this.trace) {
+      console.log('DidDocument::ListenEventEmitter_::md5=:<',md5,'>');
+      console.log('DidDocument::ListenEventEmitter_::sha1=:<',sha1,'>');
+      console.log('DidDocument::ListenEventEmitter_::sha512=:<',sha512,'>');
       console.log('DidDocument::ListenEventEmitter_::sha3=:<',sha3,'>');
     }
     if(this.trace0) {

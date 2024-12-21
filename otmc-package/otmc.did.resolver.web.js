@@ -1,4 +1,3 @@
-import { StoreKey } from './otmc.const.js';
 import { DidStoreDocument } from './otmc.did.store.document.js';
 import { DidStoreTeamJoin } from './otmc.did.store.team.join.js';
 
@@ -36,7 +35,7 @@ export class DidResolverSyncWebStore {
     });
   }
   trySyncCloudEvidence_() {
-    this.trySyncCloudDocument_();
+    //this.trySyncCloudDocument_();
     this.trySyncCloudTeamJoin_();
   }
 
@@ -63,6 +62,21 @@ export class DidResolverSyncWebStore {
     if(this.trace) {
       console.log('DidResolverSyncWebStore::trySyncCloudTeamJoin_::this.teamJoin=:<',this.teamJoin,'>');
     }
+    const concernDids = await this.document.getConcernDidAddress();
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::trySyncCloudTeamJoin_::concernDids=:<',concernDids,'>');
+    }
+    const cloudRequests = [];
+    for(const didAddress of concernDids) {
+      const joinAllApi = `hash/join/${didAddress}?fullchain=true`;
+      const requstObj = this.createCloudGetRequest_(joinAllApi);
+      cloudRequests.push(requstObj);
+    }
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::trySyncCloudTeamJoin_::cloudRequests=:<',cloudRequests,'>');
+    }
+    this.worker.postMessage({reqDL:cloudRequests});
+    /*
     const joinInProgressAll = await this.teamJoin.getInProgressAny();
     if(this.trace) {
       console.log('DidResolverSyncWebStore::trySyncCloudTeamJoin_::joinInProgressAll=:<',joinInProgressAll,'>');
@@ -97,6 +111,7 @@ export class DidResolverSyncWebStore {
       }
       this.worker.postMessage({postUL:[requstObj]});
     }
+    */
   }
   onCloudMsg_(msgCloud) {
     if(this.trace) {
@@ -105,8 +120,14 @@ export class DidResolverSyncWebStore {
     if(msgCloud.reqDid && msgCloud.content && msgCloud.content.hash) {
       this.onCloudDidResponsedHash_(msgCloud.reqDid,msgCloud.content.hash)
     }
+    if(msgCloud.reqJoin && msgCloud.content && msgCloud.content.hash) {
+      this.onCloudJoinResponsedHash_(msgCloud.reqJoin,msgCloud.content.hash)
+    }
     if(msgCloud.reqDid && msgCloud.content && msgCloud.content.didDocument) {
       this.onCloudDidResponsedDocument_(msgCloud.reqDid,msgCloud.content.didDocument)
+    }
+    if(msgCloud.reqJoin && msgCloud.content && msgCloud.content.didJoin) {
+      this.onCloudDidResponsedJoinRequest_(msgCloud.reqJoin,msgCloud.content.didJoin)
     }
   }
   async onCloudDidResponsedHash_(reqDid,cloudHashList) {
@@ -223,7 +244,87 @@ export class DidResolverSyncWebStore {
     this.document.putTentative(storeDoc);
   }
 
+  async onCloudJoinResponsedHash_(reqJoin,cloudHashList) {
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::onCloudJoinResponsedHash_::reqJoin=:<',reqJoin,'>');
+      console.log('DidResolverSyncWebStore::onCloudJoinResponsedHash_::cloudHashList=:<',cloudHashList,'>');
+    }
+    const localHashList = await this.teamJoin.getHashListOfJoin(reqJoin);
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::onCloudJoinResponsedHash_::localHashList=:<',localHashList,'>');
+    }
+    for(const hash in cloudHashList) {
+      const hashContent = cloudHashList[hash];
+      if(localHashList.includes(hash)) {
+        // cloud did already in local
+        continue;
+      } else {
+        // cloud did not already in local
+        this.tryStoreCloudJoinReq2Local_(reqJoin,hash,hashContent);        
+      }
+    }
+    /*
+    for(const hash of localHashList) {
+      const hashCloud = cloudHashList[hash];
+      if(!hashCloud) {
+        // local did not already in cloud
+        this.tryStoreLocalDid2Cloud_(reqDid,hash);
+      } else {
+        // local did already in cloud
+        continue;
+      }
+    }
+    */
+  }
+  tryStoreCloudJoinReq2Local_(joinDL,hashDL,hashContent) {
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::tryStoreCloudJoinReq2Local_::joinDL=:<',joinDL,'>');
+      console.log('DidResolverSyncWebStore::tryStoreCloudJoinReq2Local_::hashDL=:<',hashDL,'>');
+      console.log('DidResolverSyncWebStore::tryStoreCloudJoinReq2Local_::hashContent=:<',hashContent,'>');
+    }
+    const didAllApi = `join/${joinDL}?joinHash=${hashDL}`;
+    const requstObj = this.createCloudGetRequest_(didAllApi);
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::tryStoreCloudJoinReq2Local_::didrequstObjDL=:<',requstObj,'>');
+    }
+    this.worker.postMessage({reqDL:[requstObj]});
+  }
 
+  onCloudDidResponsedJoinRequest_(reqJoin,cloudJoinReqs) {
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::onCloudDidResponsedJoinRequest_::reqJoin=:<',reqJoin,'>');
+      console.log('DidResolverSyncWebStore::onCloudDidResponsedJoinRequest_::cloudJoinReqs=:<',cloudJoinReqs,'>');
+    }
+    for(const cloudJoinReq of cloudJoinReqs) {
+      if(this.trace) {
+        console.log('DidResolverSyncWebStore::onCloudDidResponsedJoinRequest_::cloudJoinReq=:<',cloudJoinReq,'>');
+      }
+      this.onCloudDidSyncJoinRequest_(cloudJoinReq.hash,cloudJoinReq.joinJson);
+    }
+  }
+  onCloudDidSyncJoinRequest_(remoteHash,remoteJoin) {
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::onCloudDidSyncJoinRequest_::remoteHash=:<',remoteHash,'>');
+      console.log('DidResolverSyncWebStore::onCloudDidSyncJoinRequest_::remoteJoin=:<',remoteJoin,'>');
+    }
+    const joinRemoteStr = JSON.stringify(remoteJoin);
+    const calcHash = this.util.calcAddress(joinRemoteStr);
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::onCloudDidSyncJoinRequest_::calcHash=:<',calcHash,'>');
+    }
+    if(calcHash !== remoteHash) {
+      return;
+    }
+    const storeJoin = {
+      did:remoteJoin.credentialRequest.claims.did.id,
+      hashCR:remoteHash,
+      origCredReq:joinRemoteStr,
+    }
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::onCloudDidSyncJoinRequest_::storeJoin=:<',storeJoin,'>');
+    }
+    this.teamJoin.putTentativeCredReq(storeJoin);
+  }
 
 
   async resolver(didAddress){

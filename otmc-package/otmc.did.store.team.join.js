@@ -22,6 +22,9 @@ export class DidStoreTeamJoin {
       done: '++autoId,did,control,hashCR,origCredReq'
     });
     this.db.version(this.version).stores({
+      tentative: '++autoId,did,control,hashCR,origCredReq'
+    });
+    this.db.version(this.version).stores({
       verified: '++autoId,did,control,hashCR,hashVC,origVC'
     });
     if(this.trace) {
@@ -45,6 +48,12 @@ export class DidStoreTeamJoin {
     await this.db.inProgress.put(credReqStore);
   }
 
+  async putTentativeCredReq(credReqStore) {
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::putTentativeCredReq::credReqStore=:<',credReqStore,'>');
+    }
+    await this.db.tentative.put(credReqStore);
+  }
 
   async getRequestTop(didAddress) {
     const didValuesJson = await this.getAll(didAddress);
@@ -136,6 +145,56 @@ export class DidStoreTeamJoin {
     }
     await this.db.done.put(storeRequest);
     await this.db.inProgress.where('hashCR').equals(storeHash).delete();
+  }
+  async getHashListOfJoin(didAddress) {
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::getHashListOfJoin::didAddress=:<',didAddress,'>');
+    }
+    const hashList = [];
+    const store1Objects = await this.db.inProgress.where('did').equals(didAddress).toArray();
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::getHashListOfJoin::store1Objects=:<',store1Objects,'>');
+    }
+    for(const storeObject of store1Objects) {
+      if(this.trace) { 
+        console.log('DidStoreTeamJoin::getHashListOfJoin::storeObject=:<',storeObject,'>');
+      }
+      hashList.push(storeObject.hashCR);
+    }
+    const store2Objects = await this.db.done.where('did').equals(didAddress).toArray();
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::getHashListOfJoin::store2Objects=:<',store2Objects,'>');
+    }
+    for(const storeObject of store2Objects) {
+      if(this.trace) { 
+        console.log('DidStoreTeamJoin::getHashListOfJoin::storeObject=:<',storeObject,'>');
+      }
+      hashList.push(storeObject.hashCR);
+    }
+    const store3Objects = await this.db.verified.where('did').equals(didAddress).toArray();
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::getHashListOfJoin::store3Objects=:<',store3Objects,'>');
+    }
+    for(const storeObject of store3Objects) {
+      if(this.trace) { 
+        console.log('DidStoreTeamJoin::getHashListOfJoin::storeObject=:<',storeObject,'>');
+      }
+      hashList.push(storeObject.hashCR);
+    }
+    const store4Objects = await this.db.tentative.where('did').equals(didAddress).toArray();
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::getHashListOfJoin::store3Objects=:<',store3Objects,'>');
+    }
+    for(const storeObject of store4Objects) {
+      if(this.trace) { 
+        console.log('DidStoreTeamJoin::getHashListOfJoin::storeObject=:<',storeObject,'>');
+      }
+      hashList.push(storeObject.hashCR);
+    }
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::getHashListOfJoin::hashList=:<',hashList,'>');
+    }
+    return hashList;
   }
   
   compare_(a,b) {

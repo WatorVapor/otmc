@@ -44,15 +44,39 @@ export class DidStoreTeamJoin {
   async putCredReq(credReqStore) {
     if(this.trace) {
       console.log('DidStoreTeamJoin::putCredReq::credReqStore=:<',credReqStore,'>');
+    }   
+    const hintObject = await this.db.inProgress
+    .where('hashCR')
+    .equals(credReqStore.hashCR)
+    .and((item) => item.did === credReqStore.did)
+    .first();
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::putCredReq::hintObject=:<',hintObject,'>');
     }
-    await this.db.inProgress.put(credReqStore);
+    if(hintObject) {
+      return;
+    } else {
+      await this.db.inProgress.put(credReqStore);
+    }
   }
 
   async putTentativeCredReq(credReqStore) {
     if(this.trace) {
       console.log('DidStoreTeamJoin::putTentativeCredReq::credReqStore=:<',credReqStore,'>');
     }
-    await this.db.tentative.put(credReqStore);
+    const hintObject = await this.db.tentative
+    .where('hashCR')
+    .equals(credReqStore.hashCR)
+    .and((item) => item.did === credReqStore.did)
+    .first();
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::putTentativeCredReq::hintObject=:<',hintObject,'>');
+    }
+    if(hintObject) {
+      return;
+    } else {
+      await this.db.tentative.put(credReqStore);
+    }
   }
 
   async getRequestTop(didAddress) {
@@ -196,7 +220,74 @@ export class DidStoreTeamJoin {
     }
     return hashList;
   }
-  
+  async getJoinRequestByAddreAndHash(didAddress,hashRC) {
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::getJoinRequestByAddreAndHash::didAddress=:<',didAddress,'>');
+      console.log('DidStoreTeamJoin::getJoinRequestByAddreAndHash::hashRC=:<',hashRC,'>');
+    }
+    let storeObject = await this.db.inProgress.where('did').equals(didAddress).and( obj => obj.hashCR === hashRC ).first();
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::getJoinRequestByAddreAndHash::storeObject=:<',storeObject,'>');
+    }
+    if(storeObject) {
+      return JSON.parse(storeObject.origCredReq);
+    }
+    storeObject = await this.db.done.where('did').equals(didAddress).and( obj => obj.hashCR === hashRC ).first();
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::getJoinRequestByAddreAndHash::storeObject=:<',storeObject,'>');
+    }
+    if(storeObject) {
+      return JSON.parse(storeObject.origCredReq);
+    }
+    storeObject = await this.db.verified.where('did').equals(didAddress).and( obj => obj.hashCR === hashRC ).first();
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::getJoinRequestByAddreAndHash::storeObject=:<',storeObject,'>');
+    }
+    if(storeObject) {
+      return JSON.parse(storeObject.origCredReq);;
+    }
+  }
+  async moveTentative2Workspace() {
+    const tentativeObjects = await this.db.tentative.toArray();
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::moveTentative2Workspace::tentativeObjects=:<',tentativeObjects,'>');
+    }
+    for(const tentativeObject of tentativeObjects) {
+      if(this.trace) {
+        console.log('DidStoreTeamJoin::moveTentative2Workspace::tentativeObject=:<',tentativeObject,'>');
+      }
+      let hintObject = await this.db.done
+      .where('hashCR').equals(tentativeObject.hashCR)
+      .and((item) => item.did === tentativeObject.did)
+      .first();
+      if(this.trace) {
+        console.log('DidStoreTeamJoin::moveTentative2Workspace::hintObject=:<',hintObject,'>');
+      }
+      if(hintObject) {
+        continue;
+      }
+      hintObject = await this.db.inProgress
+      .where('hashCR').equals(tentativeObject.hashCR)
+      .and((item) => item.did === tentativeObject.did)
+      .first();
+      if(this.trace) {
+        console.log('DidStoreTeamJoin::moveTentative2Workspace::hintObject=:<',hintObject,'>');
+      }
+      if(hintObject) {
+        continue;
+      }
+      await this.putCredReq(tentativeObject);
+    }
+    for(const tentativeObject of tentativeObjects) {
+      if(this.trace) {
+        console.log('DidStoreTeamJoin::moveTentative2Workspace::tentativeObject=:<',tentativeObject,'>');
+      }
+      await this.db.tentative
+      .where('hashCR').equals(tentativeObject.hashCR)
+      .delete();
+    }
+  }
+
   compare_(a,b) {
     if ( a.updated < b.updated ){
       return -1;

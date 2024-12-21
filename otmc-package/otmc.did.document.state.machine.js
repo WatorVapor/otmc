@@ -5,9 +5,9 @@ const LOG = {
 import {Graph} from 'graphology';
 import {dijkstra} from 'graphologyShortestPath';
 import { DidStoreDocument } from './otmc.did.store.document.js';
-//import { DidStoreManifest } from './otmc.did.store.manifest.js';
 import { DidStoreEvidence } from './otmc.did.store.evidence.js';
 import { EvidenceChainBuilder } from './did/evidence.thin.js';
+import { DidStoreTeamJoin } from './otmc.did.store.team.join.js';
 
 if(LOG.debug) {
   console.log('::Graph=<',Graph,'>');
@@ -48,8 +48,10 @@ export class DidDocumentStateMachine {
       self.builder = new EvidenceChainBuilder(self.auth);
       self.document = new DidStoreDocument();
       self.evidence = new DidStoreEvidence();
+      self.teamJoin = new DidStoreTeamJoin(evt);
       await self.loadEvidenceChain();
-      self.reCalculateTentative();
+      self.reCalculateTentativeDidDoc();
+      self.reCalculateTentativeJoinRequest();
     });
     this.eeInternal.on('did:document',async (evt)=>{
       if(self.trace0) {
@@ -168,24 +170,24 @@ export class DidDocumentStateMachine {
     result.proofed = isProofedNode;
     return result;
   }
-  async reCalculateTentative() {
+  async reCalculateTentativeDidDoc() {
     const evidenceTentative = await this.loadEvidenceTentativeFromStorage_();
     if(this.trace2) {
-      console.log('DidDocumentStateMachine::reCalculateTentative::evidenceTentative=<',evidenceTentative,'>');
+      console.log('DidDocumentStateMachine::reCalculateTentativeDidDoc::evidenceTentative=<',evidenceTentative,'>');
     }
     for(const chainId in evidenceTentative){
       const chain = evidenceTentative[chainId];
       if(this.trace2) {
-        console.log('DidDocumentStateMachine::reCalculateTentative::chainId=<',chainId,'>');
-        console.log('DidDocumentStateMachine::reCalculateTentative::chain=<',chain,'>');
+        console.log('DidDocumentStateMachine::reCalculateTentativeDidDoc::chainId=<',chainId,'>');
+        console.log('DidDocumentStateMachine::reCalculateTentativeDidDoc::chain=<',chain,'>');
       }
       for(const evidence of chain){
         if(this.trace2) {
-          console.log('DidDocumentStateMachine::reCalculateTentative::evidence=<',evidence,'>');
+          console.log('DidDocumentStateMachine::reCalculateTentativeDidDoc::evidence=<',evidence,'>');
         }
         const docResult = await this.caclDidDocument(evidence);
         if(this.trace2) {
-          console.log('DidDocumentStateMachine::reCalculateTentative::docResult=<',docResult,'>');
+          console.log('DidDocumentStateMachine::reCalculateTentativeDidDoc::docResult=<',docResult,'>');
         }
         if(docResult.stable) {
           const documentStr = JSON.stringify(evidence);
@@ -199,6 +201,9 @@ export class DidDocumentStateMachine {
         }
       }
     }
+  }
+  async reCalculateTentativeJoinRequest() {
+    await this.teamJoin.moveTentative2Workspace();   
   }
 
   async loadEvidenceChainFromStorage_() {

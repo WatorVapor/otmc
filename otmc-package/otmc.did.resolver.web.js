@@ -35,7 +35,7 @@ export class DidResolverSyncWebStore {
     });
   }
   trySyncCloudEvidence_() {
-    //this.trySyncCloudDocument_();
+    this.trySyncCloudDocument_();
     this.trySyncCloudTeamJoin_();
   }
 
@@ -76,58 +76,22 @@ export class DidResolverSyncWebStore {
       console.log('DidResolverSyncWebStore::trySyncCloudTeamJoin_::cloudRequests=:<',cloudRequests,'>');
     }
     this.worker.postMessage({reqDL:cloudRequests});
-    /*
-    const joinInProgressAll = await this.teamJoin.getInProgressAny();
-    if(this.trace) {
-      console.log('DidResolverSyncWebStore::trySyncCloudTeamJoin_::joinInProgressAll=:<',joinInProgressAll,'>');
-    }
-    const cloudRequests = [];
-    for(const joinInHash in joinInProgressAll) {
-      if(this.trace) {
-        console.log('DidResolverSyncWebStore::trySyncCloudTeamJoin_::joinInHash=:<',joinInHash,'>');
-      }
-      const joinInProgress = joinInProgressAll[joinInHash];
-      if(this.trace) {
-        console.log('DidResolverSyncWebStore::trySyncCloudTeamJoin_::joinInProgress=:<',joinInProgress,'>');
-      }
-      const didJoin = joinInProgress.credentialRequest.claims.did.id;
-      const apiPath = `team/join/upload/${didJoin}`
-      if(this.trace) {
-        console.log('DidResolverSyncWebStore::trySyncCloudTeamJoin_::apiPath=:<',apiPath,'>');
-      }
-      const b64Join = this.util.encodeBase64Str(JSON.stringify(joinInProgress));
-      const syncObject = {
-        did: didJoin,
-        hash: joinInHash,
-        joinB64: b64Join
-      }
-      const syncObjectSigned =this.auth.sign(syncObject);
-      if(this.trace) {
-        console.log('DidResolverSyncWebStore::trySyncCloudTeamJoin_::syncObjectSigned=:<',syncObjectSigned,'>');
-      }
-      const requstObj = this.createCloudPostRequest_(apiPath,syncObjectSigned);
-      if(this.trace) {
-        console.log('DidResolverSyncWebStore::trySyncCloudTeamJoin_::requstObj=:<',requstObj,'>');
-      }
-      this.worker.postMessage({postUL:[requstObj]});
-    }
-    */
   }
-  onCloudMsg_(msgCloud) {
+  async onCloudMsg_(msgCloud) {
     if(this.trace) {
       console.log('DidResolverSyncWebStore::onCloudMsg_::msgCloud=:<',msgCloud,'>');
     }
     if(msgCloud.reqDid && msgCloud.content && msgCloud.content.hash) {
-      this.onCloudDidResponsedHash_(msgCloud.reqDid,msgCloud.content.hash)
+      await this.onCloudDidResponsedHash_(msgCloud.reqDid,msgCloud.content.hash)
     }
     if(msgCloud.reqJoin && msgCloud.content && msgCloud.content.hash) {
-      this.onCloudJoinResponsedHash_(msgCloud.reqJoin,msgCloud.content.hash)
+      await this.onCloudJoinResponsedHash_(msgCloud.reqJoin,msgCloud.content.hash)
     }
     if(msgCloud.reqDid && msgCloud.content && msgCloud.content.didDocument) {
-      this.onCloudDidResponsedDocument_(msgCloud.reqDid,msgCloud.content.didDocument)
+      await this.onCloudDidResponsedDocument_(msgCloud.reqDid,msgCloud.content.didDocument)
     }
     if(msgCloud.reqJoin && msgCloud.content && msgCloud.content.didJoin) {
-      this.onCloudDidResponsedJoinRequest_(msgCloud.reqJoin,msgCloud.content.didJoin)
+      await this.onCloudDidResponsedJoinRequest_(msgCloud.reqJoin,msgCloud.content.didJoin)
     }
   }
   async onCloudDidResponsedHash_(reqDid,cloudHashList) {
@@ -207,7 +171,7 @@ export class DidResolverSyncWebStore {
     this.worker.postMessage({postUL:requstObj});
   }
 
-  onCloudDidResponsedDocument_(reqDid,cloudDids) {
+  async onCloudDidResponsedDocument_(reqDid,cloudDids) {
     if(this.trace) {
       console.log('DidResolverSyncWebStore::onCloudDidResponsedDocument_::reqDid=:<',reqDid,'>');
       console.log('DidResolverSyncWebStore::onCloudDidResponsedDocument_::cloudDids=:<',cloudDids,'>');
@@ -263,18 +227,16 @@ export class DidResolverSyncWebStore {
         this.tryStoreCloudJoinReq2Local_(reqJoin,hash,hashContent);        
       }
     }
-    /*
     for(const hash of localHashList) {
       const hashCloud = cloudHashList[hash];
       if(!hashCloud) {
         // local did not already in cloud
-        this.tryStoreLocalDid2Cloud_(reqDid,hash);
+        this.tryStoreLocalJoinReq2Cloud_(reqJoin,hash);
       } else {
         // local did already in cloud
         continue;
       }
     }
-    */
   }
   tryStoreCloudJoinReq2Local_(joinDL,hashDL,hashContent) {
     if(this.trace) {
@@ -289,8 +251,39 @@ export class DidResolverSyncWebStore {
     }
     this.worker.postMessage({reqDL:[requstObj]});
   }
-
-  onCloudDidResponsedJoinRequest_(reqJoin,cloudJoinReqs) {
+  async tryStoreLocalJoinReq2Cloud_(joinUL,hashUL) {
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::tryStoreLocalJoinReq2Cloud_::joinUL=:<',joinUL,'>');
+      console.log('DidResolverSyncWebStore::tryStoreLocalJoinReq2Cloud_::hashUL=:<',hashUL,'>');
+    }
+    const localJoinReq = await this.teamJoin.getJoinRequestByAddreAndHash(joinUL,hashUL);
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::tryStoreLocalJoinReq2Cloud_::localJoinReq=:<',localJoinReq,'>');
+    }
+    if(!localJoinReq) {
+      return; // local did not exist
+    }
+    const apiPath = `team/join/upload/${joinUL}`
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::tryStoreLocalJoinReq2Cloud_::apiPath=:<',apiPath,'>');
+    }
+    const b64Join = this.util.encodeBase64Str(JSON.stringify(localJoinReq));
+    const syncObject = {
+      did: joinUL,
+      hash: hashUL,
+      joinB64: b64Join
+    }
+    const syncObjectSigned =this.auth.sign(syncObject);
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::tryStoreLocalJoinReq2Cloud_::syncObjectSigned=:<',syncObjectSigned,'>');
+    }
+    const requstObj = this.createCloudPostRequest_(apiPath,syncObjectSigned);
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::tryStoreLocalJoinReq2Cloud_::requstObj=:<',requstObj,'>');
+    }
+    this.worker.postMessage({postUL:[requstObj]});
+  }
+  async onCloudDidResponsedJoinRequest_(reqJoin,cloudJoinReqs) {
     if(this.trace) {
       console.log('DidResolverSyncWebStore::onCloudDidResponsedJoinRequest_::reqJoin=:<',reqJoin,'>');
       console.log('DidResolverSyncWebStore::onCloudDidResponsedJoinRequest_::cloudJoinReqs=:<',cloudJoinReqs,'>');
@@ -299,10 +292,10 @@ export class DidResolverSyncWebStore {
       if(this.trace) {
         console.log('DidResolverSyncWebStore::onCloudDidResponsedJoinRequest_::cloudJoinReq=:<',cloudJoinReq,'>');
       }
-      this.onCloudDidSyncJoinRequest_(cloudJoinReq.hash,cloudJoinReq.joinJson);
+      await this.onCloudDidSyncJoinRequest_(cloudJoinReq.hash,cloudJoinReq.joinJson);
     }
   }
-  onCloudDidSyncJoinRequest_(remoteHash,remoteJoin) {
+  async onCloudDidSyncJoinRequest_(remoteHash,remoteJoin) {
     if(this.trace) {
       console.log('DidResolverSyncWebStore::onCloudDidSyncJoinRequest_::remoteHash=:<',remoteHash,'>');
       console.log('DidResolverSyncWebStore::onCloudDidSyncJoinRequest_::remoteJoin=:<',remoteJoin,'>');
@@ -323,39 +316,10 @@ export class DidResolverSyncWebStore {
     if(this.trace) {
       console.log('DidResolverSyncWebStore::onCloudDidSyncJoinRequest_::storeJoin=:<',storeJoin,'>');
     }
-    this.teamJoin.putTentativeCredReq(storeJoin);
+    await this.teamJoin.putTentativeCredReq(storeJoin);
   }
 
 
-  async resolver(didAddress){
-    if(this.trace) {
-      console.log('DidResolverSyncWebStore::resolver::didAddress=:<',didAddress,'>');
-    }
-    const didDoc = await this.GetRequestAPI_(didAddress);
-    return didDoc;
-  }
-  async getDidDocumentAll(didAddress){
-    if(this.trace) {
-      console.log('DidResolverSyncWebStore::getDidDocumentAll::didAddress=:<',didAddress,'>');
-    }
-    const didDoc = await this.GetRequestAPI_(`${didAddress}?all=true`);
-    return didDoc;
-  }
-  async storeDid(didDoc){
-    if(this.trace) {
-      console.log('DidResolverSyncWebStore::storeDid::didDoc=:<',didDoc,'>');
-    }
-    const apiPath = `document/upload/${didDoc.id}`
-    if(this.trace) {
-      console.log('DidResolverSyncWebStore::storeDid::apiPath=:<',apiPath,'>');
-    }
-    const didDocSigned =this.auth.sign({did:didDoc});
-    if(this.trace) {
-      console.log('DidResolverSyncWebStore::storeDid::didDocSigned=:<',didDocSigned,'>');
-    }
-    const result = await this.postRequestAPI_(apiPath,didDocSigned);
-    return result;
-  }
   createCloudGetRequest_(apiPath) {
     const reqURl =`${context}/v1/${apiPath}`;
     if(this.trace) {
@@ -370,35 +334,6 @@ export class DidResolverSyncWebStore {
     }
     return reqObj;
   }  
-  async GetRequestAPI_(apiPath) {
-    /*
-    const reqURl =`${context}/v1/${apiPath}`;
-    if(this.trace) {
-      console.log('DidResolverSyncWebStore::GetRequestAPI_::reqURl=:<',reqURl,'>');
-    }
-    const reqHeader = new Headers();
-    reqHeader.append('Content-Type', 'application/json');
-    const authToken = this.accessToken_();
-    reqHeader.append('Authorization', `Bearer ${authToken}`);
-    const reqOption = {
-      method: 'GET',
-      headers:reqHeader
-    };
-    const apiReq = new Request(reqURl, reqOption);
-    if(this.trace) {
-      console.log('DidResolverSyncWebStore::GetRequestAPI_::apiReq=:<',apiReq,'>');
-    }
-    const apiResp = await fetch(apiReq);
-    if(this.trace) {
-      console.log('DidResolverSyncWebStore::GetRequestAPI_::apiResp=:<',apiResp,'>');
-    }
-    const resultJson = await apiResp.json();
-    if(this.trace) {
-      console.log('DidResolverSyncWebStore::GetRequestAPI_::resultJson=:<',resultJson,'>');
-    }
-    return resultJson;
-    */
-  }
   createCloudPostRequest_(apiPath,reqBody) {
     const reqURl =`${context}/v1/${apiPath}`;
     if(this.trace) {
@@ -414,36 +349,6 @@ export class DidResolverSyncWebStore {
     }
     return reqObj;
   }  
-  async postRequestAPI_(apiPath,reqBody) {
-    /*
-    const reqURl =`${context}/v1/${apiPath}`;
-    if(this.trace) {
-      console.log('DidResolverSyncWebStore::postRequestAPI_::reqURl=:<',reqURl,'>');
-    }
-    const reqHeader = new Headers();
-    reqHeader.append('Content-Type', 'application/json');
-    const authToken = this.accessToken_();
-    reqHeader.append('Authorization', `Bearer ${authToken}`);
-    const reqOption = {
-      method: 'POST',
-      body:JSON.stringify(reqBody),
-      headers:reqHeader
-    };
-    const apiReq = new Request(reqURl, reqOption);
-    if(this.trace) {
-      console.log('DidResolverSyncWebStore::postRequestAPI_::apiReq=:<',apiReq,'>');
-    }
-    const apiResp = await fetch(apiReq);
-    if(this.trace) {
-      console.log('DidResolverSyncWebStore::postRequestAPI_::apiResp=:<',apiResp,'>');
-    }
-    const resultJson = await apiResp.json();
-    if(this.trace) {
-      console.log('DidResolverSyncWebStore::postRequestAPI_::resultJson=:<',resultJson,'>');
-    }
-    return resultJson;
-    */
-  }
   accessToken_() {
     if(this.trace) {
       console.log('DidResolverSyncWebStore::accessToken_::this.auth=:<',this.auth,'>');

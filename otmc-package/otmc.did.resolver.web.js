@@ -3,6 +3,19 @@ import { DidStoreTeamJoin } from './otmc.did.store.team.join.js';
 
 const context = 'https://otmc.wator.xyz/ns/did/evidence';
 export class DidResolverSyncWebStore {
+  /**
+   * Creates an instance of the class.
+   * 
+   * @constructor
+   * @param {Object} eeInternal - The internal event emitter.
+   * @param {Worker} worker - The web worker instance.
+   * @property {boolean} trace - Flag to enable tracing.
+   * @property {boolean} debug - Flag to enable debugging.
+   * @property {Object} eeInternal - The internal event emitter.
+   * @property {Worker} worker - The web worker instance.
+   * @fires ListenEventEmitter_
+   * @listens Worker#onmessage
+   */
   constructor(eeInternal,worker) {
     this.trace = true;;
     this.debug = true;
@@ -14,6 +27,14 @@ export class DidResolverSyncWebStore {
       self.onCloudMsg_(e.data);
     }
   }
+  /**
+   * Listens to the 'sys.authKey.ready' event on the internal event emitter.
+   * When the event is triggered, it updates the instance properties with the event data
+   * and initializes the DidStoreDocument and DidStoreTeamJoin instances.
+   * Finally, it attempts to synchronize cloud evidence after a short delay.
+   *
+   * @private
+   */
   ListenEventEmitter_() {
     if(this.trace) {
       console.log('DidResolverSyncWebStore::ListenEventEmitter_::this.eeInternal=:<',this.eeInternal,'>');
@@ -34,6 +55,12 @@ export class DidResolverSyncWebStore {
       },10);
     });
   }
+  /**
+   * Attempts to synchronize cloud evidence by calling the necessary
+   * methods to sync the cloud document and cloud team join.
+   * 
+   * @private
+   */
   trySyncCloudEvidence_() {
     this.trySyncCloudDocument_();
     this.trySyncCloudTeamJoin_();
@@ -58,6 +85,17 @@ export class DidResolverSyncWebStore {
     }
     this.worker.postMessage({reqDL:cloudRequests});
   }
+  /**
+   * Attempts to synchronize the cloud team join process.
+   * 
+   * This function retrieves the DID addresses of concerns from the document,
+   * creates cloud GET requests for each DID address, and posts these requests
+   * to a worker for further processing.
+   * 
+   * @async
+   * @private
+   * @returns {Promise<void>} A promise that resolves when the synchronization process is complete.
+   */
   async trySyncCloudTeamJoin_() {
     if(this.trace) {
       console.log('DidResolverSyncWebStore::trySyncCloudTeamJoin_::this.teamJoin=:<',this.teamJoin,'>');
@@ -77,6 +115,19 @@ export class DidResolverSyncWebStore {
     }
     this.worker.postMessage({reqDL:cloudRequests});
   }
+  /**
+   * Handles incoming cloud messages and processes them based on their content.
+   * 
+   * @param {Object} msgCloud - The cloud message object.
+   * @param {string} [msgCloud.reqDid] - The requested DID.
+   * @param {string} [msgCloud.reqJoin] - The requested join.
+   * @param {Object} [msgCloud.content] - The content of the cloud message.
+   * @param {string} [msgCloud.content.hash] - The hash value in the content.
+   * @param {Object} [msgCloud.content.didDocument] - The DID document in the content.
+   * @param {Object} [msgCloud.content.didJoin] - The DID join request in the content.
+   * 
+   * @returns {Promise<void>} - A promise that resolves when the message has been processed.
+   */
   async onCloudMsg_(msgCloud) {
     if(this.trace) {
       console.log('DidResolverSyncWebStore::onCloudMsg_::msgCloud=:<',msgCloud,'>');
@@ -94,6 +145,13 @@ export class DidResolverSyncWebStore {
       await this.onCloudDidResponsedJoinRequest_(msgCloud.reqJoin,msgCloud.content.didJoin)
     }
   }
+  /**
+   * Handles the response of cloud DID hashes and synchronizes them with the local storage.
+   *
+   * @param {string} reqDid - The requested DID.
+   * @param {Object} cloudHashList - The list of hashes from the cloud, where the key is the hash and the value is the hash content.
+   * @returns {Promise<void>} - A promise that resolves when the synchronization is complete.
+   */
   async onCloudDidResponsedHash_(reqDid,cloudHashList) {
     if(this.trace) {
       console.log('DidResolverSyncWebStore::onCloudDidResponsedHash_::reqDid=:<',reqDid,'>');
@@ -124,6 +182,14 @@ export class DidResolverSyncWebStore {
       }
     }
   }
+  /**
+   * Attempts to store a cloud DID (Decentralized Identifier) locally.
+   *
+   * @param {string} didDL - The DID to be stored.
+   * @param {string} hashDL - The hash of the DID document.
+   * @param {string} hashContent - The hash of the content associated with the DID.
+   * @private
+   */
   tryStoreCloudDid2Local_(didDL,hashDL,hashContent) {
     if(this.trace) {
       console.log('DidResolverSyncWebStore::tryStoreCloudDid2Local_::didDL=:<',didDL,'>');
@@ -137,6 +203,14 @@ export class DidResolverSyncWebStore {
     }
     this.worker.postMessage({reqDL:[requstObj]});
   }
+  /**
+   * Attempts to store a local DID document to the cloud.
+   * 
+   * @param {string} didUL - The DID URL.
+   * @param {string} hashUL - The hash of the DID document.
+   * @returns {Promise<void>} - A promise that resolves when the operation is complete.
+   * @private
+   */
   async tryStoreLocalDid2Cloud_(didUL,hashUL) {
     if(this.trace) {
       console.log('DidResolverSyncWebStore::tryStoreLocalDid2Cloud_::didUL=:<',didUL,'>');
@@ -171,6 +245,15 @@ export class DidResolverSyncWebStore {
     this.worker.postMessage({postUL:requstObj});
   }
 
+  /**
+   * Handles the response of cloud DID documents.
+   *
+   * @param {string} reqDid - The requested DID.
+   * @param {Array<Object>} cloudDids - An array of cloud DID objects.
+   * @param {string} cloudDids[].hash - The hash of the cloud DID document.
+   * @param {Object} cloudDids[].didJson - The JSON representation of the cloud DID document.
+   * @returns {Promise<void>} - A promise that resolves when the operation is complete.
+   */
   async onCloudDidResponsedDocument_(reqDid,cloudDids) {
     if(this.trace) {
       console.log('DidResolverSyncWebStore::onCloudDidResponsedDocument_::reqDid=:<',reqDid,'>');
@@ -183,6 +266,13 @@ export class DidResolverSyncWebStore {
       this.onCloudDidSyncDocument_(cloudDid.hash,cloudDid.didJson);
     }
   }
+  /**
+   * Handles the synchronization of a DID document from the cloud.
+   *
+   * @param {string} remoteHash - The hash of the remote DID document.
+   * @param {Object} remoteDid - The remote DID document.
+   * @private
+   */
   onCloudDidSyncDocument_(remoteHash,remoteDid) {
     if(this.trace) {
       console.log('DidResolverSyncWebStore::onCloudDidSyncDocument_::remoteHash=:<',remoteHash,'>');
@@ -208,6 +298,14 @@ export class DidResolverSyncWebStore {
     this.document.putTentative(storeDoc);
   }
 
+  /**
+   * Handles the response of a cloud join request by comparing the cloud hash list with the local hash list.
+   * 
+   * @param {Object} reqJoin - The join request object.
+   * @param {Object} cloudHashList - The list of hashes from the cloud.
+   * @returns {Promise<void>}
+   * @private
+   */
   async onCloudJoinResponsedHash_(reqJoin,cloudHashList) {
     if(this.trace) {
       console.log('DidResolverSyncWebStore::onCloudJoinResponsedHash_::reqJoin=:<',reqJoin,'>');
@@ -238,6 +336,14 @@ export class DidResolverSyncWebStore {
       }
     }
   }
+  /**
+   * Attempts to store a cloud join request locally.
+   *
+   * @param {string} joinDL - The join data link.
+   * @param {string} hashDL - The hash of the data link.
+   * @param {string} hashContent - The hash of the content.
+   * @private
+   */
   tryStoreCloudJoinReq2Local_(joinDL,hashDL,hashContent) {
     if(this.trace) {
       console.log('DidResolverSyncWebStore::tryStoreCloudJoinReq2Local_::joinDL=:<',joinDL,'>');
@@ -251,6 +357,14 @@ export class DidResolverSyncWebStore {
     }
     this.worker.postMessage({reqDL:[requstObj]});
   }
+  /**
+   * Attempts to store a local join request to the cloud.
+   * 
+   * @param {string} joinUL - The unique identifier for the join request.
+   * @param {string} hashUL - The hash associated with the join request.
+   * @returns {Promise<void>} - A promise that resolves when the operation is complete.
+   * @private
+   */
   async tryStoreLocalJoinReq2Cloud_(joinUL,hashUL) {
     if(this.trace) {
       console.log('DidResolverSyncWebStore::tryStoreLocalJoinReq2Cloud_::joinUL=:<',joinUL,'>');
@@ -283,6 +397,13 @@ export class DidResolverSyncWebStore {
     }
     this.worker.postMessage({postUL:[requstObj]});
   }
+  /**
+   * Handles the response to a join request from the cloud.
+   *
+   * @param {Object} reqJoin - The join request object.
+   * @param {Array} cloudJoinReqs - An array of join request objects from the cloud.
+   * @returns {Promise<void>} - A promise that resolves when all join requests have been processed.
+   */
   async onCloudDidResponsedJoinRequest_(reqJoin,cloudJoinReqs) {
     if(this.trace) {
       console.log('DidResolverSyncWebStore::onCloudDidResponsedJoinRequest_::reqJoin=:<',reqJoin,'>');
@@ -295,6 +416,13 @@ export class DidResolverSyncWebStore {
       await this.onCloudDidSyncJoinRequest_(cloudJoinReq.hash,cloudJoinReq.joinJson);
     }
   }
+  /**
+   * Handles the cloud DID sync join request.
+   *
+   * @param {string} remoteHash - The hash of the remote join request.
+   * @param {Object} remoteJoin - The remote join request object.
+   * @returns {Promise<void>} - A promise that resolves when the join request has been processed.
+   */
   async onCloudDidSyncJoinRequest_(remoteHash,remoteJoin) {
     if(this.trace) {
       console.log('DidResolverSyncWebStore::onCloudDidSyncJoinRequest_::remoteHash=:<',remoteHash,'>');
@@ -320,6 +448,13 @@ export class DidResolverSyncWebStore {
   }
 
 
+  /**
+   * Creates a cloud GET request object with the specified API path.
+   *
+   * @param {string} apiPath - The API path to be appended to the base URL.
+   * @returns {Object} The request object containing the URL and authorization token.
+   * @private
+   */
   createCloudGetRequest_(apiPath) {
     const reqURl =`${context}/v1/${apiPath}`;
     if(this.trace) {
@@ -334,6 +469,13 @@ export class DidResolverSyncWebStore {
     }
     return reqObj;
   }  
+  /**
+   * Creates a cloud POST request object.
+   *
+   * @param {string} apiPath - The API path to append to the base context URL.
+   * @param {Object} reqBody - The request body to be sent with the POST request.
+   * @returns {Object} The request object containing the URL, authorization token, and request body.
+   */
   createCloudPostRequest_(apiPath,reqBody) {
     const reqURl =`${context}/v1/${apiPath}`;
     if(this.trace) {
@@ -349,6 +491,12 @@ export class DidResolverSyncWebStore {
     }
     return reqObj;
   }  
+  /**
+   * Generates an access token by signing an empty token object and encoding it in Base64.
+   * Logs the process if tracing is enabled.
+   *
+   * @returns {string} The Base64 encoded signed token.
+   */
   accessToken_() {
     if(this.trace) {
       console.log('DidResolverSyncWebStore::accessToken_::this.auth=:<',this.auth,'>');

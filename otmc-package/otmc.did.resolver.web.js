@@ -436,15 +436,26 @@ export class DidResolverSyncWebStore {
     if(calcHash !== remoteHash) {
       return;
     }
-    const storeJoin = {
-      did:remoteJoin.credentialRequest.claims.did.id,
-      hashCR:remoteHash,
-      origCredReq:joinRemoteStr,
-    }
+    const didAddress = remoteJoin.credentialRequest.claims.did.id;
     if(this.trace) {
-      console.log('DidResolverSyncWebStore::onCloudDidSyncJoinRequest_::storeJoin=:<',storeJoin,'>');
+      console.log('DidResolverSyncWebStore::onCloudDidSyncJoinRequest_::didAddress=:<',didAddress,'>');
     }
-    await this.teamJoin.putTentativeCredReq(storeJoin);
+    const controllers = await this.document.getControll(didAddress);
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::onCloudDidSyncJoinRequest_::didAddress=:<',didAddress,'>');
+    }
+    for(const control of controllers) {
+      const storeJoin = {
+        did:didAddress,
+        control:control,
+        hashCR:remoteHash,
+        origCredReq:joinRemoteStr,
+      }
+      if(this.trace) {
+        console.log('DidResolverSyncWebStore::onCloudDidSyncJoinRequest_::storeJoin=:<',storeJoin,'>');
+      }
+      await this.teamJoin.putTentativeCredReq(storeJoin);
+    }
   }
 
 

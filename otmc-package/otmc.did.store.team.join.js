@@ -4,6 +4,20 @@ import { StoreKey } from './otmc.const.js';
 *
 */
 export class DidStoreTeamJoin {
+  /**
+   * Constructs an instance of DidStoreTeamJoin.
+   * Initializes the database with different stores for in-progress, done, tentative, and verified states.
+   * Logs the initialization process if tracing is enabled.
+   *
+   * @constructor
+   * @property {string} version - The version of the database schema.
+   * @property {boolean} trace0 - Flag for trace level 0.
+   * @property {boolean} trace1 - Flag for trace level 1.
+   * @property {boolean} trace2 - Flag for trace level 2.
+   * @property {boolean} trace - Flag to enable tracing.
+   * @property {boolean} debug - Flag to enable debugging.
+   * @property {Dexie} db - The Dexie database instance.
+   */
   constructor() {
     this.version = '1.0';
     this.trace0 = true;
@@ -41,6 +55,14 @@ export class DidStoreTeamJoin {
     }
   }
 
+  /**
+   * Stores a credential request in the database if it does not already exist.
+   *
+   * @param {Object} credReqStore - The credential request object to be stored.
+   * @param {string} credReqStore.hashCR - The hash of the credential request.
+   * @param {string} credReqStore.did - The decentralized identifier (DID) associated with the credential request.
+   * @returns {Promise<void>} - A promise that resolves when the operation is complete.
+   */
   async putCredReq(credReqStore) {
     if(this.trace) {
       console.log('DidStoreTeamJoin::putCredReq::credReqStore=:<',credReqStore,'>');
@@ -60,6 +82,14 @@ export class DidStoreTeamJoin {
     }
   }
 
+  /**
+   * Stores a tentative credential request in the database if it does not already exist.
+   *
+   * @param {Object} credReqStore - The credential request store object.
+   * @param {string} credReqStore.hashCR - The hash of the credential request.
+   * @param {string} credReqStore.did - The decentralized identifier (DID) associated with the credential request.
+   * @returns {Promise<void>} - A promise that resolves when the operation is complete.
+   */
   async putTentativeCredReq(credReqStore) {
     if(this.trace) {
       console.log('DidStoreTeamJoin::putTentativeCredReq::credReqStore=:<',credReqStore,'>');
@@ -79,6 +109,16 @@ export class DidStoreTeamJoin {
     }
   }
 
+  /**
+   * Retrieves the top request for the given DID address.
+   *
+   * This function fetches all the DID values associated with the provided DID address,
+   * sorts them using the compare_ method, and returns the top (first) request.
+   * If there are no requests, it returns null.
+   *
+   * @param {string} didAddress - The DID address to retrieve requests for.
+   * @returns {Promise<Object|null>} - A promise that resolves to the top request object, or null if no requests are found.
+   */
   async getRequestTop(didAddress) {
     const didValuesJson = await this.getAll(didAddress);
     if(this.trace) {
@@ -95,6 +135,13 @@ export class DidStoreTeamJoin {
       return null;
     }
   }
+  /**
+   * Retrieves the in-progress records associated with a given DID address.
+   *
+   * @param {string} didAddress - The DID address to query for in-progress records.
+   * @returns {Promise<Object>} A promise that resolves to an object containing the in-progress records, 
+   *                            where the keys are the hashCR values and the values are the parsed origCredReq values.
+   */
   async getInProgressOfAddress(didAddress) {
     const asign2Me = await this.db.inProgress.where('control').equals(didAddress).toArray();
     if(this.trace) {
@@ -119,6 +166,14 @@ export class DidStoreTeamJoin {
     return storeValuesJson;
   }
 
+  /**
+   * Retrieves all in-progress records from the database, parses them, and returns them as a JSON object.
+   * 
+   * @async
+   * @function getInProgressAny
+   * @returns {Promise<Object>} A promise that resolves to an object where each key is a hashCR and each value is the parsed origCredReq.
+   * @throws {SyntaxError} If parsing origCredReq fails.
+   */
   async getInProgressAny() {
     const asign2Any = await this.db.inProgress.toArray();
     if(this.trace) {
@@ -143,6 +198,13 @@ export class DidStoreTeamJoin {
     return storeValuesJson;
   }
   
+  /**
+   * Retrieves the join credential request for a given store hash.
+   *
+   * @param {string} storeHash - The hash of the store to retrieve the join credential request for.
+   * @returns {Promise<Object>} - A promise that resolves to the parsed join credential request object.
+   * @throws {Error} - Throws an error if the store request cannot be found or if JSON parsing fails.
+   */
   async getJoinCredRequest(storeHash) {
     const storeRequest = await this.db.inProgress.where('hashCR').equals(storeHash).first();
     if(this.trace) {
@@ -152,6 +214,12 @@ export class DidStoreTeamJoin {
     const storeValue = JSON.parse(storeValueStr);
     return storeValue;
   }
+  /**
+   * Stores a verifiable credential in the database.
+   *
+   * @param {Object} vcStore - The verifiable credential to be stored.
+   * @returns {Promise<Object>} The result of the database operation.
+   */
   async putVerifiableCredential(vcStore) {
     if(this.trace) {
       console.log('DidStoreTeamJoin::putVerifiableCredential::vcStore=:<',vcStore,'>');
@@ -162,6 +230,12 @@ export class DidStoreTeamJoin {
     }
     return result;
   }
+  /**
+   * Moves a join credential request from the in-progress store to the done store.
+   *
+   * @param {string} storeHash - The hash of the credential request to be moved.
+   * @returns {Promise<void>} - A promise that resolves when the operation is complete.
+   */
   async moveJoinCredRequest2Done(storeHash) {
     const storeRequest = await this.db.inProgress.where('hashCR').equals(storeHash).first();
     if(this.trace) {
@@ -170,6 +244,12 @@ export class DidStoreTeamJoin {
     await this.db.done.put(storeRequest);
     await this.db.inProgress.where('hashCR').equals(storeHash).delete();
   }
+  /**
+   * Retrieves a list of hashCR values associated with the given DID address from various database stores.
+   *
+   * @param {string} didAddress - The DID address to search for in the database.
+   * @returns {Promise<string[]>} A promise that resolves to an array of hashCR values.
+   */
   async getHashListOfJoin(didAddress) {
     if(this.trace) {
       console.log('DidStoreTeamJoin::getHashListOfJoin::didAddress=:<',didAddress,'>');
@@ -220,6 +300,13 @@ export class DidStoreTeamJoin {
     }
     return hashList;
   }
+  /**
+   * Retrieves a join request by DID address and hash from the database.
+   *
+   * @param {string} didAddress - The DID address to search for.
+   * @param {string} hashRC - The hash to search for.
+   * @returns {Promise<Object|null>} The original credential request object if found, otherwise null.
+   */
   async getJoinRequestByAddreAndHash(didAddress,hashRC) {
     if(this.trace) {
       console.log('DidStoreTeamJoin::getJoinRequestByAddreAndHash::didAddress=:<',didAddress,'>');
@@ -247,6 +334,21 @@ export class DidStoreTeamJoin {
       return JSON.parse(storeObject.origCredReq);;
     }
   }
+  /**
+   * Moves tentative objects to the workspace if they are not already present in the 'done' or 'inProgress' collections.
+   * 
+   * This function performs the following steps:
+   * 1. Retrieves all tentative objects from the database.
+   * 2. Logs the tentative objects if tracing is enabled.
+   * 3. Iterates over each tentative object and checks if it exists in the 'done' or 'inProgress' collections.
+   * 4. If the object does not exist in either collection, it calls `putCredReq` to process the tentative object.
+   * 5. Logs the tentative object and hint object at various stages if tracing is enabled.
+   * 6. Deletes all tentative objects from the 'tentative' collection after processing.
+   * 
+   * @async
+   * @function moveTentative2Workspace
+   * @returns {Promise<void>} A promise that resolves when the operation is complete.
+   */
   async moveTentative2Workspace() {
     const tentativeObjects = await this.db.tentative.toArray();
     if(this.trace) {
@@ -288,6 +390,15 @@ export class DidStoreTeamJoin {
     }
   }
 
+  /**
+   * Compares two objects based on their `updated` property.
+   *
+   * @param {Object} a - The first object to compare.
+   * @param {Object} b - The second object to compare.
+   * @returns {number} - Returns -1 if `a.updated` is less than `b.updated`, 
+   *                     1 if `a.updated` is greater than `b.updated`, 
+   *                     and 0 if they are equal.
+   */
   compare_(a,b) {
     if ( a.updated < b.updated ){
       return -1;

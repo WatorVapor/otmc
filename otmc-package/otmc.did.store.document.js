@@ -13,13 +13,13 @@ export class DidStoreDocument {
     this.debug = true;
     this.db = new Dexie(StoreKey.open.did.document.dbName);
     this.db.version(this.version).stores({
-      stable: '++autoId,id,updated,hashDid,origDid'
+      stable: '++autoId,did,controller,updated,hashDid,hashCore,b64Did'
     });
     this.db.version(this.version).stores({
-      fickle: '++autoId,id,updated,hashDid,origDid'
+      fickle: '++autoId,did,controller,updated,hashDid,hashCore,b64Did'
     });
     this.db.version(this.version).stores({
-      tentative: '++autoId,id,updated,hashDid,origDid'
+      tentative: '++autoId,did,controller,updated,hashDid,hashCore,b64Did'
     });
   }
   async putStable(didStore) {
@@ -27,7 +27,7 @@ export class DidStoreDocument {
       console.log('DidStoreDocument::putStable::didStore=:<',didStore,'>');
     }
     const filter = {
-      id: didStore.id,
+      did: didStore.did,
       hashDid: didStore.hashDid
     };
     const storeObject = await this.db.stable.where(filter).first();
@@ -43,7 +43,7 @@ export class DidStoreDocument {
       console.log('DidStoreDocument::putFickle::didStore=:<',didStore,'>');
     }
     const filter = {
-      id: didStore.id,
+      did: didStore.did,
       hashDid: didStore.hashDid
     };
     const storeObject = await this.db.fickle.where(filter).first();
@@ -59,7 +59,7 @@ export class DidStoreDocument {
       console.log('DidStoreDocument::putTentative::didStore=:<',didStore,'>');
     }
     const filter = {
-      id: didStore.id,
+      did: didStore.did,
       hashDid: didStore.hashDid
     };
     const storeObject = await this.db.tentative.where(filter).first();
@@ -169,29 +169,19 @@ export class DidStoreDocument {
   }
   async getConcernDidAddress() {
     const storeValuesJson = [];
-    const storeObjects = await this.db.stable.toArray();
-    if(this.trace) {
-      console.log('DidStoreDocument::getConcernDidAddress::storeObjects=:<',storeObjects,'>');
-    }
-    for(const storeValue of storeObjects) {
-      const storeDid = JSON.parse(storeValue.origDid);
-      storeValuesJson.push(storeDid);
-    }
-    const storeObjects2 = await this.db.fickle.toArray();
-    if(this.trace) {
-      console.log('DidStoreDocument::getConcernDidAddress::storeObjects2=:<',storeObjects2,'>');
-    }
-    for(const storeValue of storeObjects2) {
-      const storeDid = JSON.parse(storeValue.origDid);
-      storeValuesJson.push(storeDid);
-    }
+    storeValuesJson.push(await this.db.stable.toArray());
+    storeValuesJson.push(await this.db.fickle.toArray());
     if(this.trace) {
       console.log('DidStoreDocument::getConcernDidAddress::storeValuesJson=:<',storeValuesJson,'>');
     }
+    const storeValuesJsonFlat = storeValuesJson.flat();
+    if(this.trace) {
+      console.log('DidStoreDocument::getConcernDidAddress::storeValuesJsonFlat=:<',storeValuesJsonFlat,'>');
+    }
     const didAdresses = [];
-    for(const didJson of storeValuesJson) {
+    for(const didJson of storeValuesJsonFlat) {
       didAdresses.push(didJson.controller);
-      didAdresses.push(didJson.id);
+      didAdresses.push(didJson.did);
     }
     if(this.trace) {
       console.log('DidStoreDocument::getConcernDidAddress::didAdresses=:<',didAdresses,'>');
@@ -228,13 +218,14 @@ export class DidStoreDocument {
       console.log('DidStoreDocument::getStableDidDocument::hashUL=:<',hashUL,'>');
     }
     const filter = {
-      id: didUL,
+      did: didUL,
       hashDid: hashUL
     };
     const storeObject = await this.db.stable.where(filter).first();
     if(this.trace) {
       console.log('DidStoreDocument::getStableDidDocument::storeObject=:<',storeObject,'>');
     }
+    /*
     if(storeObject) {
       const storeDid = JSON.parse(storeObject.origDid);
       if(this.trace) {
@@ -244,25 +235,29 @@ export class DidStoreDocument {
     } else {
       return null;
     }
+    */
+    return storeObject;
   }
   async getTentativeAll () {
-    const storeValuesJson = [];
-    const storeObject = await this.db.tentative.toArray();
+    const storeObjects = await this.db.tentative.toArray();
     if(this.trace) {
-      console.log('DidStoreDocument::getTentativeDidDocument::storeObject=:<',storeObject,'>');
+      console.log('DidStoreDocument::getTentativeDidDocument::storeObjects=:<',storeObjects,'>');
     }
-    for(const storeValue of storeObject) {
+    /*
+    const storeValuesJson = [];
+    for(const storeValue of storeObjects) {
       const storeDid = JSON.parse(storeValue.origDid);
       storeValuesJson.push(storeDid);
     }
-    return storeValuesJson;
+    */
+    return storeObjects;
   }
   async moveTentative2Stable (moveDid) {
     if(this.trace) {
       console.log('DidStoreDocument::moveTentative2Stable::moveDid=:<',moveDid,'>');
     }
     const filter = {
-      id: moveDid.id,
+      did: moveDid.did,
       hashDid: moveDid.hashDid
     };
     const storeObject1 = await this.db.stable.where(filter).first();
@@ -274,6 +269,7 @@ export class DidStoreDocument {
 
   async getAnyDidDocument () {
     const storeValuesJson = [];
+    /*
     const storeObject1 = await this.db.stable.toArray();
     if(this.trace) {
       console.log('DidStoreDocument::getAnyDidDocument::storeObject1=:<',storeObject1,'>');
@@ -298,20 +294,29 @@ export class DidStoreDocument {
       const storeDid = JSON.parse(storeValue.origDid);
       storeValuesJson.push(storeDid);
     }
+    */
+    storeValuesJson.push(await this.db.stable.toArray());
+    storeValuesJson.push(await this.db.fickle.toArray());
+    storeValuesJson.push(await this.db.tentative.toArray());
     if(this.trace) {
       console.log('DidStoreDocument::getAnyDidDocument::storeValuesJson=:<',storeValuesJson,'>');
     }
-    return storeValuesJson;
+    const flatStoreValuesJson = storeValuesJson.flat();
+    if(this.trace) {
+      console.log('DidStoreDocument::getAnyDidDocument::flatStoreValuesJson=:<',flatStoreValuesJson,'>');
+    }
+    return flatStoreValuesJson;
   }  
 
-  async getAllByDidAddress_(didAddress,storeObject) {
+  async getAllByDidAddress_(didAddress,storeCollection) {
     if(this.trace) {
       console.log('DidStoreDocument::getAllByDidAddress_::didAddress=:<',didAddress,'>');
     }
-    const storeObjects = await storeObject.where('id').equals(didAddress).toArray();
+    const storeObjects = await storeCollection.where('id').equals(didAddress).toArray();
     if(this.trace) {
       console.log('DidStoreDocument::getAllByDidAddress_::storeObjects=:<',storeObjects,'>');
     }
+    /*
     const storeValuesJson = [];
     for(const storeValue of storeObjects) {
       const storeDid = JSON.parse(storeValue.origDid);
@@ -320,11 +325,12 @@ export class DidStoreDocument {
     if(this.trace) {
       console.log('DidStoreDocument::getAllByDidAddress_::storeValuesJson=:<',storeValuesJson,'>');
     }
-    return storeValuesJson;
+    */
+    return storeObjects;
   }
 
-  async getAllAuthMember_(authAddress,storeObject) {
-    const storeObjects = await storeObject.toArray();
+  async getAllAuthMember_(authAddress,storeCollection) {
+    const storeObjects = await storeCollection.toArray();
     if(this.trace) {
       console.log('DidStoreDocument::getAllAuthMember_::storeObjects=:<',storeObjects,'>');
     }

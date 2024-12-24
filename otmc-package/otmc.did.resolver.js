@@ -74,21 +74,31 @@ export class DidResolver {
 
   async storeStableDid(documentObj){
     const documentStr = JSON.stringify(documentObj);
+    const coreDocObj = JSON.parse(documentStr);
+    delete coreDocObj.proof;
+    const coreDocStr = JSON.stringify(coreDocObj);
     const storeDoc = {
-      id:documentObj.id,
+      did:documentObj.id,
+      controller:documentObj.controller,
       updated:documentObj.updated,
       hashDid:this.util.calcAddress(documentStr),
-      origDid:documentStr
+      hashCore:this.util.calcAddress(coreDocStr),
+      b64Did:this.util.encodeBase64Str(documentStr)
     }
     this.localStore.storeStableDid(storeDoc);
   }
   async storeFickleDid(documentObj){
     const documentStr = JSON.stringify(documentObj);
+    const coreDocObj = JSON.parse(documentStr);
+    delete coreDocObj.proof;
+    const coreDocStr = JSON.stringify(coreDocObj);
     const storeDoc = {
-      id:documentObj.id,
+      did:documentObj.id,
+      controller:documentObj.controller,
       updated:documentObj.updated,
       hashDid:this.util.calcAddress(documentStr),
-      origDid:documentStr
+      hashCore:this.util.calcAddress(coreDocStr),
+      b64Did:this.util.encodeBase64Str(documentStr)
     }
     this.localStore.storeFickleDid(storeDoc);
   }

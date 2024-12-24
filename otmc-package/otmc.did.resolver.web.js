@@ -286,11 +286,16 @@ export class DidResolverSyncWebStore {
     if(calcHash !== remoteHash) {
       return;
     }
+    const coreDocObj = JSON.parse(documentStr);
+    delete coreDocObj.proof;
+    const coreDocStr = JSON.stringify(coreDocObj);
     const storeDoc = {
-      id:remoteDid.id,
+      did:remoteDid.id,
+      controller:remoteDid.controller,
       updated:remoteDid.updated,
       hashDid:calcHash,
-      origDid:documentStr
+      hashCore:this.util.calcAddress(coreDocStr),
+      b64Did:this.util.encodeBase64Str(documentStr)
     }
     if(this.trace) {
       console.log('DidResolverSyncWebStore::onCloudDidSyncDocument_::storeDoc=:<',storeDoc,'>');

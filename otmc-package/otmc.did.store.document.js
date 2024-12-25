@@ -196,7 +196,7 @@ export class DidStoreDocument {
     if(this.trace) {
       console.log('DidStoreDocument::getHashListOfStable::did=:<',didAddress,'>');
     }
-    const storeObjects = await this.db.stable.where('id').equals(didAddress).toArray();
+    const storeObjects = await this.db.stable.where('did').equals(didAddress).toArray();
     if(this.trace) {
       console.log('DidStoreDocument::getAllByDidAddress_::storeObjects=:<',storeObjects,'>');
     }
@@ -312,7 +312,7 @@ export class DidStoreDocument {
     if(this.trace) {
       console.log('DidStoreDocument::getAllByDidAddress_::didAddress=:<',didAddress,'>');
     }
-    const storeObjects = await storeCollection.where('id').equals(didAddress).toArray();
+    const storeObjects = await storeCollection.where('did').equals(didAddress).toArray();
     if(this.trace) {
       console.log('DidStoreDocument::getAllByDidAddress_::storeObjects=:<',storeObjects,'>');
     }

@@ -123,7 +123,19 @@ export class EdUtil {
     for (i = 0; i < d.length; i++) b[i] = d.charCodeAt(i);
     return b;    
   }
- 
+
+  /**
+   * Decodes a Base64 encoded string into a string.
+   *
+   * @param {string} strMsg - The Base64 encoded string to decode.
+   * @returns {Uint8Array} - The decoded byte array.
+   * @throws {Error} - Throws an error if the input string is not valid Base64.
+   */
+  decodeBase64Str(strMsg) {
+    const binB64 = this.decodeBase64(strMsg);
+    return new TextDecoder('utf-8').decode(binB64);    
+  }
+
   /**
    * Generates a base32-encoded SHA-512 hash of the given text message.
    *

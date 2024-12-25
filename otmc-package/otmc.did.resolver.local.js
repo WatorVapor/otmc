@@ -28,7 +28,7 @@ export class DidResolverLocalStore {
       console.log('DidResolverLocalStore::resolver::didValuesSorted=:<',didValuesSorted,'>');
     }
     if(didValuesSorted.length > 0) {
-      return didValuesSorted[0];
+      return this.decodeDidFromStore_(didValuesSorted[0]);
     }
     const didMemberValuesJson = await this.didDocLS.getMemberAllStable(keyAddress);
     if(this.trace) {
@@ -39,7 +39,7 @@ export class DidResolverLocalStore {
       console.log('DidResolverLocalStore::resolver::didMemberValuesSorted=:<',didMemberValuesSorted,'>');
     }
     if(didMemberValuesSorted.length > 0) {
-      return didMemberValuesSorted[0];
+      return this.decodeDidFromStore_(didMemberValuesSorted[0]);
     }
 
     const didValuesJsonFickle = await this.didDocLS.getAllFickle(keyAddress);
@@ -51,7 +51,7 @@ export class DidResolverLocalStore {
       console.log('DidResolverLocalStore::resolver::didValuesFickleSorted=:<',didValuesFickleSorted,'>');
     }
     if(didValuesFickleSorted.length > 0) {
-      return didValuesFickleSorted[0];
+      return this.decodeDidFromStore_(didValuesFickleSorted[0]);
     }
 
     const didMemberValuesJsonFickle = await this.didDocLS.getMemberAllFickle(keyAddress);
@@ -63,9 +63,8 @@ export class DidResolverLocalStore {
       console.log('DidResolverLocalStore::resolver::didMemberValuesFickleSorted=:<',didMemberValuesFickleSorted,'>');
     }
     if(didMemberValuesFickleSorted.length > 0) {
-      return didMemberValuesFickleSorted[0];
+      return this.decodeDidFromStore_(didMemberValuesFickleSorted[0]);
     }
-
     return null;
   }
   async getDidDocumentAll(keyAddress){
@@ -162,5 +161,15 @@ export class DidResolverLocalStore {
       console.log('DidResolverLocalStore::storeJoinVerifiableCredential::resultStore=:<',resultStore,'>');
     }
     return resultStore;
+  }
+  decodeDidFromStore_(didStore){
+    if(this.trace) {
+      console.log('DidResolverLocalStore::decodeDidFromStore::didStore=:<',didStore,'>');
+    }
+    const did = JSON.parse(this.util.decodeBase64Str(didStore.b64Did));
+    if(this.trace) {
+      console.log('DidResolverLocalStore::decodeDidFromStore::did=:<',did,'>');
+    }
+    return did;
   }
 }

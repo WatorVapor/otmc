@@ -292,6 +292,7 @@ export class DidResolverSyncWebStore {
     const storeDoc = {
       did:remoteDid.id,
       controller:remoteDid.controller,
+      authentication:remoteDid.authentication,
       updated:remoteDid.updated,
       hashDid:calcHash,
       hashCore:this.util.calcAddress(coreDocStr),

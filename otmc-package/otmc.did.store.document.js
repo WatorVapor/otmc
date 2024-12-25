@@ -13,13 +13,13 @@ export class DidStoreDocument {
     this.debug = true;
     this.db = new Dexie(StoreKey.open.did.document.dbName);
     this.db.version(this.version).stores({
-      stable: '++autoId,did,controller,updated,hashDid,hashCore,b64Did'
+      stable: '++autoId,did,controller,authentication,updated,hashDid,hashCore,b64Did'
     });
     this.db.version(this.version).stores({
-      fickle: '++autoId,did,controller,updated,hashDid,hashCore,b64Did'
+      fickle: '++autoId,did,controller,authentication,updated,hashDid,hashCore,b64Did'
     });
     this.db.version(this.version).stores({
-      tentative: '++autoId,did,controller,updated,hashDid,hashCore,b64Did'
+      tentative: '++autoId,did,controller,authentication,updated,hashDid,hashCore,b64Did'
     });
   }
   async putStable(didStore) {
@@ -336,12 +336,8 @@ export class DidStoreDocument {
     }
     const storeValuesJson = [];
     for(const storeValue of storeObjects) {
-      const storeDid = JSON.parse(storeValue.origDid);
-      if(this.trace) {
-        console.log('DidStoreDocument::getAllAuthMember_::storeDid=:<',storeDid,'>');
-      }
-      if(this.isAuthMember_(storeDid,authAddress)){
-        storeValuesJson.push(storeDid);
+      if(this.isAuthMember_(storeValue,authAddress)){
+        storeValuesJson.push(storeValue);
       }
     }
     if(this.trace) {
@@ -349,13 +345,13 @@ export class DidStoreDocument {
     }
     return storeValuesJson;
   }
-  isAuthMember_(didJson,address) {
+  isAuthMember_(storeValue,address) {
     if(this.trace) {
-      console.log('DidStoreDocument::isAuthMember_::didJson=:<',didJson,'>');
+      console.log('DidStoreDocument::isAuthMember_::storeValue=:<',storeValue,'>');
       console.log('DidStoreDocument::isAuthMember_::address=:<',address,'>');
     }
     try {
-      for(const auth of didJson.authentication) {
+      for(const auth of storeValue.authentication) {
         if(this.trace) {
           console.log('DidStoreDocument::isAuthMember_::auth=:<',auth,'>');
         }
@@ -378,7 +374,7 @@ export class DidStoreDocument {
     }
     return 0;
   }
-  
+  /*
   isAddressUsedDid_(didDoc,address) {
     if(this.trace) {
       console.log('DidStoreDocument::isAddressUsedDid_::didDoc=:<',didDoc,'>');
@@ -398,4 +394,5 @@ export class DidStoreDocument {
     }
     return false;
   }
+  */
 }

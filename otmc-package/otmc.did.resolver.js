@@ -80,6 +80,7 @@ export class DidResolver {
     const storeDoc = {
       did:documentObj.id,
       controller:documentObj.controller,
+      authentication:documentObj.authentication,
       updated:documentObj.updated,
       hashDid:this.util.calcAddress(documentStr),
       hashCore:this.util.calcAddress(coreDocStr),
@@ -95,6 +96,7 @@ export class DidResolver {
     const storeDoc = {
       did:documentObj.id,
       controller:documentObj.controller,
+      authentication:documentObj.authentication,
       updated:documentObj.updated,
       hashDid:this.util.calcAddress(documentStr),
       hashCore:this.util.calcAddress(coreDocStr),

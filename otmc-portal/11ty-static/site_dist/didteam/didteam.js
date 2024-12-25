@@ -84,7 +84,7 @@ const didTeamOption = {
       },
       teamOperation:'create',// 'create|join'
       teamType:{
-        controller:true
+        controller:true,
       },
       growPolicy:{
         seedDogma:false,

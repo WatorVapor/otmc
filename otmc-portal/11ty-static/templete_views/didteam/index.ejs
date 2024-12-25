@@ -77,7 +77,7 @@ layout: didteam.sidebar.ejs
           Create a new team
         </span>
         <span class="input-group-text w-25">
-          <input class="form-check-input ms-3" type="checkbox" :disabled="teamOperation !== 'create'" v-model="teamType.controller">Controller</input>
+          <input class="form-check-input ms-3" type="checkbox" :disabled="teamOperation !== 'create'" v-model="teamType.controller" @update:modelValue="handleStatusChange">Controller</input>
         </span>
         <span class="input-group-text w-50">
           <input type="text" class="form-control" placeholder="did:otmc: control" :disabled="teamOperation !== 'create' || teamType.controller === true" v-model="create.control">
@@ -97,8 +97,13 @@ layout: didteam.sidebar.ejs
         <span class="input-group-text">Guest Policy</span>
         <span class="input-group-text w-25">
           <input class="form-check-input ms-3" type="checkbox" :disabled="teamOperation !== 'create'" v-model="guestPolicy.open">Open</input>
-          <button class="btn btn-primary ms-3" type="button" :disabled="teamOperation !== 'create'" @click="clickCreateDidTeamSeedCtrler()" 
-            data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create A New DidTeam">
+          <button :class="'btn btn-primary ms-3 ' + (teamType.controller? '' : 'd-none')" type="button" :disabled="teamOperation !== 'create'" @click="clickCreateDidTeamSeedCtrler()" 
+            data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create A New DidTeam as controller">
+            <i class="fa-solid fa-seedling"></i>
+            <i class="fa-solid fa-user-gear"></i>
+          </button>
+          <button :class="'btn btn-primary ms-3 ' + (teamType.controller? 'd-none' : '')" type="button" :disabled="teamOperation !== 'create'" @click="clickCreateDidTeamSeedCtrlee()" 
+            data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Create A New DidTeam as controllee">
             <i class="fa-solid fa-seedling"></i>
             <i class="fa-solid fa-user-gear"></i>
           </button>

@@ -91,7 +91,7 @@ export class DidResolverLocalStore {
     const credReqStore = {
       did:did,
       hashCR:this.util.calcAddress(credReqStr),
-      origCredReq:credReqStr
+      b64JoinCR:this.util.decodeBase64Str(credReqStr)
     }
     let holders = []
     if(credReq.holder.length < 1){
@@ -151,7 +151,7 @@ export class DidResolverLocalStore {
       control:didVC.credentialSubject.did.controller,
       hashCR:didVC.id,
       hashVC:this.util.calcAddress(didVCStr),
-      origVC:didVCStr
+      b64JoinVC:this.util.decodeBase64Str(didVCStr)
     }
     if(this.trace) {
       console.log('DidResolverLocalStore::storeJoinVerifiableCredential::vcStore=:<',vcStore,'>');

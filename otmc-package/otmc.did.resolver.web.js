@@ -230,9 +230,12 @@ export class DidResolverSyncWebStore {
     const b64Did = this.util.encodeBase64Str(JSON.stringify(localDid));
     const syncObject = {
       did: didUL, 
-      hash: hashUL,
+      controller:localDid.controller,
+      authentication:localDid.authentication,
+      hashDid: localDid.hashDid,
+      hashDid: localDid.hashCore,
       updated: localDid.updated,
-      docB64: b64Did
+      b64Did: b64Did
     }
     const syncObjectSigned =this.auth.sign(syncObject);
     if(this.trace) {
@@ -455,7 +458,7 @@ export class DidResolverSyncWebStore {
         did:didAddress,
         control:control,
         hashCR:remoteHash,
-        origCredReq:joinRemoteStr,
+        b64JoinCR:this.util.encodeBase64Str(joinRemoteStr),
       }
       if(this.trace) {
         console.log('DidResolverSyncWebStore::onCloudDidSyncJoinRequest_::storeJoin=:<',storeJoin,'>');

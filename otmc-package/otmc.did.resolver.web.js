@@ -106,7 +106,7 @@ export class DidResolverSyncWebStore {
     }
     const cloudRequests = [];
     for(const didAddress of concernDids) {
-      const joinAllApi = `hash/join/${didAddress}?fullchain=true`;
+      const joinAllApi = `hash/join/${didAddress}`;
       const requstObj = this.createCloudGetRequest_(joinAllApi);
       cloudRequests.push(requstObj);
     }
@@ -133,16 +133,19 @@ export class DidResolverSyncWebStore {
       console.log('DidResolverSyncWebStore::onCloudMsg_::msgCloud=:<',msgCloud,'>');
     }
     if(msgCloud.reqDid && msgCloud.content && msgCloud.content.hash) {
-      await this.onCloudDidResponsedHash_(msgCloud.reqDid,msgCloud.content.hash)
-    }
-    if(msgCloud.reqJoin && msgCloud.content && msgCloud.content.hash) {
-      await this.onCloudJoinResponsedHash_(msgCloud.reqJoin,msgCloud.content.hash)
+      await this.onCloudDidResponsedHash_(msgCloud.reqDidHash,msgCloud.content.hash)
     }
     if(msgCloud.reqDid && msgCloud.content && msgCloud.content.didDocument) {
       await this.onCloudDidResponsedDocument_(msgCloud.reqDid,msgCloud.content.didDocument)
     }
-    if(msgCloud.reqJoin && msgCloud.content && msgCloud.content.didJoin) {
-      await this.onCloudDidResponsedJoinRequest_(msgCloud.reqJoin,msgCloud.content.didJoin)
+    if(msgCloud.reqJoin && msgCloud.content && msgCloud.content.hash) {
+      await this.onCloudJoinResponsedHash_(msgCloud.reqJoinHash,msgCloud.content.hash)
+    }
+    if(msgCloud.reqJoin && msgCloud.content && msgCloud.content.didJoinCR) {
+      await this.onCloudDidResponsedJoinCR_(msgCloud.reqJoinCR,msgCloud.content.didJoinCR)
+    }
+    if(msgCloud.reqJoin && msgCloud.content && msgCloud.content.didJoinVC) {
+      await this.onCloudDidResponsedJoinVC_(msgCloud.reqJoinVC,msgCloud.content.didJoinVC)
     }
   }
   /**
@@ -390,11 +393,11 @@ export class DidResolverSyncWebStore {
     if(this.trace) {
       console.log('DidResolverSyncWebStore::tryStoreLocalJoinReq2Cloud_::apiPath=:<',apiPath,'>');
     }
-    const b64Join = this.util.encodeBase64Str(JSON.stringify(localJoinReq));
     const syncObject = {
-      did: joinUL,
-      hash: hashUL,
-      joinB64: b64Join
+      did: localJoinReq.did,
+      control: localJoinReq.control,
+      hashCR: localJoinReq.hashCR,
+      b64JoinCR: localJoinReq.b64JoinCR
     }
     const syncObjectSigned =this.auth.sign(syncObject);
     if(this.trace) {
@@ -413,16 +416,16 @@ export class DidResolverSyncWebStore {
    * @param {Array} cloudJoinReqs - An array of join request objects from the cloud.
    * @returns {Promise<void>} - A promise that resolves when all join requests have been processed.
    */
-  async onCloudDidResponsedJoinRequest_(reqJoin,cloudJoinReqs) {
+  async onCloudDidResponsedJoinCR_(reqJoin,cloudJoinReqs) {
     if(this.trace) {
-      console.log('DidResolverSyncWebStore::onCloudDidResponsedJoinRequest_::reqJoin=:<',reqJoin,'>');
-      console.log('DidResolverSyncWebStore::onCloudDidResponsedJoinRequest_::cloudJoinReqs=:<',cloudJoinReqs,'>');
+      console.log('DidResolverSyncWebStore::onCloudDidResponsedJoinCR_::reqJoin=:<',reqJoin,'>');
+      console.log('DidResolverSyncWebStore::onCloudDidResponsedJoinCR_::cloudJoinReqs=:<',cloudJoinReqs,'>');
     }
     for(const cloudJoinReq of cloudJoinReqs) {
       if(this.trace) {
-        console.log('DidResolverSyncWebStore::onCloudDidResponsedJoinRequest_::cloudJoinReq=:<',cloudJoinReq,'>');
+        console.log('DidResolverSyncWebStore::onCloudDidResponsedJoinCR_::cloudJoinReq=:<',cloudJoinReq,'>');
       }
-      await this.onCloudDidSyncJoinRequest_(cloudJoinReq.hash,cloudJoinReq.joinJson);
+      await this.onCloudDidSyncJoinCR_(cloudJoinReq.hash,cloudJoinReq.joinJson);
     }
   }
   /**
@@ -432,26 +435,26 @@ export class DidResolverSyncWebStore {
    * @param {Object} remoteJoin - The remote join request object.
    * @returns {Promise<void>} - A promise that resolves when the join request has been processed.
    */
-  async onCloudDidSyncJoinRequest_(remoteHash,remoteJoin) {
+  async onCloudDidSyncJoinCR_(remoteHash,remoteJoin) {
     if(this.trace) {
-      console.log('DidResolverSyncWebStore::onCloudDidSyncJoinRequest_::remoteHash=:<',remoteHash,'>');
-      console.log('DidResolverSyncWebStore::onCloudDidSyncJoinRequest_::remoteJoin=:<',remoteJoin,'>');
+      console.log('DidResolverSyncWebStore::onCloudDidSyncJoinCR_::remoteHash=:<',remoteHash,'>');
+      console.log('DidResolverSyncWebStore::onCloudDidSyncJoinCR_::remoteJoin=:<',remoteJoin,'>');
     }
     const joinRemoteStr = JSON.stringify(remoteJoin);
     const calcHash = this.util.calcAddress(joinRemoteStr);
     if(this.trace) {
-      console.log('DidResolverSyncWebStore::onCloudDidSyncJoinRequest_::calcHash=:<',calcHash,'>');
+      console.log('DidResolverSyncWebStore::onCloudDidSyncJoinCR_::calcHash=:<',calcHash,'>');
     }
     if(calcHash !== remoteHash) {
       return;
     }
     const didAddress = remoteJoin.credentialRequest.claims.did.id;
     if(this.trace) {
-      console.log('DidResolverSyncWebStore::onCloudDidSyncJoinRequest_::didAddress=:<',didAddress,'>');
+      console.log('DidResolverSyncWebStore::onCloudDidSyncJoinCR_::didAddress=:<',didAddress,'>');
     }
     const controllers = await this.document.getControll(didAddress);
     if(this.trace) {
-      console.log('DidResolverSyncWebStore::onCloudDidSyncJoinRequest_::didAddress=:<',didAddress,'>');
+      console.log('DidResolverSyncWebStore::onCloudDidSyncJoinCR_::didAddress=:<',didAddress,'>');
     }
     for(const control of controllers) {
       const storeJoin = {
@@ -461,12 +464,73 @@ export class DidResolverSyncWebStore {
         b64JoinCR:this.util.encodeBase64Str(joinRemoteStr),
       }
       if(this.trace) {
-        console.log('DidResolverSyncWebStore::onCloudDidSyncJoinRequest_::storeJoin=:<',storeJoin,'>');
+        console.log('DidResolverSyncWebStore::onCloudDidSyncJoinCR_::storeJoin=:<',storeJoin,'>');
       }
       await this.teamJoin.putTentativeCredReq(storeJoin);
     }
   }
 
+  /**
+   * Handles the response to a join request from the cloud.
+   *
+   * @param {Object} reqJoin - The join request object.
+   * @param {Array} cloudJoinReqs - An array of join request objects from the cloud.
+   * @returns {Promise<void>} - A promise that resolves when all join requests have been processed.
+   */
+  async onCloudDidResponsedJoinVC_(reqJoin,cloudJoinReqs) {
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::onCloudDidResponsedJoinVC_::reqJoin=:<',reqJoin,'>');
+      console.log('DidResolverSyncWebStore::onCloudDidResponsedJoinVC_::cloudJoinReqs=:<',cloudJoinReqs,'>');
+    }
+    for(const cloudJoinReq of cloudJoinReqs) {
+      if(this.trace) {
+        console.log('DidResolverSyncWebStore::onCloudDidResponsedJoinVC_::cloudJoinReq=:<',cloudJoinReq,'>');
+      }
+      await this.onCloudDidSyncJoinVC_(cloudJoinReq.hash,cloudJoinReq.joinJson);
+    }
+  }
+  /**
+   * Handles the cloud DID sync join request.
+   *
+   * @param {string} remoteHash - The hash of the remote join request.
+   * @param {Object} remoteJoin - The remote join request object.
+   * @returns {Promise<void>} - A promise that resolves when the join request has been processed.
+   */
+  async onCloudDidSyncJoinVC_(remoteHash,remoteJoin) {
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::onCloudDidSyncJoinVC_::remoteHash=:<',remoteHash,'>');
+      console.log('DidResolverSyncWebStore::onCloudDidSyncJoinVC_::remoteJoin=:<',remoteJoin,'>');
+    }
+    const joinRemoteStr = JSON.stringify(remoteJoin);
+    const calcHash = this.util.calcAddress(joinRemoteStr);
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::onCloudDidSyncJoinVC_::calcHash=:<',calcHash,'>');
+    }
+    if(calcHash !== remoteHash) {
+      return;
+    }
+    const didAddress = remoteJoin.credentialRequest.claims.did.id;
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::onCloudDidSyncJoinVC_::didAddress=:<',didAddress,'>');
+    }
+    const controllers = await this.document.getControll(didAddress);
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::onCloudDidSyncJoinVC_::didAddress=:<',didAddress,'>');
+    }
+    for(const control of controllers) {
+      const storeJoin = {
+        did:didAddress,
+        control:control,
+        hashCR:remoteJoin.hashCR,
+        hashVC:remoteJoin.hashVC,
+        b64JoinVC:remoteJoin.b64JoinVC,
+      }
+      if(this.trace) {
+        console.log('DidResolverSyncWebStore::onCloudDidResponsedJoinVC_::storeJoin=:<',storeJoin,'>');
+      }
+      await this.teamJoin.putTentativeVC(storeJoin);
+    }
+  }  
 
   /**
    * Creates a cloud GET request object with the specified API path.

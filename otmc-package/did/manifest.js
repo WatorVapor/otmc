@@ -1,6 +1,26 @@
 export class DIDManifest {
   static trace = false;
   static debug = true;
+  /**
+   * Represents the dogma rule seed configuration.
+   * 
+   * @property {Object} did - The DID (Decentralized Identifier) configuration.
+   * @property {Object} did.authentication - The authentication policy for the DID.
+   * @property {string} did.authentication.policy - The policy name for authentication.
+   * 
+   * @property {Object} acl - The Access Control List (ACL) configuration.
+   * @property {Array<Object>} acl.seed - The ACL rules for seed.
+   * @property {string} acl.seed[].permission - The permission type (e.g., 'allow').
+   * @property {string} acl.seed[].action - The action type (e.g., 'all', 'subscribe').
+   * @property {string} acl.seed[].topic - The topic pattern for the ACL rule.
+   * 
+   * @property {Array<Object>} acl.authentication - The ACL rules for authentication.
+   * @property {string} acl.authentication[].permission - The permission type (e.g., 'allow').
+   * @property {string} acl.authentication[].action - The action type (e.g., 'all', 'subscribe').
+   * @property {string} acl.authentication[].topic - The topic pattern for the ACL rule.
+   * 
+   * @property {Array<Object>} acl.guest - The ACL rules for guests.
+   */
   static dogmaRuleSeed = {
     did: {
       authentication:{
@@ -36,6 +56,26 @@ export class DIDManifest {
       ],
     }
   };
+  /**
+   * Dogma Rule Controller configuration object.
+   * 
+   * @property {Object} did - DID (Decentralized Identifier) related configurations.
+   * @property {Object} did.authentication - Authentication policy for DID.
+   * @property {string} did.authentication.policy - Policy name for authentication.
+   * 
+   * @property {Object} acl - Access Control List configurations.
+   * @property {Array<Object>} acl.seed - Seed ACL rules.
+   * @property {string} acl.seed[].permission - Permission type (e.g., 'allow').
+   * @property {string} acl.seed[].action - Action type (e.g., 'all', 'subscribe').
+   * @property {string} acl.seed[].topic - Topic pattern for the ACL rule.
+   * 
+   * @property {Array<Object>} acl.authentication - Authentication ACL rules.
+   * @property {string} acl.authentication[].permission - Permission type (e.g., 'allow').
+   * @property {string} acl.authentication[].action - Action type (e.g., 'all', 'subscribe').
+   * @property {string} acl.authentication[].topic - Topic pattern for the ACL rule.
+   * 
+   * @property {Array<Object>} acl.guest - Guest ACL rules (currently empty).
+   */
   static dogmaRuleController = {
     did: {
       authentication:{
@@ -71,6 +111,26 @@ export class DIDManifest {
       ],
     }
   };
+  /**
+   * Represents the chain rule configuration for guest close.
+   * 
+   * @property {Object} did - The DID (Decentralized Identifier) configuration.
+   * @property {Object} did.authentication - The authentication policy for the DID.
+   * @property {string} did.authentication.policy - The policy used for authentication, set to 'Proof.Chain'.
+   * 
+   * @property {Object} acl - The Access Control List (ACL) configuration.
+   * @property {Array<Object>} acl.seed - The seed permissions.
+   * @property {string} acl.seed[].permission - The permission type, set to 'allow'.
+   * @property {string} acl.seed[].action - The action allowed, set to 'all' or 'subscribe'.
+   * @property {string} acl.seed[].topic - The topic pattern for the permission.
+   * 
+   * @property {Array<Object>} acl.authentication - The authentication permissions.
+   * @property {string} acl.authentication[].permission - The permission type, set to 'allow'.
+   * @property {string} acl.authentication[].action - The action allowed, set to 'all' or 'subscribe'.
+   * @property {string} acl.authentication[].topic - The topic pattern for the permission.
+   * 
+   * @property {Array<Object>} acl.guest - The guest permissions, currently empty.
+   */
   static chainRuleGuestClose = {
     did: {
       authentication:{
@@ -106,6 +166,29 @@ export class DIDManifest {
       ]
     }
   };
+  /**
+   * Represents the chain rule for guest open access.
+   * 
+   * @property {Object} did - The DID (Decentralized Identifier) configuration.
+   * @property {Object} did.authentication - The authentication policy for the DID.
+   * @property {string} did.authentication.policy - The policy used for authentication, set to 'Proof.Chain'.
+   * 
+   * @property {Object} acl - The Access Control List (ACL) configuration.
+   * @property {Array<Object>} acl.seed - The seed permissions.
+   * @property {string} acl.seed[].permission - The permission type, set to 'allow'.
+   * @property {string} acl.seed[].action - The action allowed, set to 'all' or 'subscribe'.
+   * @property {string} acl.seed[].topic - The topic pattern for the permission.
+   * 
+   * @property {Array<Object>} acl.authentication - The authentication permissions.
+   * @property {string} acl.authentication[].permission - The permission type, set to 'allow'.
+   * @property {string} acl.authentication[].action - The action allowed, set to 'all' or 'subscribe'.
+   * @property {string} acl.authentication[].topic - The topic pattern for the permission.
+   * 
+   * @property {Array<Object>} acl.guest - The guest permissions.
+   * @property {string} acl.guest[].permission - The permission type, set to 'allow'.
+   * @property {string} acl.guest[].action - The action allowed, set to 'subscribe'.
+   * @property {string} acl.guest[].topic - The topic pattern for the permission.
+   */
   static chainRuleGuestOpen = {
     did: {
       authentication:{

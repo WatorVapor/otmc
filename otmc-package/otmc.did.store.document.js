@@ -194,7 +194,7 @@ export class DidStoreDocument {
   }
   async getHashListOfStable(didAddress) {
     if(this.trace) {
-      console.log('DidStoreDocument::getHashListOfStable::did=:<',didAddress,'>');
+      console.log('DidStoreDocument::getHashListOfStable::didAddress=:<',didAddress,'>');
     }
     const storeObjects = await this.db.stable.where('did').equals(didAddress).toArray();
     if(this.trace) {
@@ -225,17 +225,6 @@ export class DidStoreDocument {
     if(this.trace) {
       console.log('DidStoreDocument::getStableDidDocument::storeObject=:<',storeObject,'>');
     }
-    /*
-    if(storeObject) {
-      const storeDid = JSON.parse(storeObject.origDid);
-      if(this.trace) {
-        console.log('DidStoreDocument::getStableDidDocument::storeDid=:<',storeDid,'>');
-      }
-      return storeDid;
-    } else {
-      return null;
-    }
-    */
     return storeObject;
   }
   async getTentativeAll () {
@@ -243,13 +232,6 @@ export class DidStoreDocument {
     if(this.trace) {
       console.log('DidStoreDocument::getTentativeDidDocument::storeObjects=:<',storeObjects,'>');
     }
-    /*
-    const storeValuesJson = [];
-    for(const storeValue of storeObjects) {
-      const storeDid = JSON.parse(storeValue.origDid);
-      storeValuesJson.push(storeDid);
-    }
-    */
     return storeObjects;
   }
   async moveTentative2Stable (moveDid) {
@@ -269,33 +251,7 @@ export class DidStoreDocument {
 
   async getAnyDidDocument () {
     const storeValuesJson = [];
-    /*
-    const storeObject1 = await this.db.stable.toArray();
-    if(this.trace) {
-      console.log('DidStoreDocument::getAnyDidDocument::storeObject1=:<',storeObject1,'>');
-    }
-    for(const storeValue of storeObject1) {
-      const storeDid = JSON.parse(storeValue.origDid);
-      storeValuesJson.push(storeDid);
-    }
-    const storeObject2 = await this.db.fickle.toArray();
-    if(this.trace) {
-      console.log('DidStoreDocument::getAnyDidDocument::storeObject2=:<',storeObject2,'>');
-    }
-    for(const storeValue of storeObject2) {
-      const storeDid = JSON.parse(storeValue.origDid);
-      storeValuesJson.push(storeDid);
-    }
-    const storeObject3 = await this.db.tentative.toArray();
-    if(this.trace) {
-      console.log('DidStoreDocument::getAnyDidDocument::storeObject3=:<',storeObject3,'>');
-    }
-    for(const storeValue of storeObject3) {
-      const storeDid = JSON.parse(storeValue.origDid);
-      storeValuesJson.push(storeDid);
-    }
-    */
-    storeValuesJson.push(await this.db.stable.toArray());
+     storeValuesJson.push(await this.db.stable.toArray());
     storeValuesJson.push(await this.db.fickle.toArray());
     storeValuesJson.push(await this.db.tentative.toArray());
     if(this.trace) {
@@ -316,16 +272,6 @@ export class DidStoreDocument {
     if(this.trace) {
       console.log('DidStoreDocument::getAllByDidAddress_::storeObjects=:<',storeObjects,'>');
     }
-    /*
-    const storeValuesJson = [];
-    for(const storeValue of storeObjects) {
-      const storeDid = JSON.parse(storeValue.origDid);
-      storeValuesJson.push(storeDid);
-    }
-    if(this.trace) {
-      console.log('DidStoreDocument::getAllByDidAddress_::storeValuesJson=:<',storeValuesJson,'>');
-    }
-    */
     return storeObjects;
   }
 
@@ -374,25 +320,4 @@ export class DidStoreDocument {
     }
     return 0;
   }
-  /*
-  isAddressUsedDid_(didDoc,address) {
-    if(this.trace) {
-      console.log('DidStoreDocument::isAddressUsedDid_::didDoc=:<',didDoc,'>');
-      console.log('DidStoreDocument::isAddressUsedDid_::address=:<',address,'>');
-    }
-    const addressSuffix = `#${address}`;
-    if(this.trace) {
-      console.log('DidStoreDocument::isAddressUsedDid_::addressSuffix=:<',addressSuffix,'>');
-    }
-    for(const auth of didDoc.authentication) {
-      if(this.trace) {
-        console.log('DidStoreDocument::isAddressUsedDid_::auth=:<',auth,'>');
-      }
-      if(auth.endsWith(addressSuffix)) {
-        return true;
-      }
-    }
-    return false;
-  }
-  */
 }

@@ -133,7 +133,7 @@ export class DidResolverSyncWebStore {
       console.log('DidResolverSyncWebStore::onCloudMsg_::msgCloud=:<',msgCloud,'>');
     }
     if(msgCloud.reqDid && msgCloud.content && msgCloud.content.hash) {
-      await this.onCloudDidResponsedHash_(msgCloud.reqDidHash,msgCloud.content.hash)
+      await this.onCloudDidResponsedHash_(msgCloud.reqDid,msgCloud.content.hash)
     }
     if(msgCloud.reqDid && msgCloud.content && msgCloud.content.didDocument) {
       await this.onCloudDidResponsedDocument_(msgCloud.reqDid,msgCloud.content.didDocument)
@@ -236,9 +236,9 @@ export class DidResolverSyncWebStore {
       controller:localDid.controller,
       authentication:localDid.authentication,
       hashDid: localDid.hashDid,
-      hashDid: localDid.hashCore,
+      hashCore: localDid.hashCore,
       updated: localDid.updated,
-      b64Did: b64Did
+      b64Did: localDid.b64Did
     }
     const syncObjectSigned =this.auth.sign(syncObject);
     if(this.trace) {

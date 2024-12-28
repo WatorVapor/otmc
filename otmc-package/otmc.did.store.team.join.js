@@ -66,16 +66,16 @@ export class DidStoreTeamJoin {
   async putCredReq(credReqStore) {
     if(this.trace) {
       console.log('DidStoreTeamJoin::putCredReq::credReqStore=:<',credReqStore,'>');
-    }   
-    const hintObject = await this.db.inProgress
-    .where('hashCR')
-    .equals(credReqStore.hashCR)
-    .and((item) => item.did === credReqStore.did)
-    .first();
-    if(this.trace) {
-      console.log('DidStoreTeamJoin::putCredReq::hintObject=:<',hintObject,'>');
     }
-    if(hintObject) {
+    const filter = {
+      did: credReqStore.did,
+      hashCR: credReqStore.hashCR
+    };
+    const storedObject = await this.db.inProgress.where(filter).first();
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::putCredReq::storedObject=:<',storedObject,'>');
+    }
+    if(storedObject) {
       return;
     } else {
       await this.db.inProgress.put(credReqStore);
@@ -94,15 +94,15 @@ export class DidStoreTeamJoin {
     if(this.trace) {
       console.log('DidStoreTeamJoin::putTentativeCredReq::credReqStore=:<',credReqStore,'>');
     }
-    const hintObject = await this.db.tentative
-    .where('hashCR')
-    .equals(credReqStore.hashCR)
-    .and((item) => item.did === credReqStore.did)
-    .first();
+    const filter = {
+      did: credReqStore.did,
+      hashCR: credReqStore.hashCR
+    };
+    const storedObject = await this.db.tentative.where(filter).first();
     if(this.trace) {
-      console.log('DidStoreTeamJoin::putTentativeCredReq::hintObject=:<',hintObject,'>');
+      console.log('DidStoreTeamJoin::putTentativeCredReq::storedObject=:<',storedObject,'>');
     }
-    if(hintObject) {
+    if(storedObject) {
       return;
     } else {
       await this.db.tentative.put(credReqStore);
@@ -147,6 +147,8 @@ export class DidStoreTeamJoin {
     if(this.trace) {
       console.log('DidStoreTeamJoin::getInProgressOfAddress::asign2Me=:<',asign2Me,'>');
     }
+    return asign2Me;
+    /*
     const storeValuesJson = {};
     for(const storeReq of asign2Me) {
       if(this.trace) {
@@ -164,6 +166,7 @@ export class DidStoreTeamJoin {
       console.log('DidStoreTeamJoin::getInProgressOfAddress::storeValuesJson=:<',storeValuesJson,'>');
     }
     return storeValuesJson;
+    */
   }
 
   /**
@@ -312,21 +315,25 @@ export class DidStoreTeamJoin {
       console.log('DidStoreTeamJoin::getJoinRequestByAddreAndHash::didAddress=:<',didAddress,'>');
       console.log('DidStoreTeamJoin::getJoinRequestByAddreAndHash::hashRC=:<',hashRC,'>');
     }
-    let storeObject = await this.db.inProgress.where('did').equals(didAddress).and( obj => obj.hashCR === hashRC ).first();
+    const filter = {
+      did: didAddress,
+      hashCR: hashRC
+    };
+    let storeObject = await this.db.inProgress.where(filter).first();
     if(this.trace) {
       console.log('DidStoreTeamJoin::getJoinRequestByAddreAndHash::storeObject=:<',storeObject,'>');
     }
     if(storeObject) {
       return JSON.parse(storeObject.origCredReq);
     }
-    storeObject = await this.db.done.where('did').equals(didAddress).and( obj => obj.hashCR === hashRC ).first();
+    storeObject = await this.db.done.where(filter).first();
     if(this.trace) {
       console.log('DidStoreTeamJoin::getJoinRequestByAddreAndHash::storeObject=:<',storeObject,'>');
     }
     if(storeObject) {
       return JSON.parse(storeObject.origCredReq);
     }
-    storeObject = await this.db.verified.where('did').equals(didAddress).and( obj => obj.hashCR === hashRC ).first();
+    storeObject = await this.db.verified.where(filter).first();
     if(this.trace) {
       console.log('DidStoreTeamJoin::getJoinRequestByAddreAndHash::storeObject=:<',storeObject,'>');
     }
@@ -358,20 +365,18 @@ export class DidStoreTeamJoin {
       if(this.trace) {
         console.log('DidStoreTeamJoin::moveTentative2Workspace::tentativeObject=:<',tentativeObject,'>');
       }
-      let hintObject = await this.db.done
-      .where('hashCR').equals(tentativeObject.hashCR)
-      .and((item) => item.did === tentativeObject.did)
-      .first();
+      const filter = {
+        did: didAddress,
+        hashCR: hashRC
+      };  
+      let hintObject = await this.db.done.where(filter).first();
       if(this.trace) {
         console.log('DidStoreTeamJoin::moveTentative2Workspace::hintObject=:<',hintObject,'>');
       }
       if(hintObject) {
         continue;
       }
-      hintObject = await this.db.inProgress
-      .where('hashCR').equals(tentativeObject.hashCR)
-      .and((item) => item.did === tentativeObject.did)
-      .first();
+      hintObject = await this.db.inProgress.where(filter).first();
       if(this.trace) {
         console.log('DidStoreTeamJoin::moveTentative2Workspace::hintObject=:<',hintObject,'>');
       }

@@ -91,7 +91,7 @@ export class DidResolverLocalStore {
     const credReqStore = {
       did:did,
       hashCR:this.util.calcAddress(credReqStr),
-      b64JoinCR:this.util.decodeBase64Str(credReqStr)
+      b64JoinCR:this.util.encodeBase64Str(credReqStr)
     }
     let holders = []
     if(credReq.holder.length < 1){
@@ -118,7 +118,23 @@ export class DidResolverLocalStore {
     if(this.trace) {
       console.log('DidResolverLocalStore::getJoinInProgress::joinList=:<',joinList,'>');
     }
-    return joinList;
+    const joinValuesJson = {};
+    for(const joinReq of joinList) {
+      if(this.trace) {
+        console.log('DidStoreTeamJoin::getJoinInProgress::storeReq=:<',joinReq,'>');
+      }
+      const joinKey = joinReq.hashCR;
+      const joinValueStr = this.util.decodeBase64Str(joinReq.b64JoinCR);
+      const joinValue = JSON.parse(joinValueStr);
+      if(this.trace) {
+        console.log('DidStoreTeamJoin::getJoinInProgress::joinValue=:<',joinValue,'>');
+      }
+      joinValuesJson[joinKey] = joinValue;
+    }
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::getJoinInProgress::joinValuesJson=:<',joinValuesJson,'>');
+    }
+    return joinValuesJson;
   }
   async getJoinCredRequest(storeHash){
     if(this.trace) {
@@ -151,7 +167,7 @@ export class DidResolverLocalStore {
       control:didVC.credentialSubject.did.controller,
       hashCR:didVC.id,
       hashVC:this.util.calcAddress(didVCStr),
-      b64JoinVC:this.util.decodeBase64Str(didVCStr)
+      b64JoinVC:this.util.encodeBase64Str(didVCStr)
     }
     if(this.trace) {
       console.log('DidResolverLocalStore::storeJoinVerifiableCredential::vcStore=:<',vcStore,'>');

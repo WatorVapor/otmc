@@ -63,7 +63,7 @@ export class DidResolverSyncWebStore {
    */
   trySyncCloudEvidence_() {
     this.trySyncCloudDocument_();
-    this.trySyncCloudTeamJoin_();
+    //this.trySyncCloudTeamJoin_();
   }
 
   async trySyncCloudDocument_() {

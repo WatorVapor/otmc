@@ -1,8 +1,6 @@
 import { DidResolverLocalStore } from './otmc.did.resolver.local.js';
 import { DidResolverSyncWebStore } from './otmc.did.resolver.web.js';
 
-import { StoreKey } from './otmc.const.js';
-
 const LEVEL_OPT = {
   keyEncoding: 'utf8',
   valueEncoding: 'utf8',

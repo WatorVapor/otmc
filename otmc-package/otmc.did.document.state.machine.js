@@ -59,7 +59,13 @@ export class DidDocumentStateMachine {
       }
       if(evt.didDoc) {
         const result =  await self.caclDidDocument(evt.didDoc);
+        if(self.trace0) {
+          console.log('DidDocumentStateMachine::ListenEventEmitter_::result=:<',result,'>');
+        }
         self.eeInternal.emit('did:document.auth.result', result);
+        if(result.proofed) { 
+          await self.autoCompleteDidDocument_(evt.didDoc,result);
+        }
       }
     });
     this.eeInternal.on('did:document:tentative',async (evt)=>{
@@ -453,6 +459,38 @@ export class DidDocumentStateMachine {
     }
     return ctrleeReachTable;
   }
+  autoCompleteDidDocument_(didDoc,result) {
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::autoCompleteDidDocument_::didDoc=<',didDoc,'>');
+      console.log('DidDocumentStateMachine::autoCompleteDidDocument_::result=<',result,'>');
+    }
+    const iAmInProof = didDoc.proof.reduce((acc, proof) => acc || proof.creator.endsWith(this.auth.address()), false);
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::autoCompleteDidDocument_::iAmInProof=<',iAmInProof,'>');
+    }
+    if(iAmInProof) {
+      return;
+    }
+    const policy = didDoc.otmc.manifest.did.authentication.policy
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::autoCompleteDidDocument_::policy=<',policy,'>');
+    }
+    switch(policy) {
+      case 'Seed.Dogma':
+        if(result.ctrlee || result.bud) {
+          return;
+        }
+      case 'Controller.Dogma':
+        if(result.ctrlee) {
+          return;
+        }
+      case 'Proof.Chain':
+      default:
+        break;
+    }
+    this.eeInternal.emit('did:document.add.myProof');
+  }
+
 
   dumpState_() {
     for(const chainId in this.chainState) {

@@ -23,47 +23,33 @@ export class DidResolverLocalStore {
     if(this.trace) {
       console.log('DidResolverLocalStore::resolver::didValuesJson=:<',didValuesJson,'>');
     }
-    const didValuesSorted = didValuesJson.sort((a,b) => new Date(b.updated) - new Date(a.updated));
-    if(this.trace) {
-      console.log('DidResolverLocalStore::resolver::didValuesSorted=:<',didValuesSorted,'>');
+    if(didValuesJson.length > 0) {
+      return this.bestDidFromStore_(didValuesJson);
     }
-    if(didValuesSorted.length > 0) {
-      return this.decodeDidFromStore_(didValuesSorted[0]);
-    }
+
     const didMemberValuesJson = await this.didDocLS.getMemberAllStable(keyAddress);
     if(this.trace) {
       console.log('DidResolverLocalStore::resolver::didMemberValuesJson=:<',didMemberValuesJson,'>');
     }
-    const didMemberValuesSorted = didMemberValuesJson.sort((a,b) => new Date(b.updated) - new Date(a.updated));
-    if(this.trace) {
-      console.log('DidResolverLocalStore::resolver::didMemberValuesSorted=:<',didMemberValuesSorted,'>');
+    if(didMemberValuesJson.length > 0) {
+      return this.bestDidFromStore_(didMemberValuesJson);
     }
-    if(didMemberValuesSorted.length > 0) {
-      return this.decodeDidFromStore_(didMemberValuesSorted[0]);
-    }
+
 
     const didValuesJsonFickle = await this.didDocLS.getAllFickle(keyAddress);
     if(this.trace) {
       console.log('DidResolverLocalStore::resolver::didValuesJsonFickle=:<',didValuesJsonFickle,'>');
     }
-    const didValuesFickleSorted = didValuesJsonFickle.sort((a,b) => new Date(b.updated) - new Date(a.updated));
-    if(this.trace) {
-      console.log('DidResolverLocalStore::resolver::didValuesFickleSorted=:<',didValuesFickleSorted,'>');
-    }
-    if(didValuesFickleSorted.length > 0) {
-      return this.decodeDidFromStore_(didValuesFickleSorted[0]);
+    if(didValuesJsonFickle.length > 0) {
+      return this.bestDidFromStore_(didValuesJsonFickle);
     }
 
     const didMemberValuesJsonFickle = await this.didDocLS.getMemberAllFickle(keyAddress);
     if(this.trace) {
       console.log('DidResolverLocalStore::resolver::didMemberValuesJsonFickle=:<',didMemberValuesJsonFickle,'>');
     }
-    const didMemberValuesFickleSorted = didMemberValuesJsonFickle.sort((a,b) => new Date(b.updated) - new Date(a.updated));
-    if(this.trace) {
-      console.log('DidResolverLocalStore::resolver::didMemberValuesFickleSorted=:<',didMemberValuesFickleSorted,'>');
-    }
-    if(didMemberValuesFickleSorted.length > 0) {
-      return this.decodeDidFromStore_(didMemberValuesFickleSorted[0]);
+    if(didMemberValuesJsonFickle.length > 0) {
+      return this.bestDidFromStore_(didMemberValuesJsonFickle);
     }
     return null;
   }
@@ -144,7 +130,8 @@ export class DidResolverLocalStore {
     if(this.trace) {
       console.log('DidResolverLocalStore::getJoinCredRequest::credReq=:<',credReq,'>');
     }
-    return credReq;
+    const credReqStr = this.util.decodeBase64Str(credReq.b64JoinCR);
+    return JSON.parse(credReqStr);
   }
   async markDoneJoinCredRequest(storeHash){
     if(this.trace) {
@@ -187,5 +174,53 @@ export class DidResolverLocalStore {
       console.log('DidResolverLocalStore::decodeDidFromStore::did=:<',did,'>');
     }
     return did;
+  }
+  bestDidFromStore_(didValuesJson){
+    const didValuesSorted = didValuesJson.sort((a,b) => new Date(b.updated) - new Date(a.updated));
+    if(this.trace) {
+      console.log('DidResolverLocalStore::bestDidFromStore_::didValuesSorted=:<',didValuesSorted,'>');
+    }
+    if(didValuesSorted.length < 1) {
+      return null;
+    }
+    const topHashCore = didValuesSorted[0].hashCore;
+    if(this.trace) {
+      console.log('DidResolverLocalStore::bestDidFromStore_::topHashCore=:<',topHashCore,'>');
+    }
+    const didValuesTop = didValuesSorted.filter((store) => store.hashCore === topHashCore);
+    if(this.trace) {
+      console.log('DidResolverLocalStore::bestDidFromStore_::didValuesTop=:<',didValuesTop,'>');
+    }
+    if(didValuesTop.length === 1) {
+      return this.decodeDidFromStore_(didValuesSorted[0]);
+    }
+    const decodeDidDocs = [];
+    for(const didValue of didValuesTop) {
+      if(this.trace) {
+        console.log('DidResolverLocalStore::bestDidFromStore_::didValue=:<',didValue,'>');
+      }
+      const decodeDidDoc = this.decodeDidFromStore_(didValue)
+      if(this.trace) {
+        console.log('DidResolverLocalStore::bestDidFromStore_::decodeDidDoc=:<',decodeDidDoc,'>');
+      }
+      decodeDidDocs.push(decodeDidDoc);
+    }
+    if(this.trace) {
+      console.log('DidResolverLocalStore::bestDidFromStore_::decodeDidDocs=:<',decodeDidDocs,'>');
+    }
+    const reduceDidDoc = decodeDidDocs.reduce((acc,cur) => {
+      if(this.trace) {
+        console.log('DidResolverLocalStore::bestDidFromStore_::acc=:<',acc,'>');
+        console.log('DidResolverLocalStore::bestDidFromStore_::cur=:<',cur,'>');
+      }
+      if(acc.proof.length < cur.proof.length) {
+        return cur;
+      }
+      return acc;
+    },decodeDidDocs[0]);
+    if(this.trace) {
+      console.log('DidResolverLocalStore::bestDidFromStore_::reduceDidDoc=:<',reduceDidDoc,'>');
+    }
+    return reduceDidDoc;
   }
 }

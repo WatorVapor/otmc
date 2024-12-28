@@ -1,5 +1,3 @@
-import nacl from 'tweetnacl-es6';
-import * as jsDiff from 'json-diff';
 import {
   base58xmr,
   base58xrp,
@@ -11,6 +9,7 @@ import {
 } from '@scure/base';
 
 import { md5, sha1, sha512, sha3 } from 'hash-wasm';
+import nacl from 'tweetnacl-es6';
 
 import { Base32 } from './edcrypto/base32.js';
 import { EdUtil } from './edcrypto/edutils.js';
@@ -190,17 +189,6 @@ export class DidDocument {
       }
       self.loadDocument();
     });
-    /*
-    this.eeInternal.on('did.loadDocument',(evt)=>{
-      if(self.trace0) {
-        console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
-      }
-      if(self.trace0) {
-        console.log('DidDocument::ListenEventEmitter_::self.otmc=:<',self.otmc,'>');
-      }
-      self.loadDocument();
-    });
-    */
     this.eeInternal.on('did.evidence.auth',(evt)=>{
       if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
@@ -243,6 +231,13 @@ export class DidDocument {
       }
       self.mergeDidDocument(evt);
     });
+    this.eeInternal.on('did:document.add.myProof',(evt)=>{
+      if(self.trace0) {
+        console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.addMyProofDidDocument(evt);
+    });
+  
   }
 
   syncDidDocument_(){
@@ -376,6 +371,22 @@ export class DidDocument {
       console.log('DidDocument::createJoinAsAuth::documentObj=:<',documentObj,'>');
     }
     this.resolver.storeFickleDid(documentObj);
+    return documentObj;
+  }
+  addMyProofDidDocument(evt) {
+    if(this.trace) {
+      console.log('DidDocument::addMyProofDidDocument::this.didDoc_=:<',this.didDoc_,'>');
+    }
+    const nextDid = JSON.parse(JSON.stringify(this.didDoc_));
+    const nextDidDoc = new DIDAscentDocument(nextDid,this.auth);
+    if(this.trace) {
+      console.log('DidDocument::addMyProofDidDocument::nextDidDoc=:<',nextDidDoc,'>');
+    }
+    const documentObj = nextDidDoc.document();
+    if(this.trace) {
+      console.log('DidDocument::addMyProofDidDocument::documentObj=:<',documentObj,'>');
+    }
+    this.resolver.storeStableDid(documentObj);
     return documentObj;
   }
 

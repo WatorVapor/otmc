@@ -213,9 +213,7 @@ export class DidStoreTeamJoin {
     if(this.trace) {
       console.log('DidStoreTeamJoin::getJoinCredRequest::storeRequest=:<',storeRequest,'>');
     }
-    const storeValueStr = storeRequest.origCredReq;
-    const storeValue = JSON.parse(storeValueStr);
-    return storeValue;
+    return storeRequest;
   }
   /**
    * Stores a verifiable credential in the database.

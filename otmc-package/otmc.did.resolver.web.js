@@ -63,7 +63,7 @@ export class DidResolverSyncWebStore {
    */
   trySyncCloudEvidence_() {
     this.trySyncCloudDocument_();
-    //this.trySyncCloudTeamJoin_();
+    this.trySyncCloudTeamJoinCR_();
   }
 
   async trySyncCloudDocument_() {
@@ -96,22 +96,22 @@ export class DidResolverSyncWebStore {
    * @private
    * @returns {Promise<void>} A promise that resolves when the synchronization process is complete.
    */
-  async trySyncCloudTeamJoin_() {
+  async trySyncCloudTeamJoinCR_() {
     if(this.trace) {
-      console.log('DidResolverSyncWebStore::trySyncCloudTeamJoin_::this.teamJoin=:<',this.teamJoin,'>');
+      console.log('DidResolverSyncWebStore::trySyncCloudTeamJoinCR_::this.teamJoin=:<',this.teamJoin,'>');
     }
     const concernDids = await this.document.getConcernDidAddress();
     if(this.trace) {
-      console.log('DidResolverSyncWebStore::trySyncCloudTeamJoin_::concernDids=:<',concernDids,'>');
+      console.log('DidResolverSyncWebStore::trySyncCloudTeamJoinCR_::concernDids=:<',concernDids,'>');
     }
     const cloudRequests = [];
     for(const didAddress of concernDids) {
-      const joinAllApi = `hash/join/${didAddress}`;
+      const joinAllApi = `hash/join/cr/${didAddress}`;
       const requstObj = this.createCloudGetRequest_(joinAllApi);
       cloudRequests.push(requstObj);
     }
     if(this.trace) {
-      console.log('DidResolverSyncWebStore::trySyncCloudTeamJoin_::cloudRequests=:<',cloudRequests,'>');
+      console.log('DidResolverSyncWebStore::trySyncCloudTeamJoinCR_::cloudRequests=:<',cloudRequests,'>');
     }
     this.worker.postMessage({reqDL:cloudRequests});
   }
@@ -138,8 +138,8 @@ export class DidResolverSyncWebStore {
     if(msgCloud.reqDid && msgCloud.content && msgCloud.content.didDocument) {
       await this.onCloudDidResponsedDocument_(msgCloud.reqDid,msgCloud.content.didDocument)
     }
-    if(msgCloud.reqJoin && msgCloud.content && msgCloud.content.hash) {
-      await this.onCloudJoinResponsedHash_(msgCloud.reqJoinHash,msgCloud.content.hash)
+    if(msgCloud.reqJoin && msgCloud.content && msgCloud.content.hashCR) {
+      await this.onCloudJoinResponsedHashCR_(msgCloud.reqJoin,msgCloud.content.hashCR)
     }
     if(msgCloud.reqJoin && msgCloud.content && msgCloud.content.didJoinCR) {
       await this.onCloudDidResponsedJoinCR_(msgCloud.reqJoinCR,msgCloud.content.didJoinCR)
@@ -318,14 +318,14 @@ export class DidResolverSyncWebStore {
    * @returns {Promise<void>}
    * @private
    */
-  async onCloudJoinResponsedHash_(reqJoin,cloudHashList) {
+  async onCloudJoinResponsedHashCR_(reqJoin,cloudHashList) {
     if(this.trace) {
-      console.log('DidResolverSyncWebStore::onCloudJoinResponsedHash_::reqJoin=:<',reqJoin,'>');
-      console.log('DidResolverSyncWebStore::onCloudJoinResponsedHash_::cloudHashList=:<',cloudHashList,'>');
+      console.log('DidResolverSyncWebStore::onCloudJoinResponsedHashCR_::reqJoin=:<',reqJoin,'>');
+      console.log('DidResolverSyncWebStore::onCloudJoinResponsedHashCR_::cloudHashList=:<',cloudHashList,'>');
     }
-    const localHashList = await this.teamJoin.getHashListOfJoin(reqJoin);
+    const localHashList = await this.teamJoin.getHashListOfJoinCR(reqJoin);
     if(this.trace) {
-      console.log('DidResolverSyncWebStore::onCloudJoinResponsedHash_::localHashList=:<',localHashList,'>');
+      console.log('DidResolverSyncWebStore::onCloudJoinResponsedHashCR_::localHashList=:<',localHashList,'>');
     }
     for(const hash in cloudHashList) {
       const hashContent = cloudHashList[hash];
@@ -362,7 +362,7 @@ export class DidResolverSyncWebStore {
       console.log('DidResolverSyncWebStore::tryStoreCloudJoinReq2Local_::hashDL=:<',hashDL,'>');
       console.log('DidResolverSyncWebStore::tryStoreCloudJoinReq2Local_::hashContent=:<',hashContent,'>');
     }
-    const didAllApi = `join/${joinDL}?joinHash=${hashDL}`;
+    const didAllApi = `join/cr/${joinDL}?joinHash=${hashDL}`;
     const requstObj = this.createCloudGetRequest_(didAllApi);
     if(this.trace) {
       console.log('DidResolverSyncWebStore::tryStoreCloudJoinReq2Local_::didrequstObjDL=:<',requstObj,'>');
@@ -389,7 +389,7 @@ export class DidResolverSyncWebStore {
     if(!localJoinReq) {
       return; // local did not exist
     }
-    const apiPath = `team/join/upload/${joinUL}`
+    const apiPath = `upload/join/cr/${joinUL}`
     if(this.trace) {
       console.log('DidResolverSyncWebStore::tryStoreLocalJoinReq2Cloud_::apiPath=:<',apiPath,'>');
     }

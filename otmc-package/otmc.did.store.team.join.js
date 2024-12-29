@@ -8,6 +8,8 @@ export class DidStoreTeamJoin {
    * Constructs an instance of DidStoreTeamJoin.
    * Initializes the database with different stores for in-progress, done, tentative, and verified states.
    * Logs the initialization process if tracing is enabled.
+   * Credential Request (CR) objects are stored in the 'inProgress', 'done', and 'tentative' stores.
+   * Verifiable Credentials (VCs) are stored in the 'verified' store.
    *
    * @constructor
    * @property {string} version - The version of the database schema.
@@ -251,53 +253,55 @@ export class DidStoreTeamJoin {
    * @param {string} didAddress - The DID address to search for in the database.
    * @returns {Promise<string[]>} A promise that resolves to an array of hashCR values.
    */
-  async getHashListOfJoin(didAddress) {
+  async getHashListOfJoinCR(didAddress) {
     if(this.trace) {
-      console.log('DidStoreTeamJoin::getHashListOfJoin::didAddress=:<',didAddress,'>');
+      console.log('DidStoreTeamJoin::getHashListOfJoinCR::didAddress=:<',didAddress,'>');
     }
     const hashList = [];
     const store1Objects = await this.db.inProgress.where('did').equals(didAddress).toArray();
     if(this.trace) {
-      console.log('DidStoreTeamJoin::getHashListOfJoin::store1Objects=:<',store1Objects,'>');
+      console.log('DidStoreTeamJoin::getHashListOfJoinCR::store1Objects=:<',store1Objects,'>');
     }
     for(const storeObject of store1Objects) {
       if(this.trace) { 
-        console.log('DidStoreTeamJoin::getHashListOfJoin::storeObject=:<',storeObject,'>');
+        console.log('DidStoreTeamJoin::getHashListOfJoinCR::storeObject=:<',storeObject,'>');
       }
       hashList.push(storeObject.hashCR);
     }
     const store2Objects = await this.db.done.where('did').equals(didAddress).toArray();
     if(this.trace) {
-      console.log('DidStoreTeamJoin::getHashListOfJoin::store2Objects=:<',store2Objects,'>');
+      console.log('DidStoreTeamJoin::getHashListOfJoinCR::store2Objects=:<',store2Objects,'>');
     }
     for(const storeObject of store2Objects) {
       if(this.trace) { 
-        console.log('DidStoreTeamJoin::getHashListOfJoin::storeObject=:<',storeObject,'>');
+        console.log('DidStoreTeamJoin::getHashListOfJoinCR::storeObject=:<',storeObject,'>');
       }
       hashList.push(storeObject.hashCR);
     }
+/*    
     const store3Objects = await this.db.verified.where('did').equals(didAddress).toArray();
     if(this.trace) {
-      console.log('DidStoreTeamJoin::getHashListOfJoin::store3Objects=:<',store3Objects,'>');
+      console.log('DidStoreTeamJoin::getHashListOfJoinCR::store3Objects=:<',store3Objects,'>');
     }
     for(const storeObject of store3Objects) {
       if(this.trace) { 
-        console.log('DidStoreTeamJoin::getHashListOfJoin::storeObject=:<',storeObject,'>');
+        console.log('DidStoreTeamJoin::getHashListOfJoinCR::storeObject=:<',storeObject,'>');
       }
       hashList.push(storeObject.hashCR);
     }
+*/
     const store4Objects = await this.db.tentative.where('did').equals(didAddress).toArray();
     if(this.trace) {
-      console.log('DidStoreTeamJoin::getHashListOfJoin::store3Objects=:<',store3Objects,'>');
+      console.log('DidStoreTeamJoin::getHashListOfJoinCR::store4Objects=:<',store4Objects,'>');
     }
     for(const storeObject of store4Objects) {
       if(this.trace) { 
-        console.log('DidStoreTeamJoin::getHashListOfJoin::storeObject=:<',storeObject,'>');
+        console.log('DidStoreTeamJoin::getHashListOfJoinCR::storeObject=:<',storeObject,'>');
       }
       hashList.push(storeObject.hashCR);
     }
     if(this.trace) {
-      console.log('DidStoreTeamJoin::getHashListOfJoin::hashList=:<',hashList,'>');
+      console.log('DidStoreTeamJoin::getHashListOfJoinCR::hashList=:<',hashList,'>');
     }
     return hashList;
   }
@@ -322,22 +326,23 @@ export class DidStoreTeamJoin {
       console.log('DidStoreTeamJoin::getJoinRequestByAddreAndHash::storeObject=:<',storeObject,'>');
     }
     if(storeObject) {
-      return JSON.parse(storeObject.origCredReq);
+      return storeObject;
     }
     storeObject = await this.db.done.where(filter).first();
     if(this.trace) {
       console.log('DidStoreTeamJoin::getJoinRequestByAddreAndHash::storeObject=:<',storeObject,'>');
     }
     if(storeObject) {
-      return JSON.parse(storeObject.origCredReq);
+      return storeObject;
     }
     storeObject = await this.db.verified.where(filter).first();
     if(this.trace) {
       console.log('DidStoreTeamJoin::getJoinRequestByAddreAndHash::storeObject=:<',storeObject,'>');
     }
     if(storeObject) {
-      return JSON.parse(storeObject.origCredReq);;
+      return storeObject;
     }
+    return null;
   }
   /**
    * Moves tentative objects to the workspace if they are not already present in the 'done' or 'inProgress' collections.

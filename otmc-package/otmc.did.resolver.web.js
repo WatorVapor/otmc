@@ -226,7 +226,7 @@ export class DidResolverSyncWebStore {
     if(!localDid) {
       return; // local did not exist
     }
-    const apiPath = `document/upload/${didUL}`
+    const apiPath = `upload/document/${didUL}`
     if(this.trace) {
       console.log('DidResolverSyncWebStore::tryStoreLocalDid2Cloud_::apiPath=:<',apiPath,'>');
     }

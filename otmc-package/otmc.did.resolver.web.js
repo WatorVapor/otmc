@@ -64,6 +64,7 @@ export class DidResolverSyncWebStore {
   trySyncCloudEvidence_() {
     this.trySyncCloudDocument_();
     this.trySyncCloudTeamJoinCR_();
+    this.trySyncCloudTeamJoinVC_();
   }
 
   async trySyncCloudDocument_() {
@@ -115,6 +116,25 @@ export class DidResolverSyncWebStore {
     }
     this.worker.postMessage({reqDL:cloudRequests});
   }
+  async trySyncCloudTeamJoinVC_() {
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::trySyncCloudTeamJoinVC_::this.teamJoin=:<',this.teamJoin,'>');
+    }
+    const concernDids = await this.document.getConcernDidAddress();
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::trySyncCloudTeamJoinVC_::concernDids=:<',concernDids,'>');
+    }
+    const cloudRequests = [];
+    for(const didAddress of concernDids) {
+      const joinAllApi = `hash/join/vc/${didAddress}`;
+      const requstObj = this.createCloudGetRequest_(joinAllApi);
+      cloudRequests.push(requstObj);
+    }
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::trySyncCloudTeamJoinVC_::cloudRequests=:<',cloudRequests,'>');
+    }
+    this.worker.postMessage({reqDL:cloudRequests});
+  }
   /**
    * Handles incoming cloud messages and processes them based on their content.
    * 
@@ -144,6 +164,9 @@ export class DidResolverSyncWebStore {
     if(msgCloud.reqJoin && msgCloud.content && msgCloud.content.didJoinCR) {
       await this.onCloudDidResponsedJoinCR_(msgCloud.reqJoinCR,msgCloud.content.didJoinCR)
     }
+    if(msgCloud.reqJoin && msgCloud.content && msgCloud.content.hashVC) {
+      await this.onCloudJoinResponsedHashVC_(msgCloud.reqJoin,msgCloud.content.hashVC)
+    }
     if(msgCloud.reqJoin && msgCloud.content && msgCloud.content.didJoinVC) {
       await this.onCloudDidResponsedJoinVC_(msgCloud.reqJoinVC,msgCloud.content.didJoinVC)
     }
@@ -171,14 +194,14 @@ export class DidResolverSyncWebStore {
         continue;
       } else {
         // cloud did not already in local
-        this.tryStoreCloudDid2Local_(reqDid,hash,hashContent);        
+        this.tryStoreDidCloud2Local_(reqDid,hash,hashContent);        
       }
     }
     for(const hash of localHashList) {
       const hashCloud = cloudHashList[hash];
       if(!hashCloud) {
         // local did not already in cloud
-        this.tryStoreLocalDid2Cloud_(reqDid,hash);
+        this.tryStoreDidLocal2Cloud_(reqDid,hash);
       } else {
         // local did already in cloud
         continue;
@@ -193,16 +216,16 @@ export class DidResolverSyncWebStore {
    * @param {string} hashContent - The hash of the content associated with the DID.
    * @private
    */
-  tryStoreCloudDid2Local_(didDL,hashDL,hashContent) {
+  tryStoreDidCloud2Local_(didDL,hashDL,hashContent) {
     if(this.trace) {
-      console.log('DidResolverSyncWebStore::tryStoreCloudDid2Local_::didDL=:<',didDL,'>');
-      console.log('DidResolverSyncWebStore::tryStoreCloudDid2Local_::hashDL=:<',hashDL,'>');
-      console.log('DidResolverSyncWebStore::tryStoreCloudDid2Local_::hashContent=:<',hashContent,'>');
+      console.log('DidResolverSyncWebStore::tryStoreDidCloud2Local_::didDL=:<',didDL,'>');
+      console.log('DidResolverSyncWebStore::tryStoreDidCloud2Local_::hashDL=:<',hashDL,'>');
+      console.log('DidResolverSyncWebStore::tryStoreDidCloud2Local_::hashContent=:<',hashContent,'>');
     }
     const didAllApi = `document/${didDL}?didHash=${hashDL}`;
     const requstObj = this.createCloudGetRequest_(didAllApi);
     if(this.trace) {
-      console.log('DidResolverSyncWebStore::tryStoreCloudDid2Local_::didrequstObjDL=:<',requstObj,'>');
+      console.log('DidResolverSyncWebStore::tryStoreDidCloud2Local_::didrequstObjDL=:<',requstObj,'>');
     }
     this.worker.postMessage({reqDL:[requstObj]});
   }
@@ -214,21 +237,21 @@ export class DidResolverSyncWebStore {
    * @returns {Promise<void>} - A promise that resolves when the operation is complete.
    * @private
    */
-  async tryStoreLocalDid2Cloud_(didUL,hashUL) {
+  async tryStoreDidLocal2Cloud_(didUL,hashUL) {
     if(this.trace) {
-      console.log('DidResolverSyncWebStore::tryStoreLocalDid2Cloud_::didUL=:<',didUL,'>');
-      console.log('DidResolverSyncWebStore::tryStoreLocalDid2Cloud_::hashUL=:<',hashUL,'>');
+      console.log('DidResolverSyncWebStore::tryStoreDidLocal2Cloud_::didUL=:<',didUL,'>');
+      console.log('DidResolverSyncWebStore::tryStoreDidLocal2Cloud_::hashUL=:<',hashUL,'>');
     }
     const localDid = await this.document.getStableDidDocument(didUL,hashUL);
     if(this.trace) {
-      console.log('DidResolverSyncWebStore::tryStoreLocalDid2Cloud_::localDid=:<',localDid,'>');
+      console.log('DidResolverSyncWebStore::tryStoreDidLocal2Cloud_::localDid=:<',localDid,'>');
     }
     if(!localDid) {
       return; // local did not exist
     }
     const apiPath = `upload/document/${didUL}`
     if(this.trace) {
-      console.log('DidResolverSyncWebStore::tryStoreLocalDid2Cloud_::apiPath=:<',apiPath,'>');
+      console.log('DidResolverSyncWebStore::tryStoreDidLocal2Cloud_::apiPath=:<',apiPath,'>');
     }
     const b64Did = this.util.encodeBase64Str(JSON.stringify(localDid));
     const syncObject = {
@@ -242,11 +265,11 @@ export class DidResolverSyncWebStore {
     }
     const syncObjectSigned =this.auth.sign(syncObject);
     if(this.trace) {
-      console.log('DidResolverSyncWebStore::tryStoreLocalDid2Cloud_::syncObjectSigned=:<',syncObjectSigned,'>');
+      console.log('DidResolverSyncWebStore::tryStoreDidLocal2Cloud_::syncObjectSigned=:<',syncObjectSigned,'>');
     }
     const requstObj = this.createCloudPostRequest_(apiPath,syncObjectSigned);
     if(this.trace) {
-      console.log('DidResolverSyncWebStore::tryStoreLocalDid2Cloud_::requstObj=:<',requstObj,'>');
+      console.log('DidResolverSyncWebStore::tryStoreDidLocal2Cloud_::requstObj=:<',requstObj,'>');
     }
     this.worker.postMessage({postUL:requstObj});
   }
@@ -334,14 +357,14 @@ export class DidResolverSyncWebStore {
         continue;
       } else {
         // cloud did not already in local
-        this.tryStoreCloudJoinReq2Local_(reqJoin,hash,hashContent);        
+        this.tryStoreJoinCRCloud2Local_(reqJoin,hash,hashContent);        
       }
     }
     for(const hash of localHashList) {
       const hashCloud = cloudHashList[hash];
       if(!hashCloud) {
         // local did not already in cloud
-        this.tryStoreLocalJoinReq2Cloud_(reqJoin,hash);
+        this.tryStoreJoinCRLocal2Cloud_(reqJoin,hash);
       } else {
         // local did already in cloud
         continue;
@@ -356,16 +379,16 @@ export class DidResolverSyncWebStore {
    * @param {string} hashContent - The hash of the content.
    * @private
    */
-  tryStoreCloudJoinReq2Local_(joinDL,hashDL,hashContent) {
+  tryStoreJoinCRCloud2Local_(joinDL,hashDL,hashContent) {
     if(this.trace) {
-      console.log('DidResolverSyncWebStore::tryStoreCloudJoinReq2Local_::joinDL=:<',joinDL,'>');
-      console.log('DidResolverSyncWebStore::tryStoreCloudJoinReq2Local_::hashDL=:<',hashDL,'>');
-      console.log('DidResolverSyncWebStore::tryStoreCloudJoinReq2Local_::hashContent=:<',hashContent,'>');
+      console.log('DidResolverSyncWebStore::tryStoreJoinCRCloud2Local_::joinDL=:<',joinDL,'>');
+      console.log('DidResolverSyncWebStore::tryStoreJoinCRCloud2Local_::hashDL=:<',hashDL,'>');
+      console.log('DidResolverSyncWebStore::tryStoreJoinCRCloud2Local_::hashContent=:<',hashContent,'>');
     }
     const didAllApi = `join/cr/${joinDL}?joinHash=${hashDL}`;
     const requstObj = this.createCloudGetRequest_(didAllApi);
     if(this.trace) {
-      console.log('DidResolverSyncWebStore::tryStoreCloudJoinReq2Local_::didrequstObjDL=:<',requstObj,'>');
+      console.log('DidResolverSyncWebStore::tryStoreJoinCRCloud2Local_::didrequstObjDL=:<',requstObj,'>');
     }
     this.worker.postMessage({reqDL:[requstObj]});
   }
@@ -377,21 +400,21 @@ export class DidResolverSyncWebStore {
    * @returns {Promise<void>} - A promise that resolves when the operation is complete.
    * @private
    */
-  async tryStoreLocalJoinReq2Cloud_(joinUL,hashUL) {
+  async tryStoreJoinCRLocal2Cloud_(joinUL,hashUL) {
     if(this.trace) {
-      console.log('DidResolverSyncWebStore::tryStoreLocalJoinReq2Cloud_::joinUL=:<',joinUL,'>');
-      console.log('DidResolverSyncWebStore::tryStoreLocalJoinReq2Cloud_::hashUL=:<',hashUL,'>');
+      console.log('DidResolverSyncWebStore::tryStoreJoinCRLocal2Cloud_::joinUL=:<',joinUL,'>');
+      console.log('DidResolverSyncWebStore::tryStoreJoinCRLocal2Cloud_::hashUL=:<',hashUL,'>');
     }
     const localJoinReq = await this.teamJoin.getJoinRequestByAddreAndHash(joinUL,hashUL);
     if(this.trace) {
-      console.log('DidResolverSyncWebStore::tryStoreLocalJoinReq2Cloud_::localJoinReq=:<',localJoinReq,'>');
+      console.log('DidResolverSyncWebStore::tryStoreJoinCRLocal2Cloud_::localJoinReq=:<',localJoinReq,'>');
     }
     if(!localJoinReq) {
       return; // local did not exist
     }
     const apiPath = `upload/join/cr/${joinUL}`
     if(this.trace) {
-      console.log('DidResolverSyncWebStore::tryStoreLocalJoinReq2Cloud_::apiPath=:<',apiPath,'>');
+      console.log('DidResolverSyncWebStore::tryStoreJoinCRLocal2Cloud_::apiPath=:<',apiPath,'>');
     }
     const syncObject = {
       did: localJoinReq.did,
@@ -401,11 +424,11 @@ export class DidResolverSyncWebStore {
     }
     const syncObjectSigned =this.auth.sign(syncObject);
     if(this.trace) {
-      console.log('DidResolverSyncWebStore::tryStoreLocalJoinReq2Cloud_::syncObjectSigned=:<',syncObjectSigned,'>');
+      console.log('DidResolverSyncWebStore::tryStoreJoinCRLocal2Cloud_::syncObjectSigned=:<',syncObjectSigned,'>');
     }
     const requstObj = this.createCloudPostRequest_(apiPath,syncObjectSigned);
     if(this.trace) {
-      console.log('DidResolverSyncWebStore::tryStoreLocalJoinReq2Cloud_::requstObj=:<',requstObj,'>');
+      console.log('DidResolverSyncWebStore::tryStoreJoinCRLocal2Cloud_::requstObj=:<',requstObj,'>');
     }
     this.worker.postMessage({postUL:[requstObj]});
   }
@@ -467,6 +490,37 @@ export class DidResolverSyncWebStore {
         console.log('DidResolverSyncWebStore::onCloudDidSyncJoinCR_::storeJoin=:<',storeJoin,'>');
       }
       await this.teamJoin.putTentativeCredReq(storeJoin);
+    }
+  }
+
+  async onCloudJoinResponsedHashVC_(reqJoin,cloudHashList) {
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::onCloudJoinResponsedHashVC_::reqJoin=:<',reqJoin,'>');
+      console.log('DidResolverSyncWebStore::onCloudJoinResponsedHashVC_::cloudHashList=:<',cloudHashList,'>');
+    }
+    const localHashList = await this.teamJoin.getHashListOfJoinVC(reqJoin);
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::onCloudJoinResponsedHashVC_::localHashList=:<',localHashList,'>');
+    }
+    for(const hash in cloudHashList) {
+      const hashContent = cloudHashList[hash];
+      if(localHashList.includes(hash)) {
+        // cloud did already in local
+        continue;
+      } else {
+        // cloud did not already in local
+        this.tryStoreJoinVCCloud2Local_(reqJoin,hash,hashContent);        
+      }
+    }
+    for(const hash of localHashList) {
+      const hashCloud = cloudHashList[hash];
+      if(!hashCloud) {
+        // local did not already in cloud
+        this.tryStoreJoinVCLocal2Cloud_(reqJoin,hash);
+      } else {
+        // local did already in cloud
+        continue;
+      }
     }
   }
 

@@ -524,6 +524,43 @@ export class DidResolverSyncWebStore {
     }
   }
 
+  async tryStoreJoinVCLocal2Cloud_(joinUL,hashUL) {
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::tryStoreJoinVCLocal2Cloud_::joinUL=:<',joinUL,'>');
+      console.log('DidResolverSyncWebStore::tryStoreJoinVCLocal2Cloud_::hashUL=:<',hashUL,'>');
+    }
+    const localJoinReq = await this.teamJoin.getJoinVCByAddreAndHash(joinUL,hashUL);
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::tryStoreJoinVCLocal2Cloud_::localJoinReq=:<',localJoinReq,'>');
+    }
+    if(!localJoinReq) {
+      return; // local did not exist
+    }
+    const apiPath = `upload/join/vc/${joinUL}`
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::tryStoreJoinVCLocal2Cloud_::apiPath=:<',apiPath,'>');
+    }
+    const syncObject = {
+      did: localJoinReq.did,
+      control: localJoinReq.control,
+      hashCR: localJoinReq.hashCR,
+      hashVC: localJoinReq.hashVC,
+      b64JoinVC: localJoinReq.b64JoinVC
+    }
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::tryStoreJoinVCLocal2Cloud_::syncObject=:<',syncObject,'>');
+    }
+    const syncObjectSigned = this.auth.sign(syncObject);
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::tryStoreJoinVCLocal2Cloud_::syncObjectSigned=:<',syncObjectSigned,'>');
+    }
+    const requstObj = this.createCloudPostRequest_(apiPath,syncObjectSigned);
+    if(this.trace) {
+      console.log('DidResolverSyncWebStore::tryStoreJoinVCLocal2Cloud_::requstObj=:<',requstObj,'>');
+    }
+    this.worker.postMessage({postUL:[requstObj]});
+  }
+
   /**
    * Handles the response to a join request from the cloud.
    *

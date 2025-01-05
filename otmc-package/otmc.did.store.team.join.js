@@ -150,25 +150,6 @@ export class DidStoreTeamJoin {
       console.log('DidStoreTeamJoin::getInProgressOfAddress::asign2Me=:<',asign2Me,'>');
     }
     return asign2Me;
-    /*
-    const storeValuesJson = {};
-    for(const storeReq of asign2Me) {
-      if(this.trace) {
-        console.log('DidStoreTeamJoin::getInProgressOfAddress::storeReq=:<',storeReq,'>');
-      }
-      const storeKey = storeReq.hashCR;
-      const storeValueStr = storeReq.origCredReq;
-      const storeValue = JSON.parse(storeValueStr);
-      if(this.trace) {
-        console.log('DidStoreTeamJoin::getInProgressOfAddress::storeValue=:<',storeValue,'>');
-      }
-      storeValuesJson[storeKey] = storeValue;
-    }
-    if(this.trace) {
-      console.log('DidStoreTeamJoin::getInProgressOfAddress::storeValuesJson=:<',storeValuesJson,'>');
-    }
-    return storeValuesJson;
-    */
   }
 
   /**
@@ -278,18 +259,6 @@ export class DidStoreTeamJoin {
       }
       hashList.push(storeObject.hashCR);
     }
-/*    
-    const store3Objects = await this.db.verified.where('did').equals(didAddress).toArray();
-    if(this.trace) {
-      console.log('DidStoreTeamJoin::getHashListOfJoinCR::store3Objects=:<',store3Objects,'>');
-    }
-    for(const storeObject of store3Objects) {
-      if(this.trace) { 
-        console.log('DidStoreTeamJoin::getHashListOfJoinCR::storeObject=:<',storeObject,'>');
-      }
-      hashList.push(storeObject.hashCR);
-    }
-*/
     const store4Objects = await this.db.tentative.where('did').equals(didAddress).toArray();
     if(this.trace) {
       console.log('DidStoreTeamJoin::getHashListOfJoinCR::store4Objects=:<',store4Objects,'>');
@@ -335,15 +304,49 @@ export class DidStoreTeamJoin {
     if(storeObject) {
       return storeObject;
     }
-    storeObject = await this.db.verified.where(filter).first();
+    return null;
+  }
+
+  async getHashListOfJoinVC(didAddress) {
     if(this.trace) {
-      console.log('DidStoreTeamJoin::getJoinRequestByAddreAndHash::storeObject=:<',storeObject,'>');
+      console.log('DidStoreTeamJoin::getHashListOfJoinVC::didAddress=:<',didAddress,'>');
+    }
+    const hashList = [];
+    const store3Objects = await this.db.verified.where('did').equals(didAddress).toArray();
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::getHashListOfJoinVC::store3Objects=:<',store3Objects,'>');
+    }
+    for(const storeObject of store3Objects) {
+      if(this.trace) { 
+        console.log('DidStoreTeamJoin::getHashListOfJoinVC::storeObject=:<',storeObject,'>');
+      }
+      hashList.push(storeObject.hashVC);
+    }
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::getHashListOfJoinCR::hashList=:<',hashList,'>');
+    }
+    return hashList;
+  }
+
+  async getJoinVCByAddreAndHash(didAddress,hashVC) {
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::getJoinVCByAddreAndHash::didAddress=:<',didAddress,'>');
+      console.log('DidStoreTeamJoin::getJoinVCByAddreAndHash::hashVC=:<',hashVC,'>');
+    }
+    const filter = {
+      did: didAddress,
+      hashVC: hashVC
+    };
+    const storeObject = await this.db.verified.where(filter).first();
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::getJoinVCByAddreAndHash::storeObject=:<',storeObject,'>');
     }
     if(storeObject) {
       return storeObject;
     }
     return null;
   }
+
   /**
    * Moves tentative objects to the workspace if they are not already present in the 'done' or 'inProgress' collections.
    * 

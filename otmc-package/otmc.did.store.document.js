@@ -243,8 +243,16 @@ export class DidStoreDocument {
       hashDid: moveDid.hashDid
     };
     const storeObject1 = await this.db.stable.where(filter).first();
+    if(this.trace) {
+      console.log('DidStoreDocument::moveTentative2Stable::storeObject1=:<',storeObject1,'>');
+    }
     if(!storeObject1) {
-      await this.db.stable.put(moveDid);
+      const storeObject2 = await this.db.tentative.where(filter).first();
+      if(this.trace) {
+        console.log('DidStoreDocument::moveTentative2Stable::storeObject2=:<',storeObject2,'>');
+      }
+      delete storeObject2.autoId;
+      await this.db.stable.put(storeObject2);
     }
     await this.db.tentative.where('hashDid').equals(moveDid.hashDid).delete(); 
   }

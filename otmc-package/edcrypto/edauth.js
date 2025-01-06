@@ -9,9 +9,9 @@ export class EdAuth {
    * @param {Object} [util.nacl.default] - Default export of the NaCl library, if available.
    */
   constructor(edKey,util) {
-    this.trace = false;
     this.trace1 = false;
     this.trace2 = false;
+    this.trace = false;
     this.debug = true;
     this.edKey_ = edKey;
     this.util_ = util;

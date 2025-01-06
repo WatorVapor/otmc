@@ -198,10 +198,9 @@ export class DidDocumentStateMachine {
         if(docResult.stable) {
           const documentStr = JSON.stringify(evidence);
           const moveDoc = {
-            id:evidence.id,
+            did:evidence.id,
             updated:evidence.updated,
             hashDid:this.util.calcAddress(documentStr),
-            origDid:documentStr
           }
           await this.document.moveTentative2Stable(moveDoc);
         }
@@ -246,9 +245,21 @@ export class DidDocumentStateMachine {
     return evidencesOfAddress;
   }
   async loadEvidenceTentativeFromStorage_(){
-    const evidencesJson = await this.document.getTentativeAll();
+    const evidencesRaw = await this.document.getTentativeAll();
     if(this.trace2) {
-      console.log('DidDocumentStateMachine::loadEvidenceTentativeFromStorage_::evidencesJson=<',evidencesJson,'>');
+      console.log('DidDocumentStateMachine::loadEvidenceTentativeFromStorage_::evidencesRaw=<',evidencesRaw,'>');
+    }
+    const evidencesJson = [];
+    for(const evidenceRaw of evidencesRaw){
+      const b64DidStr = this.util.decodeBase64Str(evidenceRaw.b64Did);
+      if(this.trace2) {
+        console.log('DidDocumentStateMachine::loadEvidenceTentativeFromStorage_::b64DidStr=<',b64DidStr,'>');
+      }
+      const evidenceJson = JSON.parse(b64DidStr);
+      if(this.trace2) {
+        console.log('DidDocumentStateMachine::loadEvidenceTentativeFromStorage_::evidenceJson=<',evidenceJson,'>');
+      }
+      evidencesJson.push(evidenceJson);
     }
     const evidencesOfAddress = {};
     for(const evidenceJson of evidencesJson){

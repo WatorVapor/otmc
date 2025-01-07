@@ -43,6 +43,9 @@ export class DidStoreTeamJoin {
     this.db.version(this.version).stores({
       verified: '++autoId,did,control,hashCR,hashVC,b64JoinVC'
     });
+    this.db.version(this.version).stores({
+      vcTentative: '++autoId,did,control,hashCR,hashVC,b64JoinVC'
+    });
     if(this.trace) {
       console.log('DidStoreTeamJoin::constructor::this.db=:<',this.db,'>');
     }
@@ -54,6 +57,9 @@ export class DidStoreTeamJoin {
     }
     if(this.trace) {
       console.log('DidStoreTeamJoin::constructor::this.db.verified=:<',this.db.verified,'>');
+    }
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::constructor::this.db.vcTentative=:<',this.db.vcTentative,'>');
     }
   }
 
@@ -108,6 +114,26 @@ export class DidStoreTeamJoin {
       return;
     } else {
       await this.db.tentative.put(credReqStore);
+    }
+  }
+
+  async putTentativeVC(vcStore) {
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::putTentativeVC::credReqStore=:<',vcStore,'>');
+    }
+    const filter = {
+      did: vcStore.did,
+      hashVC: vcStore.hashVC,
+      hashCR: vcStore.hashCR
+    };
+    const storedObject = await this.db.vcTentative.where(filter).first();
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::v::storedObject=:<',storedObject,'>');
+    }
+    if(storedObject) {
+      return;
+    } else {
+      await this.db.vcTentative.put(vcStore);
     }
   }
 
@@ -372,8 +398,8 @@ export class DidStoreTeamJoin {
         console.log('DidStoreTeamJoin::moveTentative2Workspace::tentativeObject=:<',tentativeObject,'>');
       }
       const filter = {
-        did: didAddress,
-        hashCR: hashRC
+        did: tentativeObject.did,
+        hashCR: tentativeObject.hashRC
       };  
       let hintObject = await this.db.done.where(filter).first();
       if(this.trace) {

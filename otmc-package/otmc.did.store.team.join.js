@@ -385,17 +385,17 @@ export class DidStoreTeamJoin {
    * 6. Deletes all tentative objects from the 'tentative' collection after processing.
    * 
    * @async
-   * @function moveTentative2Workspace
+   * @function moveTentativeCR2Workspace
    * @returns {Promise<void>} A promise that resolves when the operation is complete.
    */
-  async moveTentative2Workspace() {
+  async moveTentativeCR2Workspace() {
     const tentativeObjects = await this.db.tentative.toArray();
     if(this.trace) {
-      console.log('DidStoreTeamJoin::moveTentative2Workspace::tentativeObjects=:<',tentativeObjects,'>');
+      console.log('DidStoreTeamJoin::moveTentativeCR2Workspace::tentativeObjects=:<',tentativeObjects,'>');
     }
     for(const tentativeObject of tentativeObjects) {
       if(this.trace) {
-        console.log('DidStoreTeamJoin::moveTentative2Workspace::tentativeObject=:<',tentativeObject,'>');
+        console.log('DidStoreTeamJoin::moveTentativeCR2Workspace::tentativeObject=:<',tentativeObject,'>');
       }
       const filter = {
         did: tentativeObject.did,
@@ -403,14 +403,14 @@ export class DidStoreTeamJoin {
       };  
       let hintObject = await this.db.done.where(filter).first();
       if(this.trace) {
-        console.log('DidStoreTeamJoin::moveTentative2Workspace::hintObject=:<',hintObject,'>');
+        console.log('DidStoreTeamJoin::moveTentativeCR2Workspace::hintObject=:<',hintObject,'>');
       }
       if(hintObject) {
         continue;
       }
       hintObject = await this.db.inProgress.where(filter).first();
       if(this.trace) {
-        console.log('DidStoreTeamJoin::moveTentative2Workspace::hintObject=:<',hintObject,'>');
+        console.log('DidStoreTeamJoin::moveTentativeCR2Workspace::hintObject=:<',hintObject,'>');
       }
       if(hintObject) {
         continue;
@@ -419,12 +419,49 @@ export class DidStoreTeamJoin {
     }
     for(const tentativeObject of tentativeObjects) {
       if(this.trace) {
-        console.log('DidStoreTeamJoin::moveTentative2Workspace::tentativeObject=:<',tentativeObject,'>');
+        console.log('DidStoreTeamJoin::moveTentativeCR2Workspace::tentativeObject=:<',tentativeObject,'>');
       }
       await this.db.tentative
       .where('hashCR').equals(tentativeObject.hashCR)
       .delete();
     }
+  }
+
+  async moveTentativeVC2Workspace() {
+    const tentativeObjects = await this.db.vcTentative.toArray();
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::moveTentativeVC2Workspace::tentativeObjects=:<',tentativeObjects,'>');
+    }
+    for(const tentativeObject of tentativeObjects) {
+      if(this.trace) {
+        console.log('DidStoreTeamJoin::moveTentativeVC2Workspace::tentativeObject=:<',tentativeObject,'>');
+      }
+      const filter = {
+        did: tentativeObject.did,
+        hashVC: tentativeObject.hashVC
+      };  
+      let hintObject = await this.db.verified.where(filter).first();
+      if(this.trace) {
+        console.log('DidStoreTeamJoin::moveTentativeVC2Workspace::hintObject=:<',hintObject,'>');
+      }
+      if(hintObject) {
+        continue;
+      }
+      const saveObject = JSON.parse(JSON.stringify(tentativeObject));
+      delete saveObject.autoId;
+      await this.putVerifiableCredential(saveObject);
+    }
+    /*
+    for(const tentativeObject of tentativeObjects) {
+      if(this.trace) {
+        console.log('DidStoreTeamJoin::moveTentativeVC2Workspace::tentativeObject=:<',tentativeObject,'>');
+      }
+      await this.db.vcTentative
+      .where('hashVC').equals(tentativeObject.hashVC)
+      .delete();
+    }
+    */
+    return tentativeObjects
   }
 
   /**

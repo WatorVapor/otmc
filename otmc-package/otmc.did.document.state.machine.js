@@ -51,7 +51,8 @@ export class DidDocumentStateMachine {
       self.teamJoin = new DidStoreTeamJoin(evt);
       await self.loadEvidenceChain();
       self.reCalculateTentativeDidDoc();
-      self.reCalculateTentativeJoinRequest();
+      self.reCalculateTentativeJoinCR();
+      self.reCalculateTentativeJoinVC();
     });
     this.eeInternal.on('did:document',async (evt)=>{
       if(self.trace0) {
@@ -207,8 +208,27 @@ export class DidDocumentStateMachine {
       }
     }
   }
-  async reCalculateTentativeJoinRequest() {
-    await this.teamJoin.moveTentative2Workspace();   
+  async reCalculateTentativeJoinCR() {
+    await this.teamJoin.moveTentativeCR2Workspace();   
+  }
+  async reCalculateTentativeJoinVC() {  
+    const storedJointVCs =  await this.teamJoin.moveTentativeVC2Workspace();   
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::reCalculateTentativeJoinVC::storedJointVCs=<',storedJointVCs,'>');
+    }
+    for(const storedVC of storedJointVCs) {
+      if(this.trace2) {
+        console.log('DidDocumentStateMachine::reCalculateTentativeJoinVC::storedVC=<',storedVC,'>');
+      }
+      const b64JoinVCStr = this.util.decodeBase64Str(storedVC.b64JoinVC);
+      if(this.trace3) {
+        console.log('DidDocumentStateMachine::reCalculateTentativeJoinVC::b64JoinVCStr=<',b64JoinVCStr,'>');
+      }
+      const b64JoinVCJson = JSON.parse(b64JoinVCStr);
+      if(this.trace2) {
+        console.log('DidDocumentStateMachine::reCalculateTentativeJoinVC::b64JoinVCJson=<',b64JoinVCJson,'>');
+      }
+    }
   }
 
   async loadEvidenceChainFromStorage_() {

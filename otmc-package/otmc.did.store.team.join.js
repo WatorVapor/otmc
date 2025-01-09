@@ -240,6 +240,14 @@ export class DidStoreTeamJoin {
     }
     return result;
   }
+  async getJoinTentativeVCAll() {
+    const tentativeObjects = await this.db.vcTentative.toArray();
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::getJoinTentativeVCAll::tentativeObjects=:<',tentativeObjects,'>');
+    }
+    return tentativeObjects;
+  }
+
   /**
    * Moves a join credential request from the in-progress store to the done store.
    *

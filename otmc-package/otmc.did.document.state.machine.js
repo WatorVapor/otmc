@@ -212,7 +212,7 @@ export class DidDocumentStateMachine {
     await this.teamJoin.moveTentativeCR2Workspace();   
   }
   async reCalculateTentativeJoinVC() {  
-    const storedJointVCs =  await this.teamJoin.moveTentativeVC2Workspace();   
+    const storedJointVCs =  await this.teamJoin.getJoinTentativeVCAll();   
     if(this.trace2) {
       console.log('DidDocumentStateMachine::reCalculateTentativeJoinVC::storedJointVCs=<',storedJointVCs,'>');
     }
@@ -224,9 +224,36 @@ export class DidDocumentStateMachine {
       if(this.trace3) {
         console.log('DidDocumentStateMachine::reCalculateTentativeJoinVC::b64JoinVCStr=<',b64JoinVCStr,'>');
       }
-      const b64JoinVCJson = JSON.parse(b64JoinVCStr);
+      const joinVCJson = JSON.parse(b64JoinVCStr);
       if(this.trace2) {
-        console.log('DidDocumentStateMachine::reCalculateTentativeJoinVC::b64JoinVCJson=<',b64JoinVCJson,'>');
+        console.log('DidDocumentStateMachine::reCalculateTentativeJoinVC::joinVCJson=<',joinVCJson,'>');
+      }
+      const resultVC = this.auth.verifyVerifiableCredential(joinVCJson);
+      if(this.trace2) {
+        console.log('DidDocumentStateMachine::reCalculateTentativeJoinVC::resultVC=<',resultVC,'>');
+      }
+      if(resultVC) {
+        const documentObj = joinVCJson.credentialSubject.did;
+        if(this.trace2) {
+          console.log('DidDocumentStateMachine::reCalculateTentativeJoinVC::documentObj=<',documentObj,'>');
+        }
+        const documentStr = JSON.stringify(documentObj);
+        const coreDocObj = JSON.parse(documentStr);
+        delete coreDocObj.proof;
+        const coreDocStr = JSON.stringify(coreDocObj);
+        const storeDoc = {
+          did:documentObj.id,
+          controller:documentObj.controller,
+          authentication:documentObj.authentication,
+          updated:documentObj.updated,
+          hashDid:this.util.calcAddress(documentStr),
+          hashCore:this.util.calcAddress(coreDocStr),
+          b64Did:this.util.encodeBase64Str(documentStr)
+        }
+        if(this.trace2) {
+          console.log('DidDocumentStateMachine::reCalculateTentativeJoinVC::storeDoc=<',storeDoc,'>');
+        }
+        await this.document.putStable(storeDoc);
       }
     }
   }

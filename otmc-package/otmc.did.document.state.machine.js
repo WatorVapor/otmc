@@ -254,6 +254,7 @@ export class DidDocumentStateMachine {
           console.log('DidDocumentStateMachine::reCalculateTentativeJoinVC::storeDoc=<',storeDoc,'>');
         }
         await this.document.putStable(storeDoc);
+        await this.teamJoin.moveTentativeVC2Workspace(storedVC);
       }
     }
   }

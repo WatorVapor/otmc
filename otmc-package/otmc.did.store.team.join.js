@@ -234,6 +234,18 @@ export class DidStoreTeamJoin {
     if(this.trace) {
       console.log('DidStoreTeamJoin::putVerifiableCredential::vcStore=:<',vcStore,'>');
     }
+    const filter = {
+      did: vcStore.did,
+      hashVC: vcStore.hashVC,
+      hashCR: vcStore.hashCR
+    };
+    const storedObject = await this.db.verified.where(filter).first();
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::putVerifiableCredential::storedObject=:<',storedObject,'>');
+    }
+    if(storedObject) {
+      return;
+    }
     const result = await this.db.verified.put(vcStore);
     if(this.trace) {
       console.log('DidStoreTeamJoin::putVerifiableCredential::result=:<',result,'>');
@@ -435,41 +447,33 @@ export class DidStoreTeamJoin {
     }
   }
 
-  async moveTentativeVC2Workspace() {
-    const tentativeObjects = await this.db.vcTentative.toArray();
+  async moveTentativeVC2Workspace(storedTentativeVC) {
     if(this.trace) {
-      console.log('DidStoreTeamJoin::moveTentativeVC2Workspace::tentativeObjects=:<',tentativeObjects,'>');
+      console.log('DidStoreTeamJoin::moveTentativeVC2Workspace::storedTentativeVC=:<',storedTentativeVC,'>');
     }
-    for(const tentativeObject of tentativeObjects) {
-      if(this.trace) {
-        console.log('DidStoreTeamJoin::moveTentativeVC2Workspace::tentativeObject=:<',tentativeObject,'>');
-      }
-      const filter = {
-        did: tentativeObject.did,
-        hashVC: tentativeObject.hashVC
-      };  
-      let hintObject = await this.db.verified.where(filter).first();
-      if(this.trace) {
-        console.log('DidStoreTeamJoin::moveTentativeVC2Workspace::hintObject=:<',hintObject,'>');
-      }
-      if(hintObject) {
-        continue;
-      }
-      const saveObject = JSON.parse(JSON.stringify(tentativeObject));
-      delete saveObject.autoId;
-      await this.putVerifiableCredential(saveObject);
+    const filter = {
+      did: storedTentativeVC.did,
+      hashCR: storedTentativeVC.hashCR,
+      hashVC: storedTentativeVC.hashVC,
+    };  
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::moveTentativeVC2Workspace::filter=:<',filter,'>');
     }
-    /*
-    for(const tentativeObject of tentativeObjects) {
-      if(this.trace) {
-        console.log('DidStoreTeamJoin::moveTentativeVC2Workspace::tentativeObject=:<',tentativeObject,'>');
-      }
-      await this.db.vcTentative
-      .where('hashVC').equals(tentativeObject.hashVC)
-      .delete();
+    const hintObject = await this.db.vcTentative.where(filter).first();
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::moveTentativeVC2Workspace::hintObject=:<',hintObject,'>');
     }
-    */
-    return tentativeObjects
+    if(!hintObject) {
+      return;
+    }
+    const saveObject = JSON.parse(JSON.stringify(hintObject));
+    delete saveObject.autoId;
+    await this.putVerifiableCredential(saveObject);
+    const result = await this.db.vcTentative.where(filter).delete();
+    if(this.trace) {
+      console.log('DidStoreTeamJoin::moveTentativeVC2Workspace::result=:<',result,'>');
+    }
+    return result;
   }
 
   /**

@@ -1,8 +1,99 @@
 import Dexie from 'dexie';
 import { StoreKey } from './otmc.const.js';
 /**
-*
-*/
+ * The DidStoreTeamJoin class provides methods to manage and store credential requests and verifiable credentials (VCs) 
+ * in a Dexie database. It supports operations for storing, retrieving, and moving credential requests and VCs 
+ * between different states such as in-progress, done, tentative, and verified.
+ * 
+ * @class
+ * @property {string} version - The version of the database schema.
+ * @property {boolean} trace0 - Flag for trace level 0.
+ * @property {boolean} trace1 - Flag for trace level 1.
+ * @property {boolean} trace2 - Flag for trace level 2.
+ * @property {boolean} trace - Flag to enable tracing.
+ * @property {boolean} debug - Flag to enable debugging.
+ * @property {Dexie} db - The Dexie database instance.
+ * 
+ * @method constructor - Initializes the database with different stores for in-progress, done, tentative, and verified states.
+ * 
+ * @method putCredReq - Stores a credential request in the database if it does not already exist.
+ * @param {Object} credReqStore - The credential request object to be stored.
+ * @param {string} credReqStore.hashCR - The hash of the credential request.
+ * @param {string} credReqStore.did - The decentralized identifier (DID) associated with the credential request.
+ * @returns {Promise<void>} - A promise that resolves when the operation is complete.
+ * 
+ * @method putTentativeCredReq - Stores a tentative credential request in the database if it does not already exist.
+ * @param {Object} credReqStore - The credential request store object.
+ * @param {string} credReqStore.hashCR - The hash of the credential request.
+ * @param {string} credReqStore.did - The decentralized identifier (DID) associated with the credential request.
+ * @returns {Promise<void>} - A promise that resolves when the operation is complete.
+ * 
+ * @method putTentativeVC - Stores a tentative verifiable credential (VC) in the database if it does not already exist.
+ * @param {Object} vcStore - The verifiable credential store object.
+ * @param {string} vcStore.hashVC - The hash of the verifiable credential.
+ * @param {string} vcStore.did - The decentralized identifier (DID) associated with the verifiable credential.
+ * @param {string} vcStore.hashCR - The hash of the credential request.
+ * @returns {Promise<void>} - A promise that resolves when the operation is complete.
+ * 
+ * @method getRequestTop - Retrieves the top request for the given DID address.
+ * @param {string} didAddress - The DID address to retrieve requests for.
+ * @returns {Promise<Object|null>} - A promise that resolves to the top request object, or null if no requests are found.
+ * 
+ * @method getInProgressOfAddress - Retrieves the in-progress records associated with a given DID address.
+ * @param {string} didAddress - The DID address to query for in-progress records.
+ * @returns {Promise<Object>} - A promise that resolves to an object containing the in-progress records.
+ * 
+ * @method getInProgressAny - Retrieves all in-progress records from the database, parses them, and returns them as a JSON object.
+ * @returns {Promise<Object>} - A promise that resolves to an object where each key is a hashCR and each value is the parsed origCredReq.
+ * 
+ * @method getJoinCredRequest - Retrieves the join credential request for a given store hash.
+ * @param {string} storeHash - The hash of the store to retrieve the join credential request for.
+ * @returns {Promise<Object>} - A promise that resolves to the parsed join credential request object.
+ * 
+ * @method putVerifiableCredential - Stores a verifiable credential in the database.
+ * @param {Object} vcStore - The verifiable credential to be stored.
+ * @returns {Promise<Object>} - The result of the database operation.
+ * 
+ * @method getJoinTentativeVCAll - Retrieves all tentative verifiable credentials (VCs) from the database.
+ * @returns {Promise<Object[]>} - A promise that resolves to an array of tentative verifiable credential objects.
+ * 
+ * @method moveJoinCredRequest2Done - Moves a join credential request from the in-progress store to the done store.
+ * @param {string} storeHash - The hash of the credential request to be moved.
+ * @returns {Promise<void>} - A promise that resolves when the operation is complete.
+ * 
+ * @method getHashListOfJoinCR - Retrieves a list of hashCR values associated with the given DID address from various database stores.
+ * @param {string} didAddress - The DID address to search for in the database.
+ * @returns {Promise<string[]>} - A promise that resolves to an array of hashCR values.
+ * 
+ * @method getJoinRequestByAddreAndHash - Retrieves a join request by DID address and hash from the database.
+ * @param {string} didAddress - The DID address to search for.
+ * @param {string} hashRC - The hash to search for.
+ * @returns {Promise<Object|null>} - The original credential request object if found, otherwise null.
+ * 
+ * @method getHashListOfJoinVC - Retrieves a list of hash values for join verifiable credentials (VC) associated with a given DID address.
+ * @param {string} didAddress - The DID address to search for join VCs.
+ * @returns {Promise<string[]>} - A promise that resolves to an array of hash values for the join VCs.
+ * 
+ * @method getJoinVCByAddreAndHash - Retrieves a verified credential (VC) from the database based on the provided DID address and hash.
+ * @param {string} didAddress - The DID address to search for.
+ * @param {string} hashVC - The hash of the verified credential to search for.
+ * @returns {Promise<Object|null>} - A promise that resolves to the store object if found, otherwise null.
+ * 
+ * @method moveTentativeCR2Workspace - Moves tentative objects to the workspace if they are not already present in the 'done' or 'inProgress' collections.
+ * @returns {Promise<void>} - A promise that resolves when the operation is complete.
+ * 
+ * @method moveTentativeVC2Workspace - Moves a tentative verifiable credential (VC) to the workspace.
+ * @param {Object} storedTentativeVC - The tentative verifiable credential to be moved.
+ * @param {string} storedTentativeVC.did - The decentralized identifier (DID) of the VC.
+ * @param {string} storedTentativeVC.hashCR - The hash of the credential request.
+ * @param {string} storedTentativeVC.hashVC - The hash of the verifiable credential.
+ * @returns {Promise<number>} - The number of deleted records from the tentative VC database.
+ * 
+ * @method compare_ - Compares two objects based on their `updated` property.
+ * @param {Object} a - The first object to compare.
+ * @param {Object} b - The second object to compare.
+ * @returns {number} - Returns -1 if `a.updated` is less than `b.updated`, 1 if `a.updated` is greater than `b.updated`, and 0 if they are equal.
+ */
 export class DidStoreTeamJoin {
   /**
    * Constructs an instance of DidStoreTeamJoin.

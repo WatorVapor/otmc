@@ -128,7 +128,7 @@ export class DidStoreTeamJoin {
     };
     const storedObject = await this.db.vcTentative.where(filter).first();
     if(this.trace) {
-      console.log('DidStoreTeamJoin::v::storedObject=:<',storedObject,'>');
+      console.log('DidStoreTeamJoin::putTentativeVC::storedObject=:<',storedObject,'>');
     }
     if(storedObject) {
       return;
@@ -252,6 +252,7 @@ export class DidStoreTeamJoin {
     }
     return result;
   }
+  
   async getJoinTentativeVCAll() {
     const tentativeObjects = await this.db.vcTentative.toArray();
     if(this.trace) {
@@ -353,6 +354,12 @@ export class DidStoreTeamJoin {
     return null;
   }
 
+  /**
+   * Retrieves a list of hash values for join verifiable credentials (VC) associated with a given DID address.
+   *
+   * @param {string} didAddress - The DID address to search for join VCs.
+   * @returns {Promise<string[]>} A promise that resolves to an array of hash values for the join VCs.
+   */
   async getHashListOfJoinVC(didAddress) {
     if(this.trace) {
       console.log('DidStoreTeamJoin::getHashListOfJoinVC::didAddress=:<',didAddress,'>');
@@ -374,6 +381,13 @@ export class DidStoreTeamJoin {
     return hashList;
   }
 
+  /**
+   * Retrieves a verified credential (VC) from the database based on the provided DID address and hash.
+   *
+   * @param {string} didAddress - The DID address to search for.
+   * @param {string} hashVC - The hash of the verified credential to search for.
+   * @returns {Promise<Object|null>} - A promise that resolves to the store object if found, otherwise null.
+   */
   async getJoinVCByAddreAndHash(didAddress,hashVC) {
     if(this.trace) {
       console.log('DidStoreTeamJoin::getJoinVCByAddreAndHash::didAddress=:<',didAddress,'>');
@@ -447,6 +461,19 @@ export class DidStoreTeamJoin {
     }
   }
 
+  /**
+   * Moves a tentative verifiable credential (VC) to the workspace.
+   * 
+   * This function searches for a tentative VC in the database using the provided filter,
+   * and if found, it saves the VC to the workspace and deletes the tentative VC from the database.
+   * 
+   * @param {Object} storedTentativeVC - The tentative verifiable credential to be moved.
+   * @param {string} storedTentativeVC.did - The decentralized identifier (DID) of the VC.
+   * @param {string} storedTentativeVC.hashCR - The hash of the credential request.
+   * @param {string} storedTentativeVC.hashVC - The hash of the verifiable credential.
+   * 
+   * @returns {Promise<number>} - The number of deleted records from the tentative VC database.
+   */
   async moveTentativeVC2Workspace(storedTentativeVC) {
     if(this.trace) {
       console.log('DidStoreTeamJoin::moveTentativeVC2Workspace::storedTentativeVC=:<',storedTentativeVC,'>');

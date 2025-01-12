@@ -1,8 +1,5 @@
 import Dexie from 'dexie';
 import { StoreKey } from './otmc.const.js';
-/**
-*
-*/
 export class DidStoreEvidence {
   constructor() {
     this.version = '1.0';
@@ -16,6 +13,12 @@ export class DidStoreEvidence {
       chain: '++autoId,didId,proofer,proofee'
     });
   }
+  /**
+   * Retrieves all proof links from the database.
+   *
+   * @async
+   * @returns {Promise<Array>} A promise that resolves to an array of all proof links.
+   */
   async getAllProofLinks() {
     const stable = {};
     const allInProof = await this.db.chain.toArray();
@@ -24,6 +27,12 @@ export class DidStoreEvidence {
     }
     return allInProof;
   }
+  /**
+   * Retrieves all stable records from the database.
+   *
+   * @async
+   * @returns {Promise<Array>} A promise that resolves to an array of all records in the proof chain.
+   */
   async getAllStable() {
     const stable = {};
     const allInProof = await this.db.chain.toArray();
@@ -31,24 +40,13 @@ export class DidStoreEvidence {
       console.log('DidStoreEvidence::getAllStable::allInProof=<',allInProof,'>');
     }
     return allInProof;
-    /*
-    for(const authed of allAuthed) {
-      if(this.trace0) {
-        console.log('DidStoreEvidence::getAllStable::authed=<',authed,'>');
-      }
-      const authedKeyId = authed.authAddress;
-      const filter =  {
-        authAddress: authedKeyId
-      };
-      const storedAuthedKey = await this.db.chain.where(filter).toArray();
-      if(this.trace0) {
-        console.log('DidStoreEvidence::getAllStable::storedAuthedKey=<',storedAuthedKey,'>');
-      }
-      stable[authedKeyId] = storedAuthedKey;
-    }
-    return stable;
-    */
   }
+  /**
+   * Retrieves a stable list of authenticated addresses for the given concern addresses.
+   *
+   * @param {Array<string>} concernAddress - An array of DID addresses to retrieve the stable addresses for.
+   * @returns {Promise<Object>} A promise that resolves to an object where the keys are authenticated key IDs and the values are arrays of stored authenticated keys.
+   */
   async getAddressStable(concernAddress) {
     if(this.trace0) {
       console.log('DidStoreEvidence::getAddressStable::concernAddress=<',concernAddress,'>');
@@ -84,6 +82,15 @@ export class DidStoreEvidence {
     }
     return stable;
   }  
+  /**
+   * Stores evidence in the database if it does not already exist.
+   *
+   * @async
+   * @param {string} chainId - The ID of the chain.
+   * @param {string} proofer - The identifier of the proofer.
+   * @param {string} proofee - The identifier of the proofee.
+   * @returns {Promise<void>} A promise that resolves when the operation is complete.
+   */
   async putStable(chainId,proofer,proofee) {
     if(this.trace0) {
       console.log('DidStoreEvidence::putStable::chainId=<',chainId,'>');

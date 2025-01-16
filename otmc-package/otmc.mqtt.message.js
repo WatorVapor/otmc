@@ -2,7 +2,6 @@ import { default as mqtt } from 'mqtt';
 //console.log('::::mqtt=:<',mqtt,'>');
 import { StoreKey, OtmcPortal } from './otmc.const.js';
 import { MqttJWTAgent } from './otmc.mqtt.jwt.js';
-import * as Level from 'level';
 
 const LEVEL_OPT = {
   keyEncoding: 'utf8',

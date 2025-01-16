@@ -1,8 +1,9 @@
-import * as Vue from 'vue';
-import { OtmcTeam } from 'otmcTeam';
 const TEAM = {
   trace:false,
 };
+import * as Vue from 'vue';
+import { OtmcTeam } from 'otmcTeam';
+import { OtmcMqtt } from 'otmcMqtt';
 const apps = {};
 document.addEventListener('DOMContentLoaded', async (evt) => {
   loadDidTeamApps(evt);

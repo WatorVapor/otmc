@@ -1,16 +1,14 @@
 import { EventEmitter } from 'eventemitter3';
-import { default as mqtt } from 'mqtt';
 
 import { MqttMessager } from './otmc.mqtt.message.js';
 import { DidDocument } from './otmc.did.document.js';
 import { OtmcStateMachine } from './otmc.state.machine.js';
-import * as Level from 'level';
-import { EdcryptKeyLoaderBrowser,EdcryptKeyLoaderNode } from './otmc.edcrypt.keyloader.js';
+import { EdcryptKeyLoader } from './otmc.edcrypt.keyloader.js';
 
 /**
 *
 */
-export class Otmc extends EventEmitter {
+export class OtmcMqtt extends EventEmitter {
   static trace = false;
   static debug = true;
   constructor(config) {
@@ -28,11 +26,7 @@ export class Otmc extends EventEmitter {
     if(this.trace) {
       console.log('Otmc::constructor::this.ee=:<',this.ee,'>');
     }
-    if(this.isNode) {
-      this.edCryptKey = new EdcryptKeyLoaderNode(this.ee);
-    } else {
-      this.edCryptKey = new EdcryptKeyLoaderBrowser(this.ee);
-    }
+    this.edCryptKey = new EdcryptKeyLoader(this.ee);
     this.did = new DidDocument(this.ee);
     this.mqtt = new MqttMessager(this.ee);
     const self = this;

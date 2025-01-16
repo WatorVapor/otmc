@@ -215,7 +215,7 @@ export class DidDocument {
       if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      self.updateTeamProperty_(evt);
+      self.updateTeamProperty_(evt.property);
     })
 
     this.eeInternal.on('did.evidence.capability',(evt)=>{
@@ -1139,10 +1139,19 @@ export class DidDocument {
       console.log('DidDocument::judgeStatusOfEvidenceType_::this.status=:<',this.status,'>');
     }
   }
-  updateTeamProperty_(property) {
+  async updateTeamProperty_(property) {
     if(this.trace) {
       console.log('DidDocument::updateTeamProperty_::property=:<',property,'>');
     }
-    this.account.putProperty();
+    const oldProperty = await this.account.getAllProperty(this.didDoc_.id);
+    if(this.trace) {
+      console.log('DidDocument::updateTeamProperty_::oldProperty=:<',oldProperty,'>');
+    }
+    const propertyStore = JSON.parse(JSON.stringify(property));
+    propertyStore.did = this.didDoc_.id;
+    if(this.trace) {
+      console.log('DidDocument::updateTeamProperty_::propertyStore=:<',propertyStore,'>');
+    }
+    await this.account.putProperty(propertyStore);
   }
 }

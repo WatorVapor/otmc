@@ -17,4 +17,4 @@ jobs:
     - name: Install packages
       run: cd otmc-package/test && npm install
     - name: Run jest
-      run: cd otmc-package/test && npm run test
+      run: cd otmc-package/test && node --test

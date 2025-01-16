@@ -14,7 +14,9 @@ jobs:
       with:
         node-version: 23.x
         node-version-file: otmc-package/test/package.json
-    - name: Install packages
+    - name: Install packages 1
+      run: cd otmc-package && npm install
+    - name: Install packages 2
       run: cd otmc-package/test && npm install
-    - name: Run jest
+    - name: Run test
       run: cd otmc-package/test && node --test

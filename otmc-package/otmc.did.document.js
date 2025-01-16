@@ -336,6 +336,13 @@ export class DidDocument {
             this.eeOut.emit('didteam:joinLoaded',joinList);
           }
         }
+        const didProperty = await this.account.getProperty(this.didDoc_.id);
+        if(this.trace) {
+          console.log('DidDocument::loadDocument::didProperty=:<',didProperty,'>');
+        }
+        if(didProperty) {
+          this.eeOut.emit('did:team:property',didProperty);
+        }
       }
     } catch(err) {
       console.error('DidDocument::loadDocument::err=:<',err,'>');
@@ -1143,7 +1150,7 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::updateTeamProperty_::property=:<',property,'>');
     }
-    const oldProperty = await this.account.getAllProperty(this.didDoc_.id);
+    const oldProperty = await this.account.getProperty(this.didDoc_.id);
     if(this.trace) {
       console.log('DidDocument::updateTeamProperty_::oldProperty=:<',oldProperty,'>');
     }

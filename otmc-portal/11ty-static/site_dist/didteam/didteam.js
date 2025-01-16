@@ -271,6 +271,12 @@ const loadDidTeamApps = (evt) => {
     console.log('loadDidTeamApps::status=:<',status,'>');
     appDidVM.status = status;
   });  
+  otmc.on('did:team:property',(property)=>{
+    console.log('loadDidTeamApps::property=:<',property,'>');
+    appPropertyVM.team = property.team;
+    appPropertyVM.member = property.member;
+  });
+
   edcryptKeyVM.otmc = otmc;
   appDidVM.otmc = otmc;
   appPropertyVM.otmc = otmc;

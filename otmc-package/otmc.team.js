@@ -103,4 +103,13 @@ export class OtmcTeam extends EventEmitter {
     }
     this.eeInternal.emit('did.manifest.update',{manifest:manifest});
   }
+
+  changeTeamProperty(property){
+    if(this.trace) {
+      console.log('Otmc::changeTeamProperty::property=:<',property,'>');
+    }
+    this.eeInternal.emit('did.property.update',{property:property});
+  }
 }
+
+

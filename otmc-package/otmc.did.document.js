@@ -37,6 +37,7 @@ import {
   DIDVerifiableCredential
 } from './did/verifiableCredential.js';
 
+import { AccountStoreDid } from './otmc.account.store.did.js';
 
 
 const includesAnyByCreator = (setArr,value ) => setArr.some(attr => value === attr.creator);
@@ -125,6 +126,7 @@ export class DidDocument {
       };
       self.eeInternal.emit('sys.authKey.ready',evt);
       self.createModule_();
+      self.account = new AccountStoreDid();
     });
     this.eeInternal.on('did.edcrypt.recoveryKey',(recoveryKey)=>{
       if(self.trace) {
@@ -208,6 +210,14 @@ export class DidDocument {
       self.judgeStatusOfEvidenceType_();
       self.eeOut.emit('did:team:document.auth.result',self.status); 
     })
+
+    this.eeInternal.on('did.property.update',(evt)=>{
+      if(self.trace0) {
+        console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.updateTeamProperty_(evt);
+    })
+
     this.eeInternal.on('did.evidence.capability',(evt)=>{
       if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
@@ -1128,5 +1138,11 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::judgeStatusOfEvidenceType_::this.status=:<',this.status,'>');
     }
+  }
+  updateTeamProperty_(property) {
+    if(this.trace) {
+      console.log('DidDocument::updateTeamProperty_::property=:<',property,'>');
+    }
+    this.account.putProperty();
   }
 }

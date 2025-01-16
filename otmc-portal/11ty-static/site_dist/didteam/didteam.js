@@ -190,6 +190,39 @@ const didTeamOption = {
   }, 
 }
 
+const teamPropertyOption = {
+  data() {
+    return {
+      team:{
+        name: '',
+      },
+      member:{
+        name: '',
+      },
+    };
+  },
+  methods: {
+    changeTeamSpaceName(evt) {
+      console.log('v::this=:<',this,'>');
+      const otmc = this.otmc;
+      console.log('changeTeamSpaceName::otmc=:<',otmc,'>');
+      const teamProperty = {
+        team: this.team,
+      };
+      otmc.changeTeamProperty(teamProperty);
+    },
+    changeTeamMemberName(evt) {
+      console.log('v::this=:<',this,'>');
+      const otmc = this.otmc;
+      console.log('changeTeamMemberName::otmc=:<',otmc,'>');
+      const teamProperty = {
+        member: this.member,
+      };
+      otmc.changeTeamProperty(teamProperty);
+    },
+  }  
+}
+
 const loadDidTeamApps = (evt) => {
   const appEdcryptKey = Vue.createApp(edcryptKeyOption);
   const edcryptKeyVM = appEdcryptKey.mount('#vue-ui-app-edcrypt-key');
@@ -200,6 +233,10 @@ const loadDidTeamApps = (evt) => {
   const appDidTeam = Vue.createApp(didTeamOption);
   const appDidVM = appDidTeam.mount('#vue-ui-app-did-team');
   console.log('loadDidTeamApps::appDidVM=:<',appDidVM,'>');
+
+  const appTeamProperty = Vue.createApp(teamPropertyOption);
+  const appPropertyVM = appTeamProperty.mount('#vue-ui-app-did-property');
+  console.log('loadDidTeamApps::appPropertyVM=:<',appPropertyVM,'>');
 
   const otmc = new OtmcTeam();
   console.log('loadDidTeamApps::otmc=:<',otmc,'>');
@@ -236,9 +273,11 @@ const loadDidTeamApps = (evt) => {
   });  
   edcryptKeyVM.otmc = otmc;
   appDidVM.otmc = otmc;
+  appPropertyVM.otmc = otmc;
   
   apps.edcrypt = edcryptKeyVM;
   apps.did = appDidVM;
+  apps.property = appPropertyVM;
 
 }
 

@@ -273,13 +273,11 @@
               <div class="input-group mb-3">
                 <span class="input-group-text w-25">Team Space name</span>
                 <span class="input-group-text w-25">
-          <input type="text" class="form-control" placeholder="Add did team space name" v-model="team.name">
+          <input type="text" class="form-control" placeholder="Add did team space name" v-model="team.name" @click="changeTeamSpaceName()">
         </span>
-              </div>
-              <div class="input-group mb-3">
                 <span class="input-group-text w-25">Team Member name</span>
                 <span class="input-group-text w-25">
-          <input type="text" class="form-control" placeholder="Add did team member name" v-model="team.name">
+          <input type="text" class="form-control" placeholder="Add did team member name" v-model="member.name" @click="changeTeamMemberName()">
         </span>
               </div>
             </div>

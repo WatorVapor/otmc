@@ -8,11 +8,11 @@ chmod 777 -R ./*
 read -d ''  DOCKER_NODE << EOF
 docker run 
   -v /dev/shm/:/dev/shm/ 
-  -v ./:/ws 
-  -w /ws 
+  -v ${PARENT_DIR}/:/ws 
+  -w /ws/test 
   --net host 
   --memory=1G 
   --cpu-shares=128 
-  node:lts
+  node:23
 EOF
 

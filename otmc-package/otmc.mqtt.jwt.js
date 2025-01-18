@@ -3,8 +3,26 @@ import { StoreKey, OtmcPortal } from './otmc.const.js';
 *
 */
 export class MqttJWTAgent {
+  /**
+   * Constructs an instance of MqttJWTAgent.
+   * 
+   * @param {EventEmitter} ee - An instance of EventEmitter.
+   * 
+   * @property {boolean} trace0 - Flag for initial trace logging.
+   * @property {boolean} trace - Flag for trace logging.
+   * @property {boolean} debug - Flag for debug logging.
+   * @property {EventEmitter} ee - EventEmitter instance.
+   * @property {boolean} otmc - Flag for OTMC status.
+   * @property {boolean} auth - Flag for authentication status.
+   * @property {boolean} base32 - Flag for base32 status.
+   * @property {boolean} util - Flag for utility status.
+   * @property {boolean} wss - Flag indicating if WebSocket Secure is enabled.
+   * @property {boolean} rest - Flag indicating if REST is enabled.
+   * 
+   * @method ListenEventEmitter_ - Initializes the event emitter listener.
+   */
   constructor(ee) {
-    this.trace0 = false;
+    this.trace0 = true;
     this.trace = true;
     this.debug = true;
     this.ee = ee;
@@ -18,6 +36,9 @@ export class MqttJWTAgent {
     }
     if(OtmcPortal && OtmcPortal.jwt && OtmcPortal.jwt.did && OtmcPortal.jwt.did.rest) {
       this.rest = true;
+    }
+    if(this.trace0) {
+      console.log('MqttJWTAgent::constructor::this=:<',this,'>');
     }
   }
   ListenEventEmitter_() {
@@ -33,8 +54,49 @@ export class MqttJWTAgent {
       self.auth = evt.auth;
       self.base32 = evt.base32;
       self.util = evt.util;
+    });
+    this.ee.on('did:document',(evt)=>{
+      if(self.trace0) {
+        console.log('MqttJWTAgent::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.didDoc = evt.didDoc;
       self.connectOtmcPortal_();
     });
+    /*
+    this.ee.on('sys.mqtt.jwt.agent.restapi',(evt)=>{
+      if(self.trace0) {
+        console.log('MqttJWTAgent::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.fetchJWTByRestApi();
+    });
+    */
+  }
+
+  /**
+   * Fetches a JSON Web Token (JWT) by making a REST API request.
+   * Constructs a JWT request object with the necessary authentication details,
+   * signs the request, and logs the request if tracing is enabled.
+   *
+   * @method fetchJWTByRestApi
+   * @memberof MqttJWTAgent
+   * @returns {void}
+   */
+  fetchJWTByRestApi() {   
+    const jwtReq = {
+      jwt:{
+        username:this.auth.address(),
+        clientid:`${this.auth.randomAddress()}@${this.auth.address()}`,
+        did:this.didDoc,
+      }
+    }
+    if(this.trace) {
+      console.log('MqttJWTAgent::fetchJWTByRestApi::jwtReq=<',jwtReq,'>');
+    }
+    const signedJwtReq = this.auth.sign(jwtReq,this.edkey_);
+    if(this.trace) {
+      console.log('MqttJWTAgent::fetchJWTByRestApi:signedJwtReq=<',signedJwtReq,'>');
+    }
+
   }
   
   request() {
@@ -102,6 +164,9 @@ export class MqttJWTAgent {
     }
   }
   connectOtmcPortal_() {
+    if(this.trace0) {
+      console.log('MqttJWTAgent::connectOtmcPortal_::this=:<',this,'>');
+    }
     if(this.wss) {
       this.connectOtmcPortalWss_(OtmcPortal.jwt.did.wss);
     }
@@ -159,7 +224,7 @@ export class MqttJWTAgent {
     if(this.trace) {
       console.log('MqttJWTAgent::requestOtmcJWTRestApi_::reqB32=:<',reqB32,'>');
     }
-    const fetchURl = `${apiUrl}/${reqB32}`;
+    const fetchURl = `${apiUrl}/v1/${reqB32}`;
     if(this.trace) {
       console.log('MqttJWTAgent::requestOtmcJWTRestApi_::fetchURl=:<',fetchURl,'>');
     }

@@ -51,8 +51,8 @@ export const StoreKey = {
 export const OtmcPortal = {
   jwt:{
     did:{
-      wss:'wss://mqtt.wator.xyz/jwt/mqtt/otmc/wss/public',
-      www:'https://mqtt.wator.xyz/jwt/mqtt/otmc/wss/public',
+      '#wss':'wss://otmc.wator.xyz/jwt/mqtt/otmc/wss',
+      'rest':'https://otmc.wator.xyz/ns/did/jwt/mqtt/rest',
     }
   }
 }

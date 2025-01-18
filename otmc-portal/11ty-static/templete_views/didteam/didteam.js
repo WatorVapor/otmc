@@ -241,10 +241,14 @@ const loadDidTeamApps = (evt) => {
 
   const otmc = new OtmcTeam();
   console.log('loadDidTeamApps::otmc=:<',otmc,'>');
+  const mqtt = new OtmcMqtt();
+  console.log('loadDidTeamApps::mqtt=:<',mqtt,'>');
+
   otmc.on('edcrypt:didKeyList',(didKeyList)=>{
     onDidKeyRefreshKeyApp(didKeyList,edcryptKeyVM);
     onDidKeyRefreshTeamApp(didKeyList,appDidVM);
     otmc.switchDidKey(edcryptKeyVM.didKeySelected);
+    mqtt.switchDidKey(edcryptKeyVM.didKeySelected);
   });
   otmc.on('edcrypt:address',(address)=>{
     onAddressRefreshKeyApp(address,edcryptKeyVM);
@@ -278,9 +282,12 @@ const loadDidTeamApps = (evt) => {
     appPropertyVM.member = property.member;
   });
 
+
+
   edcryptKeyVM.otmc = otmc;
   appDidVM.otmc = otmc;
   appPropertyVM.otmc = otmc;
+  appPropertyVM.mqtt = mqtt;
   
   apps.edcrypt = edcryptKeyVM;
   apps.did = appDidVM;

@@ -23,7 +23,6 @@ export class MqttMessager {
     this.auth = false;
     this.base32 = false;
     this.util = false;
-    this.store = new Level.Level(StoreKey.secret.mqtt.jwt,LEVEL_OPT);
     this.ListenEventEmitter_();
   }
   ListenEventEmitter_() {

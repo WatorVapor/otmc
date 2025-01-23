@@ -206,11 +206,53 @@ export class MqttJWTAgent {
       },5*1000)
     });
   }
-  requestOtmcJWTRestApi_(apiUrl,request) {
+  
+  async requestOtmcJWTRestApi_(apiUrl,reqBody) {
     if(this.trace) {
       console.log('MqttJWTAgent::requestOtmcJWTRestApi_::apiUrl=:<',apiUrl,'>');
-      console.log('MqttJWTAgent::requestOtmcJWTRestApi_::request=:<',request,'>');
+      console.log('MqttJWTAgent::requestOtmcJWTRestApi_::reqBody=:<',reqBody,'>');
     }
+    const authentication = this.accessToken_();
+    if(this.trace) {
+      console.log('MqttJWTAgent::requestOtmcJWTRestApi_::authentication=:<',authentication,'>');
+    }
+    const reqHeader = new Headers();
+    reqHeader.append('Content-Type', 'application/json');
+    reqHeader.append('Authorization', `Bearer ${authentication}`);
+    const reqOption = {
+      method: 'POST',
+      headers:reqHeader,
+      body:JSON.stringify(reqBody)
+    };
+    const apiReq = new Request(`${apiUrl}/otmc`, reqOption);
+    if(this.trace) {
+      console.log('MqttJWTAgent::requestOtmcJWTRestApi_::apiReq=:<',apiReq,'>');
+    }
+    try {
+      const apiResp = await fetch(apiReq);
+      if(this.trace) {
+        console.log('MqttJWTAgent::requestOtmcJWTRestApi_::apiResp=:<',apiResp,'>');
+      }
+      if(apiResp.ok) {
+        const resultJson = await apiResp.json();
+        if(this.trace) {
+          console.log('MqttJWTAgent::requestOtmcJWTRestApi_::resultJson=:<',resultJson,'>');
+        }
+        return resultJson;
+      } else {
+        const resultJson = {
+          ok:apiResp.ok,
+          status:apiResp.status
+        }
+        return resultJson;
+      }
+    }
+    catch(err) {
+      if(this.trace) {
+        console.log('MqttJWTAgent::requestOtmcJWTRestApi_::err=:<',err,'>');
+      }
+    }    
+/*
     const encoder = new TextEncoder();
     const reqStr = JSON.stringify(request);
     if(this.trace) {
@@ -237,6 +279,22 @@ export class MqttJWTAgent {
         console.log('MqttJWTAgent::requestOtmcJWTRestApi_::err=:<',err,'>');
       }
     });
-  
+*/  
+  }
+
+  accessToken_() {
+    if(this.trace) {
+      console.log('MqttJWTAgent::accessToken_::this.auth=:<',this.auth,'>');
+    }
+    const token = {};
+    const signedToken = this.auth.sign(token);
+    if(this.trace) {
+      console.log('MqttJWTAgent::accessToken_::signedToken=:<',signedToken,'>');
+    }
+    const tokenB64 = this.util.encodeBase64Str(JSON.stringify(signedToken));
+    if(this.trace) {
+      console.log('MqttJWTAgent::accessToken_::tokenB64=:<',tokenB64,'>');
+    }
+    return tokenB64;
   }
 }

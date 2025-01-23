@@ -52,7 +52,7 @@ export const OtmcPortal = {
   jwt:{
     did:{
       '#wss':'wss://otmc.wator.xyz/jwt/mqtt/otmc/wss',
-      'rest':'https://otmc.wator.xyz/ns/did/jwt/mqtt/rest',
+      'rest':'https://otmc.wator.xyz/ns/did/jwt/mqtt/rest/v1',
     }
   }
 }

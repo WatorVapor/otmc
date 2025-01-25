@@ -526,8 +526,9 @@ export class EdAuth {
    * @param {string} pem - The PEM encoded string.
    * @returns {string} The generated Key ID (KID) in base64 format.
    */
-  cacKeyIdOfPem (pem) {
-    const crypto = require('node:crypto');
+  async cacKeyIdOfPem (pem) {
+    //const crypto = require('node:crypto');
+    const crypto = await import('node:crypto');
     const encoder = new TextEncoder();
     const dataPem = encoder.encode(pem.trim());
     if(this.trace) {

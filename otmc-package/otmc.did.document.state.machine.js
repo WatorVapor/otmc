@@ -2,17 +2,12 @@ const LOG = {
   trace:true,
   debug:true,
 };
-import {Graph} from 'graphology';
-import {dijkstra} from 'graphologyShortestPath';
+import { DidDocumentGraphology } from './otmc.did.document.graphology.js';
 import { DidStoreDocument } from './otmc.did.store.document.js';
 import { DidStoreEvidence } from './otmc.did.store.evidence.js';
 import { EvidenceChainBuilder } from './did/evidence.thin.js';
 import { DidStoreTeamJoin } from './otmc.did.store.team.join.js';
 
-if(LOG.debug) {
-  console.log('::Graph=<',Graph,'>');
-  console.log('::dijkstra=<',dijkstra,'>');
-}
 /**
 *
 */
@@ -27,8 +22,6 @@ export class DidDocumentStateMachine {
     this.eeOut = eeOut;
     this.chainState = {};
     this.ListenEventEmitter_();
-    this.didSpaceGraphs = {};
-    this.seedReachTable = {};
   }
     
   ListenEventEmitter_() {
@@ -49,6 +42,7 @@ export class DidDocumentStateMachine {
       self.document = new DidStoreDocument();
       self.evidence = new DidStoreEvidence();
       self.teamJoin = new DidStoreTeamJoin(evt);
+      self.graph = new DidDocumentGraphology();
       await self.loadEvidenceChain();
       self.reCalculateTentativeDidDoc();
       self.reCalculateTentativeJoinCR();
@@ -105,7 +99,7 @@ export class DidDocumentStateMachine {
       if(this.trace2) {
         console.log('DidDocumentStateMachine::loadEvidenceChain::proofLinks=<',proofLinks,'>');
       }
-      this.buildChainGraph_(proofLinks);
+      this.graph.buildChainGraph(proofLinks);
       if(this.trace2) {
         console.log('DidDocumentStateMachine::loadEvidenceChain::this.didSpaceGraphs=<',this.didSpaceGraphs,'>');
       }
@@ -133,7 +127,7 @@ export class DidDocumentStateMachine {
       docProofResult = this.builder.collectControllerAuth(didDoc,this.seedReachTable);
     }
     if(didType.ctrlee){
-      const controlleeReachTable = this.buildControlleeReachTable_(didDoc);
+      const controlleeReachTable = this.graph.buildControlleeReachTable(didDoc);
       docProofResult = this.builder.collectControlleeAuth(didDoc,controlleeReachTable,this.seedReachTable);
     }
     if(this.trace2) {
@@ -353,26 +347,7 @@ export class DidDocumentStateMachine {
       }
     }
   }
-  buildChainGraph_(proofLinks) {
-    for(const proofLink of proofLinks) {
-      if(!this.didSpaceGraphs[proofLink.didId]) {
-        this.didSpaceGraphs[proofLink.didId] = new Graph();
-      }
-      const graph = this.didSpaceGraphs[proofLink.didId];
-      if(!graph.hasNode(proofLink.proofer)) {
-        graph.addNode(proofLink.proofer);
-      }
-      if(!graph.hasNode(proofLink.proofee)) {
-        graph.addNode(proofLink.proofee);
-      }
-      if(!graph.hasEdge(proofLink.proofee,proofLink.proofer)) {
-        graph.addEdge(proofLink.proofee,proofLink.proofer);
-      }
-    }
-    if(this.trace2) {
-      console.log('DidDocumentStateMachine::buildChainGraph_::this.didSpaceGraphs=<',this.didSpaceGraphs,'>');
-    }
-  }
+
   buildWholeChainProofPath_() {
     for(const chainId in this.allEvidenceChain) {
       if(this.trace0) {
@@ -385,7 +360,7 @@ export class DidDocumentStateMachine {
       if(this.trace0) {
         console.log('DidDocumentStateMachine::buildWholeChainProofPath_::chain=:<',chain,'>');
       }
-      const chainGraph = this.didSpaceGraphs[chainId];
+      const chainGraph = this.graph.GetDidSpaceGraphs(chainId);
       if(this.trace0) {
         console.log('DidDocumentStateMachine::buildWholeChainProofPath_::chainGraph=:<',chainGraph,'>');
       }
@@ -401,122 +376,8 @@ export class DidDocumentStateMachine {
       console.log('DidDocumentStateMachine::buildOneChainProofPath_::chainGraph=:<',chainGraph,'>');
     }
     for(const didDoc of chain) {
-      this.buildDidDocumentProofPath_(didDoc,chainGraph);
+      this.graph.buildDidDocumentProofPath(didDoc,chainGraph);
     }
-  }
-  buildDidDocumentProofPath_(didDoc,chainGraph) {
-    if(this.trace0) {
-      console.log('DidDocumentStateMachine::buildDidDocumentProofPath_::didDoc=:<',didDoc,'>');
-      console.log('DidDocumentStateMachine::buildDidDocumentProofPath_::chainGraph=:<',chainGraph,'>');
-    }
-    if(!this.seedReachTable[didDoc.id]) {
-      this.seedReachTable[didDoc.id] = {};
-    }
-    const seedReach = this.seedReachTable[didDoc.id];
-    for(const auth of didDoc.authentication) {
-      if(this.trace0) {
-        console.log('DidDocumentStateMachine::buildDidDocumentProofPath_::auth=:<',auth,'>');
-      }
-      const seedId = didDoc.id.replace('did:otmc:','');
-      const targetSeedNode = `${didDoc.id}#${seedId}`;
-      if(this.trace0) {
-        console.log('DidDocumentStateMachine::buildDidDocumentProofPath_::targetSeedNode=:<',targetSeedNode,'>');
-      }
-      try {
-        const path = dijkstra.bidirectional(chainGraph, auth, targetSeedNode);
-        if(this.trace0) {
-          console.log('DidDocumentStateMachine::buildDidDocumentProofPath_::auth=:<',auth,'>');
-          console.log('DidDocumentStateMachine::buildDidDocumentProofPath_::targetSeedNode=:<',targetSeedNode,'>');
-          console.log('DidDocumentStateMachine::buildDidDocumentProofPath_::path=:<',path,'>');
-        }
-        if(path) {
-          seedReach[auth] = {
-            reachable: true,
-            path: path
-          };
-        } else {
-          if(!seedReach[auth]) {
-            seedReach[auth] = {
-              reachable: false
-            };
-          }
-        }
-      } catch(err) {  
-        if(!seedReach[auth]) {
-          seedReach[auth] = {
-            reachable: false,
-          };
-        }
-      }
-    }
-    if(this.trace0) {
-      console.log('DidDocumentStateMachine::buildDidDocumentProofPath_::this.seedReachTable=:<',this.seedReachTable,'>');
-    }
-  }
-  /**
-   * Given a did document, build the controllee reach table
-   * @param {Object} didDoc - the did document
-   */
-  buildControlleeReachTable_(didDoc) {
-    if(this.trace2) {
-      console.log('DidDocumentStateMachine::buildControlleeReachTable_::didDoc=<',didDoc,'>');
-      console.log('DidDocumentStateMachine::buildControlleeReachTable_::this.didSpaceGraphs=<',this.didSpaceGraphs,'>');
-    }
-    const ctrleeReachTable = {};
-    const chainGraph = this.didSpaceGraphs[didDoc.id];
-    for(const controller of didDoc.controller) {
-      if(this.trace2) {
-        console.log('DidDocumentStateMachine::buildControlleeReachTable_::controller=<',controller,'>');
-      }
-      const ctrlerReachTable = this.seedReachTable[controller];
-      if(this.trace2) {
-        console.log('DidDocumentStateMachine::buildControlleeReachTable_::ctrlerReachTable=<',ctrlerReachTable,'>');
-      }
-      for(const reachAuth in ctrlerReachTable) {
-        const reachObj = ctrlerReachTable[reachAuth];
-        if(this.trace2) {
-          console.log('DidDocumentStateMachine::buildControlleeReachTable_::reachAuth=<',reachAuth,'>');
-          console.log('DidDocumentStateMachine::buildControlleeReachTable_::reachObj=<',reachObj,'>');
-        }
-        if(reachObj.reachable) {
-          for(const auth of didDoc.authentication) {
-            if(this.trace2) {
-              console.log('DidDocumentStateMachine::buildControlleeReachTable_::auth=<',auth,'>');
-            }    
-            try {
-              const path = dijkstra.bidirectional(chainGraph, auth, reachAuth);
-              if(this.trace2) {
-                console.log('DidDocumentStateMachine::buildControlleeReachTable_::path=<',path,'>');
-              }
-              if(path){
-                ctrleeReachTable[auth] = {
-                  reachable: true,
-                  path: path
-                };        
-              } else {
-                if(!ctrleeReachTable[auth]) {
-                  ctrleeReachTable[auth] = {
-                    reachable: false,
-                  };
-                }        
-              }
-            }
-            catch(err) {
-              //console.log('DidDocumentStateMachine::buildControlleeReachTable_::err=<',err,'>');
-              if(!ctrleeReachTable[auth]) {
-                ctrleeReachTable[auth] = {
-                  reachable: false,
-                };
-              }
-            }
-          }
-        }
-      }
-    }
-    if(this.trace2) {
-      console.log('DidDocumentStateMachine::buildControlleeReachTable_::ctrleeReachTable=<',ctrleeReachTable,'>');
-    }
-    return ctrleeReachTable;
   }
   autoCompleteDidDocument_(didDoc,result) {
     if(this.trace2) {

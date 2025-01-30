@@ -42,9 +42,13 @@ export class DidDocumentGraphology {
       console.log('DidDocumentGraphology::buildChainGraph::this.didSpaceGraphs=<',this.didSpaceGraphs,'>');
     }
   }
-  GetDidSpaceGraphs(chainId) {
+  getDidSpaceGraphs(chainId) {
     return this.didSpaceGraphs[chainId];
   }
+  getSeedReachTable() {
+    return this.seedReachTable;
+  }
+
   buildDidDocumentProofPath(didDoc,chainGraph) {
     if(this.trace0) {
       console.log('DidDocumentGraphology::buildDidDocumentProofPath::didDoc=:<',didDoc,'>');

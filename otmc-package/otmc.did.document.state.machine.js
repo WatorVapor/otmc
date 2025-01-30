@@ -112,8 +112,8 @@ export class DidDocumentStateMachine {
   async caclDidDocument(didDoc) {
     if(this.trace2) {
       console.log('DidDocumentStateMachine::caclDidDocument::didDoc=<',didDoc,'>');
-      console.log('DidDocumentStateMachine::caclDidDocument::this.seedReachTable=<',this.seedReachTable,'>');
     }
+    const seedReachTable = this.graph.getSeedReachTable();
     const didAddress = didDoc.id;
     if(this.trace2) {
       console.log('DidDocumentStateMachine::caclDidDocument::didAddress=<',didAddress,'>');
@@ -124,11 +124,14 @@ export class DidDocumentStateMachine {
     }
     let docProofResult = false;
     if(didType.ctrler){
-      docProofResult = this.builder.collectControllerAuth(didDoc,this.seedReachTable);
+      docProofResult = this.builder.collectControllerAuth(didDoc,seedReachTable);
     }
     if(didType.ctrlee){
       const controlleeReachTable = this.graph.buildControlleeReachTable(didDoc);
-      docProofResult = this.builder.collectControlleeAuth(didDoc,controlleeReachTable,this.seedReachTable);
+      if(this.trace2) {
+        console.log('DidDocumentStateMachine::caclDidDocument::controlleeReachTable=<',controlleeReachTable,'>');
+      }
+      docProofResult = this.builder.collectControlleeAuth(didDoc,controlleeReachTable,seedReachTable);
     }
     if(this.trace2) {
       console.log('DidDocumentStateMachine::caclDidDocument::docProofResult=<',docProofResult,'>');
@@ -360,7 +363,7 @@ export class DidDocumentStateMachine {
       if(this.trace0) {
         console.log('DidDocumentStateMachine::buildWholeChainProofPath_::chain=:<',chain,'>');
       }
-      const chainGraph = this.graph.GetDidSpaceGraphs(chainId);
+      const chainGraph = this.graph.getDidSpaceGraphs(chainId);
       if(this.trace0) {
         console.log('DidDocumentStateMachine::buildWholeChainProofPath_::chainGraph=:<',chainGraph,'>');
       }

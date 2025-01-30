@@ -3,7 +3,7 @@ const LOG = {
   debug:true,
 };
 import {Graph} from 'graphology';
-import {dijkstra} from 'graphologyShortestPath';
+import {dijkstra} from 'graphology-shortest-path';
 
 if(LOG.debug) {
   console.log('::Graph=<',Graph,'>');

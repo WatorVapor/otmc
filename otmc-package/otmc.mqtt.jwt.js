@@ -60,152 +60,30 @@ export class MqttJWTAgent {
         console.log('MqttJWTAgent::ListenEventEmitter_::evt=:<',evt,'>');
       }
       self.didDoc = evt.didDoc;
-      self.connectOtmcPortal_();
+      self.connectOtmcJWT_();
     });
-    /*
     this.ee.on('sys.mqtt.jwt.agent.restapi',(evt)=>{
       if(self.trace0) {
         console.log('MqttJWTAgent::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      self.fetchJWTByRestApi();
+      self.requestOtmcJWTRestApi_();
     });
-    */
   }
 
-  /**
-   * Fetches a JSON Web Token (JWT) by making a REST API request.
-   * Constructs a JWT request object with the necessary authentication details,
-   * signs the request, and logs the request if tracing is enabled.
-   *
-   * @method fetchJWTByRestApi
-   * @memberof MqttJWTAgent
-   * @returns {void}
-   */
-  fetchJWTByRestApi() {   
-    const jwtReq = {
-      jwt:{
-        username:this.auth.address(),
-        clientid:`${this.auth.randomAddress()}@${this.auth.address()}`,
-        did:this.didDoc,
-      }
-    }
-    if(this.trace) {
-      console.log('MqttJWTAgent::fetchJWTByRestApi::jwtReq=<',jwtReq,'>');
-    }
-    const signedJwtReq = this.auth.sign(jwtReq,this.edkey_);
-    if(this.trace) {
-      console.log('MqttJWTAgent::fetchJWTByRestApi:signedJwtReq=<',signedJwtReq,'>');
-    }
-
-  }
-  
+ 
   request() {
-    if(this.trace0) {
-      console.log('MqttJWTAgent::request::this.otmc=:<',this.otmc,'>');
-      console.log('MqttJWTAgent::request::this.otmc.isNode=:<',this.otmc.isNode,'>');
-    }
-    const jwtReq = {
-      jwt:{
-        browser:true,
-        username:this.auth.address(),
-        clientid:`${this.auth.randomAddress()}@${this.auth.address()}`,
-        did:this.otmc.did.didDoc_,
-        manifest:this.otmc.did.didManifest_,
-      },
-    }
-    if(this.otmc.isNode) {
-      delete jwtReq.jwt.browser;
-      jwtReq.jwt.node = true;
-    }
-    if(this.trace) {
-      console.log('MqttJWTAgent::request::jwtReq=<',jwtReq,'>');
-    }
-    const signedJwtReq = this.auth.sign(jwtReq,this.edkey_);
-    if(this.trace) {
-      console.log('MqttJWTAgent::request:signedJwtReq=<',signedJwtReq,'>');
-    }
-    this.retryRequest_(signedJwtReq);
+    this.connectOtmcJWT_();
   }
-  retryRequest_(signedJwtReq) {
-    if(this.wss) {
-      if(this.socket && this.socket.readyState ) {
-        if(this.trace) {
-          console.log('MqttJWTAgent::retryRequest_:this.socket.readyState=<',this.socket.readyState,'>');
-        }
-        this.socket.send(JSON.stringify(signedJwtReq));
-      } else {
-        if(this.trace) {
-          console.log('MqttJWTAgent::retryRequest_:this.socket.readyState=<',this.socket.readyState,'>');
-        }
-        const self = this;
-        setTimeout(() => {
-          self.retryRequest_(signedJwtReq);
-        },1000)
-      }
-    } else {
-      if(this.trace) {
-        console.log('MqttJWTAgent::retryRequest_:this.socket=<',this.socket,'>');
-      }
-    }
-    if(this.rest) {
-      this.requestOtmcJWTRestApi_(OtmcPortal.jwt.did.rest,signedJwtReq);
-    }
-  }
+
   
-  onMsg_(msgData) {
-    if(this.trace) {
-      console.log('MqttJWTAgent::onMsg_::msgData=:<',msgData,'>');
-    }
-    if(msgData.jwt && msgData.payload) {
-      if(this.trace) {
-        console.log('MqttJWTAgent::onMsg_::msgData.payload=:<',msgData.payload,'>');
-      }
-      this.ee.emit('mqtt:jwt.rental',msgData);
-    }
-  }
-  connectOtmcPortal_() {
+
+  connectOtmcJWT_() {
     if(this.trace0) {
-      console.log('MqttJWTAgent::connectOtmcPortal_::this=:<',this,'>');
+      console.log('MqttJWTAgent::connectOtmcJWT_::this=:<',this,'>');
     }
-    if(this.wss) {
-      this.connectOtmcPortalWss_(OtmcPortal.jwt.did.wss);
-    }
-    if(this.rest) {
-      this.ee.emit('sys.mqtt.jwt.agent.restapi');
-    }
+    this.ee.emit('sys.mqtt.jwt.agent.restapi');
   }
-  connectOtmcPortalWss_(wssUrl) {
-    this.socket = new WebSocket(wssUrl);
-    if(this.trace0) {
-      console.log('MqttJWTAgent::connectOtmcPortalWss_::this.socket=:<',this.socket,'>');
-    }
-    const self = this;
-    this.socket.addEventListener('open', (evt) => {
-      if(this.trace) {
-        console.log('MqttJWTAgent::connectOtmcPortalWss_::evt=:<',evt,'>');
-      }
-      this.ee.emit('sys.mqtt.jwt.agent.wsready',evt);
-    });
-    this.socket.addEventListener('message', (evt) => {
-      if(this.trace) {
-        console.log('MqttJWTAgent::connectOtmcPortalWss_::evt=:<',evt,'>');
-      }
-      try {
-        const msgJson = JSON.parse(evt.data);
-        self.onMsg_(msgJson);
-      } catch (err) {
-        console.log('MqttJWTAgent::connectOtmcPortalWss_::evt=:<',evt,'>');
-      }
-    })
-    this.socket.addEventListener('error', (err) => {
-      if(this.trace) {
-        console.log('MqttJWTAgent::connectOtmcPortalWss_::err=:<',err,'>');
-      }
-      setTimeout(()=>{
-        self.connectOtmcPortal_();
-      },5*1000)
-    });
-  }
+
   
   async requestOtmcJWTRestApi_(apiUrl,reqBody) {
     if(this.trace) {

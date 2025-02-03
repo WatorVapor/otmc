@@ -66,13 +66,21 @@ export class MqttJWTAgent {
       if(self.trace0) {
         console.log('MqttJWTAgent::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      self.requestOtmcJWTRestApi_();
+      const jwtReq = {
+        jwt:{
+          username:self.auth.address(),
+          clientid:`${self.auth.randomAddress()}@${self.auth.address()}`,
+          did:self.didDoc
+        },
+      }
+      const signedJwtReq = this.auth.sign(jwtReq);
+      self.requestOtmcJWTRestApi_(OtmcPortal.jwt.did.rest,signedJwtReq);
     });
   }
 
  
   request() {
-    this.connectOtmcJWT_();
+    //this.connectOtmcJWT_();
   }
 
   

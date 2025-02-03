@@ -251,35 +251,7 @@ export class MqttJWTAgent {
       if(this.trace) {
         console.log('MqttJWTAgent::requestOtmcJWTRestApi_::err=:<',err,'>');
       }
-    }    
-/*
-    const encoder = new TextEncoder();
-    const reqStr = JSON.stringify(request);
-    if(this.trace) {
-      console.log('MqttJWTAgent::requestOtmcJWTRestApi_::reqStr=:<',reqStr,'>');
     }
-    const reqBin = encoder.encode(reqStr);
-    if(this.trace) {
-      console.log('MqttJWTAgent::requestOtmcJWTRestApi_::reqBin=:<',reqBin,'>');
-    }
-    const reqB32 = this.base32.encode(reqBin).toLowerCase();
-    if(this.trace) {
-      console.log('MqttJWTAgent::requestOtmcJWTRestApi_::reqB32=:<',reqB32,'>');
-    }
-    const fetchURl = `${apiUrl}/v1/${reqB32}`;
-    if(this.trace) {
-      console.log('MqttJWTAgent::requestOtmcJWTRestApi_::fetchURl=:<',fetchURl,'>');
-    }
-    const self = this;
-    fetch(fetchURl,{})
-    .then(response => {
-    })
-    .catch(err => {
-      if(self.trace) {
-        console.log('MqttJWTAgent::requestOtmcJWTRestApi_::err=:<',err,'>');
-      }
-    });
-*/  
   }
 
   accessToken_() {

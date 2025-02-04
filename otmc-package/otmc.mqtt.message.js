@@ -39,12 +39,6 @@ export class MqttMessager {
       self.base32 = evt.base32;
       self.util = evt.util;
     });
-    this.ee.on('sys.mqtt.jwt.agent.wsready',(evt)=>{
-      if(self.trace) {
-        console.log('MqttMessager::ListenEventEmitter_::evt=:<',evt,'>');
-      }
-      self.validateMqttJwt();
-    });
     this.ee.on('sys.mqtt.jwt.agent.restapi',(evt)=>{
       if(self.trace) {
         console.log('MqttMessager::ListenEventEmitter_::evt=:<',evt,'>');
@@ -79,42 +73,39 @@ export class MqttMessager {
       console.log('MqttMessager::validateMqttJwt::this.otmc=:<',this.otmc,'>');
     }
     try {
-      let mqttJwtStr =  false;
-      if(this.otmc.isNode) {
-        mqttJwtStr = fs.readFileSync(this.otmc.config.mqttJwt);
-      } else {
-        const keyJwt= `${this.auth.address()}.jwt`;
-        if(this.trace) {
-          console.log('MqttMessager::validateMqttJwt::keyJwt=:<',keyJwt,'>');
-        }
-        mqttJwtStr = await this.store.get(keyJwt,LEVEL_OPT);
+      this.mqttJwt = await this.jwt.getJwt();
+      if(this.trace) {
+        console.log('MqttMessager::validateMqttJwt::this.mqttJwt=:<',this.mqttJwt,'>');
       }
-      if(mqttJwtStr) {
-        this.mqttJwt = JSON.parse(mqttJwtStr);
+      if(this.mqttJwt && this.mqttJwt.updated && this.mqttJwt.payload && this.mqttJwt.payload.ok === false) {
         if(this.trace) {
-          console.log('MqttMessager::validateMqttJwt::this.mqttJwt=:<',this.mqttJwt,'>');
+          console.log('MqttMessager::validateMqttJwt::this.mqttJwt.payload=:<',this.mqttJwt.payload,'>');
         }
-        const expDate = new Date();
-        expDate.setTime(parseInt(this.mqttJwt.payload.exp) * 1000);
-        if(this.trace) {
-          console.log('MqttMessager::validateMqttJwt::expDate=:<',expDate,'>');
-        }
-        const exp_ms = expDate - new Date();
+        const freshDate = new Date(this.mqttJwt.updated);
+        const exp_ms = freshDate - new Date();
         if(this.trace) {
           console.log('MqttMessager::validateMqttJwt::exp_ms=:<',exp_ms,'>');
         }
-        if(exp_ms < 0) {
-          this.jwt.request();
-          return;
-        }
-        this.otmc.emit('mqtt:jwt',this.mqttJwt);
-        this.ee.emit('OtmcStateMachine.actor.send',{type:'mqtt:jwt'});
-      } else {
-        this.jwt.request();
+        return;
       }
+      const expDate = new Date();
+      expDate.setTime(parseInt(this.mqttJwt.payload.exp) * 1000);
+      if(this.trace) {
+        console.log('MqttMessager::validateMqttJwt::expDate=:<',expDate,'>');
+      }
+      const exp_ms = expDate - new Date();
+      if(this.trace) {
+        console.log('MqttMessager::validateMqttJwt::exp_ms=:<',exp_ms,'>');
+      }
+      if(exp_ms < 0 || isNaN(exp_ms)) {
+        this.ee.emit('sys.mqtt.jwt.agent.fetch',{});
+        return;
+      }
+      this.otmc.emit('mqtt:jwt',this.mqttJwt);
+      this.ee.emit('OtmcStateMachine.actor.send',{type:'mqtt:jwt'});
     } catch(err) {
       console.error('MqttMessager::validateMqttJwt::err=:<',err,'>');
-      this.jwt.request();
+      this.ee.emit('sys.mqtt.jwt.agent.fetch',{});
     }
   }
   async storeMqttJwt(jwtData) {

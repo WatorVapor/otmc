@@ -8,6 +8,7 @@ const LEVEL_OPT = {
   valueEncoding: 'utf8',
 };
 
+
 /**
 *
 */
@@ -39,18 +40,6 @@ export class MqttMessager {
       self.base32 = evt.base32;
       self.util = evt.util;
     });
-    this.ee.on('sys.mqtt.jwt.agent.restapi',(evt)=>{
-      if(self.trace) {
-        console.log('MqttMessager::ListenEventEmitter_::evt=:<',evt,'>');
-      }
-      self.validateMqttJwt();
-    });
-    this.ee.on('mqtt:jwt.rental',(evt)=>{
-      if(self.trace) {
-        console.log('MqttMessager::ListenEventEmitter_::evt=:<',evt,'>');
-      }
-      self.storeMqttJwt(evt);
-    });
     this.ee.on('mqtt.connectMqtt',(evt)=>{
       if(self.trace) {
         console.log('MqttMessager::ListenEventEmitter_::evt=:<',evt,'>');
@@ -63,106 +52,24 @@ export class MqttMessager {
       }
       this.publish(evt.msg.topic,evt.msg,evt.option);
     });
+    this.ee.on('mqtt.jwt.ready',(evt)=>{
+      if(self.trace) {
+        console.log('MqttMessager::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.mqttJwt = evt;
+      self.connectMqtt();
+    });
   }
-  async validateMqttJwt() {
-    let fs = false;
-    if(this.otmc.isNode) {
-      fs = await import('fs');
-    }
-    if(this.trace0) {
-      console.log('MqttMessager::validateMqttJwt::this.otmc=:<',this.otmc,'>');
-    }
-    try {
-      this.mqttJwt = await this.jwt.getJwt();
-      if(this.trace) {
-        console.log('MqttMessager::validateMqttJwt::this.mqttJwt=:<',this.mqttJwt,'>');
-      }
-      if(this.mqttJwt && this.mqttJwt.updated && this.mqttJwt.payload && this.mqttJwt.payload.ok === false) {
-        if(this.trace) {
-          console.log('MqttMessager::validateMqttJwt::this.mqttJwt.payload=:<',this.mqttJwt.payload,'>');
-        }
-        const freshDate = new Date(this.mqttJwt.updated);
-        const exp_ms = freshDate - new Date();
-        if(this.trace) {
-          console.log('MqttMessager::validateMqttJwt::exp_ms=:<',exp_ms,'>');
-        }
-        return;
-      }
-      const expDate = new Date();
-      expDate.setTime(parseInt(this.mqttJwt.payload.exp) * 1000);
-      if(this.trace) {
-        console.log('MqttMessager::validateMqttJwt::expDate=:<',expDate,'>');
-      }
-      const exp_ms = expDate - new Date();
-      if(this.trace) {
-        console.log('MqttMessager::validateMqttJwt::exp_ms=:<',exp_ms,'>');
-      }
-      if(exp_ms < 0 || isNaN(exp_ms)) {
-        this.ee.emit('sys.mqtt.jwt.agent.fetch',{});
-        return;
-      }
-      this.otmc.emit('mqtt:jwt',this.mqttJwt);
-      this.ee.emit('OtmcStateMachine.actor.send',{type:'mqtt:jwt'});
-    } catch(err) {
-      console.error('MqttMessager::validateMqttJwt::err=:<',err,'>');
-      this.ee.emit('sys.mqtt.jwt.agent.fetch',{});
-    }
-  }
-  async storeMqttJwt(jwtData) {
-    let fs = false;
-    if(this.otmc.isNode) {
-      fs = await import('fs');
-    }
-    if(this.trace) {
-      console.log('MqttMessager::storeMqttJwt::jwtData=:<',jwtData,'>');
-    }
-    try {
-      if(this.otmc.isNode) {
-        fs.writeFileSync(this.otmc.config.mqttJwt,JSON.stringify(jwtData,undefined,2));
-      } else {
-        const keyJwt= `${this.auth.address()}.jwt`;
-        if(this.trace) {
-          console.log('MqttMessager::storeMqttJwt::keyJwt=:<',keyJwt,'>');
-        }
-        const value = JSON.stringify(jwtData,undefined,2);
-        const putResult = await this.store.put(keyJwt,value,LEVEL_OPT);
-        if(this.trace) {
-          console.log('MqttMessager::storeMqttJwt::putResult=:<',putResult,'>');
-        }
-      }
-    } catch(err) {
-      console.error('MqttMessager::storeMqttJwt::err=:<',err,'>');
-    }
-    this.mqttJwt = JSON.parse(JSON.stringify(jwtData));
-    this.otmc.emit('mqtt:jwt',this.mqttJwt);
-    this.ee.emit('OtmcStateMachine.actor.send',{type:'mqtt:jwt'});
-  }
+
   async freshMqttJwt() {
-    let execSync = false;
-    if(this.otmc.isNode) {
-      execSync = await import('child_process');
-    }
-    if(this.trace) {
-      console.log('MqttMessager::freshMqttJwt::this.otmc=:<',this.otmc,'>');
-    }
-    try {
-      if(this.otmc.isNode) {
-        localStorage.removeItem(StoreKey.mqttJwt);
-        execSync(`rm -f ${this.otmc.config.mqttJwt}`);
-      } else {
-        localStorage.removeItem(StoreKey.mqttJwt);
-      }
-    } catch(err) {
-      console.error('MqttMessager::freshMqttJwt::err=:<',err,'>');
-    }
-    this.validateMqttJwt();
+    this.jwt.validateMqttJwt();
   }
   connectMqtt() {
     if(this.trace0) {
       console.log('MqttMessager::connectMqtt::this.otmc=:<',this.otmc,'>');
     }
     if(!this.mqttJwt) {
-      this.validateMqttJwt();
+      this.jwt.validateMqttJwt();
       return;
     }
     if(this.trace) {
@@ -282,7 +189,7 @@ export class MqttMessager {
       if(self.trace) {
         console.log('MqttMessager::createMqttConnection_::close new Date()=<',new Date(),'>');
       }
-      self.validateMqttJwt();
+      self.jwt.validateMqttJwt();
     });
     mqttClient.on('end', () => {
       if(self.trace) {

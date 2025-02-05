@@ -1,5 +1,6 @@
 import Dexie from 'dexie';
 import { StoreKey, OtmcPortal } from './otmc.const.js';
+const JWT_ERROR_RETRY_MS = 1000*60*1;
 /**
 *
 */
@@ -32,6 +33,7 @@ export class MqttJWTAgent {
     this.auth = false;
     this.base32 = false;
     this.util = false;
+    this.retry = false;
     this.ListenEventEmitter_();
     if(OtmcPortal && OtmcPortal.jwt && OtmcPortal.jwt.did && OtmcPortal.jwt.did.wss) {
       this.wss = true;
@@ -66,7 +68,7 @@ export class MqttJWTAgent {
         console.log('MqttJWTAgent::ListenEventEmitter_::evt=:<',evt,'>');
       }
       self.didDoc = evt.didDoc;
-      self.connectOtmcJWT_();
+      self.validateMqttJwt();
     });
     this.ee.on('sys.mqtt.jwt.agent.fetch',(evt)=>{
       if(self.trace0) {
@@ -84,14 +86,57 @@ export class MqttJWTAgent {
     });
   }
 
- 
 
-  connectOtmcJWT_() {
+  async validateMqttJwt() {
     if(this.trace0) {
-      console.log('MqttJWTAgent::connectOtmcJWT_::this=:<',this,'>');
+      console.log('MqttJWTAgent::validateMqttJwt::this.otmc=:<',this.otmc,'>');
     }
-    this.ee.emit('sys.mqtt.jwt.agent.restapi');
+    try {
+      const mqttJwt = await this.getJwt_();
+      if(this.trace) {
+        console.log('MqttJWTAgent::validateMqttJwt::mqttJwt=:<',mqttJwt,'>');
+      }
+      if(mqttJwt && mqttJwt.updated && mqttJwt.payload && mqttJwt.payload.ok === false) {
+        if(this.trace) {
+          console.log('MqttJWTAgent::validateMqttJwt::mqttJwt.payload=:<',mqttJwt.payload,'>');
+        }
+        const freshDate = new Date(mqttJwt.updated);
+        const exp_ms = new Date() - freshDate
+        if(this.trace) {
+          console.log('MqttJWTAgent::validateMqttJwt::exp_ms=:<',exp_ms,'>');
+        }
+        if(exp_ms > JWT_ERROR_RETRY_MS || this.retry === false) {
+          this.retry = true;
+          const self = this;
+          setTimeout(() => {
+            self.ee.emit('sys.mqtt.jwt.agent.fetch',{});
+          },1);
+        }
+        return;
+      }
+      const expDate = new Date();
+      expDate.setTime(parseInt(mqttJwt.payload.exp) * 1000);
+      if(this.trace) {
+        console.log('MqttJWTAgent::validateMqttJwt::expDate=:<',expDate,'>');
+      }
+      const exp_ms = expDate - new Date();
+      if(this.trace) {
+        console.log('MqttJWTAgent::validateMqttJwt::exp_ms=:<',exp_ms,'>');
+      }
+      if(exp_ms < 0 || isNaN(exp_ms)) {
+        this.ee.emit('sys.mqtt.jwt.agent.fetch',{});
+        return;
+      }
+      this.ee.emit('mqtt.jwt.ready',mqttJwt);
+      this.otmc.emit('mqtt:jwt',mqttJwt);
+    } catch(err) {
+      console.error('MqttJWTAgent::validateMqttJwt::err=:<',err,'>');
+      this.ee.emit('sys.mqtt.jwt.agent.fetch',{});
+    }
   }
+  
+
+
 
   
   async requestOtmcJWTRestApi_(apiUrl,reqBody) {
@@ -153,14 +198,14 @@ export class MqttJWTAgent {
     }
   }
 
-  async getJwt() {
+  async getJwt_() {
     const filter = {
       did: this.didDoc.id,
       authKey: this.auth.address()
     };
     const storeObject = await this.db.jwt.where(filter).first();
     if(this.trace) {
-      console.log('MqttJWTAgent::getJwt::storeObject=:<',storeObject,'>');
+      console.log('MqttJWTAgent::getJwt_::storeObject=:<',storeObject,'>');
     }
     if(!storeObject) {
       return {jwt:'empty',payload:{empty:true,ok:false,status:404,updated:false}};

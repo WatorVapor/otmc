@@ -10,8 +10,8 @@
   "exports": {
     ".": "./otmc.js",
     "./*.js": "./*.js",
-    "./edcrypto/*": "./edcrypto/*.js",
-    "./did/*": "./did/*.js"
+    "./edcrypto/*.js": "./edcrypto/*.js",
+    "./did/*.js": "./did/*.js"
   },
   "author": "",
   "license": "ISC",

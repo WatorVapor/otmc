@@ -237,6 +237,9 @@ export class EvidenceChainBuilder {
       if(this.trace1) {
         console.log('EvidenceChainBuilder::collectControlleeAuthFromReachTable_::seedReach=<',seedReach,'>');
       }
+      if(!seedReach) {
+        continue;
+      }
       if(seedReach.reachable) {
         const lastProofNode = seedReach.path[seedReach.path.length - 1];
         if(this.trace1) {

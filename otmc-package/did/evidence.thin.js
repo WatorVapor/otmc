@@ -165,13 +165,16 @@ export class EvidenceChainBuilder {
       console.log('EvidenceChainBuilder::collectControllerAuthFromReachTable_::reachTable=<',reachTable,'>');
       console.log('EvidenceChainBuilder::collectControllerAuthFromReachTable_::manifest=<',manifest,'>');
     }
+    if(!reachTable) {
+      return [];
+    }
     const resultAuthed = [];
     for(const auth of authentication) {
       const seedReach = reachTable[auth];
       if(this.trace1) {
         console.log('EvidenceChainBuilder::collectControllerAuthFromReachTable_::seedReach=<',seedReach,'>');
       }
-      if(seedReach.reachable) {
+      if(seedReach && seedReach.reachable) {
         if(manifest.policy === 'Proof.Chain') {
           resultAuthed.push(auth);
         }

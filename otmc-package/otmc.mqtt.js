@@ -13,7 +13,7 @@ export class OtmcMqtt extends EventEmitter {
   static debug = true;
   constructor(config) {
     super();
-    this.trace0 = false;
+    this.trace0 = true;
     this.trace = true;
     this.debug = true;
     if(config) {

@@ -14,7 +14,7 @@ const LEVEL_OPT = {
 */
 export class MqttMessager {
   constructor(ee) {
-    this.trace0 = false;
+    this.trace0 = true;
     this.trace = true;
     this.debug = true;
     this.isRequestingJwt = false;
@@ -86,8 +86,16 @@ export class MqttMessager {
       this.mqttClient_.publish(topic,JSON.stringify(msgData),option,(err) => {
         if(err) {
           console.error('MqttMessager::publish::err=:<',err,'>');
+        } else {
+          if(this.trace0) {
+            console.log('MqttMessager::publish::published');
+          }
         }
       });
+    } else {
+      if(this.trace0) {
+        console.log('MqttMessager::publish::not connected');
+      }
     }
   }
   

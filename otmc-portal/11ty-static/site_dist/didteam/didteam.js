@@ -200,6 +200,7 @@ const teamPropertyOption = {
       member:{
         name: '',
       },
+      members:{},
     };
   },
   methods: {
@@ -278,8 +279,15 @@ const loadDidTeamApps = (evt) => {
   });  
   otmc.on('did:team:property',(property)=>{
     console.log('loadDidTeamApps::property=:<',property,'>');
+    apps.accountProperty = JSON.parse(JSON.stringify(property));
     appPropertyVM.team = property.team;
     appPropertyVM.member = property.member;
+    appPropertyVM.members = property.members;
+  });
+
+  mqtt.on('mqtt:connected',(evtMqtt) => {
+    console.log('loadDidTeamApps::evtMqtt=:<',evtMqtt,'>');
+    onMqttConnected(mqtt,otmc,appPropertyVM);
   });
 
 
@@ -320,4 +328,15 @@ const onDidKeyRefreshTeamApp = (didKeys,app) => {
   console.log('onDidKeyRefreshTeamApp::didKeys=:<',didKeys,'>');  
   console.log('onDidKeyRefreshTeamApp::app=:<',app,'>');
 };
+
+const onMqttConnected = (mqtt,otmc) => {
+  console.log('onMqttConnected::mqtt=:<',mqtt,'>');
+  console.log('onMqttConnected::otmc=:<',otmc,'>');
+  console.log('onMqttConnected::apps.accountProperty=:<',apps.accountProperty,'>');
+  const syncMsg = { 
+    topic:'otmc/team/property/sync',
+    payload:apps.accountProperty,
+  };
+  mqtt.publishMsg(syncMsg);
+}
 

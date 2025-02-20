@@ -1150,11 +1150,26 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::updateTeamProperty_::property=:<',property,'>');
     }
-    const oldProperty = await this.account.getProperty(this.didDoc_.id);
+    let oldProperty = await this.account.getProperty(this.didDoc_.id);
     if(this.trace) {
       console.log('DidDocument::updateTeamProperty_::oldProperty=:<',oldProperty,'>');
     }
+    if(!oldProperty) {
+      oldProperty = {};
+    }
     const propertyStore = JSON.parse(JSON.stringify(property));
+    if(!oldProperty.members && !property.member) {
+      propertyStore.members = {};
+      if(property.member) {
+        propertyStore.members[this.auth.address()] = {name:property.member.name};
+      }
+    }
+    if(oldProperty.members) {
+      propertyStore.members = oldProperty.members;
+      if(property.member) {
+        propertyStore.members[this.auth.address()] = {name:property.member.name};
+      }  
+    }
     propertyStore.did = this.didDoc_.id;
     if(this.trace) {
       console.log('DidDocument::updateTeamProperty_::propertyStore=:<',propertyStore,'>');

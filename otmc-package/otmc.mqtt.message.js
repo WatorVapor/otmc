@@ -120,7 +120,7 @@ export class MqttMessager {
       reconnectPeriod:1000*5,
       keepalive: 60*30,
       connectTimeout: 4000,
-      clean: true,
+      clean: false,
       rejectUnauthorized: true
     };
     if(this.trace) {

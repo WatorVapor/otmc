@@ -70,6 +70,9 @@ export class MqttJWTAgent {
       self.didDoc = evt.didDoc;
       self.validateMqttJwt();
     });
+    this.ee.on('sys.mqtt.jwt.agent.recieved',(evt)=>{
+      self.validateMqttJwt();
+    })
     this.ee.on('sys.mqtt.jwt.agent.fetch',(evt)=>{
       if(self.trace0) {
         console.log('MqttJWTAgent::ListenEventEmitter_::evt=:<',evt,'>');
@@ -176,7 +179,8 @@ export class MqttJWTAgent {
           jwt:resultJson.jwt,
           payload:resultJson.payload
         };
-        this.putJWT_(storeJwt);
+        await this.putJWT_(storeJwt);
+        this.ee.emit('sys.mqtt.jwt.agent.recieved',{});
         return resultJson;
       } else {
         const storeJwt = {
@@ -188,7 +192,7 @@ export class MqttJWTAgent {
             status:apiResp.status,
           }
         };
-        this.putJWT_(storeJwt);
+        await this.putJWT_(storeJwt);
       }
     }
     catch(err) {

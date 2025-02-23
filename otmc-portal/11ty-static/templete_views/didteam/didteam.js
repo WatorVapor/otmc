@@ -334,7 +334,7 @@ const onMqttConnected = (mqtt,otmc) => {
   console.log('onMqttConnected::otmc=:<',otmc,'>');
   console.log('onMqttConnected::apps.accountProperty=:<',apps.accountProperty,'>');
   const syncMsg = { 
-    topic:'otmc/team/property/sync',
+    topic:'secret/team/property/sync',
     payload:apps.accountProperty,
   };
   mqtt.publishMsg(syncMsg);

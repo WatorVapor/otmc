@@ -31,6 +31,11 @@ export const StoreKey = {
       jwt: {
         dbName:'otmc/secret/mqtt/jwt',
       },
+      encrypt:{
+        channel: {
+          dbName:'otmc/secret/mqtt/encrypt/channel',
+        }
+      },
     },
   },
   open: {

@@ -2,6 +2,7 @@ import { default as mqtt } from 'mqtt';
 //console.log('::::mqtt=:<',mqtt,'>');
 import { StoreKey, OtmcPortal } from './otmc.const.js';
 import { MqttJWTAgent } from './otmc.mqtt.jwt.js';
+import { MqttEncryptChannel } from './otmc.mqtt.encrypt.channel.js';
 
 const LEVEL_OPT = {
   keyEncoding: 'utf8',
@@ -20,6 +21,7 @@ export class MqttMessager {
     this.isRequestingJwt = false;
     this.ee = ee;
     this.jwt = new MqttJWTAgent(ee);
+    this.encryptCh = new MqttEncryptChannel(ee);
     this.otmc = false;
     this.auth = false;
     this.base32 = false;

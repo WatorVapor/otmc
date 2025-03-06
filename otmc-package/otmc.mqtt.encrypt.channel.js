@@ -34,13 +34,19 @@ export class MqttEncryptChannel {
       }
       await self.ecdh.loadMyECKey();
       await self.ecdh.loadMemeberPubKey();
-      const topic = 'otmc/encrypt/ecdh/pubKey/jwk';
+      const topic = 'teamspace/secret/encrypt/ecdh/pubKey/jwk';
       const payload = {
         did:self.otmc.did.didDoc_.id,
         nodeId:self.auth.address(),
         pubKeyJwk:self.ecdh.myPublicKeyJwk
       }
       self.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:payload}});
+    });
+    this.ee.on('teamspace/secret/encrypt/ecdh/pubKey/jwk',async (evt)=>{
+      if(self.trace0) {
+        console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.ecdh.storeRemotePubKey(evt.payload);
     });
   }
 }
@@ -236,6 +242,31 @@ class MqttEncryptECDH {
     }
     this.memberPublicKeysJwk[did][nodeId] = memberPublicKeyJwk;
     this.memberPublicKeys[did][nodeId] = memberPublicKeyKey;
+  }
+  async storeRemotePubKey(keyMsg) {
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeRemotePubKey::keyMsg=<',keyMsg,'>');
+    }
+    const remotePublicKeyBase64 = base64Encode(JSON.stringify(keyMsg.pubKeyJwk));
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeRemotePubKey::remotePublicKeyBase64=:<',remotePublicKeyBase64,'>');
+    }
+    const ecdh = {
+      did:keyMsg.did,
+      nodeId:keyMsg.nodeId,
+      createdDate:(new Date()).toISOString(),
+      key:{
+        pubBase64:remotePublicKeyBase64,
+        privBase64:null
+      }
+    }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeRemotePubKey::ecdh=<',ecdh,'>');
+    }
+    const ecdhResult = await this.db.ecdh.put(ecdh);
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeRemotePubKey::ecdhResult=<',ecdhResult,'>');
+    }
   }
 }
 

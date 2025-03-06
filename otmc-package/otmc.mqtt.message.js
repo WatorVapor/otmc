@@ -27,6 +27,7 @@ export class MqttMessager {
     this.base32 = false;
     this.util = false;
     this.ListenEventEmitter_();
+    this.msgQueue = [];
   }
   ListenEventEmitter_() {
     if(this.trace0) {
@@ -52,7 +53,11 @@ export class MqttMessager {
       if(self.trace) {
         console.log('MqttMessager::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      this.publish(evt.msg.topic,evt.msg,evt.option);
+      const msgPack = self.otmc.did.packMessage(evt.msg);
+      if(self.trace) {
+        console.log('MqttMessager::ListenEventEmitter_::msgPack=:<',msgPack,'>');
+      }
+      self.publish(msgPack.topic,msgPack,evt.option);
     });
     this.ee.on('mqtt.jwt.ready',(evt)=>{
       if(self.trace) {
@@ -98,6 +103,7 @@ export class MqttMessager {
       if(this.trace0) {
         console.log('MqttMessager::publish::not connected');
       }
+      this.msgQueue.push({topic:topic,msgData:msgData,option:option});
     }
   }
   
@@ -168,6 +174,9 @@ export class MqttMessager {
         setTimeout(() => {
           self.runSubscriber_();
         },1);
+        setTimeout(() => {
+          self.rollOutCached_();
+        },1000);
         self.firstConnected = true;
       }
     });
@@ -277,6 +286,21 @@ export class MqttMessager {
       }
     }    
   }
+
+  rollOutCached_() {
+    if(this.trace) {
+      console.log('MqttMessager::rollOutCached_:this.msgQueue=<',this.msgQueue,'>');
+    }
+    if(this.msgQueue.length > 0) {
+      const msg = this.msgQueue.shift();
+      this.publish(msg.topic,msg.msgData,msg.option);
+      const self = this;
+      setTimeout(() => {
+        self.rollOutCached_();
+      },1000);
+    }
+  }
+
   onMqttMessage_(topic, msgJson) {
     if(this.trace0) {
       console.log('MqttMessager::onMqttMessage_:topic=<',topic,'>');
@@ -301,21 +325,6 @@ export class MqttMessager {
         console.log('MqttMessager::onMqttMessage_:msgJson=<',msgJson,'>');
         return;
       }
-    }
-    if(msgJson.topic !== topic) {
-      if(topic.endsWith('/historyRelay') ||
-        topic.endsWith('/historyRelay4Invitation')
-      ) {
-        const featureTopic = this.getFeatureTopic_(msgJson.topic);
-        if(this.trace) {
-          console.log('MqttMessager::onMqttMessage_:featureTopic=<',featureTopic,'>');
-        }
-        this.dispatchMessageHistory_(featureTopic,msgJson.topic,msgJson);
-      } else {
-        console.log('MqttMessager::onMqttMessage_:topic=<',topic,'>');
-        console.log('MqttMessager::onMqttMessage_:msgJson.topic=<',msgJson.topic,'>');
-      }
-      return;
     }
     const featureTopic = this.getFeatureTopic_(topic);
     if(this.trace0) {
@@ -352,22 +361,8 @@ export class MqttMessager {
       console.log('MqttMessager::dispatchMessage_:fullTopic=<',fullTopic,'>');
       console.log('MqttMessager::dispatchMessage_:msgJson=<',msgJson,'>');
     }
-    switch(featureTopic ) {
-      case 'sys/did/seed/store': 
-      case 'sys/did/auth/store': 
-        this.otmc.did.onDidDocumentStore(msgJson.did,msgJson.auth_address);
-        break;
-      case 'sys/did/invitation/join':
-        this.otmc.emit('didteam:joinLoaded',msgJson);
-        this.otmc.did.onInvitationJoinRequest(msgJson.did,msgJson.auth_address);
-        break;
-      case 'sys/did/invitation/accept':
-        this.otmc.emit('didteam:accept',msgJson);
-        this.otmc.did.onInvitationAcceptReply(msgJson.did,msgJson.auth_address);
-        break;
-      default:
-        this.otmc.emit('otmc:mqtt:app',msgJson);
-        break;
+    if(featureTopic.startsWith('teamspace/secret/encrypt/ecdh')) {
+      this.ee.emit(featureTopic,msgJson);
     }
     this.otmc.emit('otmc:mqtt:all',msgJson);
   }

@@ -1,6 +1,5 @@
 import { default as mqtt } from 'mqtt';
 //console.log('::::mqtt=:<',mqtt,'>');
-import { StoreKey, OtmcPortal } from './otmc.const.js';
 import { MqttJWTAgent } from './otmc.mqtt.jwt.js';
 import { MqttEncryptChannel } from './otmc.mqtt.encrypt.channel.js';
 
@@ -13,7 +12,7 @@ const LEVEL_OPT = {
 /**
 *
 */
-export class MqttMessager {
+export class MqttConnection {
   constructor(ee) {
     this.trace0 = true;
     this.trace = true;
@@ -107,13 +106,6 @@ export class MqttMessager {
     }
   }
   
-  
-  
-  onMessage_(msg) {
-    if(this.trace) {
-      console.log('MqttMessager::onMessage_::msg=:<',msg,'>');
-    }
-  }
   
   createMqttConnection_() {
     if(this.trace0) {
@@ -309,100 +301,7 @@ export class MqttMessager {
     if(this.trace0) {
       console.log('MqttMessager::onMqttMessage_:this.auth=<',this.auth,'>');
     }
-    let goodMsg = this.auth.verify(msgJson);
-    if(this.trace0) {
-      console.log('MqttMessager::onMqttMessage_:goodMsg=<',goodMsg,'>');
-    }
-    if(!goodMsg) {
-      if(topic.endsWith('/historyRelay')) {
-        goodMsg = this.auth.verifyWithoutTS(msgJson);
-      }
-      if(topic.endsWith('/historyRelay4Invitation')) {
-        goodMsg = this.auth.verifyWithoutTS(msgJson);
-      }
-      if(!goodMsg) {
-        console.log('MqttMessager::onMqttMessage_:goodMsg=<',goodMsg,'>');
-        console.log('MqttMessager::onMqttMessage_:msgJson=<',msgJson,'>');
-        return;
-      }
-    }
-    const featureTopic = this.getFeatureTopic_(topic);
-    if(this.trace0) {
-      console.log('MqttMessager::onMqttMessage_:featureTopic=<',featureTopic,'>');
-    }
-    this.dispatchMessage_(featureTopic,topic,msgJson);
+    this.ee.emit('mqtt.message.raw',{topic:topic,msgJson:msgJson});
   }
   
-  getFeatureTopic_(fullTopic) {
-    if(this.trace0) {
-      console.log('MqttMessager::getFeatureTopic_:fullTopic=<',fullTopic,'>');
-    }
-    const featureTopics = fullTopic.split('/');
-    if(this.trace0) {
-      console.log('MqttMessager::getFeatureTopic_:featureTopics=<',featureTopics,'>');
-    }
-    if(featureTopics.length > 4 && featureTopics[3] === 'broadcast') {
-      const featureTopic = 'broadcast/' + featureTopics.slice(5).join('/');
-      if(this.trace0) {
-        console.log('MqttMessager::getFeatureTopic_:featureTopic=<',featureTopic,'>');
-      }
-      return featureTopic;
-    }
-    const featureTopic = featureTopics.slice(4).join('/');
-    if(this.trace0) {
-      console.log('MqttMessager::getFeatureTopic_:featureTopic=<',featureTopic,'>');
-    }
-    return featureTopic;
-  }
-
-  dispatchMessage_(featureTopic,fullTopic,msgJson) {
-    if(this.trace0) {
-      console.log('MqttMessager::dispatchMessage_:featureTopic=<',featureTopic,'>');
-      console.log('MqttMessager::dispatchMessage_:fullTopic=<',fullTopic,'>');
-      console.log('MqttMessager::dispatchMessage_:msgJson=<',msgJson,'>');
-    }
-    if(featureTopic.startsWith('teamspace/secret/encrypt/ecdh')) {
-      this.ee.emit(featureTopic,msgJson);
-    }
-    this.otmc.emit('otmc:mqtt:all',msgJson);
-  }
-  
-  dispatchMessageHistory_(featureTopic,fullTopic,msgJson) {
-    if(this.trace) {
-      console.log('MqttMessager::dispatchMessageHistory_:featureTopic=<',featureTopic,'>');
-      console.log('MqttMessager::dispatchMessageHistory_:fullTopic=<',fullTopic,'>');
-      console.log('MqttMessager::dispatchMessageHistory_:msgJson=<',msgJson,'>');
-    }
-    switch(featureTopic ) {
-      case 'sys/did/document/seed/store': 
-        this.otmc.did.storeDidDocumentHistory(msgJson.did,msgJson.auth_address);
-        break;
-      case 'sys/did/document/auth/store': 
-        this.otmc.did.storeDidDocumentHistory(msgJson.did,msgJson.auth_address);
-        break;
-      case 'sys/did/document/capability/store': 
-        this.otmc.did.storeDidDocumentHistory(msgJson.did,msgJson.auth_address);
-        break;
-      case 'sys/did/manifest/seed/store': 
-        this.otmc.did.storeDidManifestHistory(msgJson.manifest,msgJson.auth_address);
-        break;
-      case 'sys/did/manifest/auth/store': 
-        this.otmc.did.storeDidManifestHistory(msgJson.manifest,msgJson.auth_address);
-        break;
-      case 'sys/did/invitation/store':
-        this.otmc.emit('didteam:joinLoaded',msgJson);
-        this.otmc.did.onInvitationJoinRequest(msgJson.did,msgJson.auth_address);
-        break;
-      case 'sys/did/invitation/join':
-        this.otmc.emit('didteam:joinLoaded',msgJson);
-        this.otmc.did.onInvitationJoinRequest(msgJson.did,msgJson.auth_address);
-        break;
-      default:
-        console.log('MqttMessager::dispatchMessageHistory_:featureTopic=<',featureTopic,'>');
-        break;
-    }
-    if(this.trace) {
-      console.log('MqttMessager::dispatchMessageHistory_:featureTopic=<',featureTopic,'>');
-    }
-  }
 }

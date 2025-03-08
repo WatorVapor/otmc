@@ -4,6 +4,7 @@ import { OtmcStateMachine } from './otmc.state.machine.js';
 import { WebWorkerLoader } from './otmc.webworker.loader.js';
 import { EdcryptKeyLoader } from './otmc.edcrypt.keyloader.js';
 import { MqttMessager } from './otmc.mqtt.message.js';
+import { MqttConnection } from './otmc.mqtt.connection.js';
 
 /**
 *
@@ -35,7 +36,8 @@ export class OtmcMqtt extends EventEmitter {
       self.eeInternal.emit('edCryptKey.loader.runWorker',{});
       self.eeInternal.emit('webwoker.create.worker',{});
       self.sm = new OtmcStateMachine(this.eeInternal);
-      self.mqtt = new MqttMessager(self.eeInternal);
+      self.mqtt = new MqttConnection(self.eeInternal);
+      self.mqttMsg = new MqttMessager(self.eeInternal);
     },1);
     this.mqttOption = {
       qos:0,

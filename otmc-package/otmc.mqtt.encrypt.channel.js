@@ -39,6 +39,7 @@ export class MqttEncryptChannel {
       }
       await self.ecdh.loadMyECKey();
       await self.ecdh.loadMemeberPubKey();
+      await self.ecdh.calcSharedKeys();
       const topic = 'teamspace/secret/encrypt/ecdh/pubKey/jwk';
       const payload = {
         did:self.otmc.did.didDoc_.id,
@@ -161,15 +162,133 @@ class MqttEncryptECDH {
     this.memberPublicKeys = {};
     this.memberPublicKeys[did] = {};
     for(const nodeId of memberNodeIds) {
-      let memberECDH = await this.db.ecdh.where({did:did,nodeId:nodeId}).first();
+      const filter = {
+        did:did,
+        nodeId:nodeId
+      };
       if(this.trace0) {
-        console.log('MqttEncryptECDH::loadMemeberPubKey::memberECDH=<',memberECDH,'>');
+        console.log('MqttEncryptECDH::loadMemeberPubKey::filter=<',filter,'>');
       }
-      if(memberECDH && memberECDH.key && memberECDH.key.pubBase64) {
-        this.tryLoadMemberPubKey_(did,nodeId,memberECDH.key.pubBase64);
+      const memberECDHs = await this.db.ecdh.where(filter).sortBy('createdDate');
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::loadMemeberPubKey::memberECDHs=<',memberECDHs,'>');
+      }
+      if(memberECDHs && memberECDHs.length > 0 ) {
+        const memberECDH = memberECDHs[memberECDHs.length - 1];
+        if(this.trace0) {
+          console.log('MqttEncryptECDH::loadMemeberPubKey::memberECDH=<',memberECDH,'>');
+        }
+        await this.tryLoadMemberPubKey_(did,nodeId,memberECDH.pubBase64);
       }
     }
   }
+  async calcSharedKeys() {
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::calcSharedKeys::this.myPrivateKey=<',this.myPrivateKey,'>');
+      console.log('MqttEncryptECDH::calcSharedKeys::this.memberPublicKeys=<',this.memberPublicKeys,'>');
+    }
+    for(const did in this.memberPublicKeys) {
+      const spacePublicKeys = this.memberPublicKeys[did];
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::calcSharedKeys::did=<',did,'>');
+        console.log('MqttEncryptECDH::calcSharedKeys::spacePublicKeys=<',spacePublicKeys,'>');
+      }
+      for(const nodeId in spacePublicKeys) {
+        const nodePublicKey = spacePublicKeys[nodeId];
+        if(this.trace0) {
+          console.log('MqttEncryptECDH::calcSharedKeys::nodeId=<',nodeId,'>');
+          console.log('MqttEncryptECDH::calcSharedKeys::nodePublicKey=<',nodePublicKey,'>');
+        }
+        const sharedKey = await crypto.subtle.deriveBits(
+          {
+            name: "ECDH",
+            public: nodePublicKey,
+          },
+          this.myPrivateKey,
+          256
+        );
+        if(this.trace0) {
+          console.log('MqttEncryptECDH::calcSharedKeys::sharedKey=<',sharedKey,'>');
+        }
+        const sharedKeyBase64 = base64Encode(sharedKey);
+        if(this.trace0) {
+          console.log('MqttEncryptECDH::calcSharedKeys::sharedKeyBase64=<',sharedKeyBase64,'>');
+        }
+        const filter = {
+          did:did,
+          myNodeId:this.auth.address(),
+          remoteNodeId:nodeId,
+          secretBase64:sharedKeyBase64
+        }
+        if(this.trace0) {
+          console.log('MqttEncryptECDH::calcSharedKeys::filter=<',filter,'>');
+        }
+        let hitnSecret = await this.db.secret.where(filter).first();
+        if(this.trace0) {
+          console.log('MqttEncryptECDH::calcSharedKeys::hitnSecret=<',hitnSecret,'>');
+        }
+        if(hitnSecret) {
+          return;
+        }
+        const secret = {
+          did:did,
+          myNodeId:this.auth.address(),
+          remoteNodeId:nodeId,
+          secretBase64:sharedKeyBase64,
+          issuedDate:(new Date()).toISOString(),
+          expireDate:null
+        }
+        if(this.trace0) {
+          console.log('MqttEncryptECDH::calcSharedKeys::secret=<',secret,'>');
+        }
+        const secretResult = await this.db.secret.put(secret);
+        if(this.trace0) {
+          console.log('MqttEncryptECDH::calcSharedKeys::secretResult=<',secretResult,'>');
+        }
+      }
+    }
+  }
+
+  async storeRemotePubKey(keyMsg) {
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeRemotePubKey::keyMsg=<',keyMsg,'>');
+    }
+    const remotePublicKeyBase64 = base64Encode(JSON.stringify(keyMsg.pubKeyJwk));
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeRemotePubKey::remotePublicKeyBase64=:<',remotePublicKeyBase64,'>');
+    }
+    const filter = {
+      did:keyMsg.did,
+      nodeId:keyMsg.nodeId,
+      pubBase64:remotePublicKeyBase64
+    }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeRemotePubKey::filter=:<',filter,'>');
+    }
+    let hitnECDH = await this.db.ecdh.where(filter).first();
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeRemotePubKey::hitnECDH=<',hitnECDH,'>');
+    }
+    if(hitnECDH) {
+      return;
+    }
+
+    const ecdh = {
+      did:keyMsg.did,
+      nodeId:keyMsg.nodeId,
+      createdDate:(new Date()).toISOString(),
+      pubBase64:remotePublicKeyBase64,
+      privBase64:null
+    }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeRemotePubKey::ecdh=<',ecdh,'>');
+    }
+    const ecdhResult = await this.db.ecdh.put(ecdh);
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeRemotePubKey::ecdhResult=<',ecdhResult,'>');
+    }
+  }
+
 
   initDB_() {
     this.db = new Dexie(StoreKey.secret.mqtt.encrypt.channel.dbName);
@@ -232,7 +351,7 @@ class MqttEncryptECDH {
     }
   }
 
-  tryLoadMemberPubKey_(did,nodeId,pubBase64) {
+  async tryLoadMemberPubKey_(did,nodeId,pubBase64) {
     if(this.trace0) {
       console.log('MqttEncryptECDH::tryLoadMemberPubKey_::did=<',did,'>');
       console.log('MqttEncryptECDH::tryLoadMemberPubKey_::nodeId=<',nodeId,'>');
@@ -246,7 +365,7 @@ class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::tryLoadMemberPubKey_::memberPublicKeyJwk=<',memberPublicKeyJwk,'>');
     }
-    const memberPublicKeyKey = crypto.subtle.importKey("jwk", memberPublicKeyJwk, {
+    const memberPublicKeyKey = await crypto.subtle.importKey("jwk", memberPublicKeyJwk, {
       name: "ECDH",
       namedCurve: "P-256"
     }, true, []);

@@ -1,7 +1,6 @@
 import { default as mqtt } from 'mqtt';
 //console.log('::::mqtt=:<',mqtt,'>');
 import { MqttJWTAgent } from './otmc.mqtt.jwt.js';
-import { MqttEncryptChannel } from './otmc.mqtt.encrypt.channel.js';
 
 const LEVEL_OPT = {
   keyEncoding: 'utf8',
@@ -15,12 +14,12 @@ const LEVEL_OPT = {
 export class MqttConnection {
   constructor(ee) {
     this.trace0 = true;
+    this.trace1 = false;
     this.trace = true;
     this.debug = true;
     this.isRequestingJwt = false;
     this.ee = ee;
     this.jwt = new MqttJWTAgent(ee);
-    this.encryptCh = new MqttEncryptChannel(ee);
     this.otmc = false;
     this.auth = false;
     this.base32 = false;
@@ -221,7 +220,9 @@ export class MqttConnection {
       }
     });
     mqttClient.on('packetsend', (packet) => {
-      //console.log('MqttMessager::createMqttConnection_::packetsend packet=<',packet,'>');
+      if(self.trace1) {
+        console.log('MqttMessager::createMqttConnection_::packetsend packet=<',packet,'>');
+      }
     });
     mqttClient.on('packetreceive', (packet) => {
       if(self.trace0) {

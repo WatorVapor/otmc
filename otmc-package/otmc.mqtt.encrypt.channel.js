@@ -12,6 +12,9 @@ export class MqttEncryptChannel {
     this.trace = true;
     this.debug = true;
     this.ListenEventEmitter_();
+    if(this.trace0) {
+      console.log('MqttEncryptChannel::constructor::this.ee=:<',this.ee,'>');
+    }
   }
   ListenEventEmitter_() {
     if(this.trace0) {
@@ -26,7 +29,9 @@ export class MqttEncryptChannel {
       self.auth = evt.auth;
       self.base32 = evt.base32;
       self.util = evt.util;
-      self.ecdh = new MqttEncryptECDH(self.otmc,self.auth,self.base32,self.util);
+      if(!self.ecdh)  {
+        self.ecdh = new MqttEncryptECDH(self.otmc,self.auth,self.base32,self.util);
+      }
     });
     this.ee.on('did:document',async (evt)=>{
       if(self.trace0) {
@@ -62,6 +67,9 @@ class MqttEncryptECDH {
     this.base32 = base32;
     this.util = util;
     this.initDB_();
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::constructor::this.otmc=:<',this.otmc,'>');
+    }
   }
   async loadMyECKey() {
     if(this.trace0) {
@@ -89,11 +97,11 @@ class MqttEncryptECDH {
       }
     }
     this.myECDH = myECDH;
-    const myPublicKey = JSON.parse(base64Decode(myECDH.key.pubBase64));
+    const myPublicKey = JSON.parse(base64Decode(myECDH.pubBase64));
     if(this.trace0) {
       console.log('MqttEncryptECDH::loadMyECKey::myPublicKey=<',myPublicKey,'>');
     }
-    const myPrivateKey = JSON.parse(base64Decode(myECDH.key.privBase64));
+    const myPrivateKey = JSON.parse(base64Decode(myECDH.privBase64));
     if(this.trace0) {
       console.log('MqttEncryptECDH::loadMyECKey::myPrivateKey=<',myPrivateKey,'>');
     }
@@ -166,7 +174,7 @@ class MqttEncryptECDH {
   initDB_() {
     this.db = new Dexie(StoreKey.secret.mqtt.encrypt.channel.dbName);
     this.db.version(this.version).stores({
-      ecdh: '++autoId,did,nodeId,createdDate,key.pubBase64,key.privBase64',
+      ecdh: '++autoId,did,nodeId,createdDate,pubBase64,privBase64',
     });
     this.db.version(this.version).stores({
       secret: '++autoId,did,myNodeId,remoteNodeId,secretBase64,issuedDate,expireDate',
@@ -174,6 +182,13 @@ class MqttEncryptECDH {
   }
 
   async tryCreateMyECKey_(did,nodeId) {
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::tryCreateMyECKey_::this.creating_=:<',this.creating_,'>');
+    }
+    if(this.creating_)  {
+      return;
+    }
+    this.creating_ = true;
     const myKeyPair = await window.crypto.subtle.generateKey(
       {
         name: "ECDH",
@@ -205,10 +220,8 @@ class MqttEncryptECDH {
       did:did,
       nodeId:nodeId,
       createdDate:(new Date()).toISOString(),
-      key:{
-        pubBase64:myPublicKeyBase64,
-        privBase64:myPrivateKeyBase64
-      }
+      pubBase64:myPublicKeyBase64,
+      privBase64:myPrivateKeyBase64
     }
     if(this.trace0) {
       console.log('MqttEncryptECDH::tryCreateMyECKey_::ecdh=<',ecdh,'>');
@@ -251,14 +264,28 @@ class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::storeRemotePubKey::remotePublicKeyBase64=:<',remotePublicKeyBase64,'>');
     }
+    const filter = {
+      did:keyMsg.did,
+      nodeId:keyMsg.nodeId,
+      pubBase64:remotePublicKeyBase64
+    }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeRemotePubKey::filter=:<',filter,'>');
+    }
+    let hitnECDH = await this.db.ecdh.where(filter).first();
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeRemotePubKey::hitnECDH=<',hitnECDH,'>');
+    }
+    if(hitnECDH) {
+      return;
+    }
+
     const ecdh = {
       did:keyMsg.did,
       nodeId:keyMsg.nodeId,
       createdDate:(new Date()).toISOString(),
-      key:{
-        pubBase64:remotePublicKeyBase64,
-        privBase64:null
-      }
+      pubBase64:remotePublicKeyBase64,
+      privBase64:null
     }
     if(this.trace0) {
       console.log('MqttEncryptECDH::storeRemotePubKey::ecdh=<',ecdh,'>');

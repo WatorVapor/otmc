@@ -54,6 +54,35 @@ export class MqttEncryptChannel {
       }
       self.ecdh.storeRemotePubKey(evt.payload);
     });
+    this.ee.on('otmc.mqtt.encrypt.channel.encrypt',async (evt)=>{
+      if(self.trace0) {
+        console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.encryptMsgPayload_(evt);
+    });
+  }
+  async encryptMsgPayload_(mqttMsg) {
+    if(this.trace0) {
+      console.log('MqttEncryptChannel::encryptMsgPayload_::mqttMsg=:<',mqttMsg,'>');
+    }
+    const did = this.otmc.did.didDoc_.id;
+    if(this.trace0) {
+      console.log('MqttEncryptChannel::encryptMsgPayload_::did=:<',did,'>');
+    }
+    const didPublicKeys = this.ecdh.memberPublicKeys[did];
+    if(this.trace0) {
+      console.log('MqttEncryptChannel::encryptMsgPayload_::didPublicKeys=:<',didPublicKeys,'>');
+    }
+    for(const nodeId in didPublicKeys) {
+      if(this.trace0) {
+        console.log('MqttEncryptChannel::encryptMsgPayload_::nodeId=:<',nodeId,'>');
+      }
+      const pubKey = didPublicKeys[nodeId];
+      if(this.trace0) {
+        console.log('MqttEncryptChannel::encryptMsgPayload_::pubKey=:<',pubKey,'>');
+      }
+      const encryptPayload = await this.ecdh.encryptData(mqttMsg.payload,did,nodeId);
+    }
   }
 }
 
@@ -286,6 +315,13 @@ class MqttEncryptECDH {
     const ecdhResult = await this.db.ecdh.put(ecdh);
     if(this.trace0) {
       console.log('MqttEncryptECDH::storeRemotePubKey::ecdhResult=<',ecdhResult,'>');
+    }
+  }
+  encryptData(dataObject,did,nodeId) {
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::encryptData::dataObject=<',dataObject,'>');
+      console.log('MqttEncryptECDH::encryptData::did=<',did,'>');
+      console.log('MqttEncryptECDH::encryptData::nodeId=<',nodeId,'>');
     }
   }
 

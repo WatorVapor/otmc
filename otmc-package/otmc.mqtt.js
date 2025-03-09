@@ -60,6 +60,21 @@ export class OtmcMqtt extends EventEmitter {
     }
     this.mqtt.publish(msgPack.topic,msgPack,this.mqttOption);
   }
+  publishSecretMsg(mqttMsg){
+    if(this.trace0) {
+      console.log('Otmc::publishSecretMsg::mqttMsg=:<',mqttMsg,'>');
+    }
+    if(this.trace0) {
+      console.log('Otmc::publishSecretMsg::this.did=:<',this.did,'>');
+    }    
+    this.eeInternal.emit('otmc.mqtt.encrypt.channel.encrypt',mqttMsg);
+    /*
+    const msgPack = this.did.packMessage(mqttMsg);
+    if(this.trace0) {
+      console.log('Otmc::publishSecretMsg::msgPack=:<',msgPack,'>');
+    }
+    */
+  }
   broadcastMsg(mqttMsg){
     if(this.trace0) {
       console.log('Otmc::publishMsg::mqttMsg=:<',mqttMsg,'>');

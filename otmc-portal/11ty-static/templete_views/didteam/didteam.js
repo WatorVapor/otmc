@@ -337,6 +337,6 @@ const onMqttConnected = (mqtt,otmc) => {
     topic:'secret/team/property/sync',
     payload:apps.accountProperty,
   };
-  mqtt.publishMsg(syncMsg);
+  mqtt.publishSecretMsg(syncMsg);
 }
 

@@ -39,7 +39,8 @@ export class MqttEncryptChannel {
       }
       await self.ecdh.loadMyECKey();
       await self.ecdh.loadMemeberPubKey();
-      await self.ecdh.calcSharedKeys();
+      await self.ecdh.calcSharedKeysOfNode();
+      await self.ecdh.prepareSharedKeysOfTeamSpace();
       const topic = 'teamspace/secret/encrypt/ecdh/pubKey/jwk';
       const payload = {
         did:self.otmc.did.didDoc_.id,
@@ -211,24 +212,24 @@ class MqttEncryptECDH {
       }
     }
   }
-  async calcSharedKeys() {
+  async calcSharedKeysOfNode() {
     if(this.trace0) {
-      console.log('MqttEncryptECDH::calcSharedKeys::this.myPrivateKey=<',this.myPrivateKey,'>');
-      console.log('MqttEncryptECDH::calcSharedKeys::this.memberPublicKeys=<',this.memberPublicKeys,'>');
+      console.log('MqttEncryptECDH::calcSharedKeysOfNode::this.myPrivateKey=<',this.myPrivateKey,'>');
+      console.log('MqttEncryptECDH::calcSharedKeysOfNode::this.memberPublicKeys=<',this.memberPublicKeys,'>');
     }
     for(const did in this.memberPublicKeys) {
       const spacePublicKeys = this.memberPublicKeys[did];
       if(this.trace0) {
-        console.log('MqttEncryptECDH::calcSharedKeys::did=<',did,'>');
-        console.log('MqttEncryptECDH::calcSharedKeys::spacePublicKeys=<',spacePublicKeys,'>');
+        console.log('MqttEncryptECDH::calcSharedKeysOfNode::did=<',did,'>');
+        console.log('MqttEncryptECDH::calcSharedKeysOfNode::spacePublicKeys=<',spacePublicKeys,'>');
       }
       for(const nodeId in spacePublicKeys) {
         const nodePublicKey = spacePublicKeys[nodeId];
         if(this.trace0) {
-          console.log('MqttEncryptECDH::calcSharedKeys::nodeId=<',nodeId,'>');
-          console.log('MqttEncryptECDH::calcSharedKeys::nodePublicKey=<',nodePublicKey,'>');
+          console.log('MqttEncryptECDH::calcSharedKeysOfNode::nodeId=<',nodeId,'>');
+          console.log('MqttEncryptECDH::calcSharedKeysOfNode::nodePublicKey=<',nodePublicKey,'>');
         }
-        const sharedKey = await crypto.subtle.deriveBits(
+        const sharedSecret = await crypto.subtle.deriveBits(
           {
             name: "ECDH",
             public: nodePublicKey,
@@ -237,24 +238,25 @@ class MqttEncryptECDH {
           256
         );
         if(this.trace0) {
-          console.log('MqttEncryptECDH::calcSharedKeys::sharedKey=<',sharedKey,'>');
+          console.log('MqttEncryptECDH::calcSharedKeysOfNode::sharedSecret=<',sharedSecret,'>');
         }
-        const sharedKeyBase64 = base64Encode(sharedKey);
+        const sharedSecretData =  new Uint8Array(sharedSecret);
+        const sharedSecretBase64 = base64EncodeBin(sharedSecretData);
         if(this.trace0) {
-          console.log('MqttEncryptECDH::calcSharedKeys::sharedKeyBase64=<',sharedKeyBase64,'>');
+          console.log('MqttEncryptECDH::calcSharedKeysOfNode::sharedSecretBase64=<',sharedSecretBase64,'>');
         }
         const filter = {
           did:did,
           myNodeId:this.auth.address(),
           remoteNodeId:nodeId,
-          secretBase64:sharedKeyBase64
+          secretBase64:sharedSecretBase64
         }
         if(this.trace0) {
-          console.log('MqttEncryptECDH::calcSharedKeys::filter=<',filter,'>');
+          console.log('MqttEncryptECDH::calcSharedKeysOfNode::filter=<',filter,'>');
         }
         let hitnSecret = await this.db.secret.where(filter).first();
         if(this.trace0) {
-          console.log('MqttEncryptECDH::calcSharedKeys::hitnSecret=<',hitnSecret,'>');
+          console.log('MqttEncryptECDH::calcSharedKeysOfNode::hitnSecret=<',hitnSecret,'>');
         }
         if(hitnSecret) {
           return;
@@ -263,18 +265,94 @@ class MqttEncryptECDH {
           did:did,
           myNodeId:this.auth.address(),
           remoteNodeId:nodeId,
-          secretBase64:sharedKeyBase64,
+          secretBase64:sharedSecretBase64,
           issuedDate:(new Date()).toISOString(),
           expireDate:null
         }
         if(this.trace0) {
-          console.log('MqttEncryptECDH::calcSharedKeys::secret=<',secret,'>');
+          console.log('MqttEncryptECDH::calcSharedKeysOfNode::secret=<',secret,'>');
         }
         const secretResult = await this.db.secret.put(secret);
         if(this.trace0) {
-          console.log('MqttEncryptECDH::calcSharedKeys::secretResult=<',secretResult,'>');
+          console.log('MqttEncryptECDH::calcSharedKeysOfNode::secretResult=<',secretResult,'>');
         }
       }
+    }
+  }
+  async prepareSharedKeysOfTeamSpace() {
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::prepareSharedKeysOfTeamSpace::this.otmc.did.didDoc_=<',this.otmc.did.didDoc_,'>');
+    }
+    const filterSpace = {
+      did:this.otmc.did.didDoc_.id,
+    }
+
+    const secretsOfTeamSpace = await this.db.secretOfTeamSpace.where(filterSpace).sortBy('issuedDate');
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::prepareSharedKeysOfTeamSpace::secretsOfTeamSpace=<',secretsOfTeamSpace,'>');
+    }
+    if(secretsOfTeamSpace && secretsOfTeamSpace.length > 0 ) {
+      const secretOfTeamSpace = secretsOfTeamSpace[secretsOfTeamSpace.length - 1];
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::prepareSharedKeysOfTeamSpace::secretOfTeamSpace=<',secretOfTeamSpace,'>');
+      }
+      const issuedDate = new Date(secretOfTeamSpace.issuedDate);
+      const now = new Date();
+      const diff = now - issuedDate;
+      const diffOneHour = diff / (1000 * 60 * 60);
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::prepareSharedKeysOfTeamSpace::diffOneHour=<',diffOneHour,'>');
+      }
+      if(diffOneHour < 1) {
+        return;
+      }
+    }
+
+    const teamSharedKey = await crypto.subtle.generateKey(
+      {
+        name: "AES-GCM",
+        length: 256,
+      },
+      true,
+      ["encrypt", "decrypt"]      
+    );
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::prepareSharedKeysOfTeamSpace::teamSharedKey=<',teamSharedKey,'>');
+    }
+    const teamSharedKeyJwk = await crypto.subtle.exportKey('jwk',teamSharedKey);
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::prepareSharedKeysOfTeamSpace::teamSharedKeyJwk=<',teamSharedKeyJwk,'>');
+    }
+    const teamSharedKeyBase64 = base64Encode(JSON.stringify(teamSharedKeyJwk));
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::prepareSharedKeysOfTeamSpace::teamSharedKeyBase64=<',teamSharedKeyBase64,'>');
+    }
+    const filter = {
+      did:this.otmc.did.didDoc_.id,
+      secretBase64:teamSharedKeyBase64
+    }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::prepareSharedKeysOfTeamSpace::filter=<',filter,'>');
+    }
+    let hitnSecretTeam = await this.db.secretOfTeamSpace.where(filter).first();
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::prepareSharedKeysOfTeamSpace::hitnSecretTeam=<',hitnSecretTeam,'>');
+    }
+    if(hitnSecretTeam) {
+      return;
+    }
+    const secret = {
+      did:this.otmc.did.didDoc_.id,
+      secretBase64:teamSharedKeyBase64,
+      issuedDate:(new Date()).toISOString(),
+      expireDate:null
+    }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::prepareSharedKeysOfTeamSpace::secret=<',secret,'>');
+    }
+    const secretResult = await this.db.secretOfTeamSpace.put(secret);
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::prepareSharedKeysOfTeamSpace::secretResult=<',secretResult,'>');
     }
   }
 
@@ -333,6 +411,9 @@ class MqttEncryptECDH {
     });
     this.db.version(this.version).stores({
       secret: '++autoId,did,myNodeId,remoteNodeId,secretBase64,issuedDate,expireDate',
+    });
+    this.db.version(this.version).stores({
+      secretOfTeamSpace: '++autoId,did,issuedDate,expireDate',
     });
   }
 
@@ -455,6 +536,10 @@ class MqttEncryptECDH {
 const base64Encode = (str) => {
   const data = new TextEncoder().encode(str);
   return base64.encode(data);
+}
+
+const base64EncodeBin = (Bin) => {
+  return base64.encode(Bin);
 }
 
 const base64Decode = (base64Str) => {

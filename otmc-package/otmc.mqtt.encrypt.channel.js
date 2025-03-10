@@ -83,6 +83,9 @@ export class MqttEncryptChannel {
         console.log('MqttEncryptChannel::encryptMsgPayload_::pubKey=:<',pubKey,'>');
       }
       const encryptPayload = await this.ecdh.encryptData(mqttMsg.payload,did,nodeId);
+      if(this.trace0) {
+        console.log('MqttEncryptChannel::encryptMsgPayload_::encryptPayload=:<',encryptPayload,'>');
+      }
     }
   }
 }

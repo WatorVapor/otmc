@@ -2,6 +2,9 @@ import Dexie from 'dexie';
 import { StoreKey } from './otmc.const.js';
 import { base64 } from '@scure/base';
 
+//const iConstIssueMilliSeconds = 1000 * 60 * 60;
+const iConstIssueMilliSeconds = 1000 * 60 * 5;
+
 /**
 *
 */
@@ -59,35 +62,43 @@ export class MqttEncryptChannel {
       if(self.trace0) {
         console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      self.encryptMsgPayload_(evt);
+      self.encryptMsgPayload4TeamSpace_(evt);
     });
   }
-  async encryptMsgPayload_(mqttMsg) {
+  async encryptMsgPayload4TeamSpace_(mqttMsg) {
     if(this.trace0) {
-      console.log('MqttEncryptChannel::encryptMsgPayload_::mqttMsg=:<',mqttMsg,'>');
+      console.log('MqttEncryptChannel::encryptMsgPayload4TeamSpace_::mqttMsg=:<',mqttMsg,'>');
     }
     const did = this.otmc.did.didDoc_.id;
     if(this.trace0) {
-      console.log('MqttEncryptChannel::encryptMsgPayload_::did=:<',did,'>');
+      console.log('MqttEncryptChannel::encryptMsgPayload4TeamSpace_::did=:<',did,'>');
     }
+    const encyptMsg = await this.ecdh.encryptData4TeamSpace(mqttMsg,did);
+    if(this.trace0) {
+      console.log('MqttEncryptChannel::encryptMsgPayload4TeamSpace_::encyptMsg=:<',encyptMsg,'>');
+    }
+    return encyptMsg;
+  }
+  async encryptMsgPayloadByPublicKey_(mqttMsg) {
     const didPublicKeys = this.ecdh.memberPublicKeys[did];
     if(this.trace0) {
-      console.log('MqttEncryptChannel::encryptMsgPayload_::didPublicKeys=:<',didPublicKeys,'>');
+      console.log('MqttEncryptChannel::encryptMsgPayloadByPublicKey_::didPublicKeys=:<',didPublicKeys,'>');
     }
     for(const nodeId in didPublicKeys) {
       if(this.trace0) {
-        console.log('MqttEncryptChannel::encryptMsgPayload_::nodeId=:<',nodeId,'>');
+        console.log('MqttEncryptChannel::encryptMsgPayloadByPublicKey_::nodeId=:<',nodeId,'>');
       }
       const pubKey = didPublicKeys[nodeId];
       if(this.trace0) {
-        console.log('MqttEncryptChannel::encryptMsgPayload_::pubKey=:<',pubKey,'>');
+        console.log('MqttEncryptChannel::encryptMsgPayloadByPublicKey_::pubKey=:<',pubKey,'>');
       }
       const encryptPayload = await this.ecdh.encryptData(mqttMsg.payload,did,nodeId);
       if(this.trace0) {
-        console.log('MqttEncryptChannel::encryptMsgPayload_::encryptPayload=:<',encryptPayload,'>');
+        console.log('MqttEncryptChannel::encryptMsgPayloadByPublicKey_::encryptPayload=:<',encryptPayload,'>');
       }
     }
   }
+
 }
 
 class MqttEncryptECDH {
@@ -398,11 +409,78 @@ class MqttEncryptECDH {
       console.log('MqttEncryptECDH::storeRemotePubKey::ecdhResult=<',ecdhResult,'>');
     }
   }
-  encryptData(dataObject,did,nodeId) {
+  async encryptData4Node(dataObject,did,nodeId) {
     if(this.trace0) {
-      console.log('MqttEncryptECDH::encryptData::dataObject=<',dataObject,'>');
-      console.log('MqttEncryptECDH::encryptData::did=<',did,'>');
-      console.log('MqttEncryptECDH::encryptData::nodeId=<',nodeId,'>');
+      console.log('MqttEncryptECDH::encryptData4Node::dataObject=<',dataObject,'>');
+      console.log('MqttEncryptECDH::encryptData4Node::did=<',did,'>');
+      console.log('MqttEncryptECDH::encryptData4Node::nodeId=<',nodeId,'>');
+    }
+  }
+  
+  async encryptData4TeamSpace(mqttMsg,did) {
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::encryptData4TeamSpace::mqttMsg=<',mqttMsg,'>');
+      console.log('MqttEncryptECDH::encryptData4TeamSpace::did=<',did,'>');
+    }
+    const teamSharedKeys = await this.db.secretOfTeamSpace.where({did:did}).sortBy('issuedDate');
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::encryptData4TeamSpace::teamSharedKeys=<',teamSharedKeys,'>');
+    }
+    if(teamSharedKeys && teamSharedKeys.length > 0 ) {
+      const teamSharedKey = teamSharedKeys[teamSharedKeys.length - 1];
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::encryptData4TeamSpace::teamSharedKey=<',teamSharedKey,'>');
+      }
+      const issuedDate = new Date(teamSharedKey.issuedDate);
+      const now = new Date();
+      const diff = now - issuedDate;
+      if(diff > iConstIssueMilliSeconds) {
+        // renew teamSharedKey
+      }
+      const teamSharedKeyJwk = JSON.parse(base64Decode(teamSharedKey.secretBase64));
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::encryptData4TeamSpace::teamSharedKeyJwk=<',teamSharedKeyJwk,'>');
+      }
+      const teamSharedKeyKey = await crypto.subtle.importKey("jwk", teamSharedKeyJwk, {
+        name: "AES-GCM",
+        length: 256
+      }, true, ["encrypt"]);
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::encryptData4TeamSpace::teamSharedKeyKey=<',teamSharedKeyKey,'>');
+      }
+      this.teamSharedKeyKey = teamSharedKeyKey;
+      const data = JSON.stringify(mqttMsg);
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::encryptData4TeamSpace::data=<',data,'>');
+      }
+      const dataBin = new TextEncoder().encode(data);
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::encryptData4TeamSpace::dataBin=<',dataBin,'>');
+      }
+      const iv = crypto.getRandomValues(new Uint8Array(16));
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::encryptData4TeamSpace::iv=<',iv,'>');
+      }
+      const encryptedData = await crypto.subtle.encrypt(
+        {
+          name: "AES-GCM",
+          iv: iv,
+        },
+        teamSharedKeyKey,
+        dataBin
+      );
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::encryptData4TeamSpace::encryptedData=<',encryptedData,'>');
+      }
+      const encryptedDataBin = new Uint8Array(encryptedData);
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::encryptData4TeamSpace::encryptedDataBin=<',encryptedDataBin,'>');
+      }
+      const encryptedDataBase64 = base64EncodeBin(encryptedDataBin);
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::encryptData4TeamSpace::encryptedData=<',encryptedDataBase64,'>');
+      }
+      return encryptedDataBase64;
     }
   }
 

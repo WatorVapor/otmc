@@ -4,6 +4,7 @@ import { base64 } from '@scure/base';
 
 //const iConstIssueMilliSeconds = 1000 * 60 * 60;
 const iConstIssueMilliSeconds = 1000 * 60 * 5;
+const iConstLastTopSharedKey = 5;
 
 /**
 *
@@ -43,7 +44,6 @@ export class MqttEncryptChannel {
       await self.ecdh.loadMyECKey();
       await self.ecdh.loadMemeberPubKey();
       await self.ecdh.calcSharedKeysOfNode();
-      await self.ecdh.prepareSharedKeysOfTeamSpace();
       const topic = 'teamspace/secret/encrypt/ecdh/pubKey/jwk';
       const payload = {
         did:self.otmc.did.didDoc_.id,
@@ -51,6 +51,7 @@ export class MqttEncryptChannel {
         pubKeyJwk:self.ecdh.myPublicKeyJwk
       }
       self.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:payload}});
+      //await self.ecdh.prepareSharedKeysOfTeamSpace();
     });
     this.ee.on('teamspace/secret/encrypt/ecdh/pubKey/jwk',async (evt)=>{
       if(self.trace0) {
@@ -64,6 +65,16 @@ export class MqttEncryptChannel {
       }
       self.encryptMsgPayload4TeamSpace_(evt);
     });
+    this.ee.on('otmc.mqtt.encrypt.sharedkey.spaceteam.refresh',async (evt)=>{
+      if(self.trace0) {
+        console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      await self.ecdh.prepareSharedKeysOfTeamSpace();
+      const unicastMsg = await self.ecdh.createUnicastMessage4SharedKeysOfTeamSpace();
+      if(self.trace0) {
+        console.log('MqttEncryptChannel::ListenEventEmitter_::unicastMsg=:<',unicastMsg,'>');
+      }
+    });
   }
   async encryptMsgPayload4TeamSpace_(mqttMsg) {
     if(this.trace0) {
@@ -76,6 +87,10 @@ export class MqttEncryptChannel {
     const encyptMsg = await this.ecdh.encryptData4TeamSpace(mqttMsg,did);
     if(this.trace0) {
       console.log('MqttEncryptChannel::encryptMsgPayload4TeamSpace_::encyptMsg=:<',encyptMsg,'>');
+    }
+    if(encyptMsg === false) {
+      this.ee.emit('otmc.mqtt.encrypt.sharedkey.spaceteam.refresh',{});
+      return;
     }
     return encyptMsg;
   }
@@ -436,6 +451,7 @@ class MqttEncryptECDH {
       const diff = now - issuedDate;
       if(diff > iConstIssueMilliSeconds) {
         // renew teamSharedKey
+        return false;
       }
       const teamSharedKeyJwk = JSON.parse(base64Decode(teamSharedKey.secretBase64));
       if(this.trace0) {
@@ -481,6 +497,21 @@ class MqttEncryptECDH {
         console.log('MqttEncryptECDH::encryptData4TeamSpace::encryptedData=<',encryptedDataBase64,'>');
       }
       return encryptedDataBase64;
+    }
+  }
+
+  async createUnicastMessage4SharedKeysOfTeamSpace() {
+    const did = this.otmc.did.didDoc_.id;
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::did=:<',did,'>');
+    }
+    const teamSharedKeys = await this.db.secretOfTeamSpace.where({did:did}).sortBy('issuedDate');
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::teamSharedKeys=<',teamSharedKeys,'>');
+    }
+    const lastTeamSharedKeys = teamSharedKeys.slice(Math.max(teamSharedKeys.length - iConstLastTopSharedKey, 1));
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::lastTeamSharedKeys=<',lastTeamSharedKeys,'>');
     }
   }
 

@@ -522,43 +522,53 @@ class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::didPublicKeys=<',didPublicKeys,'>');
     }
-    for(const didKey in didPublicKeys) {
+    for(const nodeId in didPublicKeys) {
       if(this.trace0) {
-        console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::didKey=<',didKey,'>');
+        console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::nodeId=<',nodeId,'>');
       }
-      const filter = {
-        did:did,
-        myNodeId:this.auth.address(),
-        remoteNodeId:didKey
-      }
+      const nodePublicKey = didPublicKeys[nodeId];
+      const sharedSecret = await window.crypto.subtle.deriveBits(
+        {
+          name: "ECDH",
+          public: nodePublicKey,
+        },
+        this.myPrivateKey,
+        256
+      );
       if(this.trace0) {
-        console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::filter=<',filter,'>');
+        console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::sharedSecret=<',sharedSecret,'>');
       }
-      let hintSecrets = await this.db.secret.where(filter).sortBy('issuedDate');
+      const encryptRaw = await window.crypto.subtle.importKey("raw", sharedSecret, {name: "AES-GCM"}, true, ["encrypt"]);
       if(this.trace0) {
-        console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::hintSecrets=<',hintSecrets,'>');
+        console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::encryptRaw=<',encryptRaw,'>');
       }
-      if(hintSecrets && hintSecrets.length > 0 ) {
-        const hintSecret = hintSecrets[hintSecrets.length - 1];
-        if(this.trace0) {
-          console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::hintSecret=<',hintSecret,'>');
-        }
-        const sharedSecret = base64DecodeBin(hintSecret.secretBase64);
-        if(this.trace0) {
-          console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::sharedSecret=<',sharedSecret,'>');
-        }
-        const iv = crypto.getRandomValues(new Uint8Array(16));
-        if(this.trace0) {
-          console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::sharedSecret=<',sharedSecret,'>');
-        }
-        const encoded = new TextEncoder().encode(JSON.stringify(lastTeamSharedKeys));
-        if(this.trace0) {
-          console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::encoded=<',encoded,'>');
-        }
-        const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv },sharedSecret,encoded);
-        if(this.trace0) {
-          console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::ciphertext=<',ciphertext,'>');
-        }
+      const iv = window.crypto.getRandomValues(new Uint8Array(16));
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::iv=<',iv,'>');
+      }
+      const encoded = new TextEncoder().encode(JSON.stringify(lastTeamSharedKeys));
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::encoded=<',encoded,'>');
+      }
+      const ciphertext = await window.crypto.subtle.encrypt({ name: "AES-GCM", iv },encryptRaw,encoded);
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::ciphertext=<',ciphertext,'>');
+      }
+      const decryptRaw = await window.crypto.subtle.importKey("raw", sharedSecret, {name: "AES-GCM"}, true, ["decrypt"]);
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::decryptRaw=<',decryptRaw,'>');
+      }
+      const decrypted = await window.crypto.subtle.decrypt({ name: "AES-GCM", iv },decryptRaw,ciphertext);
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::decrypted=<',decrypted,'>');
+      }
+      const ivBase64 = base64EncodeBin(new Uint8Array(iv));
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::ivBase64=<',ivBase64,'>');
+      }
+      const encryptBase64 = base64EncodeBin(new Uint8Array(ciphertext));
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::encryptBase64=<',encryptBase64,'>');
       }
     }
   }

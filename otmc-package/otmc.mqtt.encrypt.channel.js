@@ -270,6 +270,9 @@ class MqttEncryptECDH {
           console.log('MqttEncryptECDH::calcSharedKeysOfNode::sharedSecret=<',sharedSecret,'>');
         }
         const sharedSecretData =  new Uint8Array(sharedSecret);
+        if(this.trace0) {
+          console.log('MqttEncryptECDH::calcSharedKeysOfNode::sharedSecretData=<',sharedSecretData,'>');
+        }
         const sharedSecretBase64 = base64EncodeBin(sharedSecretData);
         if(this.trace0) {
           console.log('MqttEncryptECDH::calcSharedKeysOfNode::sharedSecretBase64=<',sharedSecretBase64,'>');
@@ -513,6 +516,51 @@ class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::lastTeamSharedKeys=<',lastTeamSharedKeys,'>');
     }
+
+
+    const didPublicKeys = this.memberPublicKeys[did];
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::didPublicKeys=<',didPublicKeys,'>');
+    }
+    for(const didKey in didPublicKeys) {
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::didKey=<',didKey,'>');
+      }
+      const filter = {
+        did:did,
+        myNodeId:this.auth.address(),
+        remoteNodeId:didKey
+      }
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::filter=<',filter,'>');
+      }
+      let hintSecrets = await this.db.secret.where(filter).sortBy('issuedDate');
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::hintSecrets=<',hintSecrets,'>');
+      }
+      if(hintSecrets && hintSecrets.length > 0 ) {
+        const hintSecret = hintSecrets[hintSecrets.length - 1];
+        if(this.trace0) {
+          console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::hintSecret=<',hintSecret,'>');
+        }
+        const sharedSecret = base64DecodeBin(hintSecret.secretBase64);
+        if(this.trace0) {
+          console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::sharedSecret=<',sharedSecret,'>');
+        }
+        const iv = crypto.getRandomValues(new Uint8Array(16));
+        if(this.trace0) {
+          console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::sharedSecret=<',sharedSecret,'>');
+        }
+        const encoded = new TextEncoder().encode(JSON.stringify(lastTeamSharedKeys));
+        if(this.trace0) {
+          console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::encoded=<',encoded,'>');
+        }
+        const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv },sharedSecret,encoded);
+        if(this.trace0) {
+          console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::ciphertext=<',ciphertext,'>');
+        }
+      }
+    }
   }
 
 
@@ -526,6 +574,9 @@ class MqttEncryptECDH {
     });
     this.db.version(this.version).stores({
       secretOfTeamSpace: '++autoId,did,issuedDate,expireDate',
+    });
+    this.db.version(this.version).stores({
+      vote: '++autoId,did,nodeId,issuedDate,expireDate,zhuang,nonce',
     });
   }
 
@@ -659,3 +710,6 @@ const base64Decode = (base64Str) => {
   return new TextDecoder().decode(b64Bin);
 }
 
+const base64DecodeBin = (base64Str) => {
+  return base64.decode(base64Str);
+}

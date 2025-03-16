@@ -51,7 +51,6 @@ export class MqttEncryptChannel {
         pubKeyJwk:self.ecdh.myPublicKeyJwk
       }
       self.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:payload}});
-      //await self.ecdh.prepareSharedKeysOfTeamSpace();
     });
     this.ee.on('teamspace/secret/encrypt/ecdh/pubKey/jwk',async (evt)=>{
       if(self.trace0) {
@@ -73,6 +72,9 @@ export class MqttEncryptChannel {
       const unicastMsg = await self.ecdh.createUnicastMessage4SharedKeysOfTeamSpace();
       if(self.trace0) {
         console.log('MqttEncryptChannel::ListenEventEmitter_::unicastMsg=:<',unicastMsg,'>');
+      }
+      for(const msg of unicastMsg) {
+        self.ee.emit('otmc.mqtt.publish',{msg:msg});
       }
     });
   }
@@ -522,6 +524,7 @@ class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::didPublicKeys=<',didPublicKeys,'>');
     }
+    const castMessages = [];
     for(const nodeId in didPublicKeys) {
       if(this.trace0) {
         console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::nodeId=<',nodeId,'>');
@@ -570,7 +573,19 @@ class MqttEncryptECDH {
       if(this.trace0) {
         console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::encryptBase64=<',encryptBase64,'>');
       }
+      castMessages.push({
+        topic:`teamspace/secret/encrypt/ecdh/sharedKey/secret`,
+        payload:{
+          nodeId:nodeId,
+          iv:ivBase64,
+          encrypt:encryptBase64
+        }
+      });
     }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::castMessages=<',castMessages,'>');
+    }
+    return castMessages;
   }
 
 

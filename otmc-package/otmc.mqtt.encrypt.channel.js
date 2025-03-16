@@ -58,6 +58,13 @@ export class MqttEncryptChannel {
       }
       self.ecdh.storeRemotePubKey(evt.payload);
     });
+    this.ee.on('teamspace/secret/encrypt/ecdh/secret/space',async (evt)=>{
+      if(self.trace0) {
+        console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.ecdh.storeSharedKeySecretOfSpace(evt.payload,self.otmc.did.didDoc_.id);
+    });
+
     this.ee.on('otmc.mqtt.encrypt.channel.encrypt',async (evt)=>{
       if(self.trace0) {
         console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
@@ -503,6 +510,7 @@ class MqttEncryptECDH {
       }
       return encryptedDataBase64;
     }
+    return false;
   }
 
   async createUnicastMessage4SharedKeysOfTeamSpace() {
@@ -574,9 +582,10 @@ class MqttEncryptECDH {
         console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::encryptBase64=<',encryptBase64,'>');
       }
       castMessages.push({
-        topic:`teamspace/secret/encrypt/ecdh/sharedKey/secret`,
+        topic:`teamspace/secret/encrypt/ecdh/secret/space`,
         payload:{
-          nodeId:nodeId,
+          srcNodeId:this.auth.address(),
+          distNodeId:nodeId,
           iv:ivBase64,
           encrypt:encryptBase64
         }
@@ -718,6 +727,38 @@ class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::storeRemotePubKey::ecdhResult=<',ecdhResult,'>');
     }
+  }
+  async storeSharedKeySecretOfSpace(secretMsg,did) {
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::secretMsg=<',secretMsg,'>');
+      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::did=<',did,'>');
+    }
+    if(secretMsg.distNodeId !== this.auth.address()) {
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::secretMsg.distNodeId=<',secretMsg.distNodeId,'>');
+        console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::this.auth.address()=<',this.auth.address(),'>');
+      }
+      return;
+    }
+    const memberPubKeys = this.memberPublicKeys[did];
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::memberPubKeys=<',memberPubKeys,'>');
+    }
+    const nodePublicKey = memberPubKeys[secretMsg.srcNodeId];
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::nodePublicKey=<',nodePublicKey,'>');
+    }
+    const sharedSecret = await crypto.subtle.deriveBits(
+      {
+        name: "ECDH",
+        public: nodePublicKey,
+      },
+      this.myPrivateKey,
+      256
+    );
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::sharedSecret=<',sharedSecret,'>');
+    }    
   }
 }
 

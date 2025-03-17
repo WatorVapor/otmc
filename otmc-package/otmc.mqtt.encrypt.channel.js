@@ -3,7 +3,7 @@ import { StoreKey } from './otmc.const.js';
 import { base64 } from '@scure/base';
 
 //const iConstIssueMilliSeconds = 1000 * 60 * 60;
-const iConstIssueMilliSeconds = 1000 * 60 * 5;
+const iConstIssueMilliSeconds = 1000 * 5;
 const iConstLastTopSharedKey = 5;
 
 /**
@@ -51,6 +51,9 @@ export class MqttEncryptChannel {
         pubKeyJwk:self.ecdh.myPublicKeyJwk
       }
       self.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:payload}});
+      setTimeout(()=>{
+        self.ee.emit('otmc.mqtt.encrypt.sharedkey.servant.vote.check',{});
+      },1);
     });
     this.ee.on('teamspace/secret/encrypt/ecdh/pubKey/jwk',async (evt)=>{
       if(self.trace0) {
@@ -63,6 +66,12 @@ export class MqttEncryptChannel {
         console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
       }
       self.ecdh.storeSharedKeySecretOfSpace(evt.payload,self.otmc.did.didDoc_.id);
+    });
+    this.ee.on('otmc.mqtt.encrypt.sharedkey.servant.vote.check',async (evt)=>{
+      if(self.trace0) {
+        console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.ecdh.checkServantVote(self.otmc.did.didDoc_.id);
     });
 
     this.ee.on('otmc.mqtt.encrypt.channel.encrypt',async (evt)=>{
@@ -596,7 +605,102 @@ class MqttEncryptECDH {
     }
     return castMessages;
   }
+  async storeSharedKeySecretOfSpace(secretMsg,did) {
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::secretMsg=<',secretMsg,'>');
+      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::did=<',did,'>');
+    }
+    if(secretMsg.distNodeId !== this.auth.address()) {
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::secretMsg.distNodeId=<',secretMsg.distNodeId,'>');
+        console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::this.auth.address()=<',this.auth.address(),'>');
+      }
+      return;
+    }
+    const memberPubKeys = this.memberPublicKeys[did];
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::memberPubKeys=<',memberPubKeys,'>');
+    }
+    const nodePublicKey = memberPubKeys[secretMsg.srcNodeId];
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::nodePublicKey=<',nodePublicKey,'>');
+    }
+    const sharedSecret = await crypto.subtle.deriveBits(
+      {
+        name: "ECDH",
+        public: nodePublicKey,
+      },
+      this.myPrivateKey,
+      256
+    );
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::sharedSecret=<',sharedSecret,'>');
+    }
+    const encryptRaw = await window.crypto.subtle.importKey("raw", sharedSecret, {name: "AES-GCM"}, true, ["decrypt"]);
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::encryptRaw=<',encryptRaw,'>');
+    }
+    const iv = base64DecodeBin(secretMsg.iv);
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::iv=<',iv,'>');
+    }
+    const ciphertext = base64DecodeBin(secretMsg.encrypt);
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::ciphertext=<',ciphertext,'>');
+    }
+    const decrypted = await window.crypto.subtle.decrypt({ name: "AES-GCM", iv },encryptRaw,ciphertext);
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::decrypted=<',decrypted,'>');
+    }
+    const sharedKeysOfTeamSpace = JSON.parse(new TextDecoder().decode(decrypted));
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::sharedKeysOfTeamSpace=<',sharedKeysOfTeamSpace,'>');
+    }
+    if(sharedKeysOfTeamSpace) {
+      for(const sharedKeyOfTeamSpace of sharedKeysOfTeamSpace) {
+        await this.storeSharedKeySecretOfSpace_(sharedKeyOfTeamSpace);
+      }
+    }
+  }
+  async storeRemotePubKey(keyMsg) {
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeRemotePubKey::keyMsg=<',keyMsg,'>');
+    }
+    const remotePublicKeyBase64 = base64Encode(JSON.stringify(keyMsg.pubKeyJwk));
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeRemotePubKey::remotePublicKeyBase64=:<',remotePublicKeyBase64,'>');
+    }
+    const filter = {
+      did:keyMsg.did,
+      nodeId:keyMsg.nodeId,
+      pubBase64:remotePublicKeyBase64
+    }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeRemotePubKey::filter=:<',filter,'>');
+    }
+    let hitnECDH = await this.db.ecdh.where(filter).first();
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeRemotePubKey::hitnECDH=<',hitnECDH,'>');
+    }
+    if(hitnECDH) {
+      return;
+    }
 
+    const ecdh = {
+      did:keyMsg.did,
+      nodeId:keyMsg.nodeId,
+      createdDate:(new Date()).toISOString(),
+      pubBase64:remotePublicKeyBase64,
+      privBase64:null
+    }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeRemotePubKey::ecdh=<',ecdh,'>');
+    }
+    const ecdhResult = await this.db.ecdh.put(ecdh);
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeRemotePubKey::ecdhResult=<',ecdhResult,'>');
+    }
+  }
 
   initDB_() {
     this.db = new Dexie(StoreKey.secret.mqtt.encrypt.channel.dbName);
@@ -610,8 +714,8 @@ class MqttEncryptECDH {
       secretOfTeamSpace: '++autoId,did,issuedDate,expireDate',
     });
     this.db.version(this.version).stores({
-      vote: '++autoId,did,nodeId,issuedDate,expireDate,zhuang,nonce',
-    });
+      servantVote: 'did,nodeId,issuedDate,expireDate,servant,nonce',
+    });  
   }
 
   async tryCreateMyECKey_(did,nodeId) {
@@ -689,77 +793,42 @@ class MqttEncryptECDH {
     this.memberPublicKeysJwk[did][nodeId] = memberPublicKeyJwk;
     this.memberPublicKeys[did][nodeId] = memberPublicKeyKey;
   }
-  async storeRemotePubKey(keyMsg) {
+  
+  async storeSharedKeySecretOfSpace_(sharedKeyOfTeamSpace) {
     if(this.trace0) {
-      console.log('MqttEncryptECDH::storeRemotePubKey::keyMsg=<',keyMsg,'>');
-    }
-    const remotePublicKeyBase64 = base64Encode(JSON.stringify(keyMsg.pubKeyJwk));
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::storeRemotePubKey::remotePublicKeyBase64=:<',remotePublicKeyBase64,'>');
+      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace_::sharedKeyOfTeamSpace=<',sharedKeyOfTeamSpace,'>');
     }
     const filter = {
-      did:keyMsg.did,
-      nodeId:keyMsg.nodeId,
-      pubBase64:remotePublicKeyBase64
+      did:sharedKeyOfTeamSpace.did,
+      issuedDate:sharedKeyOfTeamSpace.issuedDate,
+      expireDate:sharedKeyOfTeamSpace.expireDate,
+      secretBase64:sharedKeyOfTeamSpace.secretBase64
     }
     if(this.trace0) {
-      console.log('MqttEncryptECDH::storeRemotePubKey::filter=:<',filter,'>');
+      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace_::filter=<',filter,'>');
     }
-    let hitnECDH = await this.db.ecdh.where(filter).first();
+    let hitnSecret = await this.db.secretOfTeamSpace.where(filter).first();
     if(this.trace0) {
-      console.log('MqttEncryptECDH::storeRemotePubKey::hitnECDH=<',hitnECDH,'>');
+      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace_::hitnSecret=<',hitnSecret,'>');
     }
-    if(hitnECDH) {
+    if(hitnSecret) {
       return;
     }
+    const secret = {
+      did:sharedKeyOfTeamSpace.did,
+      secretBase64:sharedKeyOfTeamSpace.secretBase64,
+      issuedDate:sharedKeyOfTeamSpace.issuedDate,
+      expireDate:sharedKeyOfTeamSpace.expireDate
+    }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace_::secret=<',secret,'>');
+    }
+    const secretResult = await this.db.secretOfTeamSpace.put(secret);
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace_::secretResult=<',secretResult,'>');
+    }
+  }
 
-    const ecdh = {
-      did:keyMsg.did,
-      nodeId:keyMsg.nodeId,
-      createdDate:(new Date()).toISOString(),
-      pubBase64:remotePublicKeyBase64,
-      privBase64:null
-    }
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::storeRemotePubKey::ecdh=<',ecdh,'>');
-    }
-    const ecdhResult = await this.db.ecdh.put(ecdh);
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::storeRemotePubKey::ecdhResult=<',ecdhResult,'>');
-    }
-  }
-  async storeSharedKeySecretOfSpace(secretMsg,did) {
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::secretMsg=<',secretMsg,'>');
-      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::did=<',did,'>');
-    }
-    if(secretMsg.distNodeId !== this.auth.address()) {
-      if(this.trace0) {
-        console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::secretMsg.distNodeId=<',secretMsg.distNodeId,'>');
-        console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::this.auth.address()=<',this.auth.address(),'>');
-      }
-      return;
-    }
-    const memberPubKeys = this.memberPublicKeys[did];
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::memberPubKeys=<',memberPubKeys,'>');
-    }
-    const nodePublicKey = memberPubKeys[secretMsg.srcNodeId];
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::nodePublicKey=<',nodePublicKey,'>');
-    }
-    const sharedSecret = await crypto.subtle.deriveBits(
-      {
-        name: "ECDH",
-        public: nodePublicKey,
-      },
-      this.myPrivateKey,
-      256
-    );
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::sharedSecret=<',sharedSecret,'>');
-    }    
-  }
 }
 
 const base64Encode = (str) => {

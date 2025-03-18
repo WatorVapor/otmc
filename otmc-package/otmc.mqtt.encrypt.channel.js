@@ -4,6 +4,9 @@ import { base64 } from '@scure/base';
 
 //const iConstIssueMilliSeconds = 1000 * 60 * 60;
 const iConstIssueMilliSeconds = 1000 * 5;
+//const iConstRevoteMilliSeconds = 1000 * 60 * 60;
+const iConstRevoteMilliSeconds = 1000 * 5;
+
 const iConstLastTopSharedKey = 5;
 
 /**
@@ -67,12 +70,37 @@ export class MqttEncryptChannel {
       }
       self.ecdh.storeSharedKeySecretOfSpace(evt.payload,self.otmc.did.didDoc_.id);
     });
+
     this.ee.on('otmc.mqtt.encrypt.sharedkey.servant.vote.check',async (evt)=>{
       if(self.trace0) {
         console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      self.ecdh.checkServantVote(self.otmc.did.didDoc_.id);
+      const voteResult = await self.ecdh.checkServantVote(self.otmc.did.didDoc_.id);
+      if(self.trace0) {
+        console.log('MqttEncryptChannel::ListenEventEmitter_::voteResult=:<',voteResult,'>');
+      }
+      self.servant = voteResult.servant;
+      if(voteResult.reVote === true) {
+        const topic = 'teamspace/secret/encrypt/ecdh/servant/vote';
+        const payload = {
+          did:self.otmc.did.didDoc_.id,
+        }
+        if(self.trace0) {
+          console.log('MqttEncryptChannel::ListenEventEmitter_::payload=:<',payload,'>');
+        }
+        self.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:payload}});        
+      }
     });
+    this.ee.on('teamspace/secret/encrypt/ecdh/servant/vote',async (evt)=>{
+      if(self.trace0) {
+        console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');      
+      }
+      const voteResult = await self.ecdh.voteServant(self.otmc.did.didDoc_.id);
+      if(self.trace0) {
+        console.log('MqttEncryptChannel::ListenEventEmitter_::voteResult=:<',voteResult,'>');      
+      }
+    });
+
 
     this.ee.on('otmc.mqtt.encrypt.channel.encrypt',async (evt)=>{
       if(self.trace0) {
@@ -702,6 +730,68 @@ class MqttEncryptECDH {
     }
   }
 
+  async checkServantVote(did) {
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::checkServantVote::did=<',did,'>');
+    }
+    const servantVotes = await this.db.servantVote.where({did:did}).sortBy('issuedDate');
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::checkServantVote::servantVotes=<',servantVotes,'>');
+    }
+    if(servantVotes.length === 0) {
+      const storeVote = {
+        did:did,
+        nodeId:this.auth.address(),
+        issuedDate:(new Date()).toISOString(),
+        expireDate:null,
+        nonce:Math.random(),
+      }
+      const storeReult = await this.db.servantVote.put(storeVote);
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::checkServantVote::storeReult=<',storeReult,'>');
+      }
+    }
+
+    const result = {};
+    let issueTotal = false;
+    let nonceMax = 0.0;
+    let nodeIdOfMax = ''; 
+    for(const servantVote of servantVotes ) {
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::checkServantVote::servantVote=<',servantVote,'>');
+      }
+      const issuedDate = new Date(servantVote.issuedDate);
+      const now = new Date();
+      const diff = now - issuedDate;
+      if(diff > iConstRevoteMilliSeconds) {
+        issueTotal = true;
+      }
+      if(servantVote.nonce > nonceMax) {
+        nonceMax = servantVote.nonce;
+        nodeIdOfMax = servantVote.nodeId;
+      }
+    }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::checkServantVote::issueTotal=<',issueTotal,'>');
+      console.log('MqttEncryptECDH::checkServantVote::nonceMax=<',nonceMax,'>');
+      console.log('MqttEncryptECDH::checkServantVote::nodeIdOfMax=<',nodeIdOfMax,'>');
+    }
+    if(nodeIdOfMax === this.auth.address()) {
+      result.servant = true;
+    } else {
+      result.servant = false;
+    }
+    if(issueTotal) {
+      result.reVote = true;
+    } else {
+      result.reVote = false;
+    }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::checkServantVote::result=<',result,'>');
+    }
+    return result;
+  }
+
   initDB_() {
     this.db = new Dexie(StoreKey.secret.mqtt.encrypt.channel.dbName);
     this.db.version(this.version).stores({
@@ -714,7 +804,7 @@ class MqttEncryptECDH {
       secretOfTeamSpace: '++autoId,did,issuedDate,expireDate',
     });
     this.db.version(this.version).stores({
-      servantVote: 'did,nodeId,issuedDate,expireDate,servant,nonce',
+      servantVote: 'did,nodeId,issuedDate,expireDate,nonce',
     });  
   }
 

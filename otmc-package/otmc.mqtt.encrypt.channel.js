@@ -1,6 +1,8 @@
 import Dexie from 'dexie';
 import { StoreKey } from './otmc.const.js';
 import { base64 } from '@scure/base';
+import { createMachine, createActor, assign  }  from 'xstate';
+
 
 //const iConstIssueMilliSeconds = 1000 * 60 * 60;
 const iConstIssueMilliSeconds = 1000 * 5;
@@ -39,6 +41,10 @@ export class MqttEncryptChannel {
       if(!self.ecdh)  {
         self.ecdh = new MqttEncryptECDH(self.otmc,self.auth,self.base32,self.util);
       }
+      if(!self.sm)  {
+        self.sm = new MqttEncrptStateMachine();
+        self.sm.actor.send({type:'init'});
+      }
     });
     this.ee.on('did:document',async (evt)=>{
       if(self.trace0) {
@@ -75,12 +81,12 @@ export class MqttEncryptChannel {
       if(self.trace0) {
         console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      const voteResult = await self.ecdh.checkServantVote(self.otmc.did.didDoc_.id);
+      const voteCheckResult = await self.ecdh.checkServantVote(self.otmc.did.didDoc_.id);
       if(self.trace0) {
-        console.log('MqttEncryptChannel::ListenEventEmitter_::voteResult=:<',voteResult,'>');
+        console.log('MqttEncryptChannel::ListenEventEmitter_::voteCheckResult=:<',voteCheckResult,'>');
       }
-      self.servant = voteResult.servant;
-      if(voteResult.reVote === true) {
+      self.servant = voteCheckResult.servant;
+      if(voteCheckResult.reVote === true) {
         const topic = 'teamspace/secret/encrypt/ecdh/servant/vote';
         const payload = {
           did:self.otmc.did.didDoc_.id,
@@ -89,6 +95,8 @@ export class MqttEncryptChannel {
           console.log('MqttEncryptChannel::ListenEventEmitter_::payload=:<',payload,'>');
         }
         self.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:payload}});        
+      } else {
+        self.ee.emit('otmc.mqtt.encrypt.sharedkey.spaceteam.loadSecret',{});
       }
     });
     this.ee.on('teamspace/secret/encrypt/ecdh/servant/vote',async (evt)=>{
@@ -99,6 +107,23 @@ export class MqttEncryptChannel {
       if(self.trace0) {
         console.log('MqttEncryptChannel::ListenEventEmitter_::voteResult=:<',voteResult,'>');      
       }
+      if(voteResult) {
+        const topic = 'teamspace/secret/encrypt/ecdh/servant/voteResult';
+        const payload = {
+          did:self.otmc.did.didDoc_.id,
+          voteResult:voteResult
+        }
+        if(self.trace0) {
+          console.log('MqttEncryptChannel::ListenEventEmitter_::payload=:<',payload,'>');
+        }
+        self.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:payload}});
+      }
+    });
+    this.ee.on('teamspace/secret/encrypt/ecdh/servant/voteResult',async (evt)=>{
+      if(self.trace0) {
+        console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');      
+      }
+      const voteResult = await self.ecdh.collectRemotevoteServant(evt.payload.voteResult);
     });
 
 
@@ -370,11 +395,11 @@ class MqttEncryptECDH {
       console.log('MqttEncryptECDH::prepareSharedKeysOfTeamSpace::secretsOfTeamSpace=<',secretsOfTeamSpace,'>');
     }
     if(secretsOfTeamSpace && secretsOfTeamSpace.length > 0 ) {
-      const secretOfTeamSpace = secretsOfTeamSpace[secretsOfTeamSpace.length - 1];
+      const lastSecretTS = secretsOfTeamSpace[secretsOfTeamSpace.length - 1];
       if(this.trace0) {
-        console.log('MqttEncryptECDH::prepareSharedKeysOfTeamSpace::secretOfTeamSpace=<',secretOfTeamSpace,'>');
+        console.log('MqttEncryptECDH::prepareSharedKeysOfTeamSpace::lastSecretTS=<',lastSecretTS,'>');
       }
-      const issuedDate = new Date(secretOfTeamSpace.issuedDate);
+      const issuedDate = new Date(lastSecretTS.issuedDate);
       const now = new Date();
       const diff = now - issuedDate;
       const diffOneHour = diff / (1000 * 60 * 60);
@@ -791,6 +816,92 @@ class MqttEncryptECDH {
     }
     return result;
   }
+  async voteServant(did) {
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::voteServant::did=<',did,'>');
+    }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::voteServant::did=<',did,'>');
+    }
+    const filter = {
+      did:did,
+      nodeId:this.auth.address()
+    }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::voteServant::filter=<',filter,'>');
+    }
+    const servantVotes = await this.db.servantVote.where(filter).sortBy('issuedDate');
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::voteServant::servantVotes=<',servantVotes,'>');
+    }
+    if(servantVotes && servantVotes.length >0) {
+      const lastVote = servantVotes[servantVotes.length - 1];
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::voteServant::lastVote=<',lastVote,'>');
+      }
+      const issuedDate = new Date(lastVote.issuedDate);
+      const now = new Date();
+      const diff = now - issuedDate;
+      if(diff < iConstRevoteMilliSeconds) {
+        if(this.trace0) {
+          console.log('MqttEncryptECDH::voteServant::lastVote=<',lastVote,'>');
+        }
+        return lastVote;
+      } else {
+        lastVote.nonce = Math.random();
+        lastVote.issuedDate = (new Date()).toISOString();
+        if(this.trace0) {
+          console.log('MqttEncryptECDH::voteServant::lastVote=<',lastVote,'>');
+        }
+        const updateReult = await this.db.servantVote.update(lastVote.autoId,lastVote);
+        if(this.trace0) {
+          console.log('MqttEncryptECDH::voteServant::updateReult=<',updateReult,'>');
+        }
+        return lastVote;
+      }
+    }
+    // create a new vote.
+    const storeVote = {
+      did:did,
+      nodeId:this.auth.address(),
+      issuedDate:(new Date()).toISOString(),
+      expireDate:null,
+      nonce:Math.random(),
+    }
+    const storeReult = await this.db.servantVote.put(storeVote);
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::checkServantVote::storeReult=<',storeReult,'>');
+    }
+    return storeVote;
+  }
+  async collectRemotevoteServant(remoteVoteServant) {
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::collectRemotevoteServant::remoteVoteServant=<',remoteVoteServant,'>');
+    }
+    delete remoteVoteServant.autoId;
+    const filter = {
+      did:remoteVoteServant.did,
+      nodeId:remoteVoteServant.nodeId
+    }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::collectRemotevoteServant::filter=<',filter,'>');
+    }
+    const servantVoteHint = await this.db.servantVote.where(filter).first();
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::collectRemotevoteServant::servantVoteHint=<',servantVoteHint,'>');
+    }
+    if(servantVoteHint) {
+      const updateReult = await this.db.servantVote.update(servantVoteHint.autoId,remoteVoteServant);
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::collectRemotevoteServant::updateReult=<',updateReult,'>');
+      }      
+    } else {
+      const putReult = await this.db.servantVote.put(remotevoteServant);
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::collectRemotevoteServant::putReult=<',putReult,'>');
+      }
+    }
+  }
 
   initDB_() {
     this.db = new Dexie(StoreKey.secret.mqtt.encrypt.channel.dbName);
@@ -804,7 +915,7 @@ class MqttEncryptECDH {
       secretOfTeamSpace: '++autoId,did,issuedDate,expireDate',
     });
     this.db.version(this.version).stores({
-      servantVote: 'did,nodeId,issuedDate,expireDate,nonce',
+      servantVote: '++autoId,did,nodeId,issuedDate,expireDate,nonce',
     });  
   }
 
@@ -920,6 +1031,99 @@ class MqttEncryptECDH {
   }
 
 }
+
+class MqttEncrptStateMachine {
+  constructor(ee) {
+    this.trace0 = true;
+    this.trace1 = true;
+    this.trace = true;
+    this.debug = true;
+    if(this.trace0) {
+      console.log('MqttEncrptStateMachine::constructor::ee=:<',ee,'>');
+    }
+    this.ee = ee;
+    this.machine = this.createStateMachine_();
+  }
+  ListenEventEmitter_() {
+    if(this.trace0) {
+      console.log('MqttEncrptStateMachine::ListenEventEmitter_::this.ee=:<',this.ee,'>');
+    }
+  }
+  createStateMachine_() {
+    const stmConfig = {
+      initial: 'genesis',
+      context: {
+        ee:this.ee,
+        chain:this.chain,
+      },
+      states: mqttEncrptStateTable,
+    }
+    const stmOption = {
+      actions:mqttEncrptActionTable,
+    }
+    if(this.trace) {
+      console.log('MqttEncrptStateMachine::createStateMachine_::stmConfig=:<',stmConfig,'>');
+    }
+    this.stm = createMachine(stmConfig,stmOption);
+    if(this.trace0) {
+      console.log('MqttEncrptStateMachine::createStateMachine_::this.stm=:<',this.stm,'>');
+    }
+    this.actor = createActor(this.stm);
+    
+    const self = this;
+    this.actor.subscribe((state) => {
+      if(self.trace0) {
+        console.log('MqttEncrptStateMachine::createStateMachine_::state=:<',state,'>');
+        console.log('MqttEncrptStateMachine::createStateMachine_::self.stm=:<',self.stm,'>');
+      }
+      if(self.trace) {
+        console.log('MqttEncrptStateMachine::createStateMachine_::state.value=:<',state.value,'>');
+      }
+    });
+    this.actor.start();
+  }
+}
+
+
+const LOG = {
+  trace:true,
+  debug:true,
+};
+
+
+const mqttEncrptStateTable = {
+  genesis: {
+    on: {
+      'init': {
+        actions: ['init'],
+        target: "init",
+      },
+    } 
+  },
+  init: {
+    on: {
+      'init': {
+        actions: ['init'],
+        target: "init",
+      },
+    }
+  },
+}
+
+const mqttEncrptActionTable = {
+  init: (context, evt) => {
+    const ee = context.context.ee;
+    const chain = context.context.chain;
+    if(LOG.trace) {
+      console.log('MqttEncrptStateMachine::mqttEncrptActionTable::init:context=:<',context,'>');
+      console.log('MqttEncrptStateMachine::mqttEncrptActionTable::init:ee=:<',ee,'>');
+      console.log('MqttEncrptStateMachine::mqttEncrptActionTable::init:chain=:<',chain,'>');
+    }
+  },
+};
+
+
+
 
 const base64Encode = (str) => {
   const data = new TextEncoder().encode(str);

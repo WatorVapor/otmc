@@ -1,6 +1,3 @@
-import { default as mqtt } from 'mqtt';
-//console.log('::::mqtt=:<',mqtt,'>');
-import { StoreKey, OtmcPortal } from './otmc.const.js';
 import { MqttJWTAgent } from './otmc.mqtt.jwt.js';
 import { MqttEncryptChannel } from './otmc.mqtt.encrypt.channel.js';
 
@@ -28,6 +25,9 @@ export class MqttMessager {
     this.util = false;
     this.ListenEventEmitter_();
     this.msgQueue = [];
+    if(this.trace0) {
+      console.log('MqttMessager::constructor::this.ee=:<',this.ee,'>');
+    }    
   }
   ListenEventEmitter_() {
     if(this.trace0) {

@@ -72,33 +72,42 @@ const mqttEncrptStateTable = {
   genesis: {
     on: {
       'init': {
-        /*
-        actions: assign({
-          ecdh: (context, evt) => {
-            if(LOG.trace) {
-              console.log('MqttEncrptStateMachine::mqttEncrptActionTable::init:context=:<',context,'>');
-              console.log('MqttEncrptStateMachine::mqttEncrptActionTable::init:evt=:<',evt,'>');
-            }
-            return evt.ecdh;
-          }
-        }),
-        */
-        actions: ['init'],
         target: "init",
       },
     } 
   },
   init: {
+    entry: ['init_entry'],
     on: {
-      'init': {
-        actions: ['init'],
-        target: "init",
+      'did-document': {
+        target: 'did_document_loaded',
       },
     }
+  },
+  did_document_loaded: {
+    entry: ['did_document_loaded_entry'],
+    on: {
+      'vote-check': {
+        target: 'vote_checking',
+      },
+    }
+  },
+  vote_checking: {
+    entry: ['vote_checking_entry'],
+
   },
 }
 
 const mqttEncrptActionTable = {
+  init_entry: async (context, evt) => {
+    const ee = context.context.ee;
+    const ecdh = context.context.ecdh;
+    if(LOG.trace) {
+      console.log('MqttEncrptStateMachine::mqttEncrptActionTable::init_entry:context=:<',context,'>');
+      console.log('MqttEncrptStateMachine::mqttEncrptActionTable::init_entry:ee=:<',ee,'>');
+      console.log('MqttEncrptStateMachine::mqttEncrptActionTable::init_entry:ecdh=:<',ecdh,'>');
+    }
+  },
   init: (context, evt) => {
     const ee = context.context.ee;
     if(LOG.trace) {
@@ -107,4 +116,31 @@ const mqttEncrptActionTable = {
       console.log('MqttEncrptStateMachine::mqttEncrptActionTable::init:evt=:<',evt,'>');
     }
   },
+  did_document_loaded_entry: async (context, evt) => {
+    const ee = context.context.ee;
+    const ecdh = context.context.ecdh;
+    if(LOG.trace) {
+      console.log('MqttEncrptStateMachine::mqttEncrptActionTable::init_entry:context=:<',context,'>');
+      console.log('MqttEncrptStateMachine::mqttEncrptActionTable::init_entry:ee=:<',ee,'>');
+      console.log('MqttEncrptStateMachine::mqttEncrptActionTable::init_entry:ecdh=:<',ecdh,'>');
+    }
+    await ecdh.loadMyECKey();
+    await ecdh.loadMemeberPubKey();
+    ee.emit('xstate.internal.mqtt.publish.ecdh.pubkey',{});
+    await ecdh.calcSharedKeysOfNode();
+    setTimeout(()=>{
+      ee.emit('xstate.internal.mqtt.encrypt.servant.vote.check',{});
+    },1);
+  },
+  vote_checking_entry: async (context, evt) => {
+    const ee = context.context.ee;
+    const ecdh = context.context.ecdh;
+    if(LOG.trace) {
+      console.log('MqttEncrptStateMachine::mqttEncrptActionTable::vote_checking_entry:context=:<',context,'>');
+      console.log('MqttEncrptStateMachine::mqttEncrptActionTable::vote_checking_entry:ee=:<',ee,'>');
+      console.log('MqttEncrptStateMachine::mqttEncrptActionTable::vote_checking_entry:ecdh=:<',ecdh,'>');
+    }
+    //const voteCheckResult = await ecdh.checkServantVote(self.otmc.did.didDoc_.id);
+  },
+
 };

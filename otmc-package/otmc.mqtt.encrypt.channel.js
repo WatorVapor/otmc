@@ -38,11 +38,12 @@ export class MqttEncryptChannel {
       if(self.trace0) {
         console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      self.sm.actor.send({type:'did:document'});
-
-      await self.ecdh.loadMyECKey();
-      await self.ecdh.loadMemeberPubKey();
-      await self.ecdh.calcSharedKeysOfNode();
+      self.sm.actor.send({type:'did-document'});
+    });
+    this.ee.on('xstate.internal.mqtt.publish.ecdh.pubkey',async (evt)=>{
+      if(self.trace0) {
+        console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
+      }
       const topic = 'teamspace/secret/encrypt/ecdh/pubKey/jwk';
       const payload = {
         did:self.otmc.did.didDoc_.id,
@@ -50,9 +51,6 @@ export class MqttEncryptChannel {
         pubKeyJwk:self.ecdh.myPublicKeyJwk
       }
       self.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:payload}});
-      setTimeout(()=>{
-        self.ee.emit('otmc.mqtt.encrypt.sharedkey.servant.vote.check',{});
-      },1);
     });
     this.ee.on('teamspace/secret/encrypt/ecdh/pubKey/jwk',async (evt)=>{
       if(self.trace0) {
@@ -67,10 +65,12 @@ export class MqttEncryptChannel {
       self.ecdh.storeSharedKeySecretOfSpace(evt.payload,self.otmc.did.didDoc_.id);
     });
 
-    this.ee.on('otmc.mqtt.encrypt.sharedkey.servant.vote.check',async (evt)=>{
+    this.ee.on('xstate.internal.mqtt.encrypt.servant.vote.check',async (evt)=>{
       if(self.trace0) {
         console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
       }
+      self.sm.actor.send({type:'vote-check'});
+
       const voteCheckResult = await self.ecdh.checkServantVote(self.otmc.did.didDoc_.id);
       if(self.trace0) {
         console.log('MqttEncryptChannel::ListenEventEmitter_::voteCheckResult=:<',voteCheckResult,'>');

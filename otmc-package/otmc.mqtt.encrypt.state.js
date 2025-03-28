@@ -140,7 +140,15 @@ const mqttEncrptActionTable = {
       console.log('MqttEncrptStateMachine::mqttEncrptActionTable::vote_checking_entry:ee=:<',ee,'>');
       console.log('MqttEncrptStateMachine::mqttEncrptActionTable::vote_checking_entry:ecdh=:<',ecdh,'>');
     }
-    //const voteCheckResult = await ecdh.checkServantVote(self.otmc.did.didDoc_.id);
+    const voteCheckResult = await ecdh.checkServantVote();
+    if(LOG.trace) {
+      console.log('MqttEncrptStateMachine::mqttEncrptActionTable::vote_checking_entry:voteCheckResult=:<',voteCheckResult,'>');
+    }
+    if(voteCheckResult.reVote) {
+      ee.emit('xstate.internal.mqtt.encrypt.servant.vote.refresh',voteCheckResult);
+    } else {
+      ee.emit('xstate.internal.mqtt.encrypt.servant.vote.ready',voteCheckResult);
+    }
   },
 
 };

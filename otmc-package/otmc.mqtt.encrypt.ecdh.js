@@ -579,7 +579,8 @@ export class MqttEncryptECDH {
     }
   }
 
-  async checkServantVote(did) {
+  async checkServantVote() {
+    const did = this.otmc.did.didDoc_.id;
     if(this.trace0) {
       console.log('MqttEncryptECDH::checkServantVote::did=<',did,'>');
     }
@@ -694,7 +695,7 @@ export class MqttEncryptECDH {
     }
     const storeReult = await this.db.servantVote.put(storeVote);
     if(this.trace0) {
-      console.log('MqttEncryptECDH::checkServantVote::storeReult=<',storeReult,'>');
+      console.log('MqttEncryptECDH::voteServant::storeReult=<',storeReult,'>');
     }
     return storeVote;
   }

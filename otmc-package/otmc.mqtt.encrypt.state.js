@@ -94,7 +94,34 @@ const mqttEncrptStateTable = {
   },
   vote_checking: {
     entry: ['vote_checking_entry'],
-
+    on: {
+      'vote-refresh': {
+        target: 'servant_vote_refresh',
+      },
+      'servant-share-team-secret': {
+        target: 'servant_share_secret',
+      },
+    }
+  },
+  servant_vote_refresh: {
+    entry: ['servant_vote_refresh_entry'], 
+    on: {
+      'vote-refresh-result': {
+        target:'servant_vote_refresh',
+      },
+    }
+  },
+  servant_share_secret: {
+    entry: ['servant_share_secret_entry'],
+    on: {
+      'vote-refresh': {
+        target:'servant_vote_refresh',
+      },
+    }
+  },
+  ready_as_servant: {
+  },
+  ready_as_master: {
   },
 }
 
@@ -131,6 +158,7 @@ const mqttEncrptActionTable = {
     setTimeout(()=>{
       ee.emit('xstate.internal.mqtt.encrypt.servant.vote.check',{});
     },1);
+    await ecdh.loadSharedKeyOfTeamSpace();
   },
   vote_checking_entry: async (context, evt) => {
     const ee = context.context.ee;
@@ -146,9 +174,7 @@ const mqttEncrptActionTable = {
     }
     if(voteCheckResult.reVote) {
       ee.emit('xstate.internal.mqtt.encrypt.servant.vote.refresh',voteCheckResult);
-    } else {
-      ee.emit('xstate.internal.mqtt.encrypt.servant.vote.ready',voteCheckResult);
     }
+    ee.emit('xstate.internal.mqtt.encrypt.servant.vote.ready',voteCheckResult);
   },
-
 };

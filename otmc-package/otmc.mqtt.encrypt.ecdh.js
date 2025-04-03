@@ -25,6 +25,8 @@ export class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::constructor::this.otmc=:<',this.otmc,'>');
     }
+    this.teamSharedKeys = {};
+
   }
   async loadMyECKey() {
     if(this.trace0) {
@@ -136,6 +138,43 @@ export class MqttEncryptECDH {
       }
     }
   }
+  async loadSharedKeyOfTeamSpace() {
+    const did = this.otmc.did.didDoc_.id;
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::loadSharedKeyOfTeamSpace::did=:<',did,'>');
+    }
+
+    this.teamSharedKeys[did] = {};
+
+    const teamSharedKeys = await this.db.secretOfTeamSpace.where({did:did}).sortBy('issuedDate');
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::loadSharedKeyOfTeamSpace::teamSharedKeys=<',teamSharedKeys,'>');
+    }
+    if(teamSharedKeys && teamSharedKeys.length > 0 ) {
+      const teamKey = teamSharedKeys[teamSharedKeys.length - 1];
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::loadSharedKeyOfTeamSpace::teamKey=<',teamKey,'>');
+      }
+      const teamSharedKeyJwk = JSON.parse(base64Decode(teamKey.secretBase64));
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::loadSharedKeyOfTeamSpace::teamSharedKeyJwk=<',teamSharedKeyJwk,'>');
+      }
+      const teamSharedKeyImported = await crypto.subtle.importKey("jwk", teamSharedKeyJwk, {
+        name: "AES-GCM",
+        length: 256
+      }, true, ["encrypt"]);
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::loadSharedKeyOfTeamSpace::teamSharedKeyImported=<',teamSharedKeyImported,'>');
+      }
+      const keyId = this.util.calcAddress(teamKey.secretBase64);
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::loadSharedKeyOfTeamSpace::keyId=<',keyId,'>');
+      }
+      this.teamSharedKeys[did] = {keyId:keyId,key:teamSharedKeyImported};
+    }
+  }  
+
+
   async calcSharedKeysOfNode() {
     if(this.trace0) {
       console.log('MqttEncryptECDH::calcSharedKeysOfNode::this.myPrivateKey=<',this.myPrivateKey,'>');
@@ -329,74 +368,57 @@ export class MqttEncryptECDH {
       console.log('MqttEncryptECDH::encryptData4Node::nodeId=<',nodeId,'>');
     }
   }
-  
+
+
   async encryptData4TeamSpace(mqttMsg,did) {
     if(this.trace0) {
       console.log('MqttEncryptECDH::encryptData4TeamSpace::mqttMsg=<',mqttMsg,'>');
       console.log('MqttEncryptECDH::encryptData4TeamSpace::did=<',did,'>');
     }
-    const teamSharedKeys = await this.db.secretOfTeamSpace.where({did:did}).sortBy('issuedDate');
+    let teamSharedKey = this.teamSharedKeys[did];
+    if(!teamSharedKey) {
+      this.loadSharedKeyOfTeamSpace();
+      teamSharedKey = this.teamSharedKeys[did];
+      if(!teamSharedKey) {
+        // TODO:
+      }
+    }
+    const data = JSON.stringify(mqttMsg);
     if(this.trace0) {
-      console.log('MqttEncryptECDH::encryptData4TeamSpace::teamSharedKeys=<',teamSharedKeys,'>');
+      console.log('MqttEncryptECDH::encryptData4TeamSpace::data=<',data,'>');
     }
-    if(teamSharedKeys && teamSharedKeys.length > 0 ) {
-      const teamSharedKey = teamSharedKeys[teamSharedKeys.length - 1];
-      if(this.trace0) {
-        console.log('MqttEncryptECDH::encryptData4TeamSpace::teamSharedKey=<',teamSharedKey,'>');
-      }
-      const issuedDate = new Date(teamSharedKey.issuedDate);
-      const now = new Date();
-      const diff = now - issuedDate;
-      if(diff > iConstIssueMilliSeconds) {
-        // renew teamSharedKey
-        return false;
-      }
-      const teamSharedKeyJwk = JSON.parse(base64Decode(teamSharedKey.secretBase64));
-      if(this.trace0) {
-        console.log('MqttEncryptECDH::encryptData4TeamSpace::teamSharedKeyJwk=<',teamSharedKeyJwk,'>');
-      }
-      const teamSharedKeyKey = await crypto.subtle.importKey("jwk", teamSharedKeyJwk, {
+    const dataBin = new TextEncoder().encode(data);
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::encryptData4TeamSpace::dataBin=<',dataBin,'>');
+    }
+    const iv = crypto.getRandomValues(new Uint8Array(16));
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::encryptData4TeamSpace::iv=<',iv,'>');
+    }
+    const encryptedData = await crypto.subtle.encrypt(
+      {
         name: "AES-GCM",
-        length: 256
-      }, true, ["encrypt"]);
-      if(this.trace0) {
-        console.log('MqttEncryptECDH::encryptData4TeamSpace::teamSharedKeyKey=<',teamSharedKeyKey,'>');
-      }
-      this.teamSharedKeyKey = teamSharedKeyKey;
-      const data = JSON.stringify(mqttMsg);
-      if(this.trace0) {
-        console.log('MqttEncryptECDH::encryptData4TeamSpace::data=<',data,'>');
-      }
-      const dataBin = new TextEncoder().encode(data);
-      if(this.trace0) {
-        console.log('MqttEncryptECDH::encryptData4TeamSpace::dataBin=<',dataBin,'>');
-      }
-      const iv = crypto.getRandomValues(new Uint8Array(16));
-      if(this.trace0) {
-        console.log('MqttEncryptECDH::encryptData4TeamSpace::iv=<',iv,'>');
-      }
-      const encryptedData = await crypto.subtle.encrypt(
-        {
-          name: "AES-GCM",
-          iv: iv,
-        },
-        teamSharedKeyKey,
-        dataBin
-      );
-      if(this.trace0) {
-        console.log('MqttEncryptECDH::encryptData4TeamSpace::encryptedData=<',encryptedData,'>');
-      }
-      const encryptedDataBin = new Uint8Array(encryptedData);
-      if(this.trace0) {
-        console.log('MqttEncryptECDH::encryptData4TeamSpace::encryptedDataBin=<',encryptedDataBin,'>');
-      }
-      const encryptedDataBase64 = base64EncodeBin(encryptedDataBin);
-      if(this.trace0) {
-        console.log('MqttEncryptECDH::encryptData4TeamSpace::encryptedData=<',encryptedDataBase64,'>');
-      }
-      return encryptedDataBase64;
+        iv: iv,
+      },
+      teamSharedKey.key,
+      dataBin
+    );
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::encryptData4TeamSpace::encryptedData=<',encryptedData,'>');
     }
-    return false;
+    const encryptedDataBin = new Uint8Array(encryptedData);
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::encryptData4TeamSpace::encryptedDataBin=<',encryptedDataBin,'>');
+    }
+    const encryptedDataBase64 = base64EncodeBin(encryptedDataBin);
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::encryptData4TeamSpace::encryptedData=<',encryptedDataBase64,'>');
+    }
+    return {
+      keyId:teamSharedKey.keyId,
+      ivBase64:base64EncodeBin(iv),
+      encryptedBase64:encryptedDataBase64
+    };
   }
 
   async createUnicastMessage4SharedKeysOfTeamSpace() {

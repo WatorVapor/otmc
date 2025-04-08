@@ -380,6 +380,7 @@ export class MqttEncryptECDH {
       teamSharedKey = this.teamSharedKeys[did];
       if(!teamSharedKey) {
         // TODO:
+        return false;
       }
     }
     const data = JSON.stringify(mqttMsg);
@@ -432,6 +433,7 @@ export class MqttEncryptECDH {
       teamSharedKey = this.teamSharedKeys[did];
       if(!teamSharedKey) {
         // TODO:
+        return false;
       }
     }
     if(this.trace0) {
@@ -797,7 +799,7 @@ export class MqttEncryptECDH {
       secret: '++autoId,did,myNodeId,remoteNodeId,secretBase64,issuedDate,expireDate',
     });
     this.db.version(this.version).stores({
-      secretOfTeamSpace: '++autoId,did,issuedDate,expireDate',
+      secretOfTeamSpace: '++autoId,did,secretId,issuedDate,expireDate',
     });
     this.db.version(this.version).stores({
       servantVote: '++autoId,did,nodeId,issuedDate,expireDate,nonce',
@@ -917,56 +919,6 @@ export class MqttEncryptECDH {
 
 }
 
-class MqttEncrptStateMachine {
-  constructor(ee) {
-    this.trace0 = true;
-    this.trace1 = true;
-    this.trace = true;
-    this.debug = true;
-    this.ee = ee;
-    if(this.trace0) {
-      console.log('MqttEncrptStateMachine::constructor::ee=:<',ee,'>');
-    }
-    this.machine = this.createStateMachine_();
-  }
-  ListenEventEmitter_() {
-    if(this.trace0) {
-      console.log('MqttEncrptStateMachine::ListenEventEmitter_::this.ee=:<',this.ee,'>');
-    }
-  }
-  createStateMachine_() {
-    const stmConfig = {
-      initial: 'genesis',
-      context: {
-        ee:this.ee,
-      },
-      states: mqttEncrptStateTable,
-    }
-    const stmOption = {
-      actions:mqttEncrptActionTable,
-    }
-    if(this.trace) {
-      console.log('MqttEncrptStateMachine::createStateMachine_::stmConfig=:<',stmConfig,'>');
-    }
-    this.stm = createMachine(stmConfig,stmOption);
-    if(this.trace0) {
-      console.log('MqttEncrptStateMachine::createStateMachine_::this.stm=:<',this.stm,'>');
-    }
-    this.actor = createActor(this.stm);
-    
-    const self = this;
-    this.actor.subscribe((state) => {
-      if(self.trace0) {
-        console.log('MqttEncrptStateMachine::createStateMachine_::state=:<',state,'>');
-        console.log('MqttEncrptStateMachine::createStateMachine_::self.stm=:<',self.stm,'>');
-      }
-      if(self.trace) {
-        console.log('MqttEncrptStateMachine::createStateMachine_::state.value=:<',state.value,'>');
-      }
-    });
-    this.actor.start();
-  }
-}
 
 
 const base64Encode = (str) => {

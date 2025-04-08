@@ -26,7 +26,6 @@ export class MqttEncryptECDH {
       console.log('MqttEncryptECDH::constructor::this.otmc=:<',this.otmc,'>');
     }
     this.teamSharedKeys = {};
-
   }
   async loadMyECKey() {
     if(this.trace0) {
@@ -421,6 +420,45 @@ export class MqttEncryptECDH {
     };
   }
 
+
+  async decryptData4TeamSpace(mqttPayload,did) {
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::decryptData4TeamSpace::mqttPayload=<',mqttPayload,'>');
+      console.log('MqttEncryptECDH::decryptData4TeamSpace::did=<',did,'>');
+    }
+    let teamSharedKey = this.teamSharedKeys[did];
+    if(!teamSharedKey) {
+      this.loadSharedKeyOfTeamSpace();
+      teamSharedKey = this.teamSharedKeys[did];
+      if(!teamSharedKey) {
+        // TODO:
+      }
+    }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::decryptData4TeamSpace::teamSharedKey=<',teamSharedKey,'>');
+    }
+    const ivBin = base64DecodeBin(mqttPayload.ivBase64);
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::decryptData4TeamSpace::ivBin=<',ivBin,'>');
+    }
+    const encryptedDataBin = base64DecodeBin(mqttPayload.encryptedBase64);
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::decryptData4TeamSpace::encryptedDataBin=<',encryptedDataBin,'>');
+    }
+    const decryptedDataBin = await crypto.subtle.decrypt(
+      {
+        name: "AES-GCM",
+        iv: ivBin,
+      },
+      teamSharedKey.key,
+      encryptedDataBin
+    )
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::decryptData4TeamSpace::decryptedDataBin=<',decryptedDataBin,'>');
+    }
+  }
+
+
   async createUnicastMessage4SharedKeysOfTeamSpace() {
     const did = this.otmc.did.didDoc_.id;
     if(this.trace0) {
@@ -721,9 +759,9 @@ export class MqttEncryptECDH {
     }
     return storeVote;
   }
-  async collectRemotevoteServant(remoteVoteServant) {
+  async collectRemoteVoteServant(remoteVoteServant) {
     if(this.trace0) {
-      console.log('MqttEncryptECDH::collectRemotevoteServant::remoteVoteServant=<',remoteVoteServant,'>');
+      console.log('MqttEncryptECDH::collectRemoteVoteServant::remoteVoteServant=<',remoteVoteServant,'>');
     }
     delete remoteVoteServant.autoId;
     const filter = {
@@ -731,21 +769,21 @@ export class MqttEncryptECDH {
       nodeId:remoteVoteServant.nodeId
     }
     if(this.trace0) {
-      console.log('MqttEncryptECDH::collectRemotevoteServant::filter=<',filter,'>');
+      console.log('MqttEncryptECDH::collectRemoteVoteServant::filter=<',filter,'>');
     }
     const servantVoteHint = await this.db.servantVote.where(filter).first();
     if(this.trace0) {
-      console.log('MqttEncryptECDH::collectRemotevoteServant::servantVoteHint=<',servantVoteHint,'>');
+      console.log('MqttEncryptECDH::collectRemoteVoteServant::servantVoteHint=<',servantVoteHint,'>');
     }
     if(servantVoteHint) {
       const updateReult = await this.db.servantVote.update(servantVoteHint.autoId,remoteVoteServant);
       if(this.trace0) {
-        console.log('MqttEncryptECDH::collectRemotevoteServant::updateReult=<',updateReult,'>');
+        console.log('MqttEncryptECDH::collectRemoteVoteServant::updateReult=<',updateReult,'>');
       }      
     } else {
       const putReult = await this.db.servantVote.put(remotevoteServant);
       if(this.trace0) {
-        console.log('MqttEncryptECDH::collectRemotevoteServant::putReult=<',putReult,'>');
+        console.log('MqttEncryptECDH::collectRemoteVoteServant::putReult=<',putReult,'>');
       }
     }
   }

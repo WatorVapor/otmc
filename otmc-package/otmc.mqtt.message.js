@@ -109,6 +109,9 @@ export class MqttMessager {
     if(featureTopic.startsWith('teamspace/secret/encrypt/ecdh')) {
       this.ee.emit(featureTopic,msgJson);
     }
-    this.otmc.emit('otmc:mqtt:all',msgJson);
+    if(featureTopic.startsWith('encrypt/channel')) {
+      this.ee.emit('mqtt.encrypt.channel.decrypt.message',msgJson);
+    }
+    this.otmc.emit('otmc:mqtt:all',{msg:msgJson,sTopic:featureTopic});
   }
 }

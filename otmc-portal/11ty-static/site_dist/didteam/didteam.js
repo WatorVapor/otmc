@@ -290,7 +290,12 @@ const loadDidTeamApps = (evt) => {
     onMqttConnected(mqtt,otmc,appPropertyVM);
   });
 
-
+  mqtt.on('otmc:mqtt:all',(msgMqtt) => {
+    console.log('loadDidTeamApps::msgMqtt=:<',msgMqtt,'>');
+    if(msgMqtt.sTopic.endsWith('secret/team/property/sync')) {
+      onRemotePropertySync(msgMqtt.msg,appPropertyVM);
+    }
+  });
 
   edcryptKeyVM.otmc = otmc;
   appDidVM.otmc = otmc;
@@ -334,7 +339,7 @@ const onMqttConnected = (mqtt,otmc) => {
   console.log('onMqttConnected::otmc=:<',otmc,'>');
   console.log('onMqttConnected::apps.accountProperty=:<',apps.accountProperty,'>');
   const syncMsg = { 
-    topic:'secret/team/property/sync',
+    topic:'team/property/sync',
     payload:apps.accountProperty,
   };
   mqtt.publishSecretMsg(syncMsg);

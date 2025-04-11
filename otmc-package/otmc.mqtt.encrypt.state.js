@@ -1,4 +1,5 @@
 import { createMachine, createActor, assign }  from 'xstate';
+const kVoteDeadline = 5*1000;
 
 export class MqttEncrptStateMachine {
   constructor(ee) {
@@ -11,11 +12,31 @@ export class MqttEncrptStateMachine {
       console.log('MqttEncrptStateMachine::constructor::ee=:<',ee,'>');
     }
     this.machine = this.createStateMachine_();
+    this.ListenEventEmitter_();
   }
   ListenEventEmitter_() {
     if(this.trace0) {
       console.log('MqttEncrptStateMachine::ListenEventEmitter_::this.ee=:<',this.ee,'>');
     }
+    const self = this;
+    this.ee.on('did:document',(evt)=>{
+      if(self.trace0) {
+        console.log('MqttEncrptStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.actor.send({type:'did-document'});
+    });
+    this.ee.on('xstate.event.mqtt.encrypt.servant.vote.check',async (evt)=>{
+      if(self.trace0) {
+        console.log('MqttEncrptStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      this.actor.send({type:'vote-check'});
+    });
+    this.ee.on('xstate.event.mqtt.encrypt.servant.vote.deadline',async (evt)=>{
+      if(self.trace0) {
+        console.log('MqttEncrptStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      this.actor.send({type:'vote-check-deadline'});
+    });
   }
   setECDH(ecdh) {
     if(this.trace0) {
@@ -25,6 +46,7 @@ export class MqttEncrptStateMachine {
       console.log('MqttEncrptStateMachine::setECDH::this.stm=:<',this.stm,'>');
     }
     this.stm.config.context.ecdh = ecdh;
+    this.actor.send({type:'init'});
   }
   createStateMachine_() {
     const stmConfig = {
@@ -101,9 +123,14 @@ const mqttEncrptStateTable = {
       'servant-share-team-secret': {
         target: 'servant_share_secret',
       },
-      'vote-check-timeout': {
-        target:'servant_vote_refresh',
+      'vote-check-deadline': {
+        target:'servant_vote_complete',
       },
+    }
+  },
+  servant_vote_complete: {
+    entry: ['servant_vote_complete_entry'],
+    on: {
     }
   },
   servant_vote_refresh: {
@@ -156,10 +183,10 @@ const mqttEncrptActionTable = {
     }
     await ecdh.loadMyECKey();
     await ecdh.loadMemeberPubKey();
-    ee.emit('xstate.internal.mqtt.publish.ecdh.pubkey',{});
+    ee.emit('xstate.action.mqtt.publish.ecdh.pubkey',{});
     await ecdh.calcSharedKeysOfNode();
     setTimeout(()=>{
-      ee.emit('xstate.internal.mqtt.encrypt.servant.vote.check',{});
+      ee.emit('xstate.event.mqtt.encrypt.servant.vote.check',{});
     },1);
     await ecdh.loadSharedKeyOfTeamSpace();
   },
@@ -176,9 +203,25 @@ const mqttEncrptActionTable = {
       console.log('MqttEncrptStateMachine::mqttEncrptActionTable::vote_checking_entry:voteCheckResult=:<',voteCheckResult,'>');
     }
     if(voteCheckResult.reVote) {
-      ee.emit('xstate.internal.mqtt.encrypt.servant.vote.refresh',voteCheckResult);
+      ee.emit('xstate.action.mqtt.encrypt.servant.vote.refresh',voteCheckResult);
+      setTimeout(()=>{
+        ee.emit('xstate.event.mqtt.encrypt.servant.vote.deadline',voteCheckResult);
+      },kVoteDeadline);
+
     } else {
       ee.emit('xstate.internal.mqtt.encrypt.servant.vote.ready',voteCheckResult);
     }
   },
+  servant_vote_complete_entry: async (context, evt) => {
+    const ee = context.context.ee;
+    const ecdh = context.context.ecdh;
+    if(LOG.trace) {
+      console.log('MqttEncrptStateMachine::mqttEncrptActionTable::servant_vote_complete_entry:context=:<',context,'>');
+      console.log('MqttEncrptStateMachine::mqttEncrptActionTable::servant_vote_complete_entry:ee=:<',ee,'>');
+    }
+    const voteCheckResult = await ecdh.checkServantVote();
+    if(LOG.trace) {
+      console.log('MqttEncrptStateMachine::mqttEncrptActionTable::servant_vote_complete_entry:voteCheckResult=:<',voteCheckResult,'>');
+    }
+  }
 };

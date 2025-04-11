@@ -1,6 +1,5 @@
 import { MqttEncryptECDH } from './otmc.mqtt.encrypt.ecdh.js';
 import { MqttEncrptStateMachine } from './otmc.mqtt.encrypt.state.js';
-const kVoteTimeout = 5*1000;
 /**
 *
 */
@@ -34,14 +33,8 @@ export class MqttEncryptChannel {
         self.ecdh = new MqttEncryptECDH(self.otmc,self.auth,self.base32,self.util);
       }
       self.sm.setECDH(self.ecdh);
-      self.sm.actor.send({type:'init'});
     });
-    this.ee.on('did:document',async (evt)=>{
-      if(self.trace0) {
-        console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
-      }
-      self.sm.actor.send({type:'did-document'});
-    });
+
     this.ee.on('teamspace/secret/encrypt/ecdh/pubKey/jwk',async (evt)=>{
       if(self.trace0) {
         console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
@@ -55,7 +48,7 @@ export class MqttEncryptChannel {
       self.ecdh.storeSharedKeySecretOfSpace(evt.payload,self.otmc.did.didDoc_.id);
     });
 
-    this.ee.on('xstate.internal.mqtt.publish.ecdh.pubkey',async (evt)=>{
+    this.ee.on('xstate.action.mqtt.publish.ecdh.pubkey',async (evt)=>{
       if(self.trace0) {
         console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
       }
@@ -67,13 +60,8 @@ export class MqttEncryptChannel {
       }
       self.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:payload}});
     });
-    this.ee.on('xstate.internal.mqtt.encrypt.servant.vote.check',async (evt)=>{
-      if(self.trace0) {
-        console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
-      }
-      self.sm.actor.send({type:'vote-check'});
-    });
-    this.ee.on('xstate.internal.mqtt.encrypt.servant.vote.refresh',async (evt)=>{
+
+    this.ee.on('xstate.action.mqtt.encrypt.servant.vote.refresh',async (evt)=>{
       if(self.trace0) {
         console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
       }
@@ -86,9 +74,6 @@ export class MqttEncryptChannel {
         console.log('MqttEncryptChannel::ListenEventEmitter_::payload=:<',payload,'>');
       }
       self.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:payload}});
-      setTimeout(()=>{
-        self.sm.actor.send({type:'vote-check-timeout'});
-      },kVoteTimeout);
     });
     this.ee.on('xstate.internal.mqtt.encrypt.servant.vote.ready',async (evt)=>{
       if(self.trace0) {
@@ -174,7 +159,7 @@ export class MqttEncryptChannel {
     }
     if(encyptMsg === false) {
       //this.ee.emit('otmc.mqtt.encrypt.sharedkey.spaceteam.refresh',{});
-      this.ee.emit('xstate.internal.mqtt.encrypt.servant.vote.check',{});
+      this.ee.emit('xstate.event.mqtt.encrypt.servant.vote.check',{});
       this.cachedPlainMsg.push(mqttMsg);
       return;
     }

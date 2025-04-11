@@ -101,6 +101,9 @@ const mqttEncrptStateTable = {
       'servant-share-team-secret': {
         target: 'servant_share_secret',
       },
+      'vote-check-timeout': {
+        target:'servant_vote_refresh',
+      },
     }
   },
   servant_vote_refresh: {
@@ -174,7 +177,8 @@ const mqttEncrptActionTable = {
     }
     if(voteCheckResult.reVote) {
       ee.emit('xstate.internal.mqtt.encrypt.servant.vote.refresh',voteCheckResult);
+    } else {
+      ee.emit('xstate.internal.mqtt.encrypt.servant.vote.ready',voteCheckResult);
     }
-    ee.emit('xstate.internal.mqtt.encrypt.servant.vote.ready',voteCheckResult);
   },
 };

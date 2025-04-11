@@ -1,5 +1,6 @@
 import { MqttEncryptECDH } from './otmc.mqtt.encrypt.ecdh.js';
 import { MqttEncrptStateMachine } from './otmc.mqtt.encrypt.state.js';
+const kVoteTimeout = 5*1000;
 /**
 *
 */
@@ -84,7 +85,10 @@ export class MqttEncryptChannel {
       if(self.trace0) {
         console.log('MqttEncryptChannel::ListenEventEmitter_::payload=:<',payload,'>');
       }
-      self.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:payload}});        
+      self.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:payload}});
+      setTimeout(()=>{
+        self.sm.actor.send({type:'vote-check-timeout'});
+      },kVoteTimeout);
     });
     this.ee.on('xstate.internal.mqtt.encrypt.servant.vote.ready',async (evt)=>{
       if(self.trace0) {

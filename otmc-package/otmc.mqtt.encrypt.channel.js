@@ -169,7 +169,8 @@ export class MqttEncryptChannel {
       console.log('MqttEncryptChannel::encryptMsgPayload4TeamSpace_::encyptMsg=:<',encyptMsg,'>');
     }
     if(encyptMsg === false) {
-      this.ee.emit('otmc.mqtt.encrypt.sharedkey.spaceteam.refresh',{});
+      //this.ee.emit('otmc.mqtt.encrypt.sharedkey.spaceteam.refresh',{});
+      this.ee.emit('xstate.internal.mqtt.encrypt.servant.vote.check',{});
       this.cachedPlainMsg.push(mqttMsg);
       return;
     }

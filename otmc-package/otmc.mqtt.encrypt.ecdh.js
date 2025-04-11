@@ -306,8 +306,13 @@ export class MqttEncryptECDH {
     if(hitnSecretTeam) {
       return;
     }
+    const secretId = this.util.calcAddress(teamSharedKeyBase64);
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::prepareSharedKeysOfTeamSpace::secretId=<',secretId,'>');
+    }
     const secret = {
       did:this.otmc.did.didDoc_.id,
+      secretId:secretId,
       secretBase64:teamSharedKeyBase64,
       issuedDate:(new Date()).toISOString(),
       expireDate:null
@@ -375,13 +380,16 @@ export class MqttEncryptECDH {
       console.log('MqttEncryptECDH::encryptData4TeamSpace::did=<',did,'>');
     }
     let teamSharedKey = this.teamSharedKeys[did];
-    if(!teamSharedKey) {
+    if(!teamSharedKey|| !teamSharedKey.key) {
       this.loadSharedKeyOfTeamSpace();
       teamSharedKey = this.teamSharedKeys[did];
-      if(!teamSharedKey) {
-        // TODO:
-        return false;
-      }
+    }
+    if(!teamSharedKey || !teamSharedKey.key) {
+      // TODO:
+      return false;
+    }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::encryptData4TeamSpace::teamSharedKey=<',teamSharedKey,'>');
     }
     const data = JSON.stringify(mqttMsg);
     if(this.trace0) {
@@ -886,8 +894,13 @@ export class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace_::sharedKeyOfTeamSpace=<',sharedKeyOfTeamSpace,'>');
     }
+    const secretId = this.util.calcAddress(sharedKeyOfTeamSpace.secretBase64);
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace_::secretId=<',secretId,'>');
+    }
     const filter = {
       did:sharedKeyOfTeamSpace.did,
+      secretId:secretId,
       issuedDate:sharedKeyOfTeamSpace.issuedDate,
       expireDate:sharedKeyOfTeamSpace.expireDate,
       secretBase64:sharedKeyOfTeamSpace.secretBase64
@@ -904,6 +917,7 @@ export class MqttEncryptECDH {
     }
     const secret = {
       did:sharedKeyOfTeamSpace.did,
+      secretId:secretId,
       secretBase64:sharedKeyOfTeamSpace.secretBase64,
       issuedDate:sharedKeyOfTeamSpace.issuedDate,
       expireDate:sharedKeyOfTeamSpace.expireDate

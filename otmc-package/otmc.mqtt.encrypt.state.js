@@ -1,5 +1,5 @@
 import { createMachine, createActor, assign }  from 'xstate';
-const kVoteDeadline = 5*1000;
+const kVoteDeadline = 3*1000;
 
 export class MqttEncrptStateMachine {
   constructor(ee) {
@@ -198,7 +198,7 @@ const mqttEncrptActionTable = {
       console.log('MqttEncrptStateMachine::mqttEncrptActionTable::vote_checking_entry:ee=:<',ee,'>');
       console.log('MqttEncrptStateMachine::mqttEncrptActionTable::vote_checking_entry:ecdh=:<',ecdh,'>');
     }
-    const voteCheckResult = await ecdh.checkServantVote();
+    const voteCheckResult = await ecdh.checkServantVoteExpired();
     if(LOG.trace) {
       console.log('MqttEncrptStateMachine::mqttEncrptActionTable::vote_checking_entry:voteCheckResult=:<',voteCheckResult,'>');
     }
@@ -206,7 +206,7 @@ const mqttEncrptActionTable = {
       ee.emit('xstate.action.mqtt.encrypt.servant.vote.refresh',voteCheckResult);
       setTimeout(()=>{
         ee.emit('xstate.event.mqtt.encrypt.servant.vote.deadline',voteCheckResult);
-      },kVoteDeadline);
+      },ecdh.voteTimeout/100 + kVoteDeadline);
 
     } else {
       ee.emit('xstate.internal.mqtt.encrypt.servant.vote.ready',voteCheckResult);
@@ -219,7 +219,7 @@ const mqttEncrptActionTable = {
       console.log('MqttEncrptStateMachine::mqttEncrptActionTable::servant_vote_complete_entry:context=:<',context,'>');
       console.log('MqttEncrptStateMachine::mqttEncrptActionTable::servant_vote_complete_entry:ee=:<',ee,'>');
     }
-    const voteCheckResult = await ecdh.checkServantVote();
+    const voteCheckResult = await ecdh.collectServantVoteAtDeadline();
     if(LOG.trace) {
       console.log('MqttEncrptStateMachine::mqttEncrptActionTable::servant_vote_complete_entry:voteCheckResult=:<',voteCheckResult,'>');
     }

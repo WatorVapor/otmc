@@ -6,7 +6,7 @@ import { base64 } from '@scure/base';
 //const iConstIssueMilliSeconds = 1000 * 60 * 60;
 const iConstIssueMilliSeconds = 1000 * 5;
 //const iConstRevoteMilliSeconds = 1000 * 60 * 60;
-const iConstRevoteMilliSeconds = 1000 * 5;
+const iConstRevoteMilliSeconds = 1000 * 6;
 
 const iConstLastTopSharedKey = 5;
 
@@ -26,6 +26,7 @@ export class MqttEncryptECDH {
       console.log('MqttEncryptECDH::constructor::this.otmc=:<',this.otmc,'>');
     }
     this.teamSharedKeys = {};
+    this.voteTimeout = iConstRevoteMilliSeconds;
   }
   async loadMyECKey() {
     if(this.trace0) {
@@ -231,7 +232,7 @@ export class MqttEncryptECDH {
           myNodeId:this.auth.address(),
           remoteNodeId:nodeId,
           secretBase64:sharedSecretBase64,
-          issuedDate:(new Date()).toISOString(),
+          issuedDate:(new Date()).toLocaleString(),
           expireDate:null
         }
         if(this.trace0) {
@@ -314,7 +315,7 @@ export class MqttEncryptECDH {
       did:this.otmc.did.didDoc_.id,
       secretId:secretId,
       secretBase64:teamSharedKeyBase64,
-      issuedDate:(new Date()).toISOString(),
+      issuedDate:(new Date()).toLocaleString(),
       expireDate:null
     }
     if(this.trace0) {
@@ -353,7 +354,7 @@ export class MqttEncryptECDH {
     const ecdh = {
       did:keyMsg.did,
       nodeId:keyMsg.nodeId,
-      createdDate:(new Date()).toISOString(),
+      createdDate:(new Date()).toLocaleString(),
       pubBase64:remotePublicKeyBase64,
       privBase64:null
     }
@@ -636,7 +637,7 @@ export class MqttEncryptECDH {
     const ecdh = {
       did:keyMsg.did,
       nodeId:keyMsg.nodeId,
-      createdDate:(new Date()).toISOString(),
+      createdDate:(new Date()).toLocaleString(),
       pubBase64:remotePublicKeyBase64,
       privBase64:null
     }
@@ -649,42 +650,113 @@ export class MqttEncryptECDH {
     }
   }
 
-  async checkServantVote() {
+  async checkServantVoteExpired() {
     const did = this.otmc.did.didDoc_.id;
     if(this.trace0) {
-      console.log('MqttEncryptECDH::checkServantVote::did=<',did,'>');
+      console.log('MqttEncryptECDH::checkServantVoteExpired::did=<',did,'>');
     }
-    const servantVotes = await this.db.servantVote.where({did:did}).sortBy('issuedDate');
+    const self = this;
+
+    const filter1 = {
+      did:did,
+    }
     if(this.trace0) {
-      console.log('MqttEncryptECDH::checkServantVote::servantVotes=<',servantVotes,'>');
+      console.log('MqttEncryptECDH::checkServantVoteExpired::filter1=:<',filter1,'>');
     }
+    const servantVotes = await this.db.servantVote.where(filter1).and((vote)=>{
+      return self.filterOutTimeIsssed_(vote,iConstRevoteMilliSeconds);
+    }).toArray();
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::checkServantVoteExpired::servantVotes=<',servantVotes,'>');
+    }
+    const result = {};
     if(servantVotes.length === 0) {
+      result.reVote = true;
+      result.servant = false;
+    }
+
+    let nonceMax = 0.0;
+    let nodeIdOfMax = ''; 
+    for(const servantVote of servantVotes ) {
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::checkServantVoteExpired::servantVote=<',servantVote,'>');
+      }
+      result.reVote = false;
+      if(servantVote.nonce > nonceMax) {
+        nonceMax = servantVote.nonce;
+        nodeIdOfMax = servantVote.nodeId;
+      }
+    }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::checkServantVoteExpired::nonceMax=<',nonceMax,'>');
+      console.log('MqttEncryptECDH::checkServantVoteExpired::nodeIdOfMax=<',nodeIdOfMax,'>');
+    }
+    if(nodeIdOfMax === this.auth.address()) {
+      result.servant = true;
+    } else {
+      result.servant = false;
+      // if other servant is down try revote.
+      result.reVote = true;
+    }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::checkServantVoteExpired::result=<',result,'>');
+    }
+
+    const filter2 = {
+      did:did,
+      nodeId:this.auth.address()
+    }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::checkServantVoteExpired::filter2=:<',filter2,'>');
+    }
+    let mySerantNonce = await this.db.servantVote.where(filter2).and((vote)=>{
+      return self.filterOutTimeIsssed_(vote,iConstRevoteMilliSeconds)
+    }).first();
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::checkServantVoteExpired::mySerantNonce=:<',mySerantNonce,'>');
+    }
+    if(!mySerantNonce) {
       const storeVote = {
         did:did,
         nodeId:this.auth.address(),
-        issuedDate:(new Date()).toISOString(),
+        issuedDate:(new Date()).toLocaleString(),
         expireDate:null,
         nonce:Math.random(),
       }
       const storeReult = await this.db.servantVote.put(storeVote);
       if(this.trace0) {
-        console.log('MqttEncryptECDH::checkServantVote::storeReult=<',storeReult,'>');
+        console.log('MqttEncryptECDH::checkServantVoteExpired::storeReult=<',storeReult,'>');
       }
     }
 
+
+    return result;
+  }
+
+  async collectServantVoteAtDeadline() {
+    const did = this.otmc.did.didDoc_.id;
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::collectServantVoteAtDeadline::did=<',did,'>');
+    }
+    const self = this;
+    const filter1 = {
+      did:did,
+    }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::collectServantVoteAtDeadline::filter1=:<',filter1,'>');
+    }
+    const servantVotes = await this.db.servantVote.where(filter1).and((vote)=>{
+      return self.filterOutTimeIsssed_(vote,iConstRevoteMilliSeconds);
+    }).toArray();
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::collectServantVoteAtDeadline::servantVotes=<',servantVotes,'>');
+    }
     const result = {};
-    let issueTotal = false;
     let nonceMax = 0.0;
     let nodeIdOfMax = ''; 
     for(const servantVote of servantVotes ) {
       if(this.trace0) {
-        console.log('MqttEncryptECDH::checkServantVote::servantVote=<',servantVote,'>');
-      }
-      const issuedDate = new Date(servantVote.issuedDate);
-      const now = new Date();
-      const diff = now - issuedDate;
-      if(diff > iConstRevoteMilliSeconds) {
-        issueTotal = true;
+        console.log('MqttEncryptECDH::collectServantVoteAtDeadline::servantVote=<',servantVote,'>');
       }
       if(servantVote.nonce > nonceMax) {
         nonceMax = servantVote.nonce;
@@ -692,25 +764,21 @@ export class MqttEncryptECDH {
       }
     }
     if(this.trace0) {
-      console.log('MqttEncryptECDH::checkServantVote::issueTotal=<',issueTotal,'>');
-      console.log('MqttEncryptECDH::checkServantVote::nonceMax=<',nonceMax,'>');
-      console.log('MqttEncryptECDH::checkServantVote::nodeIdOfMax=<',nodeIdOfMax,'>');
+      console.log('MqttEncryptECDH::collectServantVoteAtDeadline::nonceMax=<',nonceMax,'>');
+      console.log('MqttEncryptECDH::collectServantVoteAtDeadline::nodeIdOfMax=<',nodeIdOfMax,'>');
     }
     if(nodeIdOfMax === this.auth.address()) {
       result.servant = true;
     } else {
       result.servant = false;
     }
-    if(issueTotal) {
-      result.reVote = true;
-    } else {
-      result.reVote = false;
-    }
     if(this.trace0) {
-      console.log('MqttEncryptECDH::checkServantVote::result=<',result,'>');
+      console.log('MqttEncryptECDH::collectServantVoteAtDeadline::result=<',result,'>');
     }
     return result;
   }
+
+
   async voteServant(did) {
     if(this.trace0) {
       console.log('MqttEncryptECDH::voteServant::did=<',did,'>');
@@ -744,7 +812,7 @@ export class MqttEncryptECDH {
         return lastVote;
       } else {
         lastVote.nonce = Math.random();
-        lastVote.issuedDate = (new Date()).toISOString();
+        lastVote.issuedDate = (new Date()).toLocaleString();
         if(this.trace0) {
           console.log('MqttEncryptECDH::voteServant::lastVote=<',lastVote,'>');
         }
@@ -759,7 +827,7 @@ export class MqttEncryptECDH {
     const storeVote = {
       did:did,
       nodeId:this.auth.address(),
-      issuedDate:(new Date()).toISOString(),
+      issuedDate:(new Date()).toLocaleString(),
       expireDate:null,
       nonce:Math.random(),
     }
@@ -852,7 +920,7 @@ export class MqttEncryptECDH {
     const ecdh = {
       did:did,
       nodeId:nodeId,
-      createdDate:(new Date()).toISOString(),
+      createdDate:(new Date()).toLocaleString(),
       pubBase64:myPublicKeyBase64,
       privBase64:myPrivateKeyBase64
     }
@@ -930,7 +998,16 @@ export class MqttEncryptECDH {
       console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace_::secretResult=<',secretResult,'>');
     }
   }
-
+  filterOutTimeIsssed_(storeData,deadLine) {
+    const issuedDate = new Date(storeData.issuedDate);
+    const now = new Date();
+    const diff = now - issuedDate;
+    if(diff < deadLine) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }
 
 

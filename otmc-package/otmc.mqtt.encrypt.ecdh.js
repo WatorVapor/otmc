@@ -3,10 +3,16 @@ import { StoreKey } from './otmc.const.js';
 import { base64 } from '@scure/base';
 
 
+const iConstSharedKeyRegenMiliSec = 1000 * 60 * 60;
+//const iConstSharedKeyRegenMiliSec = 1000 * 5;
+
 //const iConstIssueMilliSeconds = 1000 * 60 * 60;
 const iConstIssueMilliSeconds = 1000 * 5;
 //const iConstRevoteMilliSeconds = 1000 * 60 * 60;
 const iConstRevoteMilliSeconds = 1000 * 6;
+
+
+
 
 const iConstLastTopSharedKey = 5;
 
@@ -249,29 +255,18 @@ export class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::prepareSharedKeysOfTeamSpace::this.otmc.did.didDoc_=<',this.otmc.did.didDoc_,'>');
     }
+    const self = this;
     const filterSpace = {
       did:this.otmc.did.didDoc_.id,
     }
-
-    const secretsOfTeamSpace = await this.db.secretOfTeamSpace.where(filterSpace).sortBy('issuedDate');
+    const secretsOfTeamSpace = await this.db.secretOfTeamSpace.where(filterSpace).and((secret) =>{
+      return self.filterOutTimeIsssed_(secret,iConstSharedKeyRegenMiliSec);
+    }).first();
     if(this.trace0) {
       console.log('MqttEncryptECDH::prepareSharedKeysOfTeamSpace::secretsOfTeamSpace=<',secretsOfTeamSpace,'>');
     }
-    if(secretsOfTeamSpace && secretsOfTeamSpace.length > 0 ) {
-      const lastSecretTS = secretsOfTeamSpace[secretsOfTeamSpace.length - 1];
-      if(this.trace0) {
-        console.log('MqttEncryptECDH::prepareSharedKeysOfTeamSpace::lastSecretTS=<',lastSecretTS,'>');
-      }
-      const issuedDate = new Date(lastSecretTS.issuedDate);
-      const now = new Date();
-      const diff = now - issuedDate;
-      const diffOneHour = diff / (1000 * 60 * 60);
-      if(this.trace0) {
-        console.log('MqttEncryptECDH::prepareSharedKeysOfTeamSpace::diffOneHour=<',diffOneHour,'>');
-      }
-      if(diffOneHour < 1) {
-        return;
-      }
+    if(secretsOfTeamSpace ) {
+      return;
     }
 
     const teamSharedKey = await crypto.subtle.generateKey(
@@ -859,7 +854,7 @@ export class MqttEncryptECDH {
         console.log('MqttEncryptECDH::collectRemoteVoteServant::updateReult=<',updateReult,'>');
       }      
     } else {
-      const putReult = await this.db.servantVote.put(remotevoteServant);
+      const putReult = await this.db.servantVote.put(remoteVoteServant);
       if(this.trace0) {
         console.log('MqttEncryptECDH::collectRemoteVoteServant::putReult=<',putReult,'>');
       }

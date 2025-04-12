@@ -37,6 +37,18 @@ export class MqttEncrptStateMachine {
       }
       this.actor.send({type:'vote-check-deadline'});
     });
+    this.ee.on('xstate.event.mqtt.encrypt.servant.ready',async (evt)=>{
+      if(self.trace0) {
+        console.log('MqttEncrptStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      this.actor.send({type:'vote-servant-ready'});
+    });
+    this.ee.on('xstate.event.mqtt.encrypt.master.ready',async (evt)=>{
+      if(self.trace0) {
+        console.log('MqttEncrptStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      this.actor.send({type:'vote-master-ready'});
+    });
   }
   setECDH(ecdh) {
     if(this.trace0) {
@@ -131,6 +143,12 @@ const mqttEncrptStateTable = {
   servant_vote_complete: {
     entry: ['servant_vote_complete_entry'],
     on: {
+      'vote-servant-ready': {
+        target:'ready_as_servant',
+      },
+      'vote-master-ready': {
+        target:'ready_as_master',
+      },
     }
   },
   servant_vote_refresh: {
@@ -150,8 +168,10 @@ const mqttEncrptStateTable = {
     }
   },
   ready_as_servant: {
+    entry: ['ready_as_servant_entry'],
   },
   ready_as_master: {
+    entry: ['ready_as_master_entry'],
   },
 }
 
@@ -223,5 +243,28 @@ const mqttEncrptActionTable = {
     if(LOG.trace) {
       console.log('MqttEncrptStateMachine::mqttEncrptActionTable::servant_vote_complete_entry:voteCheckResult=:<',voteCheckResult,'>');
     }
+    if(voteCheckResult.servant){
+      ee.emit('xstate.event.mqtt.encrypt.servant.ready',voteCheckResult);
+    } else {
+      ee.emit('xstate.event.mqtt.encrypt.master.ready',voteCheckResult);
+    }
+  },
+  ready_as_servant_entry: async (context, evt) => {
+    const ee = context.context.ee;
+    const ecdh = context.context.ecdh;
+    if(LOG.trace) {
+      console.log('MqttEncrptStateMachine::mqttEncrptActionTable::ready_as_servant_entry:context=:<',context,'>');
+      console.log('MqttEncrptStateMachine::mqttEncrptActionTable::ready_as_servant_entry:ee=:<',ee,'>');
+    }
+    ee.emit('xstate.action.mqtt.encrypt.servant.ready',{});
+  },
+  ready_as_master_entry: async (context, evt) => {
+    const ee = context.context.ee;
+    const ecdh = context.context.ecdh;
+    if(LOG.trace) {
+      console.log('MqttEncrptStateMachine::mqttEncrptActionTable::ready_as_master_entry:context=:<',context,'>');
+      console.log('MqttEncrptStateMachine::mqttEncrptActionTable::ready_as_master_entry:ee=:<',ee,'>');
+    }
+    ee.emit('xstate.action.mqtt.encrypt.master.ready',{});
   }
 };

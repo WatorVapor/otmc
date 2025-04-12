@@ -75,12 +75,22 @@ export class MqttEncryptChannel {
       }
       self.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:payload}});
     });
-    this.ee.on('xstate.internal.mqtt.encrypt.servant.vote.ready',async (evt)=>{
+
+    this.ee.on('xstate.action.mqtt.encrypt.servant.ready',async (evt)=>{
       if(self.trace0) {
         console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      self.servant = evt.servant;
+      self.servant = true;
+      self.ee.emit('otmc.mqtt.encrypt.sharedkey.spaceteam.refresh',{});
     });
+    
+    this.ee.on('xstate.action.mqtt.encrypt.master.ready',async (evt)=>{
+      if(self.trace0) {
+        console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.servant = false;
+    });
+
 
 
     this.ee.on('teamspace/secret/encrypt/ecdh/servant/vote',async (evt)=>{
@@ -158,7 +168,6 @@ export class MqttEncryptChannel {
       console.log('MqttEncryptChannel::encryptMsgPayload4TeamSpace_::encyptMsg=:<',encyptMsg,'>');
     }
     if(encyptMsg === false) {
-      //this.ee.emit('otmc.mqtt.encrypt.sharedkey.spaceteam.refresh',{});
       this.ee.emit('xstate.event.mqtt.encrypt.servant.vote.check',{});
       this.cachedPlainMsg.push(mqttMsg);
       return;

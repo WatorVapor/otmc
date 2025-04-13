@@ -296,6 +296,11 @@ const loadDidTeamApps = (evt) => {
       onRemotePropertySync(msgMqtt.msg,appPropertyVM);
     }
   });
+  mqtt.on('otmc:mqtt:encrypt:channel',(msgMqttEC) => {
+    console.log('loadDidTeamApps::msgMqttEC=:<',msgMqttEC,'>');
+  });
+  console.log('loadDidTeamApps::mqtt=:<',mqtt,'>');
+
 
   edcryptKeyVM.otmc = otmc;
   appDidVM.otmc = otmc;

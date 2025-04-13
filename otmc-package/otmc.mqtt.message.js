@@ -110,8 +110,17 @@ export class MqttMessager {
       this.ee.emit(featureTopic,msgJson);
     }
     if(featureTopic.startsWith('encrypt/channel')) {
-      this.ee.emit('mqtt.encrypt.channel.decrypt.message',msgJson);
+      this.ee.emit('mqtt.encrypt.channel.decrypt.message',{msg:msgJson,sTopic:featureTopic});
+      return;
     }
-    this.otmc.emit('otmc:mqtt:all',{msg:msgJson,sTopic:featureTopic});
+    if(this.trace0) {
+      console.log('MqttMessager::dispatchMessage_::this.otmc.listenerCount(”otmc:mqtt:all“)=:<',this.otmc.listenerCount('otmc:mqtt:all'),'>');
+      console.log('MqttMessager::dispatchMessage_::this.otmc.listenerCount(”otmc:mqtt:encrypt:channel“)=:<',this.otmc.listenerCount('otmc:mqtt:encrypt:channel'),'>');
+    }
+    const resultEmit = this.otmc.emit('otmc:mqtt:all',{msg:msgJson,sTopic:featureTopic});
+    if(this.trace0) {
+      console.log('MqttMessager::dispatchMessage_:resultEmit=<',resultEmit,'>');
+    }
+
   }
 }

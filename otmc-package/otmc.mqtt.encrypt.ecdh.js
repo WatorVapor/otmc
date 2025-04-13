@@ -32,6 +32,7 @@ export class MqttEncryptECDH {
       console.log('MqttEncryptECDH::constructor::this.otmc=:<',this.otmc,'>');
     }
     this.teamSharedKeys = {};
+    this.teamTopSharedKey = {};
     this.voteTimeout = iConstRevoteMilliSeconds;
   }
   async loadMyECKey() {
@@ -149,18 +150,27 @@ export class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::loadSharedKeyOfTeamSpace::did=:<',did,'>');
     }
-
+    const filter = {
+      did:did,
+    }
     this.teamSharedKeys[did] = {};
-
-    const teamSharedKeys = await this.db.secretOfTeamSpace.where({did:did}).sortBy('issuedDate');
+    this.teamTopSharedKey[did] = {};
+    const self = this;
+    const teamSharedKeys1 = await this.db.secretOfTeamSpace.where(filter)
+    .and((secret)=>{
+      return self.filterOutTimeIsssed_(secret,iConstSharedKeyRegenMiliSec);
+    })
+    .sortBy('issuedDate');
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::loadSharedKeyOfTeamSpace::teamSharedKeys1=<',teamSharedKeys1,'>');
+    }
+    const teamSharedKeys = teamSharedKeys1.toReversed();;
     if(this.trace0) {
       console.log('MqttEncryptECDH::loadSharedKeyOfTeamSpace::teamSharedKeys=<',teamSharedKeys,'>');
     }
-    if(teamSharedKeys && teamSharedKeys.length > 0 ) {
-      const teamKey = teamSharedKeys[teamSharedKeys.length - 1];
-      if(this.trace0) {
-        console.log('MqttEncryptECDH::loadSharedKeyOfTeamSpace::teamKey=<',teamKey,'>');
-      }
+    let topKeyId = null;
+    let topKey = null;
+    for(const teamKey of teamSharedKeys ) {
       const teamSharedKeyJwk = JSON.parse(base64Decode(teamKey.secretBase64));
       if(this.trace0) {
         console.log('MqttEncryptECDH::loadSharedKeyOfTeamSpace::teamSharedKeyJwk=<',teamSharedKeyJwk,'>');
@@ -168,7 +178,7 @@ export class MqttEncryptECDH {
       const teamSharedKeyImported = await crypto.subtle.importKey("jwk", teamSharedKeyJwk, {
         name: "AES-GCM",
         length: 256
-      }, true, ["encrypt"]);
+      }, true, ["encrypt","decrypt"]);
       if(this.trace0) {
         console.log('MqttEncryptECDH::loadSharedKeyOfTeamSpace::teamSharedKeyImported=<',teamSharedKeyImported,'>');
       }
@@ -176,7 +186,20 @@ export class MqttEncryptECDH {
       if(this.trace0) {
         console.log('MqttEncryptECDH::loadSharedKeyOfTeamSpace::keyId=<',keyId,'>');
       }
-      this.teamSharedKeys[did] = {keyId:keyId,key:teamSharedKeyImported};
+      this.teamSharedKeys[did][keyId] = teamSharedKeyImported;
+      if(!topKeyId) {
+        topKeyId = keyId;
+        topKey = teamSharedKeyImported;
+      }
+    }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::loadSharedKeyOfTeamSpace::this.teamSharedKeys=<',this.teamSharedKeys,'>');
+    }
+    if(topKeyId) {
+      this.teamTopSharedKey[did][topKeyId] = topKey;
+    }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::loadSharedKeyOfTeamSpace::this.teamTopSharedKey=<',this.teamTopSharedKey,'>');
     }
   }  
 
@@ -375,15 +398,26 @@ export class MqttEncryptECDH {
       console.log('MqttEncryptECDH::encryptData4TeamSpace::mqttMsg=<',mqttMsg,'>');
       console.log('MqttEncryptECDH::encryptData4TeamSpace::did=<',did,'>');
     }
-    let teamSharedKey = this.teamSharedKeys[did];
-    if(!teamSharedKey|| !teamSharedKey.key) {
-      this.loadSharedKeyOfTeamSpace();
-      teamSharedKey = this.teamSharedKeys[did];
+    let teamSharedKeyPair = this.teamTopSharedKey[did];
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::encryptData4TeamSpace::teamSharedKeyPair=<',teamSharedKeyPair,'>');
     }
-    if(!teamSharedKey || !teamSharedKey.key) {
+    if(!teamSharedKeyPair) {
+      this.loadSharedKeyOfTeamSpace();
+      teamSharedKeyPair = this.teamTopSharedKey[did];
+    }
+    if(!teamSharedKeyPair) {
       // TODO:
       return false;
     }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::encryptData4TeamSpace::teamSharedKeyPair=<',teamSharedKeyPair,'>');
+    }
+    const teamSharedKeyId = Object.keys(teamSharedKeyPair)[0];
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::encryptData4TeamSpace::teamSharedKeyId=<',teamSharedKeyId,'>');
+    }
+    const teamSharedKey = teamSharedKeyPair[teamSharedKeyId];
     if(this.trace0) {
       console.log('MqttEncryptECDH::encryptData4TeamSpace::teamSharedKey=<',teamSharedKey,'>');
     }
@@ -404,7 +438,7 @@ export class MqttEncryptECDH {
         name: "AES-GCM",
         iv: iv,
       },
-      teamSharedKey.key,
+      teamSharedKey,
       dataBin
     );
     if(this.trace0) {
@@ -419,7 +453,7 @@ export class MqttEncryptECDH {
       console.log('MqttEncryptECDH::encryptData4TeamSpace::encryptedData=<',encryptedDataBase64,'>');
     }
     return {
-      keyId:teamSharedKey.keyId,
+      keyId:teamSharedKeyId,
       ivBase64:base64EncodeBin(iv),
       encryptedBase64:encryptedDataBase64
     };
@@ -430,6 +464,10 @@ export class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::decryptData4TeamSpace::mqttPayload=<',mqttPayload,'>');
       console.log('MqttEncryptECDH::decryptData4TeamSpace::did=<',did,'>');
+    }
+    const srcKeyId = mqttPayload.keyId;
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::decryptData4TeamSpace::srcKeyId=<',srcKeyId,'>');
     }
     let teamSharedKey = this.teamSharedKeys[did];
     if(!teamSharedKey) {
@@ -442,6 +480,14 @@ export class MqttEncryptECDH {
     }
     if(this.trace0) {
       console.log('MqttEncryptECDH::decryptData4TeamSpace::teamSharedKey=<',teamSharedKey,'>');
+    }
+    const encryptedKey = teamSharedKey[srcKeyId]
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::decryptData4TeamSpace::encryptedKey=<',encryptedKey,'>');
+    }
+    if(!encryptedKey) {
+      // TODO:
+      return false;
     }
     const ivBin = base64DecodeBin(mqttPayload.ivBase64);
     if(this.trace0) {
@@ -456,12 +502,17 @@ export class MqttEncryptECDH {
         name: "AES-GCM",
         iv: ivBin,
       },
-      teamSharedKey.key,
+      encryptedKey,
       encryptedDataBin
     )
     if(this.trace0) {
       console.log('MqttEncryptECDH::decryptData4TeamSpace::decryptedDataBin=<',decryptedDataBin,'>');
     }
+    const decryptedMessage = JSON.parse(new TextDecoder().decode(decryptedDataBin));
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::decryptData4TeamSpace::decryptedMessage=<',decryptedMessage,'>');
+    }
+    return decryptedMessage;
   }
 
 

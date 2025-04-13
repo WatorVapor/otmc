@@ -151,9 +151,22 @@ export class MqttEncryptChannel {
       if(self.trace0) {
         console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      self.decryptMsgPayload4TeamSpace_(evt);
+      const mqttMsg = evt.msg;
+      if(self.trace0) {
+        console.log('MqttEncryptChannel::ListenEventEmitter_::mqttMsg=:<',mqttMsg,'>');
+      }
+      const decryptedMsg = await self.decryptMsgPayload4TeamSpace_(mqttMsg);
+      if(self.trace0) {
+        console.log('MqttEncryptChannel::ListenEventEmitter_::decryptedMsg=:<',decryptedMsg,'>');
+        console.log('MqttEncryptChannel::ListenEventEmitter_::self.otmc=:<',self.otmc,'>');
+        console.log('MqttEncryptChannel::ListenEventEmitter_::self.otmc.listenerCount(”otmc:mqtt:all“)=:<',self.otmc.listenerCount('otmc:mqtt:all'),'>');
+        console.log('MqttEncryptChannel::ListenEventEmitter_::self.otmc.listenerCount(”otmc:mqtt:encrypt:channel“)=:<',self.otmc.listenerCount('otmc:mqtt:encrypt:channel'),'>');
+      }
+      const emitResult = self.otmc.emit('otmc:mqtt:encrypt:channel',{orignal:mqttMsg,decryptedMsg:decryptedMsg,sTopic:evt.sTopic});
+      if(self.trace0) {
+        console.log('MqttEncryptChannel::ListenEventEmitter_::emitResult=:<',emitResult,'>');
+      }
     });
-  
   }
   async encryptMsgPayload4TeamSpace_(mqttMsg) {
     if(this.trace0) {
@@ -210,7 +223,7 @@ export class MqttEncryptChannel {
     if(this.trace0) {
       console.log('MqttEncryptChannel::decryptMsgPayload4TeamSpace_::decryptMsg=:<',decryptMsg,'>');
     }
-
+    return decryptMsg;
   }
 
 }

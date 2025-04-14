@@ -5,11 +5,10 @@ import { base64 } from '@scure/base';
 
 const iConstSharedKeyRegenMiliSec = 1000 * 60 * 60;
 //const iConstSharedKeyRegenMiliSec = 1000 * 5;
-
-//const iConstIssueMilliSeconds = 1000 * 60 * 60;
-const iConstIssueMilliSeconds = 1000 * 5;
-//const iConstRevoteMilliSeconds = 1000 * 60 * 60;
-const iConstRevoteMilliSeconds = 1000 * 6;
+const iConstIssueMilliSeconds = 1000 * 60 * 60;
+//const iConstIssueMilliSeconds = 1000 * 5;
+const iConstRevoteMilliSeconds = 1000 * 60 * 60;
+//const iConstRevoteMilliSeconds = 1000 * 6;
 
 
 
@@ -417,6 +416,10 @@ export class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::encryptData4TeamSpace::teamSharedKeyId=<',teamSharedKeyId,'>');
     }
+    if(!teamSharedKeyId) {
+      // TODO:
+      return false;
+    }
     const teamSharedKey = teamSharedKeyPair[teamSharedKeyId];
     if(this.trace0) {
       console.log('MqttEncryptECDH::encryptData4TeamSpace::teamSharedKey=<',teamSharedKey,'>');
@@ -774,9 +777,28 @@ export class MqttEncryptECDH {
         console.log('MqttEncryptECDH::checkServantVoteExpired::storeReult=<',storeReult,'>');
       }
     }
-
-
     return result;
+  }
+
+  async getServantVoteInTimeBound() {
+    const did = this.otmc.did.didDoc_.id;
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::getServantVoteInTimeBound::did=<',did,'>');
+    }
+    const self = this;
+    const filter1 = {
+      did:did,
+    }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::getServantVoteInTimeBound::filter1=:<',filter1,'>');
+    }
+    const servantVotes = await this.db.servantVote.where(filter1).and((vote)=>{
+      return self.filterOutTimeIsssed_(vote,iConstRevoteMilliSeconds);
+    }).toArray();
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::getServantVoteInTimeBound::servantVotes=<',servantVotes,'>');
+    }
+    return servantVotes;
   }
 
   async collectServantVoteAtDeadline() {
@@ -911,6 +933,15 @@ export class MqttEncryptECDH {
       }
     }
   }
+
+  async updateAnnouncementRemoteServant(remoteVoteServantAnnouncement) {
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::updateAnnouncementRemoteServant::remoteVoteServantAnnouncement=<',remoteVoteServantAnnouncement,'>');
+    }
+    for(const remoteVoteServant of remoteVoteServantAnnouncement) {
+      await this.collectRemoteVoteServant(remoteVoteServant);
+    }
+  }  
 
   initDB_() {
     this.db = new Dexie(StoreKey.secret.mqtt.encrypt.channel.dbName);

@@ -15,6 +15,7 @@ export class MqttEncryptChannel {
       console.log('MqttEncryptChannel::constructor::this.ee=:<',this.ee,'>');
     }
     this.cachedPlainMsg = [];
+    this.cachedEncryptedMsg = [];
   }
   ListenEventEmitter_() {
     if(this.trace0) {
@@ -182,9 +183,15 @@ export class MqttEncryptChannel {
         console.log('MqttEncryptChannel::ListenEventEmitter_::self.otmc.listenerCount(”otmc:mqtt:all“)=:<',self.otmc.listenerCount('otmc:mqtt:all'),'>');
         console.log('MqttEncryptChannel::ListenEventEmitter_::self.otmc.listenerCount(”otmc:mqtt:encrypt:channel“)=:<',self.otmc.listenerCount('otmc:mqtt:encrypt:channel'),'>');
       }
-      const emitResult = self.otmc.emit('otmc:mqtt:encrypt:channel',{orignal:mqttMsg,decryptedMsg:decryptedMsg,sTopic:evt.sTopic});
-      if(self.trace0) {
-        console.log('MqttEncryptChannel::ListenEventEmitter_::emitResult=:<',emitResult,'>');
+      if(decryptedMsg.keyMiss) {
+        //this.ee.emit('xstate.event.mqtt.encrypt.servant.vote.check',{});
+        self.cachedEncryptedMsg.push(mqttMsg);
+      }
+      if(decryptedMsg.decrypt) {
+        const emitResult = self.otmc.emit('otmc:mqtt:encrypt:channel',{orignal:mqttMsg,decryptedMsg:ecryptedMsg.decrypt,sTopic:evt.sTopic});
+        if(self.trace0) {
+          console.log('MqttEncryptChannel::ListenEventEmitter_::emitResult=:<',emitResult,'>');
+        }
       }
     });
   }

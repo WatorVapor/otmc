@@ -478,7 +478,7 @@ export class MqttEncryptECDH {
       teamSharedKey = this.teamSharedKeys[did];
       if(!teamSharedKey) {
         // TODO:
-        return false;
+        return {keyMiss:true};
       }
     }
     if(this.trace0) {
@@ -490,7 +490,7 @@ export class MqttEncryptECDH {
     }
     if(!encryptedKey) {
       // TODO:
-      return false;
+      return {keyMiss:true};
     }
     const ivBin = base64DecodeBin(mqttPayload.ivBase64);
     if(this.trace0) {
@@ -515,7 +515,7 @@ export class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::decryptData4TeamSpace::decryptedMessage=<',decryptedMessage,'>');
     }
-    return decryptedMessage;
+    return {decrypt:decryptedMessage};
   }
 
 

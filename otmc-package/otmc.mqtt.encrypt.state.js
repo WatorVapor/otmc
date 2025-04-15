@@ -225,14 +225,6 @@ const mqttEncrptActionTable = {
     }
     if(voteCheckResult.reVote) {
       ee.emit('xstate.action.mqtt.encrypt.servant.vote.refresh',voteCheckResult);
-      const timeoutOfVoteDeadline = ecdh.voteTimeout*kVoteFactor + kVoteDeadline;
-      if(LOG.trace) {
-        console.log('MqttEncrptStateMachine::mqttEncrptActionTable::vote_checking_entry:timeoutOfVoteDeadline=:<',timeoutOfVoteDeadline,'>');
-      }
-      setTimeout(()=>{
-        ee.emit('xstate.event.mqtt.encrypt.servant.vote.deadline',voteCheckResult);
-      },timeoutOfVoteDeadline);
-
     } else {
       const voteEvidence = await ecdh.getServantVoteInTimeBound();
       if(LOG.trace) {
@@ -240,6 +232,13 @@ const mqttEncrptActionTable = {
       }
       ee.emit('xstate.action.mqtt.encrypt.servant.announcement',voteEvidence);
     }
+    const timeoutOfVoteDeadline = ecdh.voteTimeout*kVoteFactor + kVoteDeadline;
+    if(LOG.trace) {
+      console.log('MqttEncrptStateMachine::mqttEncrptActionTable::vote_checking_entry:timeoutOfVoteDeadline=:<',timeoutOfVoteDeadline,'>');
+    }
+    setTimeout(()=>{
+      ee.emit('xstate.event.mqtt.encrypt.servant.vote.deadline',voteCheckResult);
+    },timeoutOfVoteDeadline);
   },
   servant_vote_complete_entry: async (context, evt) => {
     const ee = context.context.ee;

@@ -1,6 +1,7 @@
 import { base16, base32, base64, base58 } from '@scure/base';
-import Dexie from 'dexie';
 import { indexedDB, IDBKeyRange } from 'fake-indexeddb';
+import fs from 'fs';
+import Dexie from 'dexie';
 import { StoreKey } from './otmc.const.js';
 const isNode = typeof global !== 'undefined' && typeof window === 'undefined';
 
@@ -34,9 +35,11 @@ export class EdcryptKeyLoader {
         console.log('EdcryptKeyLoader::ListenEventEmitter_::evt=:<',evt,'>');
       }
       if(isNode) {
-        self.tryOpenDBNode_();
-      } else {
-        self.tryOpenDB_();
+        self.addIndexedDBDependenciesInNode_();
+      }
+      self.tryOpenDB_();
+      if(isNode) {
+        self.importDataInNode_();
       }
       self.runWorker(evt.worker);
     });
@@ -162,14 +165,58 @@ export class EdcryptKeyLoader {
       console.log('EdcryptKeyLoader::tryOpenDB_::this.db=:<',this.db,'>');
     }
   }
-  tryOpenDBNode_() {
-    this.db = new Dexie(StoreKey.secret.authKey.dbName,{ indexedDB: indexedDB, IDBKeyRange: IDBKeyRange });
-    this.db.version(this.version).stores({
-      edKey: '++autoId,authKey,recoveryKey'
-    });
+  addIndexedDBDependenciesInNode_() {
+    Dexie.dependencies.indexedDB = indexedDB;
+    Dexie.dependencies.IDBKeyRange = IDBKeyRange;
+  }
+  async importDataInNode_() {
     if(this.trace) {
-      console.log('EdcryptKeyLoader::tryOpenDBNode_::this.db=:<',this.db,'>');
+      console.log('EdcryptKeyLoader::importDataInNode_::this.db.name=:<',this.db.name,'>');
     }
+    const rootDir = '/opt/otmc';
+    try {
+      const dataFilename = `${rootDir}/${this.db.name}.json`;
+      if(this.trace) {
+        console.log('EdcryptKeyLoader::importDataInNode_::dataFilename=:<',dataFilename,'>');
+      }
+      const dataRaw = fs.readFileSync(dataFilename, 'utf8');
+      const data = JSON.parse(dataRaw);
+      if(this.trace) {
+        console.log('EdcryptKeyLoader::importDataInNode_::data=:<',data,'>');
+      }
+    }
+    catch(err) {
+      if(this.trace) {
+        console.log('EdcryptKeyLoader::importDataInNode_::err=:<',err,'>');
+      }
+    }
+    if(this.trace) {
+      console.log('EdcryptKeyLoader::importDataInNode_::data=:<',data,'>');
+      console.log('EdcryptKeyLoader::importDataInNode_::this.db=:<',this.db,'>');
+    }
+    await this.db.transaction('rw', this.db.tables, async () => {
+      for (const [tableName, records] of Object.entries(data.tables)) {
+        await this.db[tableName].clear();
+        await this.db[tableName].bulkAdd(records);
+      }
+    });
+  }
+  async exportData() {
+    const tables = {};
+    const tableNames = this.db.tables.map(table => table.name);
+    
+    for (const tableName of tableNames) {
+      tables[tableName] = await this.db[tableName].toArray();
+    }
+    const ret = {
+      dbName: this.db.name,
+      exportedAt: new Date().toISOString(),
+      tables
+    };
+    if(this.trace) {
+      console.log('EdcryptKeyLoader::exportData::ret=:<',ret,'>');
+    }
+    return ret;
   }
 }
 

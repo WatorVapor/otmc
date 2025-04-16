@@ -3,9 +3,9 @@ import fs from 'fs';
 import { RedisRelay } from './redisRelay.mjs';
 console.log('::::RedisRelay=<',RedisRelay,'>');
 
-//import * as Otmc from 'otmc-client';
-import { Otmc } from '../../otmc-package/otmc.js';
-console.log('::::Otmc=<',Otmc,'>');
+//import * as OtmcTeam from 'otmc-client';
+import { OtmcTeam } from '../../otmc-package/otmc.team.js';
+console.log('::::OtmcTeam=<',OtmcTeam,'>');
 
 
 const gConf = {};
@@ -67,14 +67,14 @@ try {
 }
 
 console.log('::::otmcConfig=<',otmcConfig,'>');
-const otmc = new Otmc(otmcConfig);
-//console.log('::::otmc=<',otmc,'>');
+const otmcTeam = new OtmcTeam(otmcConfig);
+//console.log('::::otmcTeam=<',otmcTeam,'>');
 
-otmc.on('otmc:mqtt:all',(mqttMsg)=>{
+otmcTeam.on('otmc:mqtt:all',(mqttMsg)=>{
   console.log('::otmc.mqtt.all::mqttMsg=<',mqttMsg,'>');
 });
 
-const redis = new RedisRelay(gConf,otmc,()=>{
+const redis = new RedisRelay(gConf,otmcTeam,()=>{
   console.log('::::redis.ready=<',redis.ready,'>');
 });
 

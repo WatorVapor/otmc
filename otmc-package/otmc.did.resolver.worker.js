@@ -1,14 +1,66 @@
-self.trace = true;
-self.debug = true;
+const isNode = typeof global !== 'undefined' && typeof window === 'undefined';
+console.log('otmc.worker.resolver::::isNode=:<',isNode,'>');
+let pSelf = false;
+if(isNode) {
+  pSelf = {};
+  pSelf.trace = true;
+  pSelf.debug = true;
+  const nodeWorker = await import('node:worker_threads');
+  console.log('otmc.worker.resolver::::nodeWorker=:<',nodeWorker,'>');
+  pSelf.parentPort = nodeWorker.parentPort;
+  pSelf.addEventListener = nodeWorker.addEventListener;
+  setTimeout(()=>{
+    loadModule();
+  },1);
+} else {
+  pSelf = self;
+}
 
-self.addEventListener('message', (evt) =>{
-  if(self.trace) {
-    console.log('otmc.worker.resolver::::evt=:<',evt,'>');
+pSelf.trace = true;
+pSelf.debug = true;
+
+const loadModule = async () => {
+  if(pSelf.trace) {
+    console.log('otmc.worker.resolver::loadModule');
   }
-  onMessage(evt.data);
-});
+  if(isNode) {
+    pSelf.parentPort.on('message', (data) =>{
+      if(pSelf.trace) {
+        console.log('otmc.worker.resolver::loadModule::data=:<',data,'>');
+      }
+      onMessage(data);
+    });
+  } else {
+    pSelf.addEventListener('message', (evt) =>{
+      if(pSelf.trace) {
+        console.log('otmc.worker.resolver::loadModule::evt=:<',evt,'>');
+      }
+      onMessage(evt.data);
+    });
+  }
+  const result = {
+    module:{
+      loaded:true,
+    }
+  }
+  if(pSelf.trace) {
+    console.log('otmc.worker.edcrypt::loadModule::result=:<',result,'>');
+  }
+  if(isNode) {
+    pSelf.parentPort.postMessage(result);
+  } else {
+    pSelf.postMessage(result);
+  }
+}
+
+if(!isNode) {
+  loadModule();  
+}
+
+
+
 const onMessage = async (msg) => {
-  if(self.trace) {
+  if(pSelf.trace) {
     console.log('otmc.worker.resolver::onMessage::msg=:<',msg,'>');
   }
   if(msg.init) {
@@ -24,15 +76,19 @@ const onMessage = async (msg) => {
 
 const modulePath = {};
 const onInitCmd = async (initMsg) => {
-  if(self.trace) {
+  if(pSelf.trace) {
     console.log('otmc.worker.resolver::onInitCmd::initMsg=:<',initMsg,'>');
   }
-  self.postMessage({ready:true});
+  if(isNode) {
+    pSelf.parentPort.postMessage({ready:true});
+  } else {
+    pSelf.postMessage({ready:true});
+  }
 }
 
 let gCloudRequestList = [];
 const onReqDLCmd = async (reqMsg) => {
-  if(self.trace) {
+  if(pSelf.trace) {
     console.log('otmc.worker.resolver::onReqDLCmd::reqMsg=:<',reqMsg,'>');
   }
   gCloudRequestList.push(reqMsg);
@@ -43,7 +99,7 @@ const onReqDLCmd = async (reqMsg) => {
 }
 
 const onReqULCmd = async (reqMsg) => {
-  if(self.trace) {
+  if(pSelf.trace) {
     console.log('otmc.worker.resolver::onReqULCmd::reqMsg=:<',reqMsg,'>');
   }
   gCloudRequestList.push(reqMsg);
@@ -55,14 +111,14 @@ const onReqULCmd = async (reqMsg) => {
 
 
 const rollOutRequestInQue_ = async () => {
-  if(self.trace) {
+  if(pSelf.trace) {
     console.log('otmc.worker.resolver::rollOutRequestInQue_::gCloudRequestList=:<',gCloudRequestList,'>');
   }
   if(gCloudRequestList.length < 1) {
     return;
   }
   const topRequest = gCloudRequestList[0];
-  if(self.trace) {
+  if(pSelf.trace) {
     console.log('otmc.worker.resolver::rollOutRequestInQue_::topRequest=:<',topRequest,'>');
   }
   rollOutOneRequest_(topRequest);
@@ -75,22 +131,30 @@ const rollOutRequestInQue_ = async () => {
 }
 
 const rollOutOneRequest_ = async (reqMsg) => {
-  if(self.trace) {
+  if(pSelf.trace) {
     console.log('otmc.worker.resolver::rollOutOneRequest_::reqMsg=:<',reqMsg,'>');
   }
   if(reqMsg.GET) {
     const responseGet = await GetRequestAPI_(reqMsg.GET);
-    if(self.trace) {
+    if(pSelf.trace) {
       console.log('otmc.worker.resolver::rollOutOneRequest_::responseGet=:<',responseGet,'>');
     }
-    self.postMessage(responseGet);
+    if(isNode) {
+      pSelf.parentPort.postMessage(responseGet);
+    } else {
+      pSelf.postMessage(responseGet);
+    }
   }
   if(reqMsg.POST) {
     const responsePost = await PostRequestAPI_(reqMsg.POST);
-    if(self.trace) {
+    if(pSelf.trace) {
       console.log('otmc.worker.resolver::rollOutOneRequest_::responsePost=:<',responsePost,'>');
     }
-    self.postMessage(responsePost);
+    if(isNode) {
+      pSelf.parentPort.postMessage(responsePost);
+    } else {
+      pSelf.postMessage(responsePost);
+    }
   }
 }
 
@@ -104,16 +168,16 @@ const GetRequestAPI_  = async (reqMsg) => {
     headers:reqHeader
   };
   const apiReq = new Request(reqMsg.url, reqOption);
-  if(self.trace) {
+  if(pSelf.trace) {
     console.log('otmc.worker.resolver::GetRequestAPI_::apiReq=:<',apiReq,'>');
   }
   const apiResp = await fetch(apiReq);
-  if(self.trace) {
+  if(pSelf.trace) {
     console.log('otmc.worker.resolver::GetRequestAPI_::apiResp=:<',apiResp,'>');
   }
   if(apiResp.ok) {
     const resultJson = await apiResp.json();
-    if(self.trace) {
+    if(pSelf.trace) {
       console.log('otmc.worker.resolver::GetRequestAPI_::resultJson=:<',resultJson,'>');
     }
     return resultJson;
@@ -136,16 +200,16 @@ const PostRequestAPI_  = async (reqMsg) => {
     body:JSON.stringify(reqMsg.body)
   };
   const apiReq = new Request(reqMsg.url, reqOption);
-  if(self.trace) {
+  if(pSelf.trace) {
     console.log('otmc.worker.resolver::PostRequestAPI_::apiReq=:<',apiReq,'>');
   }
   const apiResp = await fetch(apiReq);
-  if(self.trace) {
+  if(pSelf.trace) {
     console.log('otmc.worker.resolver::PostRequestAPI_::apiResp=:<',apiResp,'>');
   }
   if(apiResp.ok) {
     const resultJson = await apiResp.json();
-    if(self.trace) {
+    if(pSelf.trace) {
       console.log('otmc.worker.resolver::PostRequestAPI_::resultJson=:<',resultJson,'>');
     }
     return resultJson;

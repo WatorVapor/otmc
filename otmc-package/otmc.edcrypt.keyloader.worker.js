@@ -1,14 +1,66 @@
-self.trace = true;
-self.debug = true;
+const isNode = typeof global !== 'undefined' && typeof window === 'undefined';
+console.log('otmc.worker.edcrypt::::isNode=:<',isNode,'>');
+let pSelf = false;
+if(isNode) {
+  pSelf = {};
+  pSelf.trace = true;
+  pSelf.debug = true;
+  const nodeWorker = await import('node:worker_threads');
+  console.log('otmc.worker.edcrypt::::nodeWorker=:<',nodeWorker,'>');
+  pSelf.parentPort = nodeWorker.parentPort;
+  pSelf.parentPort = nodeWorker.parentPort;
+  pSelf.addEventListener = nodeWorker.addEventListener;
+  setTimeout(()=>{
+    loadModule();
+  },1);
+} else {
+  pSelf = self;
+}
+pSelf.trace = true;
+pSelf.debug = true;
 
-self.addEventListener('message', (evt) =>{
-  if(self.trace) {
-    console.log('otmc.worker.edcrypt::::evt=:<',evt,'>');
+
+const loadModule = async () => {
+  if(pSelf.trace) {
+    console.log('otmc.worker.edcrypt::loadModule');
   }
-  onMessage(evt.data);
-});
+  if(isNode) {
+    pSelf.parentPort.on('message', (data) =>{
+      if(pSelf.trace) {
+        console.log('otmc.worker.resolver::loadModule::data=:<',data,'>');
+      }
+      onMessage(data);
+    });
+  } else { 
+    pSelf.addEventListener('message', (evt) =>{
+      if(pSelf.trace) {
+        console.log('otmc.worker.edcrypt::loadModule::evt=:<',evt,'>');
+      }
+      onMessage(evt.data);
+    });
+  }
+  const result = {
+    module:{
+      loaded:true,
+    }
+  }
+  if(pSelf.trace) {
+    console.log('otmc.worker.edcrypt::loadModule::result=:<',result,'>');
+  }
+  if(isNode) {
+    pSelf.parentPort.postMessage(result);
+  } else {
+    pSelf.postMessage(result);
+  }
+}
+
+if(!isNode) {
+  loadModule();  
+}
+
+
 const onMessage = async (msg) => {
-  if(self.trace) {
+  if(pSelf.trace) {
     console.log('otmc.worker.edcrypt::onMessage::msg=:<',msg,'>');
   }
   if(msg.init) {
@@ -23,16 +75,20 @@ const modulePath = {
   
 }
 const onInitCmd = async (initMsg) => {
-  if(self.trace) {
+  if(pSelf.trace) {
     console.log('otmc.worker.edcrypt::onInitCmd::initMsg=:<',initMsg,'>');
   }
   modulePath.base32 = `${initMsg.path}/edcrypto/base32.js`;
   modulePath.edkey = `${initMsg.path}/edcrypto/edkey.js`;
   modulePath.edutils = `${initMsg.path}/edcrypto/edutils.js`;
-  if(self.trace) {
+  if(pSelf.trace) {
     console.log('otmc.worker.edcrypt::onInitCmd::modulePath=:<',modulePath,'>');
   }
-  self.postMessage({ready:true});
+  if(isNode) {
+    pSelf.parentPort.postMessage({ready:true});
+  } else {
+    pSelf.postMessage({ready:true});
+  }
 }
 
 const addressPrefix = 'otm';
@@ -42,25 +98,25 @@ const addressPrefix = 'otm';
 const onMiningCmd = async (msg) => {
 
   const { Base32 } = await import(modulePath.base32)
-  if(self.trace) {
+  if(pSelf.trace) {
     console.log('otmc.worker.edcrypt::onMiningCmd::Base32=:<',Base32,'>');
   }
   const { EdDsaKey } = await import(modulePath.edkey)
-  if(self.trace) {
+  if(pSelf.trace) {
     console.log('otmc.worker.edcrypt::onMiningCmd::EdDsaKey=:<',EdDsaKey,'>');
   }
   const { EdUtil } = await import(modulePath.edutils)
-  if(self.trace) {
+  if(pSelf.trace) {
     console.log('otmc.worker.edcrypt::onMiningCmd::EdUtil=:<',EdUtil,'>');
   }
   const nacl = await import('https://cdn.jsdelivr.net/npm/tweetnacl-es6@1.0.3/nacl-fast-es.js');
-  if(self.trace) {
+  if(pSelf.trace) {
     console.log('otmc.worker.edcrypt::onMiningCmd::nacl=:<',nacl,'>');
   }
   const base32 = new Base32();
   const util = new EdUtil(base32,nacl);
   const edKey = new EdDsaKey(util);
-  if(self.trace) {
+  if(pSelf.trace) {
   console.log('otmc.worker.edcrypt::onMiningCmd::edKey=:<',edKey,'>');
   }
   const result = {
@@ -68,7 +124,7 @@ const onMiningCmd = async (msg) => {
     recovery:false
   };
   let authKey = null;
-  self.counter = 0;
+  pSelf.counter = 0;
   setTimeout(()=>{
     mineEdKeyWithTimer(result,edKey);
   },0);
@@ -76,15 +132,19 @@ const onMiningCmd = async (msg) => {
 
 const mineEdKeyWithTimer = (result,edKey) => {
   let keyObject = edKey.createKey();
-  if((self.counter++ % 100 ) === 0 ) {
-    if(self.debug ) {
+  if((pSelf.counter++ % 100 ) === 0 ) {
+    if(pSelf.debug ) {
       console.log('otmc.worker.edcrypt::mineEdKeyWithTimer::keyObject.idOfKey=:<',keyObject.idOfKey,'>');
-      console.log('otmc.worker.edcrypt::mineEdKeyWithTimer::self.counter=:<',self.counter,'>');
+      console.log('otmc.worker.edcrypt::mineEdKeyWithTimer::pSelf.counter=:<',pSelf.counter,'>');
     }
-    self.postMessage({mining:{counter:self.counter++,keyObject:keyObject}});
+    if(isNode) {
+      pSelf.parentPort.postMessage({mining:{counter:pSelf.counter++,keyObject:keyObject}});
+    } else {
+      pSelf.postMessage({mining:{counter:pSelf.counter++,keyObject:keyObject}});
+    }
   }
   if(keyObject.idOfKey.startsWith(addressPrefix)) {
-    if(self.debug ) {
+    if(pSelf.debug ) {
       console.log('otmc.worker.edcrypt::mineEdKeyWithTimer::keyObject.idOfKey=:<',keyObject.idOfKey,'>');
     }
     if(!result.auth) {
@@ -98,7 +158,11 @@ const mineEdKeyWithTimer = (result,edKey) => {
       result.recovery = keyObject;
     }
     if(result.auth && result.recovery) {
-      self.postMessage(result);
+      if(isNode)  {
+        pSelf.parentPort.postMessage(result);
+      } else {
+        pSelf.postMessage(result);
+      }
     }
   } else {
     setTimeout(()=>{

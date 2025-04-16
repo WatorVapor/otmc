@@ -1,6 +1,8 @@
 import { base16, base32, base64, base58 } from '@scure/base';
 import Dexie from 'dexie';
+import { indexedDB, IDBKeyRange } from 'fake-indexeddb';
 import { StoreKey } from './otmc.const.js';
+const isNode = typeof global !== 'undefined' && typeof window === 'undefined';
 
 class OtmcEdcrypt {
   static trace = false;
@@ -31,12 +33,10 @@ export class EdcryptKeyLoader {
       if(self.trace) {
         console.log('EdcryptKeyLoader::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      self.db = new Dexie(StoreKey.secret.authKey.dbName);
-      self.db.version(self.version).stores({
-        edKey: '++autoId,authKey,recoveryKey'
-      });
-      if(self.trace) {
-        console.log('EdcryptKeyLoader::ListenEventEmitter_::self.db=:<',self.db,'>');
+      if(isNode) {
+        self.tryOpenDBNode_();
+      } else {
+        self.tryOpenDB_();
       }
       self.runWorker(evt.worker);
     });
@@ -69,8 +69,14 @@ export class EdcryptKeyLoader {
       console.log('EdcryptKeyLoader::runWorker::err=:<',err,'>');
     }
     const self = this;
-    this.cryptWorker.onmessage = (e) => {
-      self.onEdCryptMessage_(e.data);
+    if(isNode) {
+      this.cryptWorker.on('message', (msg) => {
+        self.onEdCryptMessage_(msg);
+      });
+    } else {
+      this.cryptWorker.onmessage = (e) => {
+        self.onEdCryptMessage_(e.data);
+      }  
     }
   }
 
@@ -78,6 +84,10 @@ export class EdcryptKeyLoader {
     this.cryptWorker.postMessage(data);
   }
   async loadKey() {
+    if(this.trace) {
+      console.log('EdcryptKeyLoader::loadKey::this.db=:<',this.db,'>');
+      console.log('EdcryptKeyLoader::loadKey::this.db.edKey=:<',this.db.edKey,'>');
+    }
     const edKeys = await this.db.edKey.toArray();
     if(this.trace) {
       console.log('EdcryptKeyLoader::loadKey::edKeys=:<',edKeys,'>');
@@ -126,7 +136,7 @@ export class EdcryptKeyLoader {
       console.log('EdcryptKeyLoader::onEdCryptMessage_::msg=:<',msg,'>');
     }
     if(msg.ready) {
-      this.eeInternal.emit('edCryptKey.loader.loadKey',{});
+      this.eeInternal.emit('edCryptKey.loader.loadKey',msg);
     }
     if(msg.auth && msg.recovery) {
       const resultStore = await this.db.edKey.add(msg);
@@ -141,6 +151,24 @@ export class EdcryptKeyLoader {
     }
     if(msg.mining) {
       this.eeOut.emit('edcrypt:mining',msg.mining);
+    }
+  }
+  tryOpenDB_() {
+    this.db = new Dexie(StoreKey.secret.authKey.dbName);
+    this.db.version(this.version).stores({
+      edKey: '++autoId,authKey,recoveryKey'
+    });
+    if(this.trace) {
+      console.log('EdcryptKeyLoader::tryOpenDB_::this.db=:<',this.db,'>');
+    }
+  }
+  tryOpenDBNode_() {
+    this.db = new Dexie(StoreKey.secret.authKey.dbName,{ indexedDB: indexedDB, IDBKeyRange: IDBKeyRange });
+    this.db.version(this.version).stores({
+      edKey: '++autoId,authKey,recoveryKey'
+    });
+    if(this.trace) {
+      console.log('EdcryptKeyLoader::tryOpenDBNode_::this.db=:<',this.db,'>');
     }
   }
 }

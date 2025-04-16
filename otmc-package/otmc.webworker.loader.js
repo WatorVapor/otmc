@@ -104,28 +104,42 @@ export class WebWorkerLoader {
     if(this.trace) {
       console.log('WebWorkerLoader::createWorkerNode::cryptWorker=:<',cryptWorker,'>');
     }
-    const initMsg = {
-      init:{
-        path:this.scriptPath,
+    const self = this;
+    cryptWorker.on('message', (msg) => {
+      if(self.trace) {
+        console.log('WebWorkerLoader::createWorkerNode::cryptWorker::onmessage::msg=:<',msg,'>');
       }
-    };
-    setTimeout(()=>{
-      cryptWorker.postMessage(initMsg);
-    },3);
-    this.eeInternal.emit('webwoker.crypt.worker',{worker:cryptWorker});
+      if(msg && msg.module && msg.module.loaded) {
+        const initMsg = {
+          init:{
+            path:this.scriptPath,
+          }
+        };    
+        cryptWorker.postMessage(initMsg);
+        self.eeInternal.emit('webwoker.crypt.worker',{worker:cryptWorker});
+      }
+    });
+
+    
+    
     const resolverWorker = new NodeWorker.Worker(`${this.scriptPath}/otmc.did.resolver.worker.js`, ModuleOption);
     if(this.trace) {
       console.log('WebWorkerLoader::createWorkerNode::resolverWorker=:<',resolverWorker,'>');
     }
-    const initMsg2 = {
-      init:{
-        path:this.scriptPath,
+    resolverWorker.on('message', (msg) => {
+      if(self.trace) {
+        console.log('WebWorkerLoader::createWorkerNode::resolverWorker::onmessage::msg=:<',msg,'>');
       }
-    };    
-    setTimeout(()=>{
-      resolverWorker.postMessage(initMsg2);
-    },3);
-    this.eeInternal.emit('webwoker.resolver.worker',{worker:resolverWorker});
+      if(msg && msg.module && msg.module.loaded) {
+        const initMsg = {
+          init:{
+            path:this.scriptPath,
+          }
+        };
+        resolverWorker.postMessage(initMsg);
+        self.eeInternal.emit('webwoker.resolver.worker',{worker:resolverWorker});
+      }
+    });
   }
 }
 

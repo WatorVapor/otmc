@@ -16,7 +16,7 @@ docker run -it
   -v /etc/group:/etc/group:ro 
   -v /etc/passwd:/etc/passwd:ro 
   -v /dev/shm/:/dev/shm/ 
-  -v /opt/otmc/:/opt/otmc/
+  -v /opt/otmc/store1:/opt/otmc
   -v ${GPARENT_DIR}:${GPARENT_DIR} 
   -v ${HOME}:${HOME} 
   -u $(id -u $USER):$(id -g $USER) 
@@ -33,7 +33,7 @@ docker run -d
   -v /etc/group:/etc/group:ro 
   -v /etc/passwd:/etc/passwd:ro 
   -v /dev/shm/:/dev/shm/ 
-  -v /opt/otmc/:/opt/otmc/
+  -v /opt/otmc/store1:/opt/otmc
   -v ${GPARENT_DIR}:${GPARENT_DIR} 
   -v ${HOME}:${HOME} 
   -u $(id -u $USER):$(id -g $USER) 

@@ -1,6 +1,7 @@
 import { base16, base32, base64, base58 } from '@scure/base';
 import { indexedDB, IDBKeyRange } from 'fake-indexeddb';
 import fs from 'fs';
+import path from 'path';
 import Dexie from 'dexie';
 import { StoreKey } from './otmc.const.js';
 const isNode = typeof global !== 'undefined' && typeof window === 'undefined';
@@ -173,23 +174,7 @@ export class EdcryptKeyLoader {
     if(this.trace) {
       console.log('EdcryptKeyLoader::importDataInNode_::this.db.name=:<',this.db.name,'>');
     }
-    const rootDir = '/opt/otmc';
-    try {
-      const dataFilename = `${rootDir}/${this.db.name}.json`;
-      if(this.trace) {
-        console.log('EdcryptKeyLoader::importDataInNode_::dataFilename=:<',dataFilename,'>');
-      }
-      const dataRaw = fs.readFileSync(dataFilename, 'utf8');
-      const data = JSON.parse(dataRaw);
-      if(this.trace) {
-        console.log('EdcryptKeyLoader::importDataInNode_::data=:<',data,'>');
-      }
-    }
-    catch(err) {
-      if(this.trace) {
-        console.log('EdcryptKeyLoader::importDataInNode_::err=:<',err,'>');
-      }
-    }
+    const data = await this.loadDataFromStorage_();
     if(this.trace) {
       console.log('EdcryptKeyLoader::importDataInNode_::data=:<',data,'>');
       console.log('EdcryptKeyLoader::importDataInNode_::this.db=:<',this.db,'>');
@@ -200,6 +185,39 @@ export class EdcryptKeyLoader {
         await this.db[tableName].bulkAdd(records);
       }
     });
+  }
+  async loadDataFromStorage_() {
+    const rootDir = '/opt/otmc';
+    try {
+      const dataFilename = `${rootDir}/${this.db.name}.json`;
+      if(this.trace) {
+        console.log('EdcryptKeyLoader::loadDataFromStorage_::dataFilename=:<',dataFilename,'>');
+      }
+      const dataRaw = fs.readFileSync(dataFilename, 'utf8');
+      const data = JSON.parse(dataRaw);
+      if(this.trace) {
+        console.log('EdcryptKeyLoader::loadDataFromStorage_::data=:<',data,'>');
+      }
+      return data;
+    }
+    catch(err) {
+      if(this.trace) {
+        console.log('EdcryptKeyLoader::loadDataFromStorage_::err=:<',err,'>');
+      }
+      const emptyData = await this.exportData();
+      if(this.trace) {
+        console.log('EdcryptKeyLoader::loadDataFromStorage_::emptyData=:<',emptyData,'>');
+      }
+      const dataFileName = `${rootDir}/${this.db.name}.json`;
+      const dataFilePath = path.dirname(dataFileName);
+      if(this.trace) {
+        console.log('EdcryptKeyLoader::loadDataFromStorage_::dataFilePath=:<',dataFilePath,'>');
+      }
+      fs.mkdirSync(dataFilePath, { recursive: true });
+      fs.writeFileSync(dataFileName, JSON.stringify(emptyData, null, 2), 'utf8');
+      return emptyData;
+    }
+    return {};
   }
   async exportData() {
     const tables = {};

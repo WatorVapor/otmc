@@ -29,7 +29,7 @@ export class EdcryptKeyLoader {
   }
   ListenEventEmitter_() {
     const self = this;
-    this.eeInternal.on('webwoker.crypt.worker',(evt)=>{
+    this.eeInternal.on('webwoker.crypt.worker',async (evt)=>{
       if(self.trace) {
         console.log('EdcryptKeyLoader::ListenEventEmitter_::evt=:<',evt,'>');
       }
@@ -39,7 +39,7 @@ export class EdcryptKeyLoader {
       self.tryOpenDB_();
       if(isNode) {
         self.wrapper = new StoreNodeWrapper(self.db);
-        self.wrapper.importData();
+        await self.wrapper.importData();
       }
       self.runWorker(evt.worker);
     });
@@ -143,6 +143,9 @@ export class EdcryptKeyLoader {
     }
     if(msg.auth && msg.recovery) {
       const resultStore = await this.db.edKey.add(msg);
+      if(isNode) {
+        await this.wrapper.exportData();
+      }
       if(this.trace) {
         console.log('EdcryptKeyLoader::onEdCryptMessage_::resultStore=:<',resultStore,'>');
       }

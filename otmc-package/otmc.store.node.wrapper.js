@@ -10,6 +10,7 @@ export class StoreNodeWrapper {
   constructor(db) {
     this.trace = true;
     this.debug = true;
+    this.rootDir = '/opt/otmc';
     this.db = db;
     if(this.trace) {
       console.log('StoreNodeWrapper::constructor::this.db.name=:<',this.db.name,'>');
@@ -36,10 +37,29 @@ export class StoreNodeWrapper {
       }
     });
   }
+
+  async exportData() {
+    const tables = {};
+    const tableNames = this.db.tables.map(table => table.name);
+    
+    for (const tableName of tableNames) {
+      tables[tableName] = await this.db[tableName].toArray();
+    }
+    const ret = {
+      dbName: this.db.name,
+      exportedAt: new Date().toISOString(),
+      tables
+    };
+    if(this.trace) {
+      console.log('StoreNodeWrapper::exportData::ret=:<',ret,'>');
+    }
+    this.saveDataToStorage_(ret);
+    return ret;
+  }
+
   async loadDataFromStorage_() {
-    const rootDir = '/opt/otmc';
     try {
-      const dataFilename = `${rootDir}/${this.db.name}.json`;
+      const dataFilename = `${this.rootDir}/${this.db.name}.json`;
       if(this.trace) {
         console.log('StoreNodeWrapper::loadDataFromStorage_::dataFilename=:<',dataFilename,'>');
       }
@@ -58,33 +78,19 @@ export class StoreNodeWrapper {
       if(this.trace) {
         console.log('StoreNodeWrapper::loadDataFromStorage_::emptyData=:<',emptyData,'>');
       }
-      const dataFileName = `${rootDir}/${this.db.name}.json`;
-      const dataFilePath = path.dirname(dataFileName);
-      if(this.trace) {
-        console.log('StoreNodeWrapper::loadDataFromStorage_::dataFilePath=:<',dataFilePath,'>');
-      }
-      fs.mkdirSync(dataFilePath, { recursive: true });
-      fs.writeFileSync(dataFileName, JSON.stringify(emptyData, null, 2), 'utf8');
+      this.saveDataToStorage_(emptyData);
       return emptyData;
     }
-    return {};
   }
-  async exportData() {
-    const tables = {};
-    const tableNames = this.db.tables.map(table => table.name);
-    
-    for (const tableName of tableNames) {
-      tables[tableName] = await this.db[tableName].toArray();
-    }
-    const ret = {
-      dbName: this.db.name,
-      exportedAt: new Date().toISOString(),
-      tables
-    };
+  saveDataToStorage_(data) {
+    const dataFileName = `${this.rootDir}/${this.db.name}.json`;
+    const dataFilePath = path.dirname(dataFileName);
     if(this.trace) {
-      console.log('StoreNodeWrapper::exportData::ret=:<',ret,'>');
+      console.log('StoreNodeWrapper::loadDataFromStorage_::dataFilePath=:<',dataFilePath,'>');
     }
-    return ret;
+    fs.mkdirSync(dataFilePath, { recursive: true });
+    fs.writeFileSync(dataFileName, JSON.stringify(data, null, 2), 'utf8');
   }
+
 }
 

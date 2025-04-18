@@ -2,4 +2,4 @@
 source ../docker.env.sh
 echo "DOCKER_NODE:=${DOCKER_NODE}"
 ${DOCKER_NODE} node \
-  ../cli/gen.key.mjs
+  ../cli/cli.mjs --subcommand ${0}

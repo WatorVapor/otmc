@@ -35,7 +35,8 @@ const execSubcommand = (subcommand)=>{
   }
 }
 
-import { OtmcTeam } from 'otmcTeam';
+//import { OtmcTeam } from 'otmcTeam';
+import  { OtmcTeam } from 'otmc-client'
 const otmc = new OtmcTeam();
 console.log('::::otmc=:<',otmc,'>');
 

@@ -1,5 +1,7 @@
 #!/bin/bash
-SCRIPT_DIR=$(cd $(dirname $0); pwd)
+echo "BASH_SOURCE[0]:=${BASH_SOURCE[0]}"
+#SCRIPT_DIR=$(cd $(dirname $0); pwd)
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PARENT_DIR=$(dirname $SCRIPT_DIR)
 GPARENT_DIR=$(dirname $PARENT_DIR)
 BASE_NAME=$(basename $SCRIPT_DIR)

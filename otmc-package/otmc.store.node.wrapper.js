@@ -10,7 +10,7 @@ export class StoreNodeWrapper {
   constructor(db) {
     this.trace = true;
     this.debug = true;
-    this.rootDir = '/opt/otmc';
+    this.rootDir = '/opt/otmc/dexie_indexed_db';
     this.db = db;
     if(this.trace) {
       console.log('StoreNodeWrapper::constructor::this.db.name=:<',this.db.name,'>');

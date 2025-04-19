@@ -109,7 +109,12 @@ const onMiningCmd = async (msg) => {
   if(pSelf.trace) {
     console.log('otmc.worker.edcrypt::onMiningCmd::EdUtil=:<',EdUtil,'>');
   }
-  const nacl = await import('https://cdn.jsdelivr.net/npm/tweetnacl-es6@1.0.3/nacl-fast-es.js');
+  let nacl = null;
+  if(isNode) {
+    nacl = await import('tweetnacl-es6');
+  } else {
+    nacl = await import('https://cdn.jsdelivr.net/npm/tweetnacl-es6@1.0.3/nacl-fast-es.js');
+  }
   if(pSelf.trace) {
     console.log('otmc.worker.edcrypt::onMiningCmd::nacl=:<',nacl,'>');
   }

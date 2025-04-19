@@ -42,6 +42,7 @@ export class EdcryptKeyLoader {
         await self.wrapper.importData();
       }
       self.runWorker(evt.worker);
+      self.eeOut.emit('edcrypt:worker:ready');
     });
     this.eeInternal.on('edCryptKey.loader.loadKey',(evt)=>{
       if(self.trace) {

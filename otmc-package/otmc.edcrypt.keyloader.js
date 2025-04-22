@@ -24,7 +24,7 @@ export class EdcryptKeyLoader {
     this.eeOut = eeOut;
     this.ListenEventEmitter_();
     if(this.trace) {
-      console.log('EdcryptKeyLoader::constructor::base58=:<',base58,'>');
+      console.log('EdcryptKeyLoader::constructor::this.eeOut=:<',this.eeOut,'>');
     }
   }
   ListenEventEmitter_() {
@@ -38,7 +38,7 @@ export class EdcryptKeyLoader {
       }
       self.tryOpenDB_();
       if(isNode) {
-        self.wrapper = new StoreNodeWrapper(self.db);
+        self.wrapper = new StoreNodeWrapper(self.db,self.eeOut.config);
         await self.wrapper.importData();
       }
       self.runWorker(evt.worker);

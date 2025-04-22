@@ -1,5 +1,7 @@
 import { parseArgs } from 'node:util';
-import path from 'node:path';
+import { dirname, basename } from 'node:path';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
 //console.log('::::process.argv=<',process.argv,'>');
 const args = process.argv.slice(2);
 //console.log('::::args=<',args,'>');
@@ -16,7 +18,7 @@ const { values, positionals } = parseArgs({
 console.log('::::values=<',values,'>');
 console.log('::::positionals=<',positionals,'>');
 //console.log('::::values.subcommand=<',values.subcommand,'>');
-const subcommand = path.basename(values.subcommand, '.sh');
+const subcommand = basename(values.subcommand, '.sh');
 console.log('::::subcommand=<',subcommand,'>');
 
 
@@ -34,11 +36,7 @@ const execSubcommand = (subcommand,values)=>{
     case 'switch.team':
       console.log('::::switch.team');
       const address = values.address;
-      console.log('::::address=<',address,'>');
-      const storePath = gConf.store;
-      console.log('::::storePath=<',storePath,'>');
-      const topTeam = `${storePath}/didteam/topTeam.json`;
-      console.log('::::topTeam=<',topTeam,'>');
+      switchTeam(address);
       exit(0);
     case 'create.seed':
       console.log('::::create.seed');
@@ -48,6 +46,20 @@ const execSubcommand = (subcommand,values)=>{
       exit(0);
   }
 }
+
+const switchTeam = (address)=>{
+  console.log('::switchTeam:address=<',address,'>');
+  console.log('::switchTeam::address=<',address,'>');
+  const storePath = gConf.store;
+  console.log('::switchTeam::storePath=<',storePath,'>');
+  const selectedKey = `${storePath}/didteam/didKey.selected.json`;
+  const path = `${storePath}/didteam`;
+  fs.mkdirSync(path,{recursive:true});
+  console.log('::switchTeam::v=<',selectedKey,'>');
+  const storeStr = JSON.stringify({address:address});
+  fs.writeFileSync(selectedKey,storeStr);
+}
+
 
 //import  { OtmcTeam } from 'otmc-client'
 import { OtmcTeam } from '../../../otmc-package/otmc.team.js';
@@ -64,14 +76,11 @@ otmc.on('edcrypt:worker:ready',(evt)=>{
   }
 });
 
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 console.log('::::__filename=<',__filename,'>');
 console.log('::::__dirname=<',__dirname,'>');
 
-import fs from 'fs';
 const gConf = {};
 try {
   const configPath = `${__dirname}/../config.json`;
@@ -80,7 +89,7 @@ try {
   const config = JSON.parse(configText);
   console.log('::::config=<',config,'>');
   gConf.store = config.store;
-  fs.mkdirSync(`${gConf.store}/secretKey`, { recursive: true },);
+  otmc.config = config;
 } catch ( err ) {
   console.error('::::err=<',err,'>');
 }

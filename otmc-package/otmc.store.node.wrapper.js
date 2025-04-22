@@ -7,13 +7,19 @@ const isNode = typeof global !== 'undefined' && typeof window === 'undefined';
 *
 */
 export class StoreNodeWrapper {
-  constructor(db) {
+  constructor(db,config) {
     this.trace = true;
     this.debug = true;
-    this.rootDir = '/opt/otmc/dexie_indexed_db';
+    if(config && config.store) {
+      this.rootDir = `${config.store}/dexie_indexed_db`;
+    } else {
+      this.rootDir = `/opt/otmc/dexie_indexed_db`;
+    }
     this.db = db;
     if(this.trace) {
       console.log('StoreNodeWrapper::constructor::this.db.name=:<',this.db.name,'>');
+      console.log('StoreNodeWrapper::constructor::config=:<',config,'>');
+      console.log('StoreNodeWrapper::constructor::this.rootDir=:<',this.rootDir,'>');
     }
   }
 

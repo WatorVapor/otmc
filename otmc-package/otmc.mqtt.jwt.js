@@ -24,8 +24,8 @@ export class MqttJWTAgent {
    * @method ListenEventEmitter_ - Initializes the event emitter listener.
    */
   constructor(ee) {
-    this.trace0 = false;
-    this.trace = false;
+    this.trace0 = true;
+    this.trace = true;
     this.debug = true;
     this.version = '1.0';
     this.ee = ee;
@@ -68,7 +68,12 @@ export class MqttJWTAgent {
         console.log('MqttJWTAgent::ListenEventEmitter_::evt=:<',evt,'>');
       }
       self.didDoc = evt.didDoc;
-      self.validateMqttJwt();
+      if(self.trace0) {
+        console.log('MqttJWTAgent::ListenEventEmitter_::self.didDoc=:<',self.didDoc,'>');
+      }
+      if(self.didDoc) {
+        self.validateMqttJwt();
+      }
     });
     this.ee.on('sys.mqtt.jwt.agent.recieved',(evt)=>{
       self.validateMqttJwt();

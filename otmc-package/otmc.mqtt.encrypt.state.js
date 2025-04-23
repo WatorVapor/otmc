@@ -24,7 +24,12 @@ export class MqttEncrptStateMachine {
       if(self.trace0) {
         console.log('MqttEncrptStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      self.actor.send({type:'did-document'});
+      if(self.trace0) {
+        console.log('MqttEncrptStateMachine::ListenEventEmitter_::evt.didDoc=:<',evt.didDoc,'>');
+      }
+      if(evt.didDoc) {
+        self.actor.send({type:'did-document'});
+      }
     });
     this.ee.on('xstate.event.mqtt.encrypt.servant.vote.check',async (evt)=>{
       if(self.trace0) {

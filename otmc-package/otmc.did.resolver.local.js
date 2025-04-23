@@ -4,7 +4,7 @@ import { StoreKey } from './otmc.const.js';
 
 export class DidResolverLocalStore {
   constructor(wrapper) {
-    this.trace = true;;
+    this.trace = false;
     this.debug = true;
     this.auth = wrapper.auth;
     this.otmc = wrapper.otmc;

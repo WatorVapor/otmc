@@ -4,9 +4,9 @@ const kVoteFactor = 0.001;
 
 export class MqttEncrptStateMachine {
   constructor(ee) {
-    this.trace0 = true;
-    this.trace1 = true;
-    this.trace = true;
+    this.trace0 = false;
+    this.trace1 = false;
+    this.trace = false;
     this.debug = true;
     this.ee = ee;
     if(this.trace0) {

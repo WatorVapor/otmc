@@ -48,10 +48,10 @@ const includesAnyByCreator = (setArr,value ) => setArr.some(attr => value === at
 */
 export class DidDocument {
   constructor(eeInternal,eeOut) {
-    this.trace0 = true;
-    this.trace1 = true;
-    this.trace2 = true;
-    this.trace = true;;
+    this.trace0 = false;
+    this.trace1 = false;
+    this.trace2 = false;
+    this.trace = false;;
     this.debug = true;
     this.eeInternal = eeInternal;
     this.eeOut = eeOut;

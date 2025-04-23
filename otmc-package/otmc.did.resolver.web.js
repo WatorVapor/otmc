@@ -17,7 +17,7 @@ export class DidResolverSyncWebStore {
    * @listens Worker#onmessage
    */
   constructor(eeInternal,worker) {
-    this.trace = true;;
+    this.trace = false;
     this.debug = true;
     this.eeInternal = eeInternal;
     this.worker = worker;

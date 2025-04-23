@@ -6,8 +6,8 @@ import { MqttEncrptStateMachine } from './otmc.mqtt.encrypt.state.js';
 export class MqttEncryptChannel {
   constructor(eeInternal) {
     this.ee = eeInternal;
-    this.trace0 = true;
-    this.trace = true;
+    this.trace0 = false;
+    this.trace = false;
     this.debug = true;
     this.sm = new MqttEncrptStateMachine(this.ee);
     this.ListenEventEmitter_();

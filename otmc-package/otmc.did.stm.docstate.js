@@ -1,7 +1,7 @@
 import * as xstate  from 'xstate';
 import { StoreKey } from './otmc.const.js';
 const LOG = {
-  trace:true,
+  trace:false,
   debug:true,
 };
 if(LOG.trace) {
@@ -14,9 +14,9 @@ import { EvidenceChain } from './did/evidence.js';
 
 export class DidDocStateMachine {
   constructor(ee) {
-    this.trace0 = true;
-    this.trace1 = true;
-    this.trace = true;
+    this.trace0 = false;
+    this.trace1 = false;
+    this.trace = false;
     this.debug = true;
     if(this.trace0) {
       console.log('DidDocStateMachine::constructor::ee=:<',ee,'>');

@@ -12,8 +12,8 @@ const LEVEL_OPT = {
 */
 export class MqttMessager {
   constructor(ee) {
-    this.trace0 = true;
-    this.trace = true;
+    this.trace0 = false;
+    this.trace = false;
     this.debug = true;
     this.isRequestingJwt = false;
     this.ee = ee;

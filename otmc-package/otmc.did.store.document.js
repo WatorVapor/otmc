@@ -6,10 +6,10 @@ import { StoreKey } from './otmc.const.js';
 export class DidStoreDocument {
   constructor() {
     this.version = '1.0';
-    this.trace0 = true;
+    this.trace0 = false;
     this.trace1 = false;
     this.trace2 = false;
-    this.trace = true;;
+    this.trace = false;;
     this.debug = true;
     this.db = new Dexie(StoreKey.open.did.document.dbName);
     this.db.version(this.version).stores({

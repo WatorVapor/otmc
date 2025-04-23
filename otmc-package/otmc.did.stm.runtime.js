@@ -12,7 +12,7 @@ import { EvidenceChain } from './did/evidence.js';
 export class DidRuntimeStateMachine {
   static otmc = false;
   constructor(ee) {
-    this.trace = true;
+    this.trace = false;
     this.debug = true;
     if(this.trace) {
       console.log('DidRuntimeStateMachine::constructor::ee=:<',ee,'>');

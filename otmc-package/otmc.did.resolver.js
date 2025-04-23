@@ -11,7 +11,7 @@ const LEVEL_OPT = {
 */
 export class DidResolver {
   constructor(eeInternal) {
-    this.trace = true;;
+    this.trace = false;
     this.debug = true;
     this.eeInternal = eeInternal;
     this.ListenEventEmitter_();

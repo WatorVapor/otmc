@@ -3,10 +3,12 @@ console.log('otmc.worker.resolver::::isNode=:<',isNode,'>');
 let pSelf = false;
 if(isNode) {
   pSelf = {};
-  pSelf.trace = true;
+  pSelf.trace = false;
   pSelf.debug = true;
   const nodeWorker = await import('node:worker_threads');
-  console.log('otmc.worker.resolver::::nodeWorker=:<',nodeWorker,'>');
+  if(pSelf.trace) {
+    console.log('otmc.worker.resolver::::nodeWorker=:<',nodeWorker,'>');    
+  }
   pSelf.parentPort = nodeWorker.parentPort;
   pSelf.addEventListener = nodeWorker.addEventListener;
   setTimeout(()=>{
@@ -16,7 +18,7 @@ if(isNode) {
   pSelf = self;
 }
 
-pSelf.trace = true;
+pSelf.trace = false;
 pSelf.debug = true;
 
 const loadModule = async () => {

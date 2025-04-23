@@ -24,8 +24,8 @@ export class MqttJWTAgent {
    * @method ListenEventEmitter_ - Initializes the event emitter listener.
    */
   constructor(ee) {
-    this.trace0 = true;
-    this.trace = true;
+    this.trace0 = false;
+    this.trace = false;
     this.debug = true;
     this.version = '1.0';
     this.ee = ee;

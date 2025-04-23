@@ -11,7 +11,7 @@ const ModuleOption = { type: 'module' };
 
 export class WebWorkerLoader {
   constructor(eeInternal) {
-    this.trace = true;
+    this.trace = false;
     this.debug = true;
     this.otmc = false;
     this.eeInternal = eeInternal;

@@ -18,7 +18,7 @@ class OtmcEdcrypt {
 export class EdcryptKeyLoader {
   constructor(eeInternal,eeOut) {
     this.version = '1.0';
-    this.trace = true;
+    this.trace = false;
     this.debug = true;
     this.eeInternal = eeInternal;
     this.eeOut = eeOut;

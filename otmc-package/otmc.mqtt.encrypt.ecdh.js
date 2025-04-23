@@ -19,8 +19,8 @@ const iConstLastTopSharedKey = 5;
 export class MqttEncryptECDH {
   constructor(otmc,auth,base32,util) {
     this.version = '1.0';
-    this.trace0 = true;
-    this.trace = true;
+    this.trace0 = false;
+    this.trace = false;
     this.debug = true;
     this.otmc = otmc;
     this.auth = auth;

@@ -13,6 +13,9 @@ const { values, positionals } = parseArgs({
     'address': {
       type: 'string',
     },
+    'controller': {
+      type: 'string',
+    },
   },
 });
 console.log('::::values=<',values,'>');
@@ -35,10 +38,13 @@ const execSubcommand = (subcommand,values)=>{
       break;
     case 'switch.team':
       console.log('::::switch.team');
-      const address = values.address;
-      switchTeam(address);
+      switchTeam(values.address);
       exit(0);
     case 'create.seed':
+      console.log('::::create.seed');
+      createSeed(values.controller);
+      exit(0);
+      case 'create.seed':
       console.log('::::create.seed');
       exit(0);
     default:
@@ -60,6 +66,9 @@ const switchTeam = (address)=>{
   fs.writeFileSync(selectedKey,storeStr);
 }
 
+const createSeed = (controller)=>{
+  console.log('::createSeed:controller=<',controller,'>');
+}
 
 //import  { OtmcTeam } from 'otmc-client'
 import { OtmcTeam } from '../../../otmc-package/otmc.team.js';

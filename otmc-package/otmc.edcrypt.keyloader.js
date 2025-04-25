@@ -4,21 +4,13 @@ import { StoreKey } from './otmc.const.js';
 import { StoreNodeWrapper } from './otmc.store.node.wrapper.js';
 const isNode = typeof global !== 'undefined' && typeof window === 'undefined';
 
-class OtmcEdcrypt {
-  static trace = false;
-  static debug = true;
-  constructor() {
-  }
-}
-
-
 /**
 *
 */
 export class EdcryptKeyLoader {
   constructor(eeInternal,eeOut) {
     this.version = '1.0';
-    this.trace = false;
+    this.trace = true;
     this.debug = true;
     this.eeInternal = eeInternal;
     this.eeOut = eeOut;

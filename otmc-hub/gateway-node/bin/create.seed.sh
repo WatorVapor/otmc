@@ -5,7 +5,6 @@ cd $SCRIPT_WHERE
 source ../docker.env.sh
 echo "DOCKER_NODE:=${DOCKER_NODE}"
 ${DOCKER_NODE} node \
-  ./cli/cli.mjs --subcommand ${0} \
-  --controller $1 \
+  ./cli/cli.mjs --subcommand ${0} ${@:1} \
   || true
 cd -

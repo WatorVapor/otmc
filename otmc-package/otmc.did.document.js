@@ -48,10 +48,10 @@ const includesAnyByCreator = (setArr,value ) => setArr.some(attr => value === at
 */
 export class DidDocument {
   constructor(eeInternal,eeOut) {
-    this.trace0 = false;
-    this.trace1 = false;
-    this.trace2 = false;
-    this.trace = false;;
+    this.trace0 = true;
+    this.trace1 = true;
+    this.trace2 = true;
+    this.trace = true;;
     this.debug = true;
     this.eeInternal = eeInternal;
     this.eeOut = eeOut;
@@ -358,6 +358,7 @@ export class DidDocument {
       console.log('DidDocument::createControllerSeed::documentObj=:<',documentObj,'>');
     }
     this.resolver.storeStableDid(documentObj);
+    this.eeOut.emit('did:document:created',documentObj);
     return documentObj;
   }
   createControlleeSeed(controls) {
@@ -370,6 +371,7 @@ export class DidDocument {
       console.log('DidDocument::createControlleeSeed::documentObj=:<',documentObj,'>');
     }
     this.resolver.storeFickleDid(documentObj);
+    this.eeOut.emit('did:document:created',documentObj);
     return documentObj;
   }
   
@@ -388,6 +390,7 @@ export class DidDocument {
       console.log('DidDocument::createJoinAsAuth::documentObj=:<',documentObj,'>');
     }
     this.resolver.storeFickleDid(documentObj);
+    this.eeOut.emit('did:document:created',documentObj);
     return documentObj;
   }
   addMyProofDidDocument(evt) {

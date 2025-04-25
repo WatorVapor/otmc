@@ -39,14 +39,11 @@ const execSubcommand = (subcommand,values)=>{
     case 'switch.team':
       console.log('::::switch.team');
       switchTeam(values.address);
-      exit(0);
+      break;
     case 'create.seed':
       console.log('::::create.seed');
       createSeed(values.controller);
-      exit(0);
-      case 'create.seed':
-      console.log('::::create.seed');
-      exit(0);
+      break;
     default:
       console.log('::::default');
       exit(0);
@@ -64,10 +61,44 @@ const switchTeam = (address)=>{
   console.log('::switchTeam::v=<',selectedKey,'>');
   const storeStr = JSON.stringify({address:address});
   fs.writeFileSync(selectedKey,storeStr);
+  exit(0);
 }
 
 const createSeed = (controller)=>{
   console.log('::createSeed:controller=<',controller,'>');
+  const address = readSelected();
+  console.log('cli::index::address=<',address,'>');  
+  otmc.switchDidKey(address); 
+
+  const controllerJson = [];
+  let uniquecontrollerJson = [];
+  if(controller) {
+    const ctlList = controller.split(',');
+    console.log('::createSeed::ctlList=<',ctlList,'>');
+    for ( let i = 0; i < ctlList.length; i++ ) {
+      const ctl = ctlList[i];
+      console.log('::createSeed::ctl=<',ctl,'>');
+      controllerJson.push(ctl.trim());
+    }
+    console.log('::createSeed::controllerJson=<',controllerJson,'>');
+    uniquecontrollerJson = [...new Set(controllerJson)];
+    console.log('::createSeed::uniquecontrollerJson=<',uniquecontrollerJson,'>');
+  }
+  //
+  otmc.on('edcrypt:address',(evt)=>{
+    console.log('cli::edcrypt:address');
+    otmc.createDidTeamFromSeedCtrler(uniquecontrollerJson,true);
+
+  });
+  otmc.on('did:document:created',(evt)=>{
+    console.log('cli::did:document:created::evt:=<',evt,'>');
+    //exit(0);
+  });
+  otmc.on('did:document',(evt)=>{
+    console.log('cli::did:document::evt:=<',evt,'>');
+    exit(0);
+  });
+    
 }
 
 //import  { OtmcTeam } from 'otmc-client'
@@ -85,20 +116,36 @@ otmc.on('edcrypt:worker:ready',(evt)=>{
   }
 });
 
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-console.log('::::__filename=<',__filename,'>');
-console.log('::::__dirname=<',__dirname,'>');
+console.log('cli::::__filename=<',__filename,'>');
+console.log('cli::::__dirname=<',__dirname,'>');
 
 const gConf = {};
 try {
   const configPath = `${__dirname}/../config.json`;
-  console.log('::::configPath=<',configPath,'>');
+  console.log('cli::::configPath=<',configPath,'>');
   const configText = fs.readFileSync(configPath);
   const config = JSON.parse(configText);
-  console.log('::::config=<',config,'>');
+  console.log('cli::::config=<',config,'>');
   gConf.store = config.store;
   otmc.config = config;
 } catch ( err ) {
-  console.error('::::err=<',err,'>');
+  console.error('cli::::err=<',err,'>');
+}
+
+const readSelected = ()=>{
+  try {
+    const storePath = gConf.store;
+    console.log('cli::readSelected::storePath=<',storePath,'>');
+    const selectedKey = `${storePath}/didteam/didKey.selected.json`;
+    const selectedStr = fs.readFileSync(selectedKey).toString('utf-8');
+    console.log('cli::readSelected::selectedStr=<',selectedStr,'>');
+    const selectedJson = JSON.parse(selectedStr);
+    console.log('cli::readSelected::selectedJson=<',selectedJson,'>');
+    return selectedJson.address;
+  } catch ( err ) {
+    console.error('cli::readSelected::err=<',err,'>');
+  }    
 }

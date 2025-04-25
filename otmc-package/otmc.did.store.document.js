@@ -1,16 +1,23 @@
 import Dexie from 'dexie';
 import { StoreKey } from './otmc.const.js';
+import { StoreNodeWrapper } from './otmc.store.node.wrapper.js';
+const isNode = typeof global !== 'undefined' && typeof window === 'undefined';
+
 /**
 *
 */
 export class DidStoreDocument {
-  constructor() {
+  constructor(config) {
     this.version = '1.0';
     this.trace0 = false;
     this.trace1 = false;
     this.trace2 = false;
     this.trace = false;;
     this.debug = true;
+    this.config = config;
+    if(isNode) {
+      StoreNodeWrapper.addIndexedDBDependencies(Dexie);
+    }
     this.db = new Dexie(StoreKey.open.did.document.dbName);
     this.db.version(this.version).stores({
       stable: '++autoId,did,controller,authentication,updated,hashDid,hashCore,b64Did'
@@ -21,6 +28,10 @@ export class DidStoreDocument {
     this.db.version(this.version).stores({
       tentative: '++autoId,did,controller,authentication,updated,hashDid,hashCore,b64Did'
     });
+    if(isNode) {
+      this.wrapper = new StoreNodeWrapper(this.db,this.config);
+      this.wrapper.importData();
+    }
   }
   async putStable(didStore) {
     if(this.trace) {
@@ -37,6 +48,9 @@ export class DidStoreDocument {
     if(!storeObject) {
       await this.db.stable.put(didStore);
     }
+    if(isNode) {
+      await this.wrapper.exportData();
+    }
   }
   async putFickle(didStore) {
     if(this.trace) {
@@ -52,6 +66,9 @@ export class DidStoreDocument {
     }
     if(!storeObject) {  
       await this.db.fickle.put(didStore);
+    }
+    if(isNode) {
+      await this.wrapper.exportData();
     }
   }
   /**
@@ -77,6 +94,9 @@ export class DidStoreDocument {
     }
     if(!storeObject) { 
       await this.db.tentative.put(didStore);
+    }
+    if(isNode) {
+      await this.wrapper.exportData();
     }
   }
   /**
@@ -336,6 +356,9 @@ export class DidStoreDocument {
       await this.db.stable.put(storeObject2);
     }
     await this.db.tentative.where('hashDid').equals(moveDid.hashDid).delete(); 
+    if(isNode) {
+      await this.wrapper.exportData();
+    }
   }
 
   /**

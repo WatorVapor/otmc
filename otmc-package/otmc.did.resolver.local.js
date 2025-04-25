@@ -11,8 +11,8 @@ export class DidResolverLocalStore {
     this.base32 = wrapper.base32;
     this.util = wrapper.util;
 
-    this.didDocLS = new DidStoreDocument(StoreKey.open.did.document);
-    this.joinStoreLS = new DidStoreTeamJoin();
+    this.didDocLS = new DidStoreDocument(this.otmc.config);
+    this.joinStoreLS = new DidStoreTeamJoin(this.otmc.config);
   }
 
   async resolver(keyAddress){

@@ -8,7 +8,7 @@ const isNode = typeof global !== 'undefined' && typeof window === 'undefined';
 */
 export class StoreNodeWrapper {
   constructor(db,config) {
-    this.trace = false;
+    this.trace = true;
     this.debug = true;
     if(config && config.store) {
       this.rootDir = `${config.store}/dexie_indexed_db`;

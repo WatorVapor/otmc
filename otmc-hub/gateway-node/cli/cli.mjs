@@ -36,6 +36,16 @@ const execSubcommand = (subcommand,values)=>{
         exit(0);
       });
       break;
+    case 'list.key':
+      console.log('::::list.key');      
+      otmc.on('edcrypt:didKeyList',(keyList)=>{
+        //console.log('::::keyList=:<',keyList,'>');
+        for(const key of keyList) {
+          console.log('::::key.auth.idOfKey=:<',key.auth.idOfKey,'>');
+        }
+        exit(0);
+      });
+      break;
     case 'switch.team':
       console.log('::::switch.team');
       switchTeam(values.address);

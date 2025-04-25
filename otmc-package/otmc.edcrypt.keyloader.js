@@ -34,6 +34,9 @@ export class EdcryptKeyLoader {
         await self.wrapper.importData();
       }
       self.runWorker(evt.worker);
+      if(self.trace) {
+        console.log('EdcryptKeyLoader::ListenEventEmitter_::evt.worker=:<',evt.worker,'>');
+      }
       self.eeOut.emit('edcrypt:worker:ready');
     });
     this.eeInternal.on('edCryptKey.loader.loadKey',(evt)=>{
@@ -60,6 +63,7 @@ export class EdcryptKeyLoader {
     this.cryptWorker = worker;
     if(this.trace) {
       console.log('EdcryptKeyLoader::runWorker::this.cryptWorker=:<',this.cryptWorker,'>');
+      console.log('EdcryptKeyLoader::runWorker::isNode=:<',isNode,'>');
     }
     this.cryptWorker.onerror = (err) => {
       console.log('EdcryptKeyLoader::runWorker::err=:<',err,'>');
@@ -67,7 +71,13 @@ export class EdcryptKeyLoader {
     const self = this;
     if(isNode) {
       this.cryptWorker.on('message', (msg) => {
+        if(self.trace) {
+          console.log('EdcryptKeyLoader::runWorker::msg=:<',msg,'>');
+        }
         self.onEdCryptMessage_(msg);
+        if(self.trace) {
+          console.log('EdcryptKeyLoader::runWorker::self.cryptWorker=:<',self.cryptWorker,'>');
+        }
       });
     } else {
       this.cryptWorker.onmessage = (e) => {

@@ -10,7 +10,6 @@ if(isNode) {
     console.log('otmc.worker.edcrypt::::nodeWorker=:<',nodeWorker,'>');
   }
   pSelf.parentPort = nodeWorker.parentPort;
-  pSelf.parentPort = nodeWorker.parentPort;
   pSelf.addEventListener = nodeWorker.addEventListener;
   setTimeout(()=>{
     loadModule();

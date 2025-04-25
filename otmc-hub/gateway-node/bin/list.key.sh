@@ -6,6 +6,5 @@ source ../docker.env.sh
 echo "DOCKER_NODE:=${DOCKER_NODE}"
 ${DOCKER_NODE} node \
   ./cli/cli.mjs --subcommand ${0} \
-  --address $1 \
   || true
 cd -

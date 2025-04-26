@@ -182,6 +182,12 @@ export class DidDocument {
       }
       self.createJoinAsAuth(evt.did);
     });
+    this.eeInternal.on('did.join.as.guest',(evt)=>{
+      if(self.trace) {
+        console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.createJoinAsGuest(evt.did);
+    });
     this.eeInternal.on('did:document:evidence.chain.build.complete',(evt)=>{
       if(self.trace0) {
         console.log('DidDocument::ListenEventEmitter_::evt=:<',evt,'>');
@@ -388,6 +394,24 @@ export class DidDocument {
     const documentObj = this.guest.document();
     if(this.trace) {
       console.log('DidDocument::createJoinAsAuth::documentObj=:<',documentObj,'>');
+    }
+    this.resolver.storeFickleDid(documentObj);
+    this.eeOut.emit('did:document:created',documentObj);
+    return documentObj;
+  }
+  createJoinAsGuest(id) {
+    if(this.trace) {
+      console.log('DidDocument::createJoinAsGuest::id=:<',id,'>');
+      console.log('DidDocument::createJoinAsGuest::this.otmc=:<',this.otmc,'>');
+    }
+    this.checkEdcrypt_();
+    this.guest = new DIDGuestGuestDocument(id,this.auth);
+    if(this.trace) {
+      console.log('DidDocument::createJoinAsGuest::this.guest=:<',this.guest,'>');
+    }
+    const documentObj = this.guest.document();
+    if(this.trace) {
+      console.log('DidDocument::createJoinAsGuest::documentObj=:<',documentObj,'>');  
     }
     this.resolver.storeFickleDid(documentObj);
     this.eeOut.emit('did:document:created',documentObj);

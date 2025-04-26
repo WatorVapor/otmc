@@ -61,6 +61,10 @@ const execSubcommand = (subcommand,values)=>{
       console.log('::::join.auth');
       joinAuth(values.team);
       break;
+    case 'join.guest':
+      console.log('::::join.guest');
+      joinGuest(values.team);
+      break;  
     default:
       console.log('::::default');
       exit(0);
@@ -126,6 +130,17 @@ const joinAuth = (team) => {
   otmc.on('edcrypt:address',(evt)=>{
     console.log('cli::joinAuth::edcrypt:address evt=<',evt,'>');
     otmc.joinDidTeamAsAuth(team);  
+  });
+}
+
+const joinGuest = (team) => {
+  console.log('cli::joinGuest:team=<',team,'>');
+  const address = readSelected();
+  console.log('cli::joinGuest::address=<',address,'>');  
+  otmc.switchDidKey(address); 
+  otmc.on('edcrypt:address',(evt)=>{
+    console.log('cli::joinGuest::edcrypt:address evt=<',evt,'>');
+    otmc.joinDidTeamAsGuest(team);  
   });
 }
 

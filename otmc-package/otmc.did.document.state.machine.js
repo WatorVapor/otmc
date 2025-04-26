@@ -89,7 +89,7 @@ export class DidDocumentStateMachine {
         console.log('DidDocumentStateMachine::loadEvidenceChain::chain=:<',chain,'>');
       }
       if(!this.chainState[chainId]) {
-        this.chainState[chainId] = new DidChainStateMachine(self);
+        this.chainState[chainId] = new DidChainStateMachine(this);
       }
       if(this.trace0) {
         console.log('DidDocumentStateMachine::loadEvidenceChain::this.chainState=:<',this.chainState,'>');

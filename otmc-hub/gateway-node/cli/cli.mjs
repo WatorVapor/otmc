@@ -119,12 +119,13 @@ const createSeed = (controller)=>{
 }
 
 const joinAuth = (team) => {
-  console.log('::joinAuth:team=<',team,'>');
+  console.log('cli::joinAuth:team=<',team,'>');
   const address = readSelected();
-  console.log('cli::index::address=<',address,'>');  
+  console.log('cli::joinAuth::address=<',address,'>');  
   otmc.switchDidKey(address); 
-  otmc.on('did.edcrypt.authKey',(evt)=>{
-    console.log('cli::did.edcrypt.authKey');
+  otmc.on('edcrypt:address',(evt)=>{
+    console.log('cli::joinAuth::edcrypt:address evt=<',evt,'>');
+    otmc.joinDidTeamAsAuth(team);  
   });
 }
 
@@ -159,6 +160,7 @@ try {
   console.log('cli::::config=<',config,'>');
   gConf.store = config.store;
   otmc.config = config;
+  console.log('cli::::otmc.config=<',otmc.config,'>');
 } catch ( err ) {
   console.error('cli::::err=<',err,'>');
 }
@@ -179,7 +181,7 @@ const readSelected = ()=>{
 }
 
 
-// exit at after 10 seconds
+// exit at after 30 seconds
 setTimeout(()=>{
   exit(0);
 },1000*10);

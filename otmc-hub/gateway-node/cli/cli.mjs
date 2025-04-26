@@ -16,6 +16,9 @@ const { values, positionals } = parseArgs({
     'controller': {
       type: 'string',
     },
+    'team': {
+      type: 'string',
+    },
   },
 });
 console.log('::::values=<',values,'>');
@@ -53,6 +56,10 @@ const execSubcommand = (subcommand,values)=>{
     case 'create.seed':
       console.log('::::create.seed');
       createSeed(values.controller);
+      break;
+    case 'join.auth':
+      console.log('::::join.auth');
+      joinAuth(values.team);
       break;
     default:
       console.log('::::default');
@@ -111,6 +118,17 @@ const createSeed = (controller)=>{
     
 }
 
+const joinAuth = (team) => {
+  console.log('::joinAuth:team=<',team,'>');
+  const address = readSelected();
+  console.log('cli::index::address=<',address,'>');  
+  otmc.switchDidKey(address); 
+  otmc.on('did.edcrypt.authKey',(evt)=>{
+    console.log('cli::did.edcrypt.authKey');
+  });
+}
+
+
 //import  { OtmcTeam } from 'otmc-client'
 import { OtmcTeam } from '../../../otmc-package/otmc.team.js';
 import { exit } from 'node:process';
@@ -159,3 +177,9 @@ const readSelected = ()=>{
     console.error('cli::readSelected::err=<',err,'>');
   }    
 }
+
+
+// exit at after 10 seconds
+setTimeout(()=>{
+  exit(0);
+},1000*10);

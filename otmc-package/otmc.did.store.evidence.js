@@ -1,17 +1,28 @@
 import Dexie from 'dexie';
 import { StoreKey } from './otmc.const.js';
+import { StoreNodeWrapper } from './otmc.store.node.wrapper.js';
+const isNode = typeof global !== 'undefined' && typeof window === 'undefined';
+
 export class DidStoreEvidence {
-  constructor() {
+  constructor(config) {
     this.version = '1.0';
     this.trace0 = true;
     this.trace1 = true;
     this.trace2 = true;
     this.trace = true;;
     this.debug = true;
+    this.config = config;
+    if(isNode) {
+      StoreNodeWrapper.addIndexedDBDependencies(Dexie);
+    }
     this.db = new Dexie(StoreKey.open.did.chain.dbName);
     this.db.version(this.version).stores({
       chain: '++autoId,didId,proofer,proofee'
     });
+    if(isNode) {
+      this.wrapper = new StoreNodeWrapper(this.db,this.config);
+      this.wrapper.importData();
+    }
   }
   /**
    * Retrieves all proof links from the database.
@@ -116,6 +127,9 @@ export class DidStoreEvidence {
       if(this.trace0) {
         console.log('DidStoreEvidence::putStable::putResult=<',putResult,'>');
       }
+    }
+    if(isNode) {
+      await this.wrapper.exportData();
     }
   }
 }

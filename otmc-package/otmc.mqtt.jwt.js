@@ -1,6 +1,9 @@
 import Dexie from 'dexie';
 import { StoreKey, OtmcPortal } from './otmc.const.js';
 const JWT_ERROR_RETRY_MS = 1000*60*1;
+import { StoreNodeWrapper } from './otmc.store.node.wrapper.js';
+const isNode = typeof global !== 'undefined' && typeof window === 'undefined';
+
 /**
 *
 */
@@ -44,10 +47,17 @@ export class MqttJWTAgent {
     if(this.trace0) {
       console.log('MqttJWTAgent::constructor::this=:<',this,'>');
     }
+    if(isNode) {
+      StoreNodeWrapper.addIndexedDBDependencies(Dexie);
+    }
     this.db = new Dexie(StoreKey.secret.mqtt.jwt.dbName);
     this.db.version(this.version).stores({
       jwt: 'did,authKey,updated,jwt,payload'
     });
+    if(isNode) {
+      this.wrapper = new StoreNodeWrapper(this.db,this.otmc.config);
+      this.wrapper.importData();
+    }
   }
   ListenEventEmitter_() {
     if(this.trace0) {
@@ -239,6 +249,9 @@ export class MqttJWTAgent {
       await this.db.jwt.put(jwtStore);
     } else {
       await this.db.jwt.update(jwtStore.did,jwtStore);
+    }
+    if(isNode) {
+      await this.wrapper.exportData();
     }
   }
 

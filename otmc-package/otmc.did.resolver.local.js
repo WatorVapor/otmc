@@ -1,6 +1,5 @@
 import { DidStoreDocument } from './otmc.did.store.document.js';
 import { DidStoreTeamJoin } from './otmc.did.store.team.join.js';
-import { StoreKey } from './otmc.const.js';
 
 export class DidResolverLocalStore {
   constructor(wrapper) {

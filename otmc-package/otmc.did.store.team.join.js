@@ -1,5 +1,8 @@
 import Dexie from 'dexie';
 import { StoreKey } from './otmc.const.js';
+import { StoreNodeWrapper } from './otmc.store.node.wrapper.js';
+const isNode = typeof global !== 'undefined' && typeof window === 'undefined';
+
 /**
  * The DidStoreTeamJoin class provides methods to manage and store credential requests and verifiable credentials (VCs) 
  * in a Dexie database. It supports operations for storing, retrieving, and moving credential requests and VCs 
@@ -111,7 +114,7 @@ export class DidStoreTeamJoin {
    * @property {boolean} debug - Flag to enable debugging.
    * @property {Dexie} db - The Dexie database instance.
    */
-  constructor() {
+  constructor(config) {
     this.version = '1.0';
     this.trace0 = true;
     this.trace1 = false;
@@ -120,6 +123,9 @@ export class DidStoreTeamJoin {
     this.debug = true;
     if(this.trace) {
       console.log('DidStoreTeamJoin::constructor::Dexie=:<',Dexie,'>');
+    }
+    if(isNode) {
+      StoreNodeWrapper.addIndexedDBDependencies(Dexie);
     }
     this.db = new Dexie(StoreKey.open.did.join.dbName);
     this.db.version(this.version).stores({
@@ -152,6 +158,10 @@ export class DidStoreTeamJoin {
     if(this.trace) {
       console.log('DidStoreTeamJoin::constructor::this.db.vcTentative=:<',this.db.vcTentative,'>');
     }
+    if(isNode) {
+      this.wrapper = new StoreNodeWrapper(this.db,this.config);
+      this.wrapper.importData();
+    }
   }
 
   /**
@@ -178,6 +188,9 @@ export class DidStoreTeamJoin {
       return;
     } else {
       await this.db.inProgress.put(credReqStore);
+    }
+    if(isNode) {
+      await this.wrapper.exportData();
     }
   }
 
@@ -206,6 +219,9 @@ export class DidStoreTeamJoin {
     } else {
       await this.db.tentative.put(credReqStore);
     }
+    if(isNode) {
+      await this.wrapper.exportData();
+    }
   }
 
   async putTentativeVC(vcStore) {
@@ -225,6 +241,9 @@ export class DidStoreTeamJoin {
       return;
     } else {
       await this.db.vcTentative.put(vcStore);
+    }
+    if(isNode) {
+      await this.wrapper.exportData();
     }
   }
 
@@ -341,6 +360,9 @@ export class DidStoreTeamJoin {
     if(this.trace) {
       console.log('DidStoreTeamJoin::putVerifiableCredential::result=:<',result,'>');
     }
+    if(isNode) {
+      await this.wrapper.exportData();
+    }
     return result;
   }
   
@@ -365,6 +387,9 @@ export class DidStoreTeamJoin {
     }
     await this.db.done.put(storeRequest);
     await this.db.inProgress.where('hashCR').equals(storeHash).delete();
+    if(isNode) {
+      await this.wrapper.exportData();
+    }
   }
   /**
    * Retrieves a list of hashCR values associated with the given DID address from various database stores.
@@ -550,6 +575,9 @@ export class DidStoreTeamJoin {
       .where('hashCR').equals(tentativeObject.hashCR)
       .delete();
     }
+    if(isNode) {
+      await this.wrapper.exportData();
+    }
   }
 
   /**
@@ -590,6 +618,9 @@ export class DidStoreTeamJoin {
     const result = await this.db.vcTentative.where(filter).delete();
     if(this.trace) {
       console.log('DidStoreTeamJoin::moveTentativeVC2Workspace::result=:<',result,'>');
+    }
+    if(isNode) {
+      await this.wrapper.exportData();
     }
     return result;
   }

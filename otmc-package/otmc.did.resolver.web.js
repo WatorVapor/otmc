@@ -48,8 +48,8 @@ export class DidResolverSyncWebStore {
       self.otmc = evt.otmc;
       self.base32 = evt.base32;
       self.util = evt.util;
-      self.document = new DidStoreDocument(evt);
-      self.teamJoin = new DidStoreTeamJoin(evt);
+      self.document = new DidStoreDocument(self.otmc.config);
+      self.teamJoin = new DidStoreTeamJoin(self.otmc.config);
       setTimeout(()=>{
         self.trySyncCloudEvidence_();
       },10);

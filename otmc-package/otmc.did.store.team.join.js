@@ -119,8 +119,9 @@ export class DidStoreTeamJoin {
     this.trace0 = true;
     this.trace1 = false;
     this.trace2 = false;
-    this.trace = true;;
+    this.trace = true;
     this.debug = true;
+    this.config = config;
     if(this.trace) {
       console.log('DidStoreTeamJoin::constructor::Dexie=:<',Dexie,'>');
     }

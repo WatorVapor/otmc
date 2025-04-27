@@ -9,10 +9,10 @@ const isNode = typeof global !== 'undefined' && typeof window === 'undefined';
 export class DidStoreDocument {
   constructor(config) {
     this.version = '1.0';
-    this.trace0 = false;
-    this.trace1 = false;
-    this.trace2 = false;
-    this.trace = false;;
+    this.trace0 = true;
+    this.trace1 = true;
+    this.trace2 = true;
+    this.trace = true;;
     this.debug = true;
     this.config = config;
     if(isNode) {
@@ -60,6 +60,9 @@ export class DidStoreDocument {
       did: didStore.did,
       hashDid: didStore.hashDid
     };
+    if(this.trace) {
+      console.log('DidStoreDocument::putFickle::filter=:<',filter,'>');
+    }
     const storeObject = await this.db.fickle.where(filter).first();
     if(this.trace) {
       console.log('DidStoreDocument::putFickle::storeObject=:<',storeObject,'>');

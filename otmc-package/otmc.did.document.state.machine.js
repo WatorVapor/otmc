@@ -39,9 +39,9 @@ export class DidDocumentStateMachine {
       self.util = evt.util;
 
       self.builder = new EvidenceChainBuilder(self.auth);
-      self.document = new DidStoreDocument();
-      self.evidence = new DidStoreEvidence();
-      self.teamJoin = new DidStoreTeamJoin(evt);
+      self.document = new DidStoreDocument(self.otmc.config);
+      self.evidence = new DidStoreEvidence(self.otmc.config);
+      self.teamJoin = new DidStoreTeamJoin(self.otmc.config);
       self.graph = new DidDocumentGraphology();
       await self.loadEvidenceChain();
       self.reCalculateTentativeDidDoc();

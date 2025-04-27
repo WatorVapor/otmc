@@ -106,18 +106,18 @@ export class DidResolverLocalStore {
     const joinValuesJson = {};
     for(const joinReq of joinList) {
       if(this.trace) {
-        console.log('DidStoreTeamJoin::getJoinInProgress::storeReq=:<',joinReq,'>');
+        console.log('DidResolverLocalStore::getJoinInProgress::storeReq=:<',joinReq,'>');
       }
       const joinKey = joinReq.hashCR;
       const joinValueStr = this.util.decodeBase64Str(joinReq.b64JoinCR);
       const joinValue = JSON.parse(joinValueStr);
       if(this.trace) {
-        console.log('DidStoreTeamJoin::getJoinInProgress::joinValue=:<',joinValue,'>');
+        console.log('DidResolverLocalStore::getJoinInProgress::joinValue=:<',joinValue,'>');
       }
       joinValuesJson[joinKey] = joinValue;
     }
     if(this.trace) {
-      console.log('DidStoreTeamJoin::getJoinInProgress::joinValuesJson=:<',joinValuesJson,'>');
+      console.log('DidResolverLocalStore::getJoinInProgress::joinValuesJson=:<',joinValuesJson,'>');
     }
     return joinValuesJson;
   }

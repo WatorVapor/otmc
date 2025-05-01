@@ -54,10 +54,6 @@ export class MqttJWTAgent {
     this.db.version(this.version).stores({
       jwt: 'did,authKey,updated,jwt,payload'
     });
-    if(isNode) {
-      this.wrapper = new StoreNodeWrapper(this.db,this.otmc.config);
-      this.wrapper.importData();
-    }
   }
   ListenEventEmitter_() {
     if(this.trace0) {
@@ -72,6 +68,10 @@ export class MqttJWTAgent {
       self.auth = evt.auth;
       self.base32 = evt.base32;
       self.util = evt.util;
+      if(isNode) {
+        self.wrapper = new StoreNodeWrapper(self.db,self.otmc.config);
+        self.wrapper.importData();
+      }
     });
     this.ee.on('did:document',(evt)=>{
       if(self.trace0) {

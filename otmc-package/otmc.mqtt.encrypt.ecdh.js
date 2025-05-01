@@ -2,7 +2,6 @@ import Dexie from 'dexie';
 import { StoreKey } from './otmc.const.js';
 import { base64 } from '@scure/base';
 
-
 const iConstSharedKeyRegenMiliSec = 1000 * 60 * 60;
 //const iConstSharedKeyRegenMiliSec = 1000 * 5;
 const iConstIssueMilliSeconds = 1000 * 60 * 60;
@@ -544,7 +543,7 @@ export class MqttEncryptECDH {
         console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::nodeId=<',nodeId,'>');
       }
       const nodePublicKey = didPublicKeys[nodeId];
-      const sharedSecret = await window.crypto.subtle.deriveBits(
+      const sharedSecret = await crypto.subtle.deriveBits(
         {
           name: "ECDH",
           public: nodePublicKey,
@@ -555,11 +554,11 @@ export class MqttEncryptECDH {
       if(this.trace0) {
         console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::sharedSecret=<',sharedSecret,'>');
       }
-      const encryptRaw = await window.crypto.subtle.importKey("raw", sharedSecret, {name: "AES-GCM"}, true, ["encrypt"]);
+      const encryptRaw = await crypto.subtle.importKey("raw", sharedSecret, {name: "AES-GCM"}, true, ["encrypt"]);
       if(this.trace0) {
         console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::encryptRaw=<',encryptRaw,'>');
       }
-      const iv = window.crypto.getRandomValues(new Uint8Array(16));
+      const iv = crypto.getRandomValues(new Uint8Array(16));
       if(this.trace0) {
         console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::iv=<',iv,'>');
       }
@@ -567,15 +566,15 @@ export class MqttEncryptECDH {
       if(this.trace0) {
         console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::encoded=<',encoded,'>');
       }
-      const ciphertext = await window.crypto.subtle.encrypt({ name: "AES-GCM", iv },encryptRaw,encoded);
+      const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv },encryptRaw,encoded);
       if(this.trace0) {
         console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::ciphertext=<',ciphertext,'>');
       }
-      const decryptRaw = await window.crypto.subtle.importKey("raw", sharedSecret, {name: "AES-GCM"}, true, ["decrypt"]);
+      const decryptRaw = await crypto.subtle.importKey("raw", sharedSecret, {name: "AES-GCM"}, true, ["decrypt"]);
       if(this.trace0) {
         console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::decryptRaw=<',decryptRaw,'>');
       }
-      const decrypted = await window.crypto.subtle.decrypt({ name: "AES-GCM", iv },decryptRaw,ciphertext);
+      const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv },decryptRaw,ciphertext);
       if(this.trace0) {
         console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::decrypted=<',decrypted,'>');
       }
@@ -633,7 +632,7 @@ export class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::sharedSecret=<',sharedSecret,'>');
     }
-    const encryptRaw = await window.crypto.subtle.importKey("raw", sharedSecret, {name: "AES-GCM"}, true, ["decrypt"]);
+    const encryptRaw = await crypto.subtle.importKey("raw", sharedSecret, {name: "AES-GCM"}, true, ["decrypt"]);
     if(this.trace0) {
       console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::encryptRaw=<',encryptRaw,'>');
     }
@@ -645,7 +644,7 @@ export class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::ciphertext=<',ciphertext,'>');
     }
-    const decrypted = await window.crypto.subtle.decrypt({ name: "AES-GCM", iv },encryptRaw,ciphertext);
+    const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv },encryptRaw,ciphertext);
     if(this.trace0) {
       console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::decrypted=<',decrypted,'>');
     }
@@ -967,7 +966,7 @@ export class MqttEncryptECDH {
       return;
     }
     this.creating_ = true;
-    const myKeyPair = await window.crypto.subtle.generateKey(
+    const myKeyPair = await crypto.subtle.generateKey(
       {
         name: "ECDH",
         namedCurve: "P-256",
@@ -978,7 +977,7 @@ export class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::tryCreateMyECKey_::myKeyPair=:<',myKeyPair,'>');
     }
-    const myPublicKey = await window.crypto.subtle.exportKey('jwk',myKeyPair.publicKey);
+    const myPublicKey = await crypto.subtle.exportKey('jwk',myKeyPair.publicKey);
     if(this.trace0) {
       console.log('MqttEncryptECDH::tryCreateMyECKey_::myPublicKey=:<',myPublicKey,'>');
     }
@@ -986,7 +985,7 @@ export class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::tryCreateMyECKey_::myPublicKeyBase64=:<',myPublicKeyBase64,'>');
     }
-    const myPrivateKey = await window.crypto.subtle.exportKey('jwk',myKeyPair.privateKey);
+    const myPrivateKey = await crypto.subtle.exportKey('jwk',myKeyPair.privateKey);
     if(this.trace0) {
       console.log('MqttEncryptECDH::tryCreateMyECKey_::myPrivateKey=:<',myPrivateKey,'>');
     }

@@ -2,6 +2,24 @@ import { parseArgs } from 'node:util';
 import { dirname, basename } from 'node:path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import { createClient } from 'redis';
+const LOG = {
+  trace0:false,
+  trace:true,
+  debug:true,
+  info:true,
+}
+// exit at after 30 seconds
+setTimeout(()=>{
+  process.exit(0);
+},1000*30);
+
+setTimeout(()=>{
+  loadConfig();
+  createRedisClient();
+},1);
+
+
 //console.log('::::process.argv=<',process.argv,'>');
 const args = process.argv.slice(2);
 //console.log('::::args=<',args,'>');
@@ -24,179 +42,141 @@ const { values, positionals } = parseArgs({
 console.log('::::values=<',values,'>');
 console.log('::::positionals=<',positionals,'>');
 //console.log('::::values.subcommand=<',values.subcommand,'>');
-const subcommand = basename(values.subcommand, '.sh');
-console.log('::::subcommand=<',subcommand,'>');
 
 
-const execSubcommand = (subcommand,values)=>{
+const execSubcommand = ()=>{
+  const subcommand = basename(values.subcommand, '.sh');
+  console.log('::::subcommand=<',subcommand,'>');  
   console.log('::::execSubcommand:subcommand=<',subcommand,'>');
-  switch (subcommand) {
-    case 'gen.key':
-      console.log('::::gen.key');
-      otmc.startMining();
-      otmc.on('edcrypt:didKeyList',(evt)=>{
-        console.log('::::evt=:<',evt,'>');
-        exit(0);
-      });
-      break;
-    case 'list.key':
-      console.log('::::list.key');      
-      otmc.on('edcrypt:didKeyList',(keyList)=>{
-        //console.log('::::keyList=:<',keyList,'>');
-        for(const key of keyList) {
-          console.log('::::key.auth.idOfKey=:<',key.auth.idOfKey,'>');
-        }
-        exit(0);
-      });
-      break;
-    case 'switch.team':
-      console.log('::::switch.team');
-      switchTeam(values.address);
-      break;
-    case 'create.seed':
-      console.log('::::create.seed');
-      createSeed(values.controller);
-      break;
-    case 'join.auth':
-      console.log('::::join.auth');
-      joinAuth(values.team);
-      break;
-    case 'join.guest':
-      console.log('::::join.guest');
-      joinGuest(values.team);
-      break;  
-    default:
-      console.log('::::default');
-      exit(0);
+  execSubcommandRedis(subcommand,values);
+}
+
+const execSubcommandRedis = (cmd,params)=>{
+  if(LOG.trace) {
+    console.log('cli::execSubcommandRedis::cmd=<',cmd,'>');
+    console.log('cli::execSubcommandRedis::params=<',params,'>');
+  }
+  const cmdTopic = `/cli/exec/${cmd}`;
+  if(gRedisClient) {
+    gRedisClient.publish(cmdTopic, JSON.stringify(params));
+  } else {
+    console.log('cli::execSubcommandRedis::gRedisClient=<',gRedisClient,'>');
   }
 }
 
-const switchTeam = (address)=>{
-  console.log('::switchTeam:address=<',address,'>');
-  console.log('::switchTeam::address=<',address,'>');
-  const storePath = gConf.store;
-  console.log('::switchTeam::storePath=<',storePath,'>');
-  const selectedKey = `${storePath}/didteam/didKey.selected.json`;
-  const path = `${storePath}/didteam`;
-  fs.mkdirSync(path,{recursive:true});
-  console.log('::switchTeam::v=<',selectedKey,'>');
-  const storeStr = JSON.stringify({address:address});
-  fs.writeFileSync(selectedKey,storeStr);
-  exit(0);
-}
-
-const createSeed = (controller)=>{
-  console.log('::createSeed:controller=<',controller,'>');
-  const address = readSelected();
-  console.log('cli::index::address=<',address,'>');  
-  otmc.switchDidKey(address); 
-
-  const controllerJson = [];
-  let uniquecontrollerJson = [];
-  if(controller) {
-    const ctlList = controller.split(',');
-    console.log('::createSeed::ctlList=<',ctlList,'>');
-    for ( let i = 0; i < ctlList.length; i++ ) {
-      const ctl = ctlList[i];
-      console.log('::createSeed::ctl=<',ctl,'>');
-      controllerJson.push(ctl.trim());
-    }
-    console.log('::createSeed::controllerJson=<',controllerJson,'>');
-    uniquecontrollerJson = [...new Set(controllerJson)];
-    console.log('::createSeed::uniquecontrollerJson=<',uniquecontrollerJson,'>');
-  }
-  //
-  otmc.on('edcrypt:address',(evt)=>{
-    console.log('cli::edcrypt:address');
-    otmc.createDidTeamFromSeedCtrler(uniquecontrollerJson,true);
-
-  });
-  otmc.on('did:document:created',(evt)=>{
-    console.log('cli::did:document:created::evt:=<',evt,'>');
-    //exit(0);
-  });
-  otmc.on('did:document',(evt)=>{
-    console.log('cli::did:document::evt:=<',evt,'>');
-    exit(0);
-  });
-    
-}
-
-const joinAuth = (team) => {
-  console.log('cli::joinAuth:team=<',team,'>');
-  const address = readSelected();
-  console.log('cli::joinAuth::address=<',address,'>');  
-  otmc.switchDidKey(address); 
-  otmc.on('edcrypt:address',(evt)=>{
-    console.log('cli::joinAuth::edcrypt:address evt=<',evt,'>');
-    otmc.joinDidTeamAsAuth(team);  
-  });
-}
-
-const joinGuest = (team) => {
-  console.log('cli::joinGuest:team=<',team,'>');
-  const address = readSelected();
-  console.log('cli::joinGuest::address=<',address,'>');  
-  otmc.switchDidKey(address); 
-  otmc.on('edcrypt:address',(evt)=>{
-    console.log('cli::joinGuest::edcrypt:address evt=<',evt,'>');
-    otmc.joinDidTeamAsGuest(team);  
-  });
-}
 
 
-//import  { OtmcTeam } from 'otmc-client'
-import { OtmcTeam } from '../../../otmc-package/otmc.team.js';
-import { exit } from 'node:process';
-console.log('::::OtmcTeam=<',OtmcTeam,'>');
-const otmc = new OtmcTeam();
-//console.log('::::otmc=:<',otmc,'>');
-
-otmc.on('edcrypt:worker:ready',(evt)=>{
-  console.log('::::edcrypt:worker:ready');
-  console.log('::::otmc=:<',otmc,'>');
-  if(subcommand) {
-    execSubcommand(subcommand,values);
-  }
-});
 
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-console.log('cli::::__filename=<',__filename,'>');
-console.log('cli::::__dirname=<',__dirname,'>');
+
+
 
 const gConf = {};
-try {
-  const configPath = `${__dirname}/../config.json`;
-  console.log('cli::::configPath=<',configPath,'>');
-  const configText = fs.readFileSync(configPath);
-  const config = JSON.parse(configText);
-  console.log('cli::::config=<',config,'>');
-  gConf.store = config.store;
-  otmc.config = config;
-  console.log('cli::::otmc.config=<',otmc.config,'>');
-} catch ( err ) {
-  console.error('cli::::err=<',err,'>');
-}
+let gRedisClient = false;
 
-const readSelected = ()=>{
+
+const loadConfig = () => {
   try {
-    const storePath = gConf.store;
-    console.log('cli::readSelected::storePath=<',storePath,'>');
-    const selectedKey = `${storePath}/didteam/didKey.selected.json`;
-    const selectedStr = fs.readFileSync(selectedKey).toString('utf-8');
-    console.log('cli::readSelected::selectedStr=<',selectedStr,'>');
-    const selectedJson = JSON.parse(selectedStr);
-    console.log('cli::readSelected::selectedJson=<',selectedJson,'>');
-    return selectedJson.address;
-  } catch ( err ) {
-    console.error('cli::readSelected::err=<',err,'>');
-  }    
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    if(LOG.trace0) {
+      console.log('cli::loadConfig::__filename=<',__filename,'>');
+      console.log('cli::loadConfig::__dirname=<',__dirname,'>');
+    }
+    const configPath = `${__dirname}/../config.json`;
+    if(LOG.trace) {
+      console.log('cli::loadConfig::configPath=<',configPath,'>');
+    }
+    const configText = fs.readFileSync(configPath);
+    const config = JSON.parse(configText);
+    if(LOG.trace) {
+      console.log('cli::loadConfig::config=<',config,'>');
+    }
+    gConf.store = config.store;
+    gConf.redisUnxiPath = `${gConf.store}/redis/redis.otmc.hub.sock`;      
+  } catch (err) {
+    if(LOG.trace) {
+      console.log('cli::loadConfig::err=<',err,'>');
+    }
+    process.exit(0);
+  }
+}
+
+const createRedisClient = () => {
+  console.log('cli::::gConf=<',gConf,'>');
+  const clientOpt = {
+    socket:{
+      path:gConf.redisUnxiPath
+    }
+  };
+  console.log('cli::createRedisClient::clientOpt=<',clientOpt,'>');
+  gRedisClient = createClient(clientOpt);
+
+  gRedisClient.on('error', err => {
+    if(LOG.trace) {
+      console.log('cli::createRedisClient::err=<',err,'>');
+    }
+  });
+  gRedisClient.on('connect', evtConnect => {
+    if(LOG.trace) {
+      console.log('cli::createRedisClient::evtConnect=<',evtConnect,'>');
+    }
+  });
+  gRedisClient.on('ready', evtReady => {
+    if(LOG.trace) {
+      console.log('cli::createRedisClient::evtReady=<',evtReady,'>');
+    }
+    createRedisSubscriber(gRedisClient);
+    execSubcommand();
+  });
+  gRedisClient.on('end', evtEnd => {
+    if(LOG.trace) {
+      console.log('cli::createRedisClient::evtEnd=<',evtEnd,'>');
+    }
+  });
+  gRedisClient.on('cli', evtReconnecting => {
+    if(LOG.trace) {
+      console.log('cli::createRedisClient::evtReconnecting=<',evtReconnecting,'>');
+    }
+  });
+  gRedisClient.connect();  
+}
+
+const createRedisSubscriber = (client) => {
+  const subscriber = client.duplicate();
+  subscriber.on('error', errSub => {
+    if(LOG.trace) {
+      console.log('cli::createRedisSubscriber_::errSub=<',errSub,'>');
+    }
+  });
+  subscriber.on('connect', evtConnectSub => {
+    if(LOG.trace) {
+      console.log('cli::createRedisSubscriber_::evtConnectSub=<',evtConnectSub,'>');
+    }
+  });
+  subscriber.on('ready', evtReadySub => {
+    if(LOG.trace) {
+      console.log('cli::createRedisSubscriber_::evtReadySub=<',evtReadySub,'>');
+    }
+  });
+  subscriber.on('end', evtEndSub => {
+    if(LOG.trace) {
+      console.log('cli::createRedisSubscriber_::evtEndSub=<',evtEndSub,'>');
+    }
+  });
+  subscriber.on('reconnecting', evtReconnectingSub => {
+    if(LOG.trace) {
+      console.log('cli::createRedisSubscriber_::evtReconnectingSub=<',evtReconnectingSub,'>');
+    }
+  });
+  const listener = (message, channel) => {
+    self.onRedisBroadcast_(channel,message);
+  };
+  subscriber.pSubscribe('/cli/reply/*', listener);
+  subscriber.connect();
+  if(LOG.trace0) {
+    console.log('cli::createRedisSubscriber_::subscriber=<',subscriber,'>');
+  }
 }
 
 
-// exit at after 30 seconds
-setTimeout(()=>{
-  exit(0);
-},1000*10);

@@ -88,6 +88,12 @@ otmcMqtt.on('otmc:mqtt:msg',(msg)=>{
 })
 
 
+import { RedisCli } from './redisCli.mjs';
+
+const redisCli = new RedisCli(gConf,otmcTeam,()=>{
+  console.log('::index::redisCli.ready=<',redisCli.ready,'>');
+});
+
 /*
 const testMsg = {
   topic:'rtk-gnss/rtcm/3.0/base64',

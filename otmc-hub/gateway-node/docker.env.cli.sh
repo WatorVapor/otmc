@@ -10,10 +10,11 @@ GPARENT_NAME=$(basename $GPARENT_DIR)
 echo "SCRIPT_DIR:=${SCRIPT_DIR}"
 echo "PARENT_DIR:=${PARENT_DIR}"
 echo "GPARENT_DIR:=${GPARENT_DIR}"
-DOCKER_MAME=${GPARENT_NAME}-${PARENT_NAME}-${BASE_NAME}
-docker stop ${DOCKER_MAME}
-docker rm ${DOCKER_MAME}
-read -d ''  DOCKER_NODE << EOF
+
+DOCKER_MAME_CLI=${GPARENT_NAME}-${PARENT_NAME}-${BASE_NAME}-CLI
+docker stop ${DOCKER_MAME_CLI}
+docker rm ${DOCKER_MAME_CLI}
+read -d ''  DOCKER_NODE_CLI << EOF
 docker run -it
   -v /etc/group:/etc/group:ro 
   -v /etc/passwd:/etc/passwd:ro 
@@ -26,24 +27,6 @@ docker run -it
   --net host 
   --memory=256M 
   --cpu-shares=128 
-  --name ${DOCKER_MAME} 
-  node:22
-EOF
-
-read -d ''  DOCKER_NODE_BG << EOF
-docker run -d
-  -v /etc/group:/etc/group:ro 
-  -v /etc/passwd:/etc/passwd:ro 
-  -v /dev/shm/:/dev/shm/ 
-  -v /opt/otmc:/opt/otmc
-  -v ${GPARENT_DIR}:${GPARENT_DIR} 
-  -v ${HOME}:${HOME} 
-  -u $(id -u $USER):$(id -g $USER) 
-  -w ${SCRIPT_DIR} 
-  --restart always
-  --net host 
-  --memory=256M 
-  --cpu-shares=128 
-  --name ${DOCKER_MAME} 
+  --name ${DOCKER_MAME_CLI} 
   node:22
 EOF

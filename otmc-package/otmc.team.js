@@ -42,6 +42,9 @@ export class OtmcTeam extends EventEmitter {
     }
     this.eeInternal.emit('edCryptKey.loader.switchKey',data);
   }
+  listKeys() {
+    this.eeInternal.emit('edCryptKey.loader.listKey',{});
+  }
   startMining() {
     const data = {
       mine:{

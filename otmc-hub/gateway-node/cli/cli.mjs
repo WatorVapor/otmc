@@ -5,6 +5,7 @@ import fs from 'fs';
 import { createClient } from 'redis';
 const LOG = {
   trace0:false,
+  trace1:false,
   trace:true,
   debug:true,
   info:true,
@@ -39,15 +40,19 @@ const { values, positionals } = parseArgs({
     },
   },
 });
-console.log('::::values=<',values,'>');
-console.log('::::positionals=<',positionals,'>');
-//console.log('::::values.subcommand=<',values.subcommand,'>');
+if(LOG.trace0) {
+  console.log('::::values=<',values,'>');
+  console.log('::::positionals=<',positionals,'>');
+  //console.log('::::values.subcommand=<',values.subcommand,'>');    
+}
 
 
 const execSubcommand = ()=>{
   const subcommand = basename(values.subcommand, '.sh');
-  console.log('::::subcommand=<',subcommand,'>');  
-  console.log('::::execSubcommand:subcommand=<',subcommand,'>');
+  if(LOG.trace0) {
+    console.log('::::subcommand=<',subcommand,'>');  
+    console.log('::::execSubcommand:subcommand=<',subcommand,'>');
+  }
   execSubcommandRedis(subcommand,values);
 }
 
@@ -84,18 +89,18 @@ const loadConfig = () => {
       console.log('cli::loadConfig::__dirname=<',__dirname,'>');
     }
     const configPath = `${__dirname}/../config.json`;
-    if(LOG.trace) {
+    if(LOG.trace0) {
       console.log('cli::loadConfig::configPath=<',configPath,'>');
     }
     const configText = fs.readFileSync(configPath);
     const config = JSON.parse(configText);
-    if(LOG.trace) {
+    if(LOG.trace0) {
       console.log('cli::loadConfig::config=<',config,'>');
     }
     gConf.store = config.store;
     gConf.redisUnxiPath = `${gConf.store}/redis/redis.otmc.hub.sock`;      
   } catch (err) {
-    if(LOG.trace) {
+    if(LOG.trace0) {
       console.log('cli::loadConfig::err=<',err,'>');
     }
     process.exit(0);
@@ -103,13 +108,17 @@ const loadConfig = () => {
 }
 
 const createRedisClient = () => {
-  console.log('cli::::gConf=<',gConf,'>');
+  if(LOG.trace0) {
+    console.log('cli::createRedisClient::gConf=<',gConf,'>');
+  }
   const clientOpt = {
     socket:{
       path:gConf.redisUnxiPath
     }
   };
-  console.log('cli::createRedisClient::clientOpt=<',clientOpt,'>');
+  if(LOG.trace0) {
+    console.log('cli::createRedisClient::clientOpt=<',clientOpt,'>');
+  }
   gRedisClient = createClient(clientOpt);
 
   gRedisClient.on('error', err => {
@@ -170,12 +179,33 @@ const createRedisSubscriber = (client) => {
     }
   });
   const listener = (message, channel) => {
-    self.onRedisBroadcast_(channel,message);
+    onCliReult(channel,JSON.parse(message));
   };
   subscriber.pSubscribe('/cli/reply/*', listener);
   subscriber.connect();
   if(LOG.trace0) {
     console.log('cli::createRedisSubscriber_::subscriber=<',subscriber,'>');
+  }
+}
+const onCliReult = (topic,message) => {
+  if(LOG.trace1) {
+    console.log('cli::onCliReult::topic=<',topic,'>');
+  }
+  const subcommand = topic.replace('/cli/reply/','').replace('/result','');
+  if(LOG.trace1) {
+    console.log('cli::onCliReult::subcommand=<',subcommand,'>');
+    console.log('cli::onCliReult::message=<',message,'>');
+  }
+  switch(subcommand) {
+    case 'list.key':
+      for(let key of message) {
+        console.log('cli::onCliReult::key.auth.idOfKey=<',key.auth.idOfKey,'>');
+      }
+      process.exit(0);
+      break;
+    default:
+      process.exit(0);
+      break;
   }
 }
 

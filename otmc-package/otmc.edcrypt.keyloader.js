@@ -51,6 +51,12 @@ export class EdcryptKeyLoader {
       }
       self.switchKey(evt.keyId);
     });
+    this.eeInternal.on('edCryptKey.loader.listKey',(evt)=>{
+      if(self.trace) {
+        console.log('EdcryptKeyLoader::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.listKey(evt.keyId);
+    });
     this.eeInternal.on('edCryptKey.loader.mining',(evt)=>{
       if(self.trace) {
         console.log('EdcryptKeyLoader::ListenEventEmitter_::evt=:<',evt,'>');
@@ -134,6 +140,25 @@ export class EdcryptKeyLoader {
         console.error('EdcryptKeyLoader::switchKey::errDidKey=:<',errDidKey,'>');
       }
     }
+  }
+
+  async listKey() {
+    try {
+      const edKeys = await this.db.edKey.toArray();
+      if(this.trace) {
+        console.log('EdcryptKeyLoader::listKey::edKeys=:<',edKeys,'>');
+      }
+      this.eeOut.emit('edcrypt:listEdKey',edKeys);
+    } catch(errDidKey) {
+      if(this.trace) {
+        console.error('EdcryptKeyLoader::listKey::errDidKey.message=:<',errDidKey.message,'>');
+      }
+      if(errDidKey.message === 'Entry not found') {
+      } else {
+        console.error('EdcryptKeyLoader::listKey::errDidKey=:<',errDidKey,'>');
+      }
+    }
+    this.eeOut.emit('edcrypt:listEdKey',[]);
   }
 
 

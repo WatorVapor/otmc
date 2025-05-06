@@ -152,6 +152,10 @@ export class RedisCli {
       case 'create.seed':
         console.log('RedisCli::execSubcommand::create.seed');
         this.createSeed(values.controller);
+        this.otmc_.on('did:document:created',(evt)=>{
+          console.log('RedisCli::did:document:created::evt:=<',evt,'>');
+          self.client.publish(replyTopic,JSON.stringify(keyList));
+        });
         break;
       case 'join.auth':
         console.log('RedisCli::execSubcommand::join.auth');
@@ -162,7 +166,7 @@ export class RedisCli {
         this.joinGuest(values.team);
         break;  
       default:
-        console.log('::::default');
+        console.log('RedisCli::execSubcommand::default');
     }
   }
   switchTeam (address){
@@ -178,12 +182,8 @@ export class RedisCli {
     fs.writeFileSync(selectedKey,storeStr);
   }
   
-  createSeed (controller){
-    console.log('RedisCli::createSeed:controller=<',controller,'>');
-    const address = readSelected();
-    console.log('RedisCli::createSeed::address=<',address,'>');  
-    this.otmc_.switchDidKey(address); 
-  
+  createSeed(controller){
+    console.log('RedisCli::createSeed:controller=<',controller,'>'); 
     const controllerJson = [];
     let uniquecontrollerJson = [];
     if(controller) {
@@ -199,39 +199,17 @@ export class RedisCli {
       console.log('RedisCli::createSeed::uniquecontrollerJson=<',uniquecontrollerJson,'>');
     }
     //
-    this.otmc_.on('edcrypt:address',(evt)=>{
-      console.log('RedisCli::edcrypt:address');
-      this.otmc_.createDidTeamFromSeedCtrler(uniquecontrollerJson,true);
-    });
-    this.otmc_.on('did:document:created',(evt)=>{
-      console.log('RedisCli::did:document:created::evt:=<',evt,'>');
-    });
-    this.otmc_.on('did:document',(evt)=>{
-      console.log('RedisCli::did:document::evt:=<',evt,'>');
-    });
-      
+    this.otmc_.createDidTeamFromSeedCtrler(uniquecontrollerJson,true);     
   }
   
   joinAuth (team) {
     console.log('RedisCli::joinAuth:team=<',team,'>');
-    const address = readSelected();
-    console.log('RedisCli::joinAuth::address=<',address,'>');  
-    this.otmc_.switchDidKey(address); 
-    this.otmc_.on('edcrypt:address',(evt)=>{
-      console.log('RedisCli::joinAuth::edcrypt:address evt=<',evt,'>');
-      otmc.joinDidTeamAsAuth(team);  
-    });
+    this.otmc_.joinDidTeamAsAuth(team);  
   }
   
   joinGuest (team) {
     console.log('RedisCli::joinGuest:team=<',team,'>');
-    const address = readSelected();
-    console.log('RedisCli::joinGuest::address=<',address,'>');  
-    this.otmc_.switchDidKey(address); 
-    this.otmc_.on('edcrypt:address',(evt)=>{
-      console.log('RedisCli::joinGuest::edcrypt:address evt=<',evt,'>');
-      otmc.joinDidTeamAsGuest(team);  
-    });
+    this.otmc_.joinDidTeamAsGuest(team);  
   }
   
   readSelected(){

@@ -147,25 +147,34 @@ export class RedisCli {
       case 'switch.team':
         console.log('RedisCli::execSubcommand::switch.team');
         this.switchTeam(values.address);
-        this.client.publish(replyTopic,'');
+        this.client.publish(replyTopic,JSON.stringify({success:true}));
         break;
       case 'create.seed':
         console.log('RedisCli::execSubcommand::create.seed');
         this.createSeed(values.controller);
-        this.otmc_.on('did:document:created',(evt)=>{
-          console.log('RedisCli::did:document:created::evt:=<',evt,'>');
-          self.client.publish(replyTopic,JSON.stringify(keyList));
+        this.otmc_.on('did:document:created',(document)=>{
+          console.log('RedisCli::did:document:created::document:=<',document,'>');
+          self.client.publish(replyTopic,JSON.stringify(document));
         });
         break;
       case 'join.auth':
         console.log('RedisCli::execSubcommand::join.auth');
         this.joinAuth(values.team);
+        this.otmc_.on('did:document:created',(document)=>{
+          console.log('RedisCli::did:document:created::document:=<',document,'>');
+          self.client.publish(replyTopic,JSON.stringify(document));
+        });
         break;
       case 'join.guest':
         console.log('RedisCli::execSubcommand::join.guest');
         this.joinGuest(values.team);
+        this.otmc_.on('did:document:created',(document)=>{
+          console.log('RedisCli::did:document:created::document:=<',document,'>');
+          self.client.publish(replyTopic,JSON.stringify(document));
+        });
         break;  
       default:
+        this.client.publish(replyTopic,JSON.stringify({success:true}));
         console.log('RedisCli::execSubcommand::default');
     }
   }

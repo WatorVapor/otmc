@@ -203,7 +203,14 @@ const onCliReult = (topic,message) => {
       }
       process.exit(0);
       break;
+    case 'team.status':
+      console.log('cli::onCliReult::message=<',message,'>');
+      process.exit(0);
     default:
+      if(LOG.trace) {
+        console.log('cli::onCliReult::subcommand=<',subcommand,'>');
+        console.log('cli::onCliReult::message=<',message,'>');
+      }
       process.exit(0);
       break;
   }

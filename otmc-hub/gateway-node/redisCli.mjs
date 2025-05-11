@@ -173,7 +173,23 @@ export class RedisCli {
           self.client.publish(replyTopic,JSON.stringify(document));
         });
         break;  
-      default:
+        case 'team.status':
+          console.log('RedisCli::execSubcommand::team.status');
+          console.log('RedisCli::did:document:created::this.otmc_.did:=<',this.otmc_.did,'>');
+          const teamStatus = {
+            address:this.readSelected(),
+          };
+          if(this.otmc_ && this.otmc_.did) {
+            if(this.otmc_.did.status) {
+              teamStatus.status = this.otmc_.did.status;
+            }
+            if(this.otmc_.did.didDoc_ && this.otmc_.did.didDoc_.id) {
+              teamStatus.team = this.otmc_.did.didDoc_.id;
+            }
+          }
+          this.client.publish(replyTopic,JSON.stringify(teamStatus));
+          break;  
+        default:
         this.client.publish(replyTopic,JSON.stringify({success:true}));
         console.log('RedisCli::execSubcommand::default');
     }

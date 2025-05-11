@@ -173,7 +173,17 @@ export class RedisCli {
           self.client.publish(replyTopic,JSON.stringify(document));
         });
         break;  
-        case 'team.status':
+      case 'join.request':
+          console.log('RedisCli::execSubcommand::join.request');
+          this.joinRequest();
+          /*
+          this.otmc_.on('did:document:created',(document)=>{
+            console.log('RedisCli::did:document:created::document:=<',document,'>');
+            self.client.publish(replyTopic,JSON.stringify(document));
+          });
+          */
+          break;    
+      case 'team.status':
           console.log('RedisCli::execSubcommand::team.status');
           console.log('RedisCli::did:document:created::this.otmc_.did:=<',this.otmc_.did,'>');
           const teamStatus = {
@@ -189,7 +199,7 @@ export class RedisCli {
           }
           this.client.publish(replyTopic,JSON.stringify(teamStatus));
           break;  
-        default:
+      default:
         this.client.publish(replyTopic,JSON.stringify({success:true}));
         console.log('RedisCli::execSubcommand::default');
     }
@@ -235,6 +245,14 @@ export class RedisCli {
   joinGuest (team) {
     console.log('RedisCli::joinGuest:team=<',team,'>');
     this.otmc_.joinDidTeamAsGuest(team);  
+  }
+  joinRequest() {
+    if(this.otmc_ && this.otmc_.did) {
+      if(this.otmc_.did.status) {
+        console.log('RedisCli::joinRequest:this.otmc_.did.status=<',this.otmc_.did.status,'>');
+        this.otmc_.createJoinTeamVCR(this.otmc_.did.status.isController);
+      }
+    }
   }
   
   readSelected(){

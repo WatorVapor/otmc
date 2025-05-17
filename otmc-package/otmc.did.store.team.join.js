@@ -117,8 +117,8 @@ export class DidStoreTeamJoin {
   constructor(config) {
     this.version = '1.0';
     this.trace0 = true;
-    this.trace1 = false;
-    this.trace2 = false;
+    this.trace1 = true;
+    this.trace2 = true;
     this.trace = true;
     this.debug = true;
     this.config = config;

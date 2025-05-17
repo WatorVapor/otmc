@@ -3,7 +3,7 @@ import { DidStoreTeamJoin } from './otmc.did.store.team.join.js';
 
 export class DidResolverLocalStore {
   constructor(wrapper) {
-    this.trace = false;
+    this.trace = true;
     this.debug = true;
     this.auth = wrapper.auth;
     this.otmc = wrapper.otmc;

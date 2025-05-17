@@ -3,7 +3,7 @@ console.log('otmc.worker.resolver::::isNode=:<',isNode,'>');
 let pSelf = false;
 if(isNode) {
   pSelf = {};
-  pSelf.trace = false;
+  pSelf.trace = true;
   pSelf.debug = true;
   const nodeWorker = await import('node:worker_threads');
   if(pSelf.trace) {

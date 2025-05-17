@@ -1,5 +1,6 @@
 import { DidStoreDocument } from './otmc.did.store.document.js';
 import { DidStoreTeamJoin } from './otmc.did.store.team.join.js';
+const isNode = typeof global !== 'undefined' && typeof window === 'undefined';
 
 const context = 'https://otmc.wator.xyz/ns/did/evidence';
 export class DidResolverSyncWebStore {
@@ -17,14 +18,23 @@ export class DidResolverSyncWebStore {
    * @listens Worker#onmessage
    */
   constructor(eeInternal,worker) {
-    this.trace = false;
+    this.trace = true;
     this.debug = true;
     this.eeInternal = eeInternal;
     this.worker = worker;
     this.ListenEventEmitter_();
     const self = this;
-    this.worker.onmessage = (e) => {
-      self.onCloudMsg_(e.data);
+    if(isNode) {
+      this.worker.on('message', (msg) => {
+        if(self.trace) {
+          console.log('DidResolverSyncWebStore::constructor::msg=:<',msg,'>');
+        }
+        self.onCloudMsg_(msg);
+      });
+    } else {
+      this.worker.onmessage = (e) => {
+        self.onCloudMsg_(e.data);
+      }  
     }
   }
   /**

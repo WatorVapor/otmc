@@ -18,7 +18,7 @@ if(isNode) {
   pSelf = self;
 }
 
-pSelf.trace = false;
+pSelf.trace = true;
 pSelf.debug = true;
 
 const loadModule = async () => {

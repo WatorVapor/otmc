@@ -117,7 +117,7 @@ export class DidResolverSyncWebStore {
     }
     const cloudRequests = [];
     for(const didAddress of concernDids) {
-      const joinAllApi = `hash/join/cr/${didAddress}`;
+      const joinAllApi = `hash/join/cr/${didAddress}?fullchain=true`;
       const requstObj = this.createCloudGetRequest_(joinAllApi);
       cloudRequests.push(requstObj);
     }
@@ -136,7 +136,7 @@ export class DidResolverSyncWebStore {
     }
     const cloudRequests = [];
     for(const didAddress of concernDids) {
-      const joinAllApi = `hash/join/vc/${didAddress}`;
+      const joinAllApi = `hash/join/vc/${didAddress}?fullchain=true`;
       const requstObj = this.createCloudGetRequest_(joinAllApi);
       cloudRequests.push(requstObj);
     }

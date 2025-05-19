@@ -3,7 +3,7 @@ console.log('otmc.worker.edcrypt::::isNode=:<',isNode,'>');
 let pSelf = false;
 if(isNode) {
   pSelf = {};
-  pSelf.trace = false;
+  pSelf.trace = true;
   pSelf.debug = true;
   const nodeWorker = await import('node:worker_threads');
   if(pSelf.trace) {
@@ -17,7 +17,7 @@ if(isNode) {
 } else {
   pSelf = self;
 }
-pSelf.trace = false;
+pSelf.trace = true;
 pSelf.debug = true;
 
 

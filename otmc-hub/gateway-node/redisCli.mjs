@@ -9,13 +9,14 @@ const LOG = {
 
 import { createClient } from 'redis';
 export class RedisCli {
-  constructor(config,otmc,readyCB) {
+  constructor(config,otmc,otmcMqtt,readyCB) {
     this.trace0 = false;
     this.trace = true;
     this.debug = true;
     this.redisUnxiPath = `${config.store}/redis/redis.otmc.hub.sock`;
     this.readyCB_ = readyCB;
     this.otmc_ = otmc;
+    this.otmcMqtt_ = otmcMqtt;
     this.config_ = config;
     if(this.trace) {
       console.log('RedisCli::constructor::this.redisUnxiPath=<',this.redisUnxiPath,'>');
@@ -185,7 +186,7 @@ export class RedisCli {
           break;    
       case 'team.status':
           console.log('RedisCli::execSubcommand::team.status');
-          console.log('RedisCli::did:document:created::this.otmc_.did:=<',this.otmc_.did,'>');
+          console.log('RedisCli::execSubcommand::this.otmc_.did:=<',this.otmc_.did,'>');
           const teamStatus = {
             address:this.readSelected(),
           };
@@ -199,6 +200,19 @@ export class RedisCli {
           }
           this.client.publish(replyTopic,JSON.stringify(teamStatus));
           break;  
+
+        case 'mqtt.publish':
+          console.log('RedisCli::execSubcommand::mqtt.publish');
+          //console.log('RedisCli::execSubcommand::this.otmcMqtt_:=<',this.otmcMqtt_,'>');
+          const otmcMsg = {
+            topic:values.topic,
+            payload:values.message,
+          };
+          console.log('RedisCli::execSubcommand::otmcMsg=<',otmcMsg,'>');
+          this.otmcMqtt_.publishMsg(otmcMsg);
+          this.client.publish(replyTopic,JSON.stringify({success:true}));
+          break;  
+            
       default:
         this.client.publish(replyTopic,JSON.stringify({success:true}));
         console.log('RedisCli::execSubcommand::default');

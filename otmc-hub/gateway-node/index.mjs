@@ -90,7 +90,7 @@ otmcMqtt.on('otmc:mqtt:msg',(msg)=>{
 
 import { RedisCli } from './redisCli.mjs';
 
-const redisCli = new RedisCli(gConf,otmcTeam,()=>{
+const redisCli = new RedisCli(gConf,otmcTeam,otmcMqtt,()=>{
   console.log('::index::redisCli.ready=<',redisCli.ready,'>');
 });
 

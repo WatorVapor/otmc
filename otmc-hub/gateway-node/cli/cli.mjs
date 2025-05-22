@@ -38,6 +38,12 @@ const { values, positionals } = parseArgs({
     'team': {
       type: 'string',
     },
+    'topic': {
+      type: 'string',
+    },
+    'message': {
+      type: 'string',
+    },
   },
 });
 if(LOG.trace0) {

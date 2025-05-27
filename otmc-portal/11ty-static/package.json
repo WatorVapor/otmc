@@ -13,9 +13,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@11ty/eleventy": "^3.0.0",
+    "@11ty/eleventy": "^3.1.0",
     "@11ty/eleventy-plugin-ejs": "^1.0.0",
-    "chokidar": "^3.6.0",
+    "chokidar": "^4.0.3",
     "pretty": "^2.0.0"
   }
 }

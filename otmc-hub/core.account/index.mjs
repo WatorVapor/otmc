@@ -3,12 +3,24 @@ const LOG = {
   trace:true,
   debug:true,
 };
-import fs from 'fs';
-import { RedisPassThrough } from '../core.utils/redisPassThrough.mjs';
-if(LOG.trace0) {
-  console.log('::::RedisPassThrough=<',RedisPassThrough,'>');
-}
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
+import { RedisPassProxy } from '../core.utils/redisPassProxy.mjs';
+if(LOG.trace0) {
+  console.log('::::RedisPassProxy=<',RedisPassProxy,'>');
+}
+import { OtmcConfig } from '../core.utils/otmcConfig.mjs';
+if(LOG.trace0) {
+  console.log('::::OtmcConfig=<',OtmcConfig,'>');
+}
+const gConf = OtmcConfig.load(__dirname);
+if(LOG.trace0) {
+  console.log('::::gConf=<',gConf,'>');
+}
+/*
 const gConf = {};
 try {
   const configPath = './config.json';
@@ -22,8 +34,9 @@ try {
 } catch ( err ) {
   console.error('::::err=<',err,'>');
 }
+*/
 
-const redisPass = new RedisPassThrough(gConf,()=>{
+const redisPass = new RedisPassProxy(gConf,()=>{
   if(LOG.trace0) {
     console.log('::::redisPass.ready=<',redisPass.ready,'>');
   }

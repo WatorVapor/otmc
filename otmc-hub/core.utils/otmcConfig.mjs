@@ -1,25 +1,23 @@
 import fs from 'fs';
 export class OtmcConfig  {
+  static trace0 = true;
+  static trace = true;
+  static debug = true;
   constructor() {
-    this.trace0 = false;
-    this.trace = true;
-    this.debug = true;
   }
   static load(home) {
-    if(this.trace0) {
+    if(OtmcConfig.trace0) {
       console.log('OtmcConfig::load::home=<',home,'>');
     }
     try {
       const configPath = `${home}/config.json`;
       const configText = fs.readFileSync(configPath);
       const config = JSON.parse(configText);
-      if(this.trace0) {
+      if(OtmcConfig.trace0) {
         console.log('::::config=<',config,'>');
       }
-      const conf = {};
-      conf.store = config.store;
-      fs.mkdirSync(`${conf.store}/secretKey`, { recursive: true });
-      return conf;
+      fs.mkdirSync(`${config.store}`, { recursive: true });
+      return config;
     } catch ( err ) {
       console.error('::::err=<',err,'>');
     }

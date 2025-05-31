@@ -1,3 +1,6 @@
 {
-  "store": "/opt/otmc/store1"
+  "store": "/opt/otmc/store1",
+  "secret":{
+    "dbName": "otmc/secret/did/account"
+  }
 }

@@ -7,40 +7,37 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
+if(LOG.trace0) {
+  console.log('core.account::__dirname=<',__dirname,'>');
+}
 import { RedisPassProxy } from '../core.utils/redisPassProxy.mjs';
 if(LOG.trace0) {
-  console.log('::::RedisPassProxy=<',RedisPassProxy,'>');
+  console.log('core.account::RedisPassProxy=<',RedisPassProxy,'>');
 }
 import { OtmcConfig } from '../core.utils/otmcConfig.mjs';
 if(LOG.trace0) {
-  console.log('::::OtmcConfig=<',OtmcConfig,'>');
+  console.log('core.account::OtmcConfig=<',OtmcConfig,'>');
 }
 const gConf = OtmcConfig.load(__dirname);
 if(LOG.trace0) {
-  console.log('::::gConf=<',gConf,'>');
+  console.log('core.account::gConf=<',gConf,'>');
 }
-/*
-const gConf = {};
-try {
-  const configPath = './config.json';
-  const configText = fs.readFileSync(configPath);
-  const config = JSON.parse(configText);
-  if(LOG.trace0) {
-    console.log('::::config=<',config,'>');
-  }
-  gConf.store = config.store;
-  fs.mkdirSync(`${gConf.store}/secretKey`, { recursive: true },);
-} catch ( err ) {
-  console.error('::::err=<',err,'>');
-}
-*/
+
 
 const redisPass = new RedisPassProxy(gConf,()=>{
   if(LOG.trace0) {
-    console.log('::::redisPass.ready=<',redisPass.ready,'>');
+    console.log('core.account::redisPass.ready=<',redisPass.ready,'>');
   }
 });
 if(LOG.trace0) {
-  console.log('::::redisPass=<',redisPass,'>');
+  console.log('core.account::redisPass=<',redisPass,'>');
+}
+
+import { AccountStore } from './account.store.mjs';
+if(LOG.trace0) {
+  console.log('core.account::AccountStore=<',AccountStore,'>');
+}
+const accountStore = new AccountStore(gConf);
+if(LOG.trace0) {
+  console.log('core.account::accountStore=<',accountStore,'>');
 }

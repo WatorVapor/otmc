@@ -2,6 +2,9 @@ import Dexie from 'dexie';
 import { StoreKey } from './otmc.const.js';
 import { base64 } from '@scure/base';
 
+import { StoreNodeWrapper } from './otmc.store.node.wrapper.js';
+const isNode = typeof global !== 'undefined' && typeof window === 'undefined';
+
 const iConstSharedKeyRegenMiliSec = 1000 * 60 * 60;
 //const iConstSharedKeyRegenMiliSec = 1000 * 5;
 const iConstIssueMilliSeconds = 1000 * 60 * 60;
@@ -18,13 +21,14 @@ const iConstLastTopSharedKey = 5;
 export class MqttEncryptECDH {
   constructor(otmc,auth,base32,util) {
     this.version = '1.0';
-    this.trace0 = false;
-    this.trace = false;
+    this.trace0 = true;
+    this.trace = true;
     this.debug = true;
     this.otmc = otmc;
     this.auth = auth;
     this.base32 = base32;
     this.util = util;
+    this.config = this.otmc.config;
     this.initDB_();
     if(this.trace0) {
       console.log('MqttEncryptECDH::constructor::this.otmc=:<',this.otmc,'>');
@@ -269,6 +273,9 @@ export class MqttEncryptECDH {
         if(this.trace0) {
           console.log('MqttEncryptECDH::calcSharedKeysOfNode::secretResult=<',secretResult,'>');
         }
+        if(isNode) {
+          await this.wrapper.exportData();
+        }    
       }
     }
   }
@@ -341,6 +348,9 @@ export class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::prepareSharedKeysOfTeamSpace::secretResult=<',secretResult,'>');
     }
+    if(isNode) {
+      await this.wrapper.exportData();
+    }
   }
 
   async storeRemotePubKey(keyMsg) {
@@ -380,6 +390,9 @@ export class MqttEncryptECDH {
     const ecdhResult = await this.db.ecdh.put(ecdh);
     if(this.trace0) {
       console.log('MqttEncryptECDH::storeRemotePubKey::ecdhResult=<',ecdhResult,'>');
+    }
+    if(isNode) {
+      await this.wrapper.exportData();
     }
   }
   async encryptData4Node(dataObject,did,nodeId) {
@@ -621,6 +634,10 @@ export class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::nodePublicKey=<',nodePublicKey,'>');
     }
+    if(nodePublicKey) {
+      // todo request shared secret
+      return;
+    }
     const sharedSecret = await crypto.subtle.deriveBits(
       {
         name: "ECDH",
@@ -695,6 +712,9 @@ export class MqttEncryptECDH {
     const ecdhResult = await this.db.ecdh.put(ecdh);
     if(this.trace0) {
       console.log('MqttEncryptECDH::storeRemotePubKey::ecdhResult=<',ecdhResult,'>');
+    }
+    if(isNode) {
+      await this.wrapper.exportData();
     }
   }
 
@@ -775,6 +795,9 @@ export class MqttEncryptECDH {
       if(this.trace0) {
         console.log('MqttEncryptECDH::checkServantVoteExpired::storeReult=<',storeReult,'>');
       }
+      if(isNode) {
+        await this.wrapper.exportData();
+      }  
     }
     return result;
   }
@@ -887,6 +910,9 @@ export class MqttEncryptECDH {
         if(this.trace0) {
           console.log('MqttEncryptECDH::voteServant::updateReult=<',updateReult,'>');
         }
+        if(isNode) {
+          await this.wrapper.exportData();
+        }    
         return lastVote;
       }
     }
@@ -901,6 +927,9 @@ export class MqttEncryptECDH {
     const storeReult = await this.db.servantVote.put(storeVote);
     if(this.trace0) {
       console.log('MqttEncryptECDH::voteServant::storeReult=<',storeReult,'>');
+    }
+    if(isNode) {
+      await this.wrapper.exportData();
     }
     return storeVote;
   }
@@ -931,6 +960,9 @@ export class MqttEncryptECDH {
         console.log('MqttEncryptECDH::collectRemoteVoteServant::putReult=<',putReult,'>');
       }
     }
+    if(isNode) {
+      await this.wrapper.exportData();
+    }
   }
 
   async updateAnnouncementRemoteServant(remoteVoteServantAnnouncement) {
@@ -943,6 +975,9 @@ export class MqttEncryptECDH {
   }  
 
   initDB_() {
+    if(isNode) {
+      StoreNodeWrapper.addIndexedDBDependencies(Dexie);
+    }
     this.db = new Dexie(StoreKey.secret.mqtt.encrypt.channel.dbName);
     this.db.version(this.version).stores({
       ecdh: '++autoId,did,nodeId,createdDate,pubBase64,privBase64',
@@ -956,6 +991,10 @@ export class MqttEncryptECDH {
     this.db.version(this.version).stores({
       servantVote: '++autoId,did,nodeId,issuedDate,expireDate,nonce',
     });  
+    if(isNode) {
+      this.wrapper = new StoreNodeWrapper(this.db,this.config);
+      this.wrapper.importData();
+    }
   }
 
   async tryCreateMyECKey_(did,nodeId) {
@@ -1006,6 +1045,9 @@ export class MqttEncryptECDH {
     const ecdhResult = await this.db.ecdh.put(ecdh);
     if(this.trace0) {
       console.log('MqttEncryptECDH::tryCreateMyECKey_::ecdhResult=<',ecdhResult,'>');
+    }
+    if(isNode) {
+      await this.wrapper.exportData();
     }
   }
 
@@ -1072,6 +1114,9 @@ export class MqttEncryptECDH {
     const secretResult = await this.db.secretOfTeamSpace.put(secret);
     if(this.trace0) {
       console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace_::secretResult=<',secretResult,'>');
+    }
+    if(isNode) {
+      await this.wrapper.exportData();
     }
   }
   filterOutTimeIsssed_(storeData,deadLine) {

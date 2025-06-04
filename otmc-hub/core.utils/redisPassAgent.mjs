@@ -11,39 +11,43 @@ export class RedisPassAgent {
     }
     this.createRedisClient_();
   }
-  async pubBroadcast(topic,payload) {
+  async relayMqttPublic(topic,payload) {
     if(this.trace0) {
-      console.log('RedisPassAgent::pubBroadcast::topic=<',topic,'>');
-      console.log('RedisPassAgent::pubBroadcast::payload=<',payload,'>');
+      console.log('RedisPassAgent::relayMqttPublic::topic=<',topic,'>');
+      console.log('RedisPassAgent::relayMqttPublic::payload=<',payload,'>');
     }
-    const topicOut = `/to/omtc/broadcast/${topic}`;
+    const topicOut = `/from/omtc/public/${topic}`;
     if(this.trace0) {
-      console.log('RedisPassAgent::pubBroadcast::topicOut=<',topicOut,'>');
+      console.log('RedisPassAgent::relayMqttPublic::topicOut=<',topicOut,'>');
     }
     if(this.trace0) {
-      console.log('RedisPassAgent::pubBroadcast::this.client=<',this.client,'>');
+      console.log('RedisPassAgent::relayMqttPublic::this.client=<',this.client,'>');
     }
     await this.client.publish(topicOut,JSON.stringify(payload),(err)=>{
       if(err) {
-        console.error('RedisPassAgent::pubBroadcast::err=<',err,'>');
+        console.error('RedisPassAgent::relayMqttPublic::err=<',err,'>');
       }
     });
   }
-  pubAddress(topic,payload) {
+  async relayMqttSecretMsg(topic,payload) {
     if(this.trace0) {
-      console.log('RedisPassAgent::pubAddress::topic=<',topic,'>');
-      console.log('RedisPassAgent::pubAddress::payload=<',payload,'>');
+      console.log('RedisPassAgent::relayMqttSecretMsg::topic=<',topic,'>');
+      console.log('RedisPassAgent::relayMqttSecretMsg::payload=<',payload,'>');
     }
-    const topicOut = `/to/omtc/address/${topic}`;
+    const topicOut = `/from/omtc/secret/${topic}`;
     if(this.trace0) {
-      console.log('RedisPassAgent::pubAddress::topicOut=<',topicOut,'>');
+      console.log('RedisPassAgent::relayMqttSecretMsg::topicOut=<',topicOut,'>');
     }
-    this.client.publish(topicOut,JSON.stringify(payload),(err)=>{
+    if(this.trace0) {
+      console.log('RedisPassAgent::relayMqttSecretMsg::this.client=<',this.client,'>');
+    }
+    await this.client.publish(topicOut,JSON.stringify(payload),(err)=>{
       if(err) {
-        console.error('RedisPassAgent::pubAddress::err=<',err,'>');
+        console.error('RedisPassAgent::relayMqttSecretMsg::err=<',err,'>');
       }
     });
-  }
+  }  
+
   
   
   createRedisClient_() {

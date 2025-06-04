@@ -634,7 +634,7 @@ export class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::nodePublicKey=<',nodePublicKey,'>');
     }
-    if(nodePublicKey) {
+    if(!nodePublicKey) {
       // todo request shared secret
       return;
     }

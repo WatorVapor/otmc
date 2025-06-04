@@ -24,13 +24,13 @@ if(LOG.trace0) {
 }
 
 
-const redisPass = new RedisPassProxy(gConf,()=>{
+const redisProxy = new RedisPassProxy(gConf,()=>{
   if(LOG.trace0) {
-    console.log('core.account::redisPass.ready=<',redisPass.ready,'>');
+    console.log('core.account::redisProxy.ready=<',redisProxy.ready,'>');
   }
 });
 if(LOG.trace0) {
-  console.log('core.account::redisPass=<',redisPass,'>');
+  console.log('core.account::redisProxy=<',redisProxy,'>');
 }
 
 import { AccountStore } from './account.store.mjs';

@@ -188,7 +188,12 @@ export class MqttEncryptChannel {
         self.cachedEncryptedMsg.push(mqttMsg);
       }
       if(decryptedMsg.decrypt) {
-        const emitResult = self.otmc.emit('otmc:mqtt:encrypt:channel',{orignal:mqttMsg,decryptedMsg:ecryptedMsg.decrypt,sTopic:evt.sTopic});
+        const relayMsg ={
+          orignal:mqttMsg,
+          decryptedMsg:decryptedMsg.decrypt,
+          sTopic:evt.sTopic
+        };
+        const emitResult = self.otmc.emit('otmc:mqtt:encrypt:channel',relayMsg);
         if(self.trace0) {
           console.log('MqttEncryptChannel::ListenEventEmitter_::emitResult=:<',emitResult,'>');
         }

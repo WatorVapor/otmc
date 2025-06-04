@@ -121,13 +121,9 @@ export class RedisPassProxy {
       }
     });
     const listener = (message, channel) => {
-      self.onRedisBroadcast_(channel,message);
+      self.onMqttMessage_(channel,message);
     };
-    this.subscriber.pSubscribe('/from/omtc/broadcast/*', listener);
-    const listener2 = (message, channel) => {
-      self.onRedisAddress_(channel,message);
-    };
-    this.subscriber.pSubscribe('/from/omtc/address/*', listener2);
+    this.subscriber.pSubscribe('/from/omtc/*', listener);
     this.subscriber.connect();
     if(this.trace0) {
       console.log('RedisPassProxy::createRedisSubscriber_::this.subscriber=<',this.subscriber,'>');
@@ -135,16 +131,10 @@ export class RedisPassProxy {
   }
 
 
-  onRedisBroadcast_(topic,message) {
+  onMqttMessage_(topic,message) {
     if(this.trace) {
-      console.log('RedisPassProxy::onRedisBroadcast_::topic=<',topic,'>');
-      console.log('RedisPassProxy::onRedisBroadcast_::message=<',message,'>');
-    }
-  }
-  onRedisAddress_(topic,message) {
-    if(this.trace) {
-      console.log('RedisPassProxy::onRedisAddress_::topic=<',topic,'>');
-      console.log('RedisPassProxy::onRedisAddress_::message=<',message,'>');
+      console.log('RedisPassProxy::onMqttMessage_::topic=<',topic,'>');
+      console.log('RedisPassProxy::onMqttMessage_::message=<',message,'>');
     }
   }
 }

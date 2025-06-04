@@ -77,7 +77,7 @@ export class MqttConnection {
       this.jwt.validateMqttJwt();
       return;
     }
-    if(this.trace) {
+    if(this.debug) {
       console.log('MqttConnection::connectMqtt::this.mqttJwt=:<',this.mqttJwt,'>');
     }
     this.createMqttConnection_();

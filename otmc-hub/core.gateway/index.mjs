@@ -1,7 +1,5 @@
 import fs from 'fs';
 
-import { RedisRelay } from './redisRelay.mjs';
-console.log('::index::RedisRelay=<',RedisRelay,'>');
 
 //import * as OtmcTeam from 'otmc-client';
 import { OtmcTeam } from '../../otmc-package/otmc.team.js';
@@ -62,12 +60,6 @@ otmcTeam.once('edcrypt:worker:ready',(workerReady)=>{
 
 
 
-const redis = new RedisRelay(gConf,otmcTeam,()=>{
-  console.log('::index::redis.ready=<',redis.ready,'>');
-});
-
-
-
 
 otmcMqtt.once('edcrypt:worker:ready',(workerReady)=>{
   console.log('::index::ready=<',workerReady,'>');  
@@ -86,12 +78,20 @@ otmcMqtt.once('mqtt:connected',()=>{
 otmcMqtt.on('otmc:mqtt:msg',(msg)=>{
   console.log('::index::msg=<',msg,'>');
 })
+otmcMqtt.on('otmc:mqtt:encrypt:channel',(msg)=>{
+  console.log('::index::msg=<',msg,'>');
+  redisAgent.relayMqttSecretMsg(msg.sTopic,msg);
+})
 
 
 import { RedisCli } from './redisCli.mjs';
-
 const redisCli = new RedisCli(gConf,otmcTeam,otmcMqtt,()=>{
   console.log('::index::redisCli.ready=<',redisCli.ready,'>');
+})
+
+import { RedisPassAgent } from '../core.utils/redisPassAgent.mjs';
+const redisAgent = new RedisPassAgent(gConf,otmcTeam,otmcMqtt,()=>{
+  console.log('::index::redisAgent.ready=<',redisAgent.ready,'>');
 });
 
 /*

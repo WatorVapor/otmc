@@ -11,39 +11,39 @@ export class RedisPassAgent {
     }
     this.createRedisClient_();
   }
-  async relayMqttPublicMsg(topic,payload) {
+  async relayMqttPlainMsg(topic,payload) {
     if(this.trace0) {
-      console.log('RedisPassAgent::relayMqttPublicMsg::topic=<',topic,'>');
-      console.log('RedisPassAgent::relayMqttPublicMsg::payload=<',payload,'>');
+      console.log('RedisPassAgent::relayMqttPlainMsg::topic=<',topic,'>');
+      console.log('RedisPassAgent::relayMqttPlainMsg::payload=<',payload,'>');
     }
-    const topicOut = `/omtc/cloud/2/local/public/${topic}`;
+    const topicOut = `/omtc/cloud/2/edge/plain/${topic}`;
     if(this.trace0) {
-      console.log('RedisPassAgent::relayMqttPublicMsg::topicOut=<',topicOut,'>');
+      console.log('RedisPassAgent::relayMqttPlainMsg::topicOut=<',topicOut,'>');
     }
     if(this.trace0) {
-      console.log('RedisPassAgent::relayMqttPublicMsg::this.client=<',this.client,'>');
+      console.log('RedisPassAgent::relayMqttPlainMsg::this.client=<',this.client,'>');
     }
     await this.client.publish(topicOut,JSON.stringify(payload),(err)=>{
       if(err) {
-        console.error('RedisPassAgent::relayMqttPublicMsg::err=<',err,'>');
+        console.error('RedisPassAgent::relayMqttPlainMsg::err=<',err,'>');
       }
     });
   }
-  async relayMqttSecretMsg(topic,payload) {
+  async relayMqttEncyptMsg(topic,payload) {
     if(this.trace0) {
-      console.log('RedisPassAgent::relayMqttSecretMsg::topic=<',topic,'>');
-      console.log('RedisPassAgent::relayMqttSecretMsg::payload=<',payload,'>');
+      console.log('RedisPassAgent::relayMqttEncyptMsg::topic=<',topic,'>');
+      console.log('RedisPassAgent::relayMqttEncyptMsg::payload=<',payload,'>');
     }
-    const topicOut = `/omtc/cloud/2/local/secret/${topic}`;
+    const topicOut = `/omtc/cloud/2/edge/encypt/${topic}`;
     if(this.trace0) {
-      console.log('RedisPassAgent::relayMqttSecretMsg::topicOut=<',topicOut,'>');
+      console.log('RedisPassAgent::relayMqttEncyptMsg::topicOut=<',topicOut,'>');
     }
     if(this.trace0) {
-      console.log('RedisPassAgent::relayMqttSecretMsg::this.client=<',this.client,'>');
+      console.log('RedisPassAgent::relayMqttEncyptMsg::this.client=<',this.client,'>');
     }
     await this.client.publish(topicOut,JSON.stringify(payload),(err)=>{
       if(err) {
-        console.error('RedisPassAgent::relayMqttSecretMsg::err=<',err,'>');
+        console.error('RedisPassAgent::relayMqttEncyptMsg::err=<',err,'>');
       }
     });
   }  
@@ -124,14 +124,28 @@ export class RedisPassAgent {
         console.log('RedisPassAgent::createRedisSubscriber_::evtReconnectingSub=<',evtReconnectingSub,'>');
       }
     });
-    const listener = (message, channel) => {
-      self.onRedisBroadcast_(channel,message);
+    
+    const listener1 = (message, channel) => {
+      self.onEdgePlainBroadcast_(channel,message);
     };
-    this.subscriber.pSubscribe('/omtc/local/2/cloud/broadcast/*', listener);
+    this.subscriber.pSubscribe('/omtc/edge/2/cloud/broadcast/plain/*', listener1);
+
     const listener2 = (message, channel) => {
-      self.onRedisAddress_(channel,message);
+      self.onEdgePlainUnicast_(channel,message);
     };
-    this.subscriber.pSubscribe('/omtc/local/2/cloud/address/*', listener2);
+    this.subscriber.pSubscribe('/omtc/edge/2/cloud/unicast/plain/*', listener2);
+    
+    const listener3 = (message, channel) => {
+      self.onEdgeEncyptBroadcast_(channel,message);
+    };
+    this.subscriber.pSubscribe('/omtc/edge/2/cloud/broadcast/encypt/*', listener3);
+
+    const listener4 = (message, channel) => {
+      self.onEdgeEncyptUnicast_(channel,message);
+    };
+    this.subscriber.pSubscribe('/omtc/edge/2/cloud/unicast/v/*', listener4);
+
+    
     this.subscriber.connect();
     if(this.trace0) {
       console.log('RedisPassAgent::createRedisSubscriber_::this.subscriber=<',this.subscriber,'>');
@@ -139,16 +153,28 @@ export class RedisPassAgent {
   }
 
 
-  onRedisBroadcast_(topic,message) {
+  onEdgePlainBroadcast_(topic,message) {
     if(this.trace) {
-      console.log('RedisPassAgent::onRedisBroadcast_::topic=<',topic,'>');
-      console.log('RedisPassAgent::onRedisBroadcast_::message=<',message,'>');
+      console.log('RedisPassAgent::onEdgePlainBroadcast_::topic=<',topic,'>');
+      console.log('RedisPassAgent::onEdgePlainBroadcast_::message=<',message,'>');
     }
   }
-  onRedisAddress_(topic,message) {
+  onEdgePlainUnicast_(topic,message) {
     if(this.trace) {
-      console.log('RedisPassAgent::onRedisAddress_::topic=<',topic,'>');
-      console.log('RedisPassAgent::onRedisAddress_::message=<',message,'>');
+      console.log('RedisPassAgent::onEdgePlainUnicast_::topic=<',topic,'>');
+      console.log('RedisPassAgent::onEdgePlainUnicast_::message=<',message,'>');
+    }
+  }
+  onEdgeEncyptBroadcast_(topic,message) {
+    if(this.trace) {
+      console.log('RedisPassAgent::onEdgeEncyptBroadcast_::topic=<',topic,'>');
+      console.log('RedisPassAgent::onEdgeEncyptBroadcast_::message=<',message,'>');
+    }
+  }
+  onEdgeEncyptUnicast_(topic,message) {
+    if(this.trace) {
+      console.log('RedisPassAgent::onEdgeEncyptUnicast_::topic=<',topic,'>');
+      console.log('RedisPassAgent::onEdgeEncyptUnicast_::message=<',message,'>');
     }
   }
 }

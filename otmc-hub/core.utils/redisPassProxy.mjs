@@ -16,7 +16,7 @@ export class RedisPassProxy {
       console.log('RedisPassProxy::pubBroadcast::topic=<',topic,'>');
       console.log('RedisPassProxy::pubBroadcast::payload=<',payload,'>');
     }
-    const topicOut = `/omtc/local/2/cloud/broadcast/${topic}`;
+    const topicOut = `/omtc/edge/2/cloud/broadcast/plain/${topic}`;
     if(this.trace0) {
       console.log('RedisPassProxy::pubBroadcast::topicOut=<',topicOut,'>');
     }
@@ -29,22 +29,55 @@ export class RedisPassProxy {
       }
     });
   }
-  pubAddress(topic,payload) {
+  pubUnicast(topic,payload) {
     if(this.trace0) {
-      console.log('RedisPassProxy::pubAddress::topic=<',topic,'>');
-      console.log('RedisPassProxy::pubAddress::payload=<',payload,'>');
+      console.log('RedisPassProxy::pubUnicast::topic=<',topic,'>');
+      console.log('RedisPassProxy::pubUnicast::payload=<',payload,'>');
     }
-    const topicOut = `/omtc/local/2/cloud/address/${topic}`;
+    const topicOut = `/omtc/edge/2/cloud/unicast/plain/${topic}`;
     if(this.trace0) {
-      console.log('RedisPassProxy::pubAddress::topicOut=<',topicOut,'>');
+      console.log('RedisPassProxy::pubUnicast::topicOut=<',topicOut,'>');
     }
     this.client.publish(topicOut,JSON.stringify(payload),(err)=>{
       if(err) {
-        console.error('RedisPassProxy::pubAddress::err=<',err,'>');
+        console.error('RedisPassProxy::pubUnicast::err=<',err,'>');
       }
     });
   }
-  
+
+  async pubBroadcastEncypt(topic,payload) {
+    if(this.trace0) {
+      console.log('RedisPassProxy::pubBroadcastEncypt::topic=<',topic,'>');
+      console.log('RedisPassProxy::pubBroadcastEncypt::payload=<',payload,'>');
+    }
+    const topicOut = `/omtc/edge/2/cloud/broadcast/encypt/${topic}`;
+    if(this.trace0) {
+      console.log('RedisPassProxy::pubBroadcastEncypt::topicOut=<',topicOut,'>');
+    }
+    if(this.trace0) {
+      console.log('RedisPassProxy::pubBroadcastEncypt::this.client=<',this.client,'>');
+    }
+    await this.client.publish(topicOut,JSON.stringify(payload),(err)=>{
+      if(err) {
+        console.error('RedisPassProxy::pubBroadcastEncypt::err=<',err,'>');
+      }
+    });
+  }
+  pubUnicastEncypt(topic,payload) {
+    if(this.trace0) {
+      console.log('RedisPassProxy::pubUnicastEncypt::topic=<',topic,'>');
+      console.log('RedisPassProxy::pubUnicastEncypt::payload=<',payload,'>');
+    }
+    const topicOut = `/omtc/edge/2/cloud/unicast/encypt/${topic}`;
+    if(this.trace0) {
+      console.log('RedisPassProxy::pubUnicastEncypt::topicOut=<',topicOut,'>');
+    }
+    this.client.publish(topicOut,JSON.stringify(payload),(err)=>{
+      if(err) {
+        console.error('RedisPassProxy::pubUnicastEncypt::err=<',err,'>');
+      }
+    });
+  } 
   
   createRedisClient_() {
     const clientOpt = {
@@ -120,10 +153,18 @@ export class RedisPassProxy {
         console.log('RedisPassProxy::createRedisSubscriber_::evtReconnectingSub=<',evtReconnectingSub,'>');
       }
     });
-    const listener = (message, channel) => {
-      self.onMqttMessage_(channel,message);
+    
+    const listener1 = (message, channel) => {
+      self.onMqttCloudPlainMessage_(channel,message);
     };
-    this.subscriber.pSubscribe('/omtc/cloud/2/local/*', listener);
+    this.subscriber.pSubscribe('/omtc/cloud/2/edge/plain/*', listener1);
+
+    const listener2 = (message, channel) => {
+      self.onMqttCloudEncyptMessage_(channel,message);
+    };
+    this.subscriber.pSubscribe('/omtc/cloud/2/edge/encypt/*', listener2);
+
+    
     this.subscriber.connect();
     if(this.trace0) {
       console.log('RedisPassProxy::createRedisSubscriber_::this.subscriber=<',this.subscriber,'>');
@@ -131,10 +172,18 @@ export class RedisPassProxy {
   }
 
 
-  onMqttMessage_(topic,message) {
+  onMqttCloudPlainMessage_(topic,message) {
     if(this.trace) {
-      console.log('RedisPassProxy::onMqttMessage_::topic=<',topic,'>');
-      console.log('RedisPassProxy::onMqttMessage_::message=<',message,'>');
+      console.log('RedisPassProxy::onMqttCloudPlainMessage_::topic=<',topic,'>');
+      console.log('RedisPassProxy::onMqttCloudPlainMessage_::message=<',message,'>');
     }
   }
+
+  onMqttCloudEncyptMessage_(topic,message) {
+    if(this.trace) {
+      console.log('RedisPassProxy::onMqttCloudEncyptMessage_::topic=<',topic,'>');
+      console.log('RedisPassProxy::onMqttCloudEncyptMessage_::message=<',message,'>');
+    }
+  }
+
 }

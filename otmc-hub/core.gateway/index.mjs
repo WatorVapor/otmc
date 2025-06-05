@@ -80,7 +80,7 @@ otmcMqtt.on('otmc:mqtt:msg',(msg)=>{
 })
 otmcMqtt.on('otmc:mqtt:encrypt:channel',(msg)=>{
   console.log('::index::msg=<',msg,'>');
-  redisAgent.relayMqttSecretMsg(msg.sTopic,msg);
+  redisAgent.relayMqttEncyptMsg(msg.sTopic,msg);
 })
 
 

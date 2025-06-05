@@ -11,21 +11,21 @@ export class RedisPassAgent {
     }
     this.createRedisClient_();
   }
-  async relayMqttPublic(topic,payload) {
+  async relayMqttPublicMsg(topic,payload) {
     if(this.trace0) {
-      console.log('RedisPassAgent::relayMqttPublic::topic=<',topic,'>');
-      console.log('RedisPassAgent::relayMqttPublic::payload=<',payload,'>');
+      console.log('RedisPassAgent::relayMqttPublicMsg::topic=<',topic,'>');
+      console.log('RedisPassAgent::relayMqttPublicMsg::payload=<',payload,'>');
     }
-    const topicOut = `/from/omtc/public/${topic}`;
+    const topicOut = `/omtc/cloud/2/local/public/${topic}`;
     if(this.trace0) {
-      console.log('RedisPassAgent::relayMqttPublic::topicOut=<',topicOut,'>');
+      console.log('RedisPassAgent::relayMqttPublicMsg::topicOut=<',topicOut,'>');
     }
     if(this.trace0) {
-      console.log('RedisPassAgent::relayMqttPublic::this.client=<',this.client,'>');
+      console.log('RedisPassAgent::relayMqttPublicMsg::this.client=<',this.client,'>');
     }
     await this.client.publish(topicOut,JSON.stringify(payload),(err)=>{
       if(err) {
-        console.error('RedisPassAgent::relayMqttPublic::err=<',err,'>');
+        console.error('RedisPassAgent::relayMqttPublicMsg::err=<',err,'>');
       }
     });
   }
@@ -34,7 +34,7 @@ export class RedisPassAgent {
       console.log('RedisPassAgent::relayMqttSecretMsg::topic=<',topic,'>');
       console.log('RedisPassAgent::relayMqttSecretMsg::payload=<',payload,'>');
     }
-    const topicOut = `/from/omtc/secret/${topic}`;
+    const topicOut = `/omtc/cloud/2/local/secret/${topic}`;
     if(this.trace0) {
       console.log('RedisPassAgent::relayMqttSecretMsg::topicOut=<',topicOut,'>');
     }
@@ -127,11 +127,11 @@ export class RedisPassAgent {
     const listener = (message, channel) => {
       self.onRedisBroadcast_(channel,message);
     };
-    this.subscriber.pSubscribe('/from/omtc/broadcast/*', listener);
+    this.subscriber.pSubscribe('/omtc/local/2/cloud/broadcast/*', listener);
     const listener2 = (message, channel) => {
       self.onRedisAddress_(channel,message);
     };
-    this.subscriber.pSubscribe('/from/omtc/address/*', listener2);
+    this.subscriber.pSubscribe('/omtc/local/2/cloud/address/*', listener2);
     this.subscriber.connect();
     if(this.trace0) {
       console.log('RedisPassAgent::createRedisSubscriber_::this.subscriber=<',this.subscriber,'>');

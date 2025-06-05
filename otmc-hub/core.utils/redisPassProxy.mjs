@@ -16,7 +16,7 @@ export class RedisPassProxy {
       console.log('RedisPassProxy::pubBroadcast::topic=<',topic,'>');
       console.log('RedisPassProxy::pubBroadcast::payload=<',payload,'>');
     }
-    const topicOut = `/to/omtc/broadcast/${topic}`;
+    const topicOut = `/omtc/local/2/cloud/broadcast/${topic}`;
     if(this.trace0) {
       console.log('RedisPassProxy::pubBroadcast::topicOut=<',topicOut,'>');
     }
@@ -34,7 +34,7 @@ export class RedisPassProxy {
       console.log('RedisPassProxy::pubAddress::topic=<',topic,'>');
       console.log('RedisPassProxy::pubAddress::payload=<',payload,'>');
     }
-    const topicOut = `/to/omtc/address/${topic}`;
+    const topicOut = `/omtc/local/2/cloud/address/${topic}`;
     if(this.trace0) {
       console.log('RedisPassProxy::pubAddress::topicOut=<',topicOut,'>');
     }
@@ -123,7 +123,7 @@ export class RedisPassProxy {
     const listener = (message, channel) => {
       self.onMqttMessage_(channel,message);
     };
-    this.subscriber.pSubscribe('/from/omtc/*', listener);
+    this.subscriber.pSubscribe('/omtc/cloud/2/local/*', listener);
     this.subscriber.connect();
     if(this.trace0) {
       console.log('RedisPassProxy::createRedisSubscriber_::this.subscriber=<',this.subscriber,'>');

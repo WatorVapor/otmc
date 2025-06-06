@@ -191,7 +191,7 @@ export class MqttEncryptChannel {
         const relayMsg ={
           orignal:mqttMsg,
           decryptedMsg:decryptedMsg.decrypt,
-          sTopic:evt.sTopic
+          sTopic:evt.sTopic.replace('encrypt/channel/',''),
         };
         const emitResult = self.otmc.emit('otmc:mqtt:encrypt:channel',relayMsg);
         if(self.trace0) {

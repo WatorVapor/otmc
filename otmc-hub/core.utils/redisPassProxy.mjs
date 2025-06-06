@@ -77,7 +77,13 @@ export class RedisPassProxy {
         console.error('RedisPassProxy::pubUnicastEncypt::err=<',err,'>');
       }
     });
-  } 
+  }
+  setEncryptListener(listener) {
+    this.listenerEncrypt_ = listener;
+  }
+  setPlainListener(listener) {
+    this.listenerPlain_ = listener;
+  }
   
   createRedisClient_() {
     const clientOpt = {
@@ -177,12 +183,26 @@ export class RedisPassProxy {
       console.log('RedisPassProxy::onMqttCloudPlainMessage_::topic=<',topic,'>');
       console.log('RedisPassProxy::onMqttCloudPlainMessage_::message=<',message,'>');
     }
+    const funcTopic = topic.replace('/omtc/cloud/2/edge/plain/','');
+    if(this.trace) {
+      console.log('RedisPassProxy::onMqttCloudPlainMessage_::funcTopic=<',funcTopic,'>');
+    }
+    if(this.listenerPlain_) {
+      this.listenerPlain_(funcTopic,message);
+    }
   }
 
   onMqttCloudEncyptMessage_(topic,message) {
     if(this.trace) {
       console.log('RedisPassProxy::onMqttCloudEncyptMessage_::topic=<',topic,'>');
       console.log('RedisPassProxy::onMqttCloudEncyptMessage_::message=<',message,'>');
+    }
+    const funcTopic = topic.replace('/omtc/cloud/2/edge/encypt/','');
+    if(this.trace) {
+      console.log('RedisPassProxy::onMqttCloudEncyptMessage_::funcTopic=<',funcTopic,'>');
+    }
+    if(this.listenerEncrypt_) {
+      this.listenerEncrypt_(funcTopic,message);
     }
   }
 

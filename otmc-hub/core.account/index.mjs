@@ -23,15 +23,40 @@ if(LOG.trace0) {
   console.log('core.account::gConf=<',gConf,'>');
 }
 
-
-const redisProxy = new RedisPassProxy(gConf,()=>{
+const onRedisReady = ()=>{
   if(LOG.trace0) {
-    console.log('core.account::redisProxy.ready=<',redisProxy.ready,'>');
+    console.log('core.account::onRedisReady::redisProxy.ready=<',redisProxy.ready,'>');
   }
-});
+  createSubscriber();
+}
+
+const redisProxy = new RedisPassProxy(gConf,onRedisReady,);
 if(LOG.trace0) {
   console.log('core.account::redisProxy=<',redisProxy,'>');
 }
+
+const encryptCloudMsgListener = (topic,msg)=>{
+  if(LOG.trace0) {
+    console.log('core.account::encryptCloudMsgListener::topic=<',topic,'>');
+    console.log('core.account::encryptCloudMsgListener::msg=<',msg,'>');
+  }
+}
+
+const plainCloudMsgListener = (topic,msg)=>{
+  if(LOG.trace0) {
+    console.log('core.account::plainCloudMsgListener::topic=<',topic,'>');
+    console.log('core.account::plainCloudMsgListener::msg=<',msg,'>');
+  }
+}
+
+const createSubscriber = ()=>{
+  if(LOG.trace0) {
+    console.log('core.account::createSubscriber::redisProxy.ready=<',redisProxy.ready,'>');
+  }
+  redisProxy.setEncryptListener(encryptCloudMsgListener);  
+  redisProxy.setPlainListener(plainCloudMsgListener);  
+}
+
 
 import { AccountStore } from './account.store.mjs';
 if(LOG.trace0) {

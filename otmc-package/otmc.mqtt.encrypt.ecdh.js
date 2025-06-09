@@ -251,11 +251,11 @@ export class MqttEncryptECDH {
         if(this.trace0) {
           console.log('MqttEncryptECDH::calcSharedKeysOfNode::filter=<',filter,'>');
         }
-        let hitnSecret = await this.db.secret.where(filter).first();
+        let hintSecret = await this.db.secret.where(filter).first();
         if(this.trace0) {
-          console.log('MqttEncryptECDH::calcSharedKeysOfNode::hitnSecret=<',hitnSecret,'>');
+          console.log('MqttEncryptECDH::calcSharedKeysOfNode::hintSecret=<',hintSecret,'>');
         }
-        if(hitnSecret) {
+        if(hintSecret) {
           return;
         }
         const secret = {
@@ -323,11 +323,11 @@ export class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::prepareSharedKeysOfTeamSpace::filter=<',filter,'>');
     }
-    let hitnSecretTeam = await this.db.secretOfTeamSpace.where(filter).first();
+    let hintSecretTeam = await this.db.secretOfTeamSpace.where(filter).first();
     if(this.trace0) {
-      console.log('MqttEncryptECDH::prepareSharedKeysOfTeamSpace::hitnSecretTeam=<',hitnSecretTeam,'>');
+      console.log('MqttEncryptECDH::prepareSharedKeysOfTeamSpace::hintSecretTeam=<',hintSecretTeam,'>');
     }
-    if(hitnSecretTeam) {
+    if(hintSecretTeam) {
       return;
     }
     const secretId = this.util.calcAddress(teamSharedKeyBase64);
@@ -1094,11 +1094,14 @@ export class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace_::filter=<',filter,'>');
     }
-    let hitnSecret = await this.db.secretOfTeamSpace.where(filter).first();
+    let hintSecret = await this.db.secretOfTeamSpace.where(filter).first();
     if(this.trace0) {
-      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace_::hitnSecret=<',hitnSecret,'>');
+      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace_::hintSecret=<',hintSecret,'>');
     }
-    if(hitnSecret) {
+    if(hintSecret) {
+      if(this.trace0) {
+        console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace_::hintSecret=<',hintSecret,'>');
+      }
       return;
     }
     const secret = {

@@ -158,11 +158,11 @@ export class MqttEncryptECDH {
     this.teamSharedKeys[did] = {};
     this.teamTopSharedKey[did] = {};
     const self = this;
-    const teamSharedKeys1 = await this.db.secretOfTeamSpace.where(filter)
+    const teamSharedKeys11 = await this.db.secretOfTeamSpace.where(filter)
     .and((secret)=>{
       return self.filterOutTimeIsssed_(secret,iConstSharedKeyRegenMiliSec);
-    })
-    .sortBy('issuedDate');
+    }).toArray();
+    const teamSharedKeys1 = teamSharedKeys11.sort((a, b) => new Date(a.issuedDate) - new Date(b.issuedDate));
     if(this.trace0) {
       console.log('MqttEncryptECDH::loadSharedKeyOfTeamSpace::teamSharedKeys1=<',teamSharedKeys1,'>');
     }
@@ -409,6 +409,9 @@ export class MqttEncryptECDH {
       console.log('MqttEncryptECDH::encryptData4TeamSpace::mqttMsg=<',mqttMsg,'>');
       console.log('MqttEncryptECDH::encryptData4TeamSpace::did=<',did,'>');
     }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::encryptData4TeamSpace::this.teamTopSharedKey=<',this.teamTopSharedKey,'>');
+    }
     let teamSharedKeyPair = this.teamTopSharedKey[did];
     if(this.trace0) {
       console.log('MqttEncryptECDH::encryptData4TeamSpace::teamSharedKeyPair=<',teamSharedKeyPair,'>');
@@ -485,11 +488,17 @@ export class MqttEncryptECDH {
       console.log('MqttEncryptECDH::decryptData4TeamSpace::srcKeyId=<',srcKeyId,'>');
     }
     let teamSharedKey = this.teamSharedKeys[did];
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::decryptData4TeamSpace::teamSharedKey=<',teamSharedKey,'>');
+    }
     if(!teamSharedKey) {
       this.loadSharedKeyOfTeamSpace();
       teamSharedKey = this.teamSharedKeys[did];
       if(!teamSharedKey) {
         // TODO:
+        if(this.trace0) {
+          console.log('MqttEncryptECDH::decryptData4TeamSpace::teamSharedKey=<',teamSharedKey,'>');
+        }
         return {keyMiss:true};
       }
     }
@@ -536,7 +545,8 @@ export class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::did=:<',did,'>');
     }
-    const teamSharedKeys = await this.db.secretOfTeamSpace.where({did:did}).sortBy('issuedDate');
+    const teamSharedKeys1 = await this.db.secretOfTeamSpace.where({did:did}).toArray();
+    const teamSharedKeys = teamSharedKeys1.sort((a, b) => new Date(a.issuedDate) - new Date(b.issuedDate));
     if(this.trace0) {
       console.log('MqttEncryptECDH::createUnicastMessage4SharedKeysOfTeamSpace::teamSharedKeys=<',teamSharedKeys,'>');
     }
@@ -883,7 +893,8 @@ export class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::voteServant::filter=<',filter,'>');
     }
-    const servantVotes = await this.db.servantVote.where(filter).sortBy('issuedDate');
+    const servantVotes1 = await this.db.servantVote.where(filter).toArray();
+    const servantVotes = servantVotes1.sort((a, b) => new Date(a.issuedDate) - new Date(b.issuedDate));
     if(this.trace0) {
       console.log('MqttEncryptECDH::voteServant::servantVotes=<',servantVotes,'>');
     }
@@ -1084,12 +1095,16 @@ export class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace_::secretId=<',secretId,'>');
     }
+    if(secretId !== sharedKeyOfTeamSpace.secretId) {
+      if(this.debug) {
+        console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace_::secretId=<',secretId,'>');
+        console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace_::v=<',sharedKeyOfTeamSpace.secretId,'>');
+      }     
+      return;
+    }
     const filter = {
       did:sharedKeyOfTeamSpace.did,
       secretId:secretId,
-      issuedDate:sharedKeyOfTeamSpace.issuedDate,
-      expireDate:sharedKeyOfTeamSpace.expireDate,
-      secretBase64:sharedKeyOfTeamSpace.secretBase64
     }
     if(this.trace0) {
       console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace_::filter=<',filter,'>');

@@ -285,9 +285,9 @@ const loadDidTeamApps = (evt) => {
     appPropertyVM.members = property.members;
   });
 
-  mqtt.on('mqtt:connected',(evtMqtt) => {
+  mqtt.on('otmc.mqtt.encrypt.channel.refresh',(evtMqtt) => {
     console.log('loadDidTeamApps::evtMqtt=:<',evtMqtt,'>');
-    onMqttConnected(mqtt,otmc,appPropertyVM);
+    onMqttEncrypteChannelRefresh(mqtt,otmc,appPropertyVM);
   });
 
   mqtt.on('otmc:mqtt:all',(msgMqtt) => {
@@ -339,10 +339,10 @@ const onDidKeyRefreshTeamApp = (didKeys,app) => {
   console.log('onDidKeyRefreshTeamApp::app=:<',app,'>');
 };
 
-const onMqttConnected = (mqtt,otmc) => {
-  console.log('onMqttConnected::mqtt=:<',mqtt,'>');
-  console.log('onMqttConnected::otmc=:<',otmc,'>');
-  console.log('onMqttConnected::apps.accountProperty=:<',apps.accountProperty,'>');
+const onMqttEncrypteChannelRefresh = (mqtt,otmc) => {
+  console.log('onMqttEncrypteChannelRefresh::mqtt=:<',mqtt,'>');
+  console.log('onMqttEncrypteChannelRefresh::otmc=:<',otmc,'>');
+  console.log('onMqttEncrypteChannelRefresh::apps.accountProperty=:<',apps.accountProperty,'>');
   const syncMsg = { 
     topic:'team/property/sync',
     payload:apps.accountProperty,

@@ -6,8 +6,8 @@ import { MqttEncrptStateMachine } from './otmc.mqtt.encrypt.state.js';
 export class MqttEncryptChannel {
   constructor(eeInternal) {
     this.ee = eeInternal;
-    this.trace0 = false;
-    this.trace = false;
+    this.trace0 = true;
+    this.trace = true;
     this.debug = true;
     this.sm = new MqttEncrptStateMachine(this.ee);
     this.ListenEventEmitter_();
@@ -44,9 +44,14 @@ export class MqttEncryptChannel {
     });
     this.ee.on('teamspace/secret/encrypt/ecdh/secret/space',async (evt)=>{
       if(self.trace0) {
-        console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
+        console.log('MqttEncryptChannel::ListenEventEmitter_ ecdh/secret/space::evt=:<',evt,'>');
       }
-      self.ecdh.storeSharedKeySecretOfSpace(evt.payload,self.otmc.did.didDoc_.id);
+      await self.ecdh.storeSharedKeySecretOfSpace(evt.payload,self.otmc.did.didDoc_.id);
+      const evt2 = {};
+      if(self.trace0) {
+        console.log('MqttEncryptChannel::ListenEventEmitter_ ecdh/secret/space::evt2=:<',evt2,'>');
+      }
+      self.ee.emit('otmc.mqtt.encrypt.channel.refresh',evt2);      
     });
 
     this.ee.on('xstate.action.mqtt.publish.ecdh.pubkey',async (evt)=>{
@@ -166,6 +171,7 @@ export class MqttEncryptChannel {
       for(const msg of unicastMsg) {
         self.ee.emit('otmc.mqtt.publish',{msg:msg});
       }
+      self.ee.emit('otmc.mqtt.encrypt.channel.refresh',evt);      
     });
   
     this.ee.on('mqtt.encrypt.channel.decrypt.message',async (evt)=>{
@@ -179,7 +185,7 @@ export class MqttEncryptChannel {
       const decryptedMsg = await self.decryptMsgPayload4TeamSpace_(mqttMsg);
       if(self.trace0) {
         console.log('MqttEncryptChannel::ListenEventEmitter_::decryptedMsg=:<',decryptedMsg,'>');
-        console.log('MqttEncryptChannel::ListenEventEmitter_::self.otmc=:<',self.otmc,'>');
+        //console.log('MqttEncryptChannel::ListenEventEmitter_::self.otmc=:<',self.otmc,'>');
         console.log('MqttEncryptChannel::ListenEventEmitter_::self.otmc.listenerCount(”otmc:mqtt:all“)=:<',self.otmc.listenerCount('otmc:mqtt:all'),'>');
         console.log('MqttEncryptChannel::ListenEventEmitter_::self.otmc.listenerCount(”otmc:mqtt:encrypt:channel“)=:<',self.otmc.listenerCount('otmc:mqtt:encrypt:channel'),'>');
       }

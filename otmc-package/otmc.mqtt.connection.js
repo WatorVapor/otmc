@@ -64,6 +64,12 @@ export class MqttConnection {
       self.mqttJwt = evt;
       self.connectMqtt();
     });
+    this.ee.on('otmc.mqtt.encrypt.channel.refresh',(evt)=>{
+      if(self.trace) {
+        console.log('MqttConnection::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      this.otmc.emit('otmc.mqtt.encrypt.channel.refresh',evt);
+    });
   }
 
   async freshMqttJwt() {

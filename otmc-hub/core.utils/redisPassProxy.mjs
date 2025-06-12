@@ -2,6 +2,7 @@ import { createClient } from 'redis';
 export class RedisPassProxy {
   constructor(config,readyCB) {
     this.trace0 = false;
+    this.trace1 = false;
     this.trace = true;
     this.debug = true;
     this.redisUnxiPath = `${config.store}/redis/redis.otmc.hub.sock`;
@@ -179,30 +180,40 @@ export class RedisPassProxy {
 
 
   onMqttCloudPlainMessage_(topic,message) {
-    if(this.trace) {
+    if(this.trace1) {
       console.log('RedisPassProxy::onMqttCloudPlainMessage_::topic=<',topic,'>');
       console.log('RedisPassProxy::onMqttCloudPlainMessage_::message=<',message,'>');
     }
     const funcTopic = topic.replace('/omtc/cloud/2/edge/plain/','');
-    if(this.trace) {
+    if(this.trace1) {
       console.log('RedisPassProxy::onMqttCloudPlainMessage_::funcTopic=<',funcTopic,'>');
     }
-    if(this.listenerPlain_) {
-      this.listenerPlain_(funcTopic,message);
+    try {
+      const jMsg = JSON.parse(message);
+      if(this.listenerPlain_) {
+        this.listenerPlain_(funcTopic,jMsg);
+      }        
+    } catch (error) {
+      console.error('RedisPassProxy::onMqttCloudPlainMessage_::error=<',error,'>');
     }
   }
 
   onMqttCloudEncyptMessage_(topic,message) {
-    if(this.trace) {
+    if(this.trace1) {
       console.log('RedisPassProxy::onMqttCloudEncyptMessage_::topic=<',topic,'>');
       console.log('RedisPassProxy::onMqttCloudEncyptMessage_::message=<',message,'>');
     }
     const funcTopic = topic.replace('/omtc/cloud/2/edge/encypt/','');
-    if(this.trace) {
+    if(this.trace1) {
       console.log('RedisPassProxy::onMqttCloudEncyptMessage_::funcTopic=<',funcTopic,'>');
     }
-    if(this.listenerEncrypt_) {
-      this.listenerEncrypt_(funcTopic,message);
+    try {
+      const jMsg = JSON.parse(message);
+      if(this.listenerEncrypt_) {
+        this.listenerEncrypt_(funcTopic,jMsg);
+      }        
+    } catch (error) {
+      console.error('RedisPassProxy::onMqttCloudEncyptMessage_::error=<',error,'>');
     }
   }
 

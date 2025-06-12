@@ -40,6 +40,16 @@ const encryptCloudMsgListener = (topic,msg)=>{
     console.log('core.account::encryptCloudMsgListener::topic=<',topic,'>');
     console.log('core.account::encryptCloudMsgListener::msg=<',msg,'>');
   }
+  switch(topic) {
+    case 'team/property/sync':
+      onAccountSyncFromCloud(msg);
+      break;
+    default:
+      if(LOG.debug) {
+        console.log('core.account::encryptCloudMsgListener::unknown topic=<',topic,'>');
+      }
+      break;
+  }
 }
 
 const plainCloudMsgListener = (topic,msg)=>{
@@ -66,3 +76,18 @@ const accountStore = new AccountStore(gConf);
 if(LOG.trace0) {
   console.log('core.account::accountStore=<',accountStore,'>');
 }
+
+const onAccountSyncFromCloud = async (syncMsg) => {
+  if(LOG.trace0) {
+    console.log('core.account::onAccountSyncFromCloud::syncMsg=<',syncMsg,'>');
+  }
+  try {
+    const accountInfo = syncMsg.decryptedMsg.payload;
+    if(LOG.trace0) {
+      console.log('core.account::onAccountSyncFromCloud::accountInfo=<',accountInfo,'>');
+    }
+    await accountStore.putProperty(accountInfo);
+  } catch (error) {
+    console.error('core.account::onAccountSyncFromCloud::error=<',error,'>');
+  }
+};

@@ -118,9 +118,16 @@ export class MqttConnection {
     this.isRequestingJwt = false;
     if(this.mqttClient_) {
       if(this.debug) {
-        console.log('MqttConnection::createMqttConnection_:this.mqttClient_=<',this.mqttClient_,'>');
+        console.log('MqttConnection::createMqttConnection_:this.mqttClient_.connected=<',this.mqttClient_.connected,'>');
+        console.log('MqttConnection::createMqttConnection_:this.mqttClient_.disconnecting=<',this.mqttClient_.disconnecting,'>');
+        console.log('MqttConnection::createMqttConnection_:this.mqttClient_.reconnecting=<',this.mqttClient_.reconnecting,'>');
+      }  
+      if(this.mqttClient_.connected) {
+        return;
       }
-      return;
+      if(!this.mqttClient_.reconnecting) {
+        return;
+      }
     }
     const self = this;
     const options = {
@@ -195,6 +202,9 @@ export class MqttConnection {
       console.log('MqttConnection::createMqttConnection_::err.message=<',err.message,'>');
       console.log('MqttConnection::createMqttConnection_::err.name=<',err.name,'>');
       console.log('MqttConnection::createMqttConnection_::err.code=<',err.code,'>');
+      if(err.code === 134) {
+        self.jwt.validateMqttJwt();
+      }
     });
     mqttClient.on('offline', () => {
       if(self.trace) {

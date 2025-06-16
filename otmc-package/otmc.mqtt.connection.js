@@ -13,11 +13,11 @@ const LEVEL_OPT = {
 */
 export class MqttConnection {
   constructor(ee) {
-    this.trace0 = false;
-    this.trace1 = false;
-    this.trace = false;
+    this.trace0 = true;
+    this.trace1 = true;
+    this.trace = true;
     this.debug = true;
-    this.isRequestingJwt = false;
+    this.isMineConnecting = false;
     this.ee = ee;
     this.jwt = new MqttJWTAgent(ee);
     this.otmc = false;
@@ -115,7 +115,10 @@ export class MqttConnection {
   createMqttConnection_() {
     if(this.trace0) {
     }
-    this.isRequestingJwt = false;
+    if(this.isMineConnecting) {
+      return;
+    }
+    this.isMineConnecting = true;
     if(this.mqttClient_) {
       if(this.debug) {
         console.log('MqttConnection::createMqttConnection_:this.mqttClient_.connected=<',this.mqttClient_.connected,'>');
@@ -125,7 +128,7 @@ export class MqttConnection {
       if(this.mqttClient_.connected) {
         return;
       }
-      if(!this.mqttClient_.reconnecting) {
+      if(this.mqttClient_.reconnecting) {
         return;
       }
     }
@@ -183,6 +186,7 @@ export class MqttConnection {
         },1000);
         self.firstConnected = true;
       }
+      self.isMineConnecting = false;
     });
     mqttClient.on('disconnect', (connack) => {
       if(self.trace) {

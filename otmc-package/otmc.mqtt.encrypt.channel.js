@@ -192,15 +192,20 @@ export class MqttEncryptChannel {
       if(decryptedMsg.keyMiss) {
         //this.ee.emit('xstate.event.mqtt.encrypt.servant.vote.check',{});
         self.cachedEncryptedMsg.push(mqttMsg);
-        const topic = `plain/channel/spaceteam/sharedkey`;
-        if(this.trace0) {
-          console.log('MqttEncryptChannel::ListenEventEmitter_::topic=:<',topic,'>');
+
+        try {
+          const topic = `plain/channel/spaceteam/sharedkey`;
+          if(this.trace0) {
+            console.log('MqttEncryptChannel::ListenEventEmitter_::topic=:<',topic,'>');
+          }
+          const sharedkeyId = mqttMsg.payload.keyId;
+          if(this.trace0) {
+            console.log('MqttEncryptChannel::ListenEventEmitter_::sharedkeyId=:<',sharedkeyId,'>');
+          }
+          this.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:{keyId:sharedkeyId}}});
+        } catch(err) {
+          console.error('MqttEncryptChannel::ListenEventEmitter_::err=:<',err,'>');
         }
-        const sharedkeyId = mqttMsg.payload.keyId;
-        if(this.trace0) {
-          console.log('MqttEncryptChannel::ListenEventEmitter_::sharedkeyId=:<',sharedkeyId,'>');
-        }
-        this.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:{keyId:sharedkeyId}}});
       }
       if(decryptedMsg.decrypt) {
         const relayMsg ={

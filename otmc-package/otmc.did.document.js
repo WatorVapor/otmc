@@ -51,6 +51,7 @@ export class DidDocument {
     this.trace0 = true;
     this.trace1 = true;
     this.trace2 = true;
+    this.trace3 = false;
     this.trace = true;;
     this.debug = true;
     this.eeInternal = eeInternal;
@@ -953,8 +954,10 @@ export class DidDocument {
   }
 
   packMessage(rawMsg) {
-    if(this.trace0) {
+    if(this.trace4) {
       console.log('DidDocument::packMessage::this.otmc=:<',this.otmc,'>');
+    }
+    if(this.trace0) {
       console.log('DidDocument::packMessage::rawMsg=:<',rawMsg,'>');
     }
     this.checkEdcrypt_();

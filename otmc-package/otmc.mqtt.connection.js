@@ -14,9 +14,9 @@ const LEVEL_OPT = {
 */
 export class MqttConnection {
   constructor(ee) {
-    this.trace0 = false;
-    this.trace1 = false;
-    this.trace = false;
+    this.trace0 = true;
+    this.trace1 = true;
+    this.trace = true;
     this.debug = true;
     this.isMineConnecting = false;
     this.ee = ee;
@@ -27,6 +27,7 @@ export class MqttConnection {
     this.base32 = false;
     this.util = false;
     this.ListenEventEmitter_();
+    this.ListenActionEventEmitter_();
     this.msgQueue = [];
   }
   ListenEventEmitter_() {
@@ -43,12 +44,12 @@ export class MqttConnection {
       self.base32 = evt.base32;
       self.util = evt.util;
     });
-    this.ee.on('mqtt.connectMqtt',(evt)=>{
+    this.ee.on('mqtt.jwt.ready',(evt)=>{
       if(self.trace) {
         console.log('MqttConnection::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      self.connectMqtt();
-    });
+      self.mqttJwt = evt;
+    });    
     this.ee.on('otmc.mqtt.publish',(evt)=>{
       if(self.trace) {
         console.log('MqttConnection::ListenEventEmitter_::evt=:<',evt,'>');
@@ -59,13 +60,6 @@ export class MqttConnection {
       }
       self.publish(msgPack.topic,msgPack,evt.option);
     });
-    this.ee.on('mqtt.jwt.ready',(evt)=>{
-      if(self.trace) {
-        console.log('MqttConnection::ListenEventEmitter_::evt=:<',evt,'>');
-      }
-      self.mqttJwt = evt;
-      self.connectMqtt();
-    });
     this.ee.on('otmc.mqtt.encrypt.channel.refresh',(evt)=>{
       if(self.trace) {
         console.log('MqttConnection::ListenEventEmitter_::evt=:<',evt,'>');
@@ -74,18 +68,44 @@ export class MqttConnection {
     });
   }
 
+  ListenActionEventEmitter_() {
+    if(this.trace0) {
+      console.log('MqttConnection::ListenActionEventEmitter_::this.ee=:<',this.ee,'>');
+    }
+    const self = this;
+    //
+    this.ee.on('mqtt.state.action.connect',(evt)=>{
+      if(self.trace) {
+        console.log('MqttConnection::ListenActionEventEmitter_::evt=:<',evt,'>');
+      }
+      setTimeout( () => {
+        self.connectMqtt();
+      },5);
+    });
+
+    this.ee.on('mqtt.state.action.connected',(evt)=>{
+      if(self.trace) {
+        console.log('MqttConnection::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      if(!self.firstConnected) { 
+        setTimeout(() => {
+          self.runSubscriber_();
+        },1);
+        setTimeout(() => {
+          self.rollOutCached_();
+        },1000);
+        self.firstConnected = true;
+      }      
+    });
+  }
+
   async freshMqttJwt() {
+    this.ee.emit('mqtt.state.jwt.refresh');
     this.jwt.validateMqttJwt();
   }
   connectMqtt() {
     if(this.trace0) {
       console.log('MqttConnection::connectMqtt::this.otmc=:<',this.otmc,'>');
-    }
-    if(!this.mqttJwt) {
-      this.jwt.validateMqttJwt();
-      return;
-    }
-    if(this.debug) {
       console.log('MqttConnection::connectMqtt::this.mqttJwt=:<',this.mqttJwt,'>');
     }
     this.createMqttConnection_();
@@ -115,26 +135,7 @@ export class MqttConnection {
   
   
   createMqttConnection_() {
-    if(this.trace0) {
-    }
-    if(this.isMineConnecting) {
-      return;
-    }
-    this.isMineConnecting = true;
-    if(this.mqttClient_) {
-      if(this.debug) {
-        console.log('MqttConnection::createMqttConnection_:this.mqttClient_.connected=<',this.mqttClient_.connected,'>');
-        console.log('MqttConnection::createMqttConnection_:this.mqttClient_.disconnecting=<',this.mqttClient_.disconnecting,'>');
-        console.log('MqttConnection::createMqttConnection_:this.mqttClient_.reconnecting=<',this.mqttClient_.reconnecting,'>');
-      }  
-      if(this.mqttClient_.connected) {
-        return;
-      }
-      if(this.mqttClient_.reconnecting) {
-        return;
-      }
-    }
-    const self = this;
+    this.ee.emit('mqtt.state.event.connecting');
     const options = {
       // Authentication
       //clientId: `${this.util.randomAddress()}@${this.mqttJwt.payload.clientid}`,
@@ -156,102 +157,104 @@ export class MqttConnection {
       srvUrl = this.mqttJwt.payload.mqtt.portal.tls;
     } else {
       srvUrl = this.mqttJwt.payload.mqtt.portal.wss;
-      options.transformWsUrl =(url, options, client) => {
-        if(self.trace) {
-          console.log('MqttConnection::transformWsUrl::url=<',url,'>');
-          console.log('MqttConnection::transformWsUrl::options=<',options,'>');
-          console.log('MqttConnection::transformWsUrl::client=<',client,'>');
-        }
-        client.options.password = self.mqttJwt.jwt;
-        return url;
+    }
+    const self = this;
+    options.transformWsUrl =(url, options, client) => {
+      if(self.trace) {
+        console.log('MqttConnection::transformWsUrl::url=<',url,'>');
+        console.log('MqttConnection::transformWsUrl::options=<',options,'>');
+        console.log('MqttConnection::transformWsUrl::client=<',client,'>');
       }
+      client.options.password = self.mqttJwt.jwt;
+      return url;
     }
     if(this.trace) {
       console.log('MqttConnection::createMqttConnection_:srvUrl=<',srvUrl,'>');
     }
     const mqttClient = mqtt.connect(srvUrl,options);
+    this.processMqttConnection_(mqttClient);
+    this.mqttClient_ = mqttClient;
+  }
+  processMqttConnection_(mqttClient) {
+    const self = this;
     mqttClient.on('connect', (connack) => {
       if(self.trace) {
-        console.log('MqttConnection::createMqttConnection_::connect connack=<',connack,'>');
+        console.log('MqttConnection::processMqttConnection_::connect connack=<',connack,'>');
       }
       if(self.trace) {
-        console.log('MqttConnection::createMqttConnection_::mqttClient.connected=<',mqttClient.connected,'>');
+        console.log('MqttConnection::processMqttConnection_::mqttClient.connected=<',mqttClient.connected,'>');
       }
       self.otmc.emit('mqtt:connected');
       self.ee.emit('OtmcStateMachine.actor.send',{type:'mqtt:connected'});
-      if(!self.firstConnected) { 
-        setTimeout(() => {
-          self.runSubscriber_();
-        },1);
-        setTimeout(() => {
-          self.rollOutCached_();
-        },1000);
-        self.firstConnected = true;
-      }
-      self.isMineConnecting = false;
+      self.ee.emit('mqtt.state.event.connected');
     });
     mqttClient.on('disconnect', (connack) => {
       if(self.trace) {
-        console.log('MqttConnection::createMqttConnection_::disconnect connack=<',connack,'>');
+        console.log('MqttConnection::processMqttConnection_::disconnect connack=<',connack,'>');
       }
       if(self.trace) {
-        console.log('MqttConnection::createMqttConnection_::mqttClient.connected=<',mqttClient.connected,'>');
+        console.log('MqttConnection::processMqttConnection_::mqttClient.connected=<',mqttClient.connected,'>');
       }
+      self.ee.emit('mqtt.state.event.disconnect');
     });
     mqttClient.on('reconnect', () => {
       if(self.trace) {
-        console.log('MqttConnection::createMqttConnection_ reconnect');
+        console.log('MqttConnection::processMqttConnection_ reconnect');
       }
+      self.ee.emit('mqtt.state.event.reconnect');
       this.mqttClient_.options.password = self.mqttJwt.jwt;
     });
     mqttClient.on('error', (err) => {
-      console.log('MqttConnection::createMqttConnection_::err.message=<',err.message,'>');
-      console.log('MqttConnection::createMqttConnection_::err.name=<',err.name,'>');
-      console.log('MqttConnection::createMqttConnection_::err.code=<',err.code,'>');
+      console.log('MqttConnection::processMqttConnection_::err.message=<',err.message,'>');
+      console.log('MqttConnection::processMqttConnection_::err.name=<',err.name,'>');
+      console.log('MqttConnection::processMqttConnection_::err.code=<',err.code,'>');
+      self.ee.emit('mqtt.state.event.error');
       if(err.code === 134) {
         self.jwt.validateMqttJwt();
       }
     });
     mqttClient.on('offline', () => {
       if(self.trace) {
-        console.log('MqttConnection::createMqttConnection_::offline new Date() =<',new Date(),'>');
+        console.log('MqttConnection::processMqttConnection_::offline new Date() =<',new Date(),'>');
       }
+      self.ee.emit('mqtt.state.event.offline');
     });
     mqttClient.on('close', () => {
       if(self.trace) {
-        console.log('MqttMessager::createMqttConnection_::close new Date()=<',new Date(),'>');
+        console.log('MqttMessager::processMqttConnection_::close new Date()=<',new Date(),'>');
       }
+      self.ee.emit('mqtt.state.event.close');
       self.jwt.validateMqttJwt();
     });
     mqttClient.on('end', () => {
       if(self.trace) {
-        console.log(':MqttConnection:createMqttConnection_::end new Date()=<',new Date(),'>');
+        console.log(':MqttConnection:processMqttConnection_::end new Date()=<',new Date(),'>');
       }
+      self.ee.emit('mqtt.state.event.end');
     });
     mqttClient.on('message', (topic, message, packet) => {
       if(self.trace0) {
-        console.log('MqttConnection::createMqttConnection_::message topic=<',topic,'>');
-        console.log('MqttConnection::createMqttConnection_::message message=<',message,'>');
+        console.log('MqttConnection::processMqttConnection_::message topic=<',topic,'>');
+        console.log('MqttConnection::processMqttConnection_::message message=<',message,'>');
       }
       try {
         const msgUtf8 = message.toString('utf-8');
         const msgJson = JSON.parse(msgUtf8);
         self.onMqttMessage_(topic, msgJson);
       } catch( err ){
-        console.error('MqttConnection::createMqttConnection_::message err=<',err,'>');
+        console.error('MqttConnection::processMqttConnection_::message err=<',err,'>');
       }
     });
     mqttClient.on('packetsend', (packet) => {
       if(self.trace1) {
-        console.log('MqttConnection::createMqttConnection_::packetsend packet=<',packet,'>');
+        console.log('MqttConnection::processMqttConnection_::packetsend packet=<',packet,'>');
       }
     });
     mqttClient.on('packetreceive', (packet) => {
       if(self.trace0) {
-        console.log('MqttConnection::createMqttConnection_::packetreceive packet=<',packet,'>');
+        console.log('MqttConnection::processMqttConnection_::packetreceive packet=<',packet,'>');
       }
     });
-    this.mqttClient_ = mqttClient;
   }
 
   runSubscriber_() {

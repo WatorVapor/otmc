@@ -1,6 +1,7 @@
 import { default as mqtt } from 'mqtt';
 //console.log('::::mqtt=:<',mqtt,'>');
 import { MqttJWTAgent } from './otmc.mqtt.jwt.js';
+import { MqttConnectionState } from './otmc.mqtt.connection.state.js';
 
 const LEVEL_OPT = {
   keyEncoding: 'utf8',
@@ -20,6 +21,7 @@ export class MqttConnection {
     this.isMineConnecting = false;
     this.ee = ee;
     this.jwt = new MqttJWTAgent(ee);
+    this.state = new MqttConnectionState(ee);
     this.otmc = false;
     this.auth = false;
     this.base32 = false;

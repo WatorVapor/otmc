@@ -59,13 +59,7 @@ export class MqttEncryptChannel {
       if(self.trace0) {
         console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      const topic = 'teamspace/secret/encrypt/ecdh/pubKey/jwk';
-      const payload = {
-        did:self.otmc.did.didDoc_.id,
-        nodeId:self.auth.address(),
-        pubKeyJwk:self.ecdh.myPublicKeyJwk
-      }
-      self.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:payload}});
+      self.broadCastPubKey_();
     });
 
     this.ee.on('xstate.action.mqtt.encrypt.servant.vote.refresh',async (evt)=>{
@@ -152,7 +146,7 @@ export class MqttEncryptChannel {
       }
       await self.ecdh.updateAnnouncementRemoteServant(evt.payload.voteEvidence);
     });
-    this.ee.on('teamspace/secret/encrypt/ecdh/sync/sharedkey',async (evt)=>{
+    this.ee.on('teamspace/secret/encrypt/ecdh/sync/sharedKey',async (evt)=>{
       if(self.trace0) {
         console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
       }
@@ -164,6 +158,12 @@ export class MqttEncryptChannel {
       for(const msg of unicastMsg) {
         self.ee.emit('otmc.mqtt.publish',{msg:msg});
       }
+    });
+    this.ee.on('teamspace/secret/encrypt/ecdh/sync/pubKey',async (evt)=>{
+      if(self.trace0) {
+        console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      this.broadCastPubKey_();
     });
 
     this.ee.on('otmc.mqtt.encrypt.channel.encrypt',async (evt)=>{
@@ -207,7 +207,7 @@ export class MqttEncryptChannel {
         self.cachedEncryptedMsg.push(mqttMsg);
 
         try {
-          const topic = `teamspace/secret/encrypt/ecdh/sync/sharedkey`;
+          const topic = `teamspace/secret/encrypt/ecdh/sync/sharedKey`;
           if(this.trace0) {
             console.log('MqttEncryptChannel::ListenEventEmitter_::topic=:<',topic,'>');
           }
@@ -306,5 +306,14 @@ export class MqttEncryptChannel {
         this.cachedEncryptedMsg.splice(this.cachedEncryptedMsg.indexOf(mqttMsg),1);
       }
     }
+  }
+  broadCastPubKey_() {
+      const topic = 'teamspace/secret/encrypt/ecdh/pubKey/jwk';
+      const payload = {
+        did:this.otmc.did.didDoc_.id,
+        nodeId:this.auth.address(),
+        pubKeyJwk:this.ecdh.myPublicKeyJwk
+      }
+      this.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:payload}});
   }
 }

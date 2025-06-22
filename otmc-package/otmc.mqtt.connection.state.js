@@ -35,6 +35,14 @@ export class MqttConnectionState {
       self.actor.send({type:'mqtt.jwt.ready'});
     });
 
+    this.ee.on('mqtt.connect.state.event', (evt, payload) => {
+      if(self.trace) {
+        console.log('MqttConnectionState::ListenEventEmitter_::evt=:<',evt,'>');
+        console.log('MqttConnectionState::ListenEventEmitter_::payload=:<',payload,'>');
+      }
+      self.actor.send({type:evt.evt});
+    });
+    /*
     this.ee.on('mqtt.state.event.connecting',(evt)=>{
       if(self.trace0) {
         console.log('MqttConnectionState::ListenEventEmitter_::evt=:<',evt,'>');
@@ -49,6 +57,20 @@ export class MqttConnectionState {
       self.actor.send({type:'mqtt.state.event.connected'});
     });
 
+    this.ee.on('mqtt.state.event.offline',(evt)=>{
+      if(self.trace0) {
+        console.log('MqttConnectionState::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.actor.send({type:'mqtt.state.event.offline'});
+    });
+        
+    this.ee.on('mqtt.state.event.jwt.refresh',(evt)=>{
+      if(self.trace0) {
+        console.log('MqttConnectionState::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.actor.send({type:'mqtt.state.event.jwt.refresh'});
+    });
+*/
   }  
   createStateMachine_() {
     const stmConfig = {
@@ -109,18 +131,35 @@ const mqttConnectionStateTable = {
   jwt_ready: {
     entry:['jwt_ready'],
     on: {
-      'mqtt.state.event.connecting': 'connecting',
+      'evt.connecting': 'connecting',
     }
   },
   connecting: {
     on: {
-      'mqtt.state.event.connected': 'connected',
+      'evt.connected': 'connected',
     }
   },
   connected: {
     entry:['connected'],
     on: {
-      'mqtt.connectMqtt': 'connecting',
+      'evt.offline': 'offline',
+    }
+  },
+  offline: {
+    on: {
+      'evt.reconnect': 'reconnect',
+    }
+  },
+  reconnect: {
+    on: {
+      'evt.jwt.refresh': 'jwt_refreshing',
+      'evt.connected': 'connected',
+    }
+  },
+  jwt_refreshing: {
+    entry:['jwt_refreshing'],
+    on: {
+      'evt.reconnect': 'reconnect',
     }
   },
 }
@@ -154,5 +193,15 @@ const mqttConnectionActionTable = {
       console.log('MqttConnectionState::mqttConnectionActionTable::connected:ee=:<',ee,'>');
     }
     ee.emit('mqtt.state.action.connected');
+  },
+  jwt_refreshing: (context) => {
+    if(LOG.trace) {
+      console.log('MqttConnectionState::mqttConnectionActionTable::jwt_refreshing:context=:<',context,'>');
+    }
+    const ee = context.context.ee;
+    if(LOG.trace) {
+      console.log('MqttConnectionState::mqttConnectionActionTable::jwt_refreshing:ee=:<',ee,'>');
+    }
+    ee.emit('mqtt.state.action.jwt.refreshing');
   },
 };

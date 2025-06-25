@@ -8,8 +8,8 @@ import { createMachine, createActor, assign  }  from 'xstate';
 */
 export class MqttConnectionState {
   constructor(ee) {
-    this.trace0 = true;
-    this.trace1 = true;
+    this.trace0 = false;
+    this.trace1 = false;
     this.trace = true;
     this.debug = true;
     this.ee = ee;
@@ -26,13 +26,17 @@ export class MqttConnectionState {
       if(self.trace) {
         console.log('MqttConnectionState::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      self.actor.send({type:'mqtt.connectMqtt'});
+      setTimeout(()=>{
+        self.actor.send({type:'mqtt.connectMqtt'});
+      },3);
     });
     this.ee.on('mqtt.jwt.ready',(evt)=>{
       if(self.trace0) {
         console.log('MqttConnectionState::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      self.actor.send({type:'mqtt.jwt.ready'});
+      setTimeout(()=>{
+        self.actor.send({type:'mqtt.jwt.ready'});
+      },3);
     });
 
     this.ee.on('mqtt.connect.state.event', (evt, payload) => {
@@ -42,35 +46,6 @@ export class MqttConnectionState {
       }
       self.actor.send({type:evt.evt});
     });
-    /*
-    this.ee.on('mqtt.state.event.connecting',(evt)=>{
-      if(self.trace0) {
-        console.log('MqttConnectionState::ListenEventEmitter_::evt=:<',evt,'>');
-      }
-      self.actor.send({type:'mqtt.state.event.connecting'});
-    });
-
-    this.ee.on('mqtt.state.event.connected',(evt)=>{
-      if(self.trace0) {
-        console.log('MqttConnectionState::ListenEventEmitter_::evt=:<',evt,'>');
-      }
-      self.actor.send({type:'mqtt.state.event.connected'});
-    });
-
-    this.ee.on('mqtt.state.event.offline',(evt)=>{
-      if(self.trace0) {
-        console.log('MqttConnectionState::ListenEventEmitter_::evt=:<',evt,'>');
-      }
-      self.actor.send({type:'mqtt.state.event.offline'});
-    });
-        
-    this.ee.on('mqtt.state.event.jwt.refresh',(evt)=>{
-      if(self.trace0) {
-        console.log('MqttConnectionState::ListenEventEmitter_::evt=:<',evt,'>');
-      }
-      self.actor.send({type:'mqtt.state.event.jwt.refresh'});
-    });
-*/
   }  
   createStateMachine_() {
     const stmConfig = {
@@ -142,10 +117,21 @@ const mqttConnectionStateTable = {
   connected: {
     entry:['connected'],
     on: {
+      'evt.disconnect': 'disconnect',
+      'evt.close': 'close',
+   }
+  },
+  disconnect: {
+    on: {
       'evt.offline': 'offline',
     }
   },
   offline: {
+    on: {
+      'evt.close': 'close',
+    }
+  },
+  close: {
     on: {
       'evt.reconnect': 'reconnect',
     }
@@ -153,13 +139,16 @@ const mqttConnectionStateTable = {
   reconnect: {
     on: {
       'evt.jwt.refresh': 'jwt_refreshing',
-      'evt.connected': 'connected',
     }
   },
   jwt_refreshing: {
     entry:['jwt_refreshing'],
     on: {
-      'evt.reconnect': 'reconnect',
+      'evt.close': 'close',
+      'mqtt.jwt.ready': {
+        target:'jwt_ready',
+        actions:['jwt_ready_at_close'],
+      }
     }
   },
 }
@@ -204,4 +193,14 @@ const mqttConnectionActionTable = {
     }
     ee.emit('mqtt.state.action.jwt.refreshing');
   },
+  jwt_ready_at_close: (context) => {
+    if(LOG.trace) {
+      console.log('MqttConnectionState::mqttConnectionActionTable::jwt_ready_at_close:context=:<',context,'>');
+    }
+    const ee = context.context.ee;
+    if(LOG.trace) {
+      console.log('MqttConnectionState::mqttConnectionActionTable::jwt_ready_at_close:ee=:<',ee,'>');
+    }
+    ee.emit('mqtt.state.action.jwt.ready.at.close');
+  }
 };

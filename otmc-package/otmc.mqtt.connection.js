@@ -19,7 +19,6 @@ export class MqttConnection {
     this.trace2 = false;
     this.trace = true;
     this.debug = true;
-    this.isMineConnecting = false;
     this.ee = ee;
     this.jwt = new MqttJWTAgent(ee);
     this.state = new MqttConnectionState(ee);
@@ -177,9 +176,13 @@ export class MqttConnection {
     if(this.trace) {
       console.log('MqttConnection::createMqttConnection_:srvUrl=<',srvUrl,'>');
     }
-    const mqttClient = mqtt.connect(srvUrl,options);
-    this.processMqttConnection_(mqttClient);
-    this.mqttClient_ = mqttClient;
+    try {
+      const mqttClient = mqtt.connect(srvUrl,options);
+      this.processMqttConnection_(mqttClient);
+      this.mqttClient_ = mqttClient;
+    } catch (error) {
+      console.error('MqttConnection::createMqttConnection_::error=<',error,'>');
+    }
   }
   processMqttConnection_(mqttClient) {
     const self = this;
@@ -208,14 +211,17 @@ export class MqttConnection {
         console.log('MqttConnection::processMqttConnection_ reconnect');
         console.log('MqttConnection::processMqttConnection_ reconnect self.mqttJwt=<',self.mqttJwt,'>');
       }
-      this.mqttClient_.options.password = self.mqttJwt.jwt;
+      self.mqttClient_.options.password = self.mqttJwt.jwt;
       self.notifyStateEvt_('reconnect');
     });
     mqttClient.on('error', (err) => {
       console.log('MqttConnection::processMqttConnection_::err.message=<',err.message,'>');
       console.log('MqttConnection::processMqttConnection_::err.name=<',err.name,'>');
       console.log('MqttConnection::processMqttConnection_::err.code=<',err.code,'>');
+      console.log('MqttConnection::processMqttConnection_::self.mqttJwt=<',self.mqttJwt,'>');
       if(err.code === 134) {
+        mqttClient.removeAllListeners();
+        self.mqttClient_ = null;
         self.notifyStateEvt_('jwt.refresh');
       }
     });

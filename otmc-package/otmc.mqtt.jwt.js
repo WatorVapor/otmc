@@ -97,7 +97,7 @@ export class MqttJWTAgent {
           username:self.auth.address(),
           clientid:`${self.auth.randomAddress()}@${self.auth.address()}`,
           did:self.didDoc,
-          expiresIn:'1m',
+          expiresIn:'1d',
         },
       }
       const signedJwtReq = this.auth.sign(jwtReq);

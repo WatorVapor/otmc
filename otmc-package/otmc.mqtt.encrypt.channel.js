@@ -192,6 +192,18 @@ export class MqttEncryptChannel {
       }
       self.encryptMsgPayload4TeamSpace_(evt);
     });
+    this.ee.on('otmc.mqtt.encrypt.channel.encrypt.broadcast',async (evt)=>{
+      if(self.trace0) {
+        console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.encryptMsgPayload4TeamSpace_(evt);
+    });
+    this.ee.on('otmc.mqtt.encrypt.channel.encrypt.unicast',async (evt)=>{
+      if(self.trace0) {
+        console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.encryptMsgPayload4TeamSpaceUnicast_(evt);
+    });    
     this.ee.on('otmc.mqtt.encrypt.sharedkey.spaceteam.refresh',async (evt)=>{
       if(self.trace0) {
         console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
@@ -273,6 +285,32 @@ export class MqttEncryptChannel {
     const topic = `encrypt/channel/${mqttMsg.topic}`;
     if(this.trace0) {
       console.log('MqttEncryptChannel::encryptMsgPayload4TeamSpace_::topic=:<',topic,'>');
+    }
+    this.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:encyptMsg}});
+    return encyptMsg;
+  }
+
+  async encryptMsgPayload4TeamSpaceUnicast_(mqttMsg) {
+    if(this.trace0) {
+      console.log('MqttEncryptChannel::encryptMsgPayload4TeamSpaceUnicast_::mqttMsg=:<',mqttMsg,'>');
+    }
+    const did = this.otmc.did.didDoc_.id;
+    if(this.trace0) {
+      console.log('MqttEncryptChannel::encryptMsgPayload4TeamSpaceUnicast_::did=:<',did,'>');
+    }
+    // wrong redo it.
+    const encyptMsg = await this.ecdh.encryptData4TeamSpace(mqttMsg,did);
+    if(this.trace0) {
+      console.log('MqttEncryptChannel::encryptMsgPayload4TeamSpaceUnicast_::encyptMsg=:<',encyptMsg,'>');
+    }
+    if(encyptMsg === false) {
+      this.ee.emit('xstate.event.mqtt.encrypt.servant.vote.check',{});
+      this.cachedPlainMsg.push(mqttMsg);
+      return;
+    }
+    const topic = `encrypt/channel/${mqttMsg.topic}`;
+    if(this.trace0) {
+      console.log('MqttEncryptChannel::encryptMsgPayload4TeamSpaceUnicast_::topic=:<',topic,'>');
     }
     this.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:encyptMsg}});
     return encyptMsg;

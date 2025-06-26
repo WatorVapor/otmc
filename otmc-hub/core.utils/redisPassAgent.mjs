@@ -1,9 +1,11 @@
 import { createClient } from 'redis';
 export class RedisPassAgent {
-  constructor(config,readyCB) {
+  constructor(config,otmcTeam,otmcMqtt,readyCB) {
     this.trace0 = false;
     this.trace = true;
     this.debug = true;
+    this.otmcTeam = otmcTeam;
+    this.otmcMqtt = otmcMqtt;
     this.redisUnxiPath = `${config.store}/redis/redis.otmc.hub.sock`;
     this.readyCB_ = readyCB;
     if(this.trace) {
@@ -88,7 +90,7 @@ export class RedisPassAgent {
     this.subscriber = this.client.duplicate();
     const self = this;
     this.setupCommonHandler_(this.subscriber,'subscriber',() => {
-      if(self.trace) {
+      if(self.trace0) {
         console.log('RedisPassAgent::createRedisSubscriber_::evtReadySub=<',evtReadySub,'>');
       }
       if(self.readyCB_) {
@@ -119,23 +121,23 @@ export class RedisPassAgent {
     const listener4 = (message, channel) => {
       self.onEdgeEncyptUnicast_(channel,message);
     };
-    this.subscriber.pSubscribe('/omtc/edge/2/cloud/unicast/v/*', listener4);
+    this.subscriber.pSubscribe('/omtc/edge/2/cloud/unicast/encypt/*', listener4);
   }
 
   setupCommonHandler_(client,tag,cb) {
     const self = this;
     client.on('error', err => {
-      if(self.trace) {
+      if(self.trace0) {
         console.log(`RedisPassAgent::setupCommonHandler_::${tag}::err=<`,err,`>`);
       }
     });
     client.on('connect', evtConnect => {
-      if(self.trace) {
+      if(self.trace0) {
         console.log(`RedisPassAgent::setupCommonHandler_::${tag}::evtConnect=<`,evtConnect,`>`);
       }
     });
     client.on('ready', evtReady => {
-      if(self.trace) {
+      if(self.trace0) {
         console.log(`RedisPassAgent::setupCommonHandler_::${tag}::evtReady=<`,evtReady,`>`);
       }
       if(cb) {
@@ -143,12 +145,12 @@ export class RedisPassAgent {
       }
     });
     client.on('end', evtEnd => {
-      if(self.trace) {
+      if(self.trace0) {
         console.log(`RedisPassAgent::setupCommonHandler_::${tag}::evtEnd=<`,evtEnd,`>`);
       }
     });
     client.on('reconnecting', evtReconnecting => {
-      if(self.trace) {
+      if(self.trace0) {
         console.log(`RedisPassAgent::setupCommonHandler_::${tag}::evtReconnecting=<`,evtReconnecting,'>');  
       }
     });
@@ -156,27 +158,59 @@ export class RedisPassAgent {
 
 
   onEdgePlainBroadcast_(topic,message) {
-    if(this.trace) {
+    if(this.trace0) {
       console.log('RedisPassAgent::onEdgePlainBroadcast_::topic=<',topic,'>');
       console.log('RedisPassAgent::onEdgePlainBroadcast_::message=<',message,'>');
     }
   }
   onEdgePlainUnicast_(topic,message) {
-    if(this.trace) {
+    if(this.trace0) {
       console.log('RedisPassAgent::onEdgePlainUnicast_::topic=<',topic,'>');
       console.log('RedisPassAgent::onEdgePlainUnicast_::message=<',message,'>');
     }
   }
   onEdgeEncyptBroadcast_(topic,message) {
-    if(this.trace) {
+    if(this.trace0) {
       console.log('RedisPassAgent::onEdgeEncyptBroadcast_::topic=<',topic,'>');
       console.log('RedisPassAgent::onEdgeEncyptBroadcast_::message=<',message,'>');
     }
+    const otmcTopic = topic.replace('/omtc/edge/2/cloud/broadcast/encypt/','');
+    if(this.trace0) {
+      console.log('RedisPassAgent::onEdgeEncyptBroadcast_::otmcTopic=<',otmcTopic,'>');
+    }
+    const otmcMsg = JSON.parse(message);
+    if(this.trace0) {
+      console.log('RedisPassAgent::onEdgeEncyptBroadcast_::otmcMsg=<',otmcMsg,'>');
+    }
+    const syncMsg = { 
+      topic:otmcTopic,
+      payload:otmcMsg,
+    };
+    if(this.trace0) {
+      console.log('RedisPassAgent::onEdgeEncyptBroadcast_::syncMsg=<',syncMsg,'>');
+    }
+    this.otmcMqtt.broadcastSecretMsg(syncMsg);
   }
   onEdgeEncyptUnicast_(topic,message) {
-    if(this.trace) {
+    if(this.trace0) {
       console.log('RedisPassAgent::onEdgeEncyptUnicast_::topic=<',topic,'>');
       console.log('RedisPassAgent::onEdgeEncyptUnicast_::message=<',message,'>');
     }
+    const otmcTopic = topic.replace('/omtc/edge/2/cloud/unicast/encypt/','');
+    if(this.trace0) {
+      console.log('RedisPassAgent::onEdgeEncyptUnicast_::otmcTopic=<',otmcTopic,'>');
+    }
+    const otmcMsg = JSON.parse(message);
+    if(this.trace0) {
+      console.log('RedisPassAgent::onEdgeEncyptUnicast_::otmcMsg=<',otmcMsg,'>');
+    }
+    const syncMsg = { 
+      topic:otmcTopic,
+      payload:otmcMsg,
+    };
+    if(this.trace0) {
+      console.log('RedisPassAgent::onEdgeEncyptUnicast_::syncMsg=<',syncMsg,'>');
+    }
+    this.otmcMqtt.unicastSecretMsg(syncMsg);
   }
 }

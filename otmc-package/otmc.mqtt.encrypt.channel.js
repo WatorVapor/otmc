@@ -46,13 +46,33 @@ export class MqttEncryptChannel {
       if(self.trace0) {
         console.log('MqttEncryptChannel::ListenEventEmitter_ ecdh/secret/space::evt=:<',evt,'>');
       }
-      await self.ecdh.storeSharedKeySecretOfSpace(evt.payload,self.otmc.did.didDoc_.id);
-      const evt2 = {};
-      if(self.trace0) {
-        console.log('MqttEncryptChannel::ListenEventEmitter_ ecdh/secret/space::evt2=:<',evt2,'>');
+      const result = await self.ecdh.storeSharedKeySecretOfSpace(evt.payload,self.otmc.did.didDoc_.id);
+      if(result.nodeKeyMiss) {
+        try {
+          const topic = `teamspace/secret/encrypt/ecdh/sync/pubKey`;
+          if(this.trace0) {
+            console.log('MqttEncryptChannel::ListenEventEmitter_::topic=:<',topic,'>');
+          }
+          const nodeId = result.nodeId;
+          if(this.trace0) {
+            console.log('MqttEncryptChannel::ListenEventEmitter_::nodeId=:<',nodeId,'>');
+          }
+          this.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:{nodeId:nodeId}}});
+        } catch(err) {
+          console.error('MqttEncryptChannel::ListenEventEmitter_::err=:<',err,'>');
+        }
+      } else if (result.nodeMissMatch) {
+        if(self.trace0) {
+          console.log('MqttEncryptChannel::ListenEventEmitter_ ecdh/secret/space::result=:<',result,'>');
+        }
+      } else {
+        const evt2 = {};
+        if(self.trace0) {
+          console.log('MqttEncryptChannel::ListenEventEmitter_ ecdh/secret/space::evt2=:<',evt2,'>');
+        }
+        self.tryDecryptCacheMessage_();
+        self.ee.emit('otmc.mqtt.encrypt.channel.refresh',evt2);      
       }
-      self.tryDecryptCacheMessage_();
-      self.ee.emit('otmc.mqtt.encrypt.channel.refresh',evt2);      
     });
 
     this.ee.on('xstate.action.mqtt.publish.ecdh.pubkey',async (evt)=>{

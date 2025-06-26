@@ -139,6 +139,7 @@ const mqttConnectionStateTable = {
   reconnect: {
     on: {
       'evt.jwt.refresh': 'jwt_refreshing',
+      'evt.connected': 'connected',
     }
   },
   jwt_refreshing: {

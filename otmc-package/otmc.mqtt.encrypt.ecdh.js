@@ -339,7 +339,8 @@ export class MqttEncryptECDH {
       secretId:secretId,
       secretBase64:teamSharedKeyBase64,
       issuedDate:(new Date()).toLocaleString(),
-      expireDate:null
+      expireDate:null,
+      owner:this.auth.address(),
     }
     if(this.trace0) {
       console.log('MqttEncryptECDH::prepareSharedKeysOfTeamSpace::secret=<',secret,'>');
@@ -394,6 +395,7 @@ export class MqttEncryptECDH {
     if(isNode) {
       await this.wrapper.exportData();
     }
+    await this.loadMemeberPubKey();
   }
   async encryptData4Node(dataObject,did,nodeId) {
     if(this.trace0) {
@@ -646,7 +648,10 @@ export class MqttEncryptECDH {
         console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::secretMsg.distNodeId=<',secretMsg.distNodeId,'>');
         console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::this.auth.address()=<',this.auth.address(),'>');
       }
-      return;
+      return {nodeMissMatch:true};
+    }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::this.memberPublicKeys=<',this.memberPublicKeys,'>');
     }
     const memberPubKeys = this.memberPublicKeys[did];
     if(this.trace0) {
@@ -657,8 +662,8 @@ export class MqttEncryptECDH {
       console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace::nodePublicKey=<',nodePublicKey,'>');
     }
     if(!nodePublicKey) {
-      // todo request shared secret
-      return;
+      // request publicKey.
+      return {nodeKeyMiss:true,nodeId:secretMsg.srcNodeId};
     }
     const sharedSecret = await crypto.subtle.deriveBits(
       {
@@ -696,6 +701,7 @@ export class MqttEncryptECDH {
         await this.storeSharedKeySecretOfSpace_(sharedKeyOfTeamSpace);
       }
     }
+    return true;
   }
   async storeRemotePubKey(keyMsg) {
     if(this.trace0) {
@@ -1136,7 +1142,8 @@ export class MqttEncryptECDH {
       secretId:secretId,
       secretBase64:sharedKeyOfTeamSpace.secretBase64,
       issuedDate:sharedKeyOfTeamSpace.issuedDate,
-      expireDate:sharedKeyOfTeamSpace.expireDate
+      expireDate:sharedKeyOfTeamSpace.expireDate,
+      owner:sharedKeyOfTeamSpace.owner
     }
     if(this.trace0) {
       console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace_::secret=<',secret,'>');

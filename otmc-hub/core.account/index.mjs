@@ -28,6 +28,9 @@ const onRedisReady = ()=>{
     console.log('core.account::onRedisReady::redisProxy.ready=<',redisProxy.ready,'>');
   }
   createSubscriber();
+  setTimeout(()=>{
+    syncLocal2Clound();
+  },1000);
 }
 
 const redisProxy = new RedisPassProxy(gConf,onRedisReady,);
@@ -91,3 +94,12 @@ const onAccountSyncFromCloud = async (syncMsg) => {
     console.error('core.account::onAccountSyncFromCloud::error=<',error,'>');
   }
 };
+
+const syncLocal2Clound = async () => {
+  const did = await redisProxy.get('otmc.current.space.id');
+  const accountInfo = await accountStore.getProperty(did);
+  if(LOG.trace0) {
+    console.log('core.account::syncLocal2Clound::accountInfo=<',accountInfo,'>');
+  }
+  redisProxy.pubBroadcastEncypt('team/property/sync',accountInfo);
+}

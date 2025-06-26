@@ -9,7 +9,19 @@ export class RedisPassAgent {
     if(this.trace) {
       console.log('RedisPassAgent::constructor::this.redisUnxiPath=<',this.redisUnxiPath,'>');
     }
+    this.clientOpt = {
+      socket:{
+        path:this.redisUnxiPath
+      }
+    };
+    if(this.trace) {
+      console.log('RedisPassAgent::constructor::this.clientOpt=<',this.clientOpt,'>');
+    }
+    this.client = createClient(this.clientOpt);
+
     this.createRedisClient_();
+    this.createRedisPublish_();
+    this.createRedisSubscriber_();
   }
   async relayMqttPlainMsg(topic,payload) {
     if(this.trace0) {
@@ -23,7 +35,7 @@ export class RedisPassAgent {
     if(this.trace0) {
       console.log('RedisPassAgent::relayMqttPlainMsg::this.client=<',this.client,'>');
     }
-    await this.client.publish(topicOut,JSON.stringify(payload),(err)=>{
+    await this.publisher.publish(topicOut,JSON.stringify(payload),(err)=>{
       if(err) {
         console.error('RedisPassAgent::relayMqttPlainMsg::err=<',err,'>');
       }
@@ -41,90 +53,54 @@ export class RedisPassAgent {
     if(this.trace0) {
       console.log('RedisPassAgent::relayMqttEncyptMsg::this.client=<',this.client,'>');
     }
-    await this.client.publish(topicOut,JSON.stringify(payload),(err)=>{
+    await this.publisher.publish(topicOut,JSON.stringify(payload),(err)=>{
       if(err) {
         console.error('RedisPassAgent::relayMqttEncyptMsg::err=<',err,'>');
       }
     });
-  }  
-
+  }
+  set(key,value) {
+    this.client.set(key,value);
+  }
+  async get(key) {
+    return await this.client.get(key);
+  }
   
   
-  createRedisClient_() {
-    const clientOpt = {
-      socket:{
-        path:this.redisUnxiPath
-      }
-    };
-    if(this.trace) {
-      console.log('RedisPassAgent::createRedisClient_::clientOpt=<',clientOpt,'>');
-    }
-    this.client = createClient(clientOpt);
-    const self = this;
-    this.client.on('error', err => {
-      if(self.trace) {
-        console.log('RedisPassAgent::createRedisClient_::err=<',err,'>');
-      }
-    });
-    this.client.on('connect', evtConnect => {
-      if(self.trace) {
-        console.log('RedisPassAgent::createRedisClient_::evtConnect=<',evtConnect,'>');
-      }
-    });
-    this.client.on('ready', evtReady => {
-      if(self.trace) {
-        console.log('RedisPassAgent::createRedisClient_::evtReady=<',evtReady,'>');
-      }
-      self.createRedisSubscriber_();
-    });
-    this.client.on('end', evtEnd => {
-      if(self.trace) {
-        console.log('RedisPassAgent::createRedisClient_::evtEnd=<',evtEnd,'>');
-      }
-    });
-    this.client.on('reconnecting', evtReconnecting => {
-      if(self.trace) {
-        console.log('RedisPassAgent::createRedisClient_::evtReconnecting=<',evtReconnecting,'>');
-      }
-    });
-    this.client.connect();
+  async createRedisClient_() {
+    this.setupCommonHandler_(this.client,'client');
+    await this.client.connect();
     if(this.trace0) {
       console.log('RedisPassAgent::createRedisClient_::this.client=<',this.client,'>');
     }
   }
-  createRedisSubscriber_() {
+
+  async createRedisPublish_() {
+    this.publisher = this.client.duplicate();
+    this.setupCommonHandler_(this.publisher,'publish');
+    await this.publisher.connect();
+    if(this.trace0) {
+      console.log('RedisPassAgent::createRedisPublish_::this.publisher=<',this.publisher,'>');
+    }
+  }
+
+  async createRedisSubscriber_() {
     this.subscriber = this.client.duplicate();
     const self = this;
-    this.subscriber.on('error', errSub => {
-      if(self.trace) {
-        console.log('RedisPassAgent::createRedisSubscriber_::errSub=<',errSub,'>');
-      }
-    });
-    this.subscriber.on('connect', evtConnectSub => {
-      if(self.trace) {
-        console.log('RedisPassAgent::createRedisSubscriber_::evtConnectSub=<',evtConnectSub,'>');
-      }
-    });
-    this.subscriber.on('ready', evtReadySub => {
+    this.setupCommonHandler_(this.subscriber,'subscriber',() => {
       if(self.trace) {
         console.log('RedisPassAgent::createRedisSubscriber_::evtReadySub=<',evtReadySub,'>');
       }
       if(self.readyCB_) {
         self.ready = true;
         self.readyCB_();
-      }
-    });
-    this.subscriber.on('end', evtEndSub => {
-      if(self.trace) {
-        console.log('RedisPassAgent::createRedisSubscriber_::evtEndSub=<',evtEndSub,'>');
-      }
-    });
-    this.subscriber.on('reconnecting', evtReconnectingSub => {
-      if(self.trace) {
-        console.log('RedisPassAgent::createRedisSubscriber_::evtReconnectingSub=<',evtReconnectingSub,'>');
-      }
-    });
-    
+      }      
+    });    
+    await this.subscriber.connect();
+    if(this.trace0) {
+      console.log('RedisPassAgent::createRedisSubscriber_::this.subscriber=<',this.subscriber,'>');
+    }
+
     const listener1 = (message, channel) => {
       self.onEdgePlainBroadcast_(channel,message);
     };
@@ -144,12 +120,38 @@ export class RedisPassAgent {
       self.onEdgeEncyptUnicast_(channel,message);
     };
     this.subscriber.pSubscribe('/omtc/edge/2/cloud/unicast/v/*', listener4);
+  }
 
-    
-    this.subscriber.connect();
-    if(this.trace0) {
-      console.log('RedisPassAgent::createRedisSubscriber_::this.subscriber=<',this.subscriber,'>');
-    }
+  setupCommonHandler_(client,tag,cb) {
+    const self = this;
+    client.on('error', err => {
+      if(self.trace) {
+        console.log(`RedisPassAgent::setupCommonHandler_::${tag}::err=<`,err,`>`);
+      }
+    });
+    client.on('connect', evtConnect => {
+      if(self.trace) {
+        console.log(`RedisPassAgent::setupCommonHandler_::${tag}::evtConnect=<`,evtConnect,`>`);
+      }
+    });
+    client.on('ready', evtReady => {
+      if(self.trace) {
+        console.log(`RedisPassAgent::setupCommonHandler_::${tag}::evtReady=<`,evtReady,`>`);
+      }
+      if(cb) {
+        cb();
+      }
+    });
+    client.on('end', evtEnd => {
+      if(self.trace) {
+        console.log(`RedisPassAgent::setupCommonHandler_::${tag}::evtEnd=<`,evtEnd,`>`);
+      }
+    });
+    client.on('reconnecting', evtReconnecting => {
+      if(self.trace) {
+        console.log(`RedisPassAgent::setupCommonHandler_::${tag}::evtReconnecting=<`,evtReconnecting,'>');  
+      }
+    });
   }
 
 

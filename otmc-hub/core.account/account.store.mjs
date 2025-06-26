@@ -23,6 +23,9 @@ export class AccountStore {
     });
     this.wrapper = new StoreNodeWrapper(this.db,this.config);
     this.wrapper.importData();
+    if(this.trace) {
+      console.log('AccountStore::constructor::this.db=:<',this.db,'>');
+    }
   }
   async putProperty(accountStore) {
     if(this.trace) {
@@ -48,7 +51,16 @@ export class AccountStore {
     if(this.trace) {
       console.log('AccountStore::getAllProperty::didAddress=:<',didAddress,'>');
     }
-    const storeObjects = await this.db.property.where('did').equals(didAddress).first();
+    const filter = {
+      did: didAddress,
+    };
+    if(this.trace) {
+      console.log('AccountStore::getAllProperty::filter=:<',filter,'>');
+    }
+    const storeObjects = await this.db.property.where(filter).first();
+    if(this.trace) {
+      console.log('AccountStore::getAllProperty::storeObjects=:<',storeObjects,'>');
+    }
     return storeObjects;
   }
 }

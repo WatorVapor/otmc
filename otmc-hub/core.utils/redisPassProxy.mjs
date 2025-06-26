@@ -1,8 +1,8 @@
 import { createClient } from 'redis';
 export class RedisPassProxy {
   constructor(config,readyCB) {
-    this.trace0 = false;
-    this.trace1 = false;
+    this.trace0 = true;
+    this.trace1 = true;
     this.trace = true;
     this.debug = true;
     this.redisUnxiPath = `${config.store}/redis/redis.otmc.hub.sock`;
@@ -10,7 +10,18 @@ export class RedisPassProxy {
     if(this.trace) {
       console.log('RedisPassProxy::constructor::this.redisUnxiPath=<',this.redisUnxiPath,'>');
     }
+    this.clientOpt = {
+      socket:{
+        path:this.redisUnxiPath
+      }
+    };
+    if(this.trace) {
+      console.log('RedisPassProxy::createRedisClient_::this.clientOpt=<',this.clientOpt,'>');
+    }
+    this.client = createClient(this.clientOpt);
     this.createRedisClient_();
+    this.createRedisPublish_();
+    this.createRedisSubscriber_();
   }
   async pubBroadcast(topic,payload) {
     if(this.trace0) {
@@ -22,9 +33,9 @@ export class RedisPassProxy {
       console.log('RedisPassProxy::pubBroadcast::topicOut=<',topicOut,'>');
     }
     if(this.trace0) {
-      console.log('RedisPassProxy::pubBroadcast::this.client=<',this.client,'>');
+      console.log('RedisPassProxy::pubBroadcast::this.publisher=<',this.publisher,'>');
     }
-    await this.client.publish(topicOut,JSON.stringify(payload),(err)=>{
+    await this.publisher.publish(topicOut,JSON.stringify(payload),(err)=>{
       if(err) {
         console.error('RedisPassProxy::pubBroadcast::err=<',err,'>');
       }
@@ -39,7 +50,7 @@ export class RedisPassProxy {
     if(this.trace0) {
       console.log('RedisPassProxy::pubUnicast::topicOut=<',topicOut,'>');
     }
-    this.client.publish(topicOut,JSON.stringify(payload),(err)=>{
+    this.publisher.publish(topicOut,JSON.stringify(payload),(err)=>{
       if(err) {
         console.error('RedisPassProxy::pubUnicast::err=<',err,'>');
       }
@@ -56,9 +67,9 @@ export class RedisPassProxy {
       console.log('RedisPassProxy::pubBroadcastEncypt::topicOut=<',topicOut,'>');
     }
     if(this.trace0) {
-      console.log('RedisPassProxy::pubBroadcastEncypt::this.client=<',this.client,'>');
+      console.log('RedisPassProxy::pubBroadcastEncypt::this.publisher=<',this.publisher,'>');
     }
-    await this.client.publish(topicOut,JSON.stringify(payload),(err)=>{
+    await this.publisher.publish(topicOut,JSON.stringify(payload),(err)=>{
       if(err) {
         console.error('RedisPassProxy::pubBroadcastEncypt::err=<',err,'>');
       }
@@ -73,7 +84,7 @@ export class RedisPassProxy {
     if(this.trace0) {
       console.log('RedisPassProxy::pubUnicastEncypt::topicOut=<',topicOut,'>');
     }
-    this.client.publish(topicOut,JSON.stringify(payload),(err)=>{
+    this.publisher.publish(topicOut,JSON.stringify(payload),(err)=>{
       if(err) {
         console.error('RedisPassProxy::pubUnicastEncypt::err=<',err,'>');
       }
@@ -85,96 +96,88 @@ export class RedisPassProxy {
   setPlainListener(listener) {
     this.listenerPlain_ = listener;
   }
-  
-  createRedisClient_() {
-    const clientOpt = {
-      socket:{
-        path:this.redisUnxiPath
-      }
-    };
-    if(this.trace) {
-      console.log('RedisPassProxy::createRedisClient_::clientOpt=<',clientOpt,'>');
-    }
-    this.client = createClient(clientOpt);
-    const self = this;
-    this.client.on('error', err => {
-      if(self.trace) {
-        console.log('RedisPassProxy::createRedisClient_::err=<',err,'>');
-      }
-    });
-    this.client.on('connect', evtConnect => {
-      if(self.trace) {
-        console.log('RedisPassProxy::createRedisClient_::evtConnect=<',evtConnect,'>');
-      }
-    });
-    this.client.on('ready', evtReady => {
-      if(self.trace) {
-        console.log('RedisPassProxy::createRedisClient_::evtReady=<',evtReady,'>');
-      }
-      self.createRedisSubscriber_();
-    });
-    this.client.on('end', evtEnd => {
-      if(self.trace) {
-        console.log('RedisPassProxy::createRedisClient_::evtEnd=<',evtEnd,'>');
-      }
-    });
-    this.client.on('reconnecting', evtReconnecting => {
-      if(self.trace) {
-        console.log('RedisPassProxy::createRedisClient_::evtReconnecting=<',evtReconnecting,'>');
-      }
-    });
-    this.client.connect();
+
+  set(key,value) {
+    this.client.set(key,value);
+  }
+  async get(key) {
+    return await this.client.get(key);
+  }  
+
+  async createRedisClient_() {
     if(this.trace0) {
       console.log('RedisPassProxy::createRedisClient_::this.client=<',this.client,'>');
     }
+    this.setupCommonHandler_(this.client,'client');
+    await this.client.connect();
   }
-  createRedisSubscriber_() {
+  async createRedisPublish_() {
+    this.publisher = this.client.duplicate();
+    if(this.trace0) {
+      console.log('RedisPassProxy::createRedisPublish_::this.publisher=<',this.publisher,'>');
+    }
+    this.setupCommonHandler_(this.publisher,'publish');
+    await this.publisher.connect();
+  }
+
+  async createRedisSubscriber_() {
     this.subscriber = this.client.duplicate();
+    if(this.trace0) {
+      console.log('RedisPassProxy::createRedisSubscriber_::this.subscriber=<',this.subscriber,'>');
+    }
     const self = this;
-    this.subscriber.on('error', errSub => {
-      if(self.trace) {
-        console.log('RedisPassProxy::createRedisSubscriber_::errSub=<',errSub,'>');
-      }
-    });
-    this.subscriber.on('connect', evtConnectSub => {
-      if(self.trace) {
-        console.log('RedisPassProxy::createRedisSubscriber_::evtConnectSub=<',evtConnectSub,'>');
-      }
-    });
-    this.subscriber.on('ready', evtReadySub => {
-      if(self.trace) {
-        console.log('RedisPassProxy::createRedisSubscriber_::evtReadySub=<',evtReadySub,'>');
-      }
-      if(self.readyCB_) {
+    this.setupCommonHandler_(this.subscriber,'subscriber',()=>{
+       if(self.readyCB_) {
         self.ready = true;
         self.readyCB_();
-      }
+      }     
     });
-    this.subscriber.on('end', evtEndSub => {
-      if(self.trace) {
-        console.log('RedisPassProxy::createRedisSubscriber_::evtEndSub=<',evtEndSub,'>');
-      }
-    });
-    this.subscriber.on('reconnecting', evtReconnectingSub => {
-      if(self.trace) {
-        console.log('RedisPassProxy::createRedisSubscriber_::evtReconnectingSub=<',evtReconnectingSub,'>');
-      }
-    });
-    
+    await this.subscriber.connect();
+
     const listener1 = (message, channel) => {
       self.onMqttCloudPlainMessage_(channel,message);
     };
     this.subscriber.pSubscribe('/omtc/cloud/2/edge/plain/*', listener1);
-
     const listener2 = (message, channel) => {
       self.onMqttCloudEncyptMessage_(channel,message);
     };
-    this.subscriber.pSubscribe('/omtc/cloud/2/edge/encypt/*', listener2);
-
-    
-    this.subscriber.connect();
-    if(this.trace0) {
-      console.log('RedisPassProxy::createRedisSubscriber_::this.subscriber=<',this.subscriber,'>');
+    this.subscriber.pSubscribe('/omtc/cloud/2/edge/encypt/*', listener2);    
+  }
+  setupCommonHandler_(client,tag,cb) {
+    if(this.trace) {
+      console.log(`RedisPassProxy::setupCommonHandler_::${tag}`);
+    }
+    const self = this;
+    client.on('error', err => {
+      if(self.trace) {
+        console.log(`RedisPassProxy::setupCommonHandler_::${tag}::err=<`,err,`>`);
+      }
+    });
+    client.on('connect', evtConnect => {
+      if(self.trace) {
+        console.log(`RedisPassProxy::setupCommonHandler_::${tag}::evtConnect=<`,evtConnect,`>`);
+      }
+    });
+    client.on('ready', evtReady => {
+      if(self.trace) {
+        console.log(`RedisPassProxy::setupCommonHandler_::${tag}::evtReady=<`,evtReady,`>`);
+      }
+      if(cb) {
+        cb();
+      }
+    });
+    client.on('end', evtEnd => {
+      if(self.trace) {
+        console.log(`RedisPassProxy::setupCommonHandler_::${tag}::evtEnd=<`,evtEnd,`>`);
+      }
+    });
+    client.on('reconnecting', evtReconnecting => {
+      if(self.trace) {
+        console.log('RedisPassProxy::setupCommonHandler_::evtReconnecting=<',evtReconnecting,'>');  
+      }
+    });
+    if(this.trace) {
+      console.log(`RedisPassProxy::setupCommonHandler_::${tag}`);
     }
   }
 

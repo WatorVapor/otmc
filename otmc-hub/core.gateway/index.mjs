@@ -74,6 +74,7 @@ otmcMqtt.once('edcrypt:didKeyLis',(keyList)=>{
 
 otmcMqtt.once('mqtt:connected',()=>{
   console.log('mqtt:connected');
+  setupRedisAgent();
 });
 otmcMqtt.on('otmc:mqtt:msg',(msg)=>{
   console.log('::index::msg=<',msg,'>');
@@ -94,14 +95,10 @@ const redisAgent = new RedisPassAgent(gConf,otmcTeam,otmcMqtt,()=>{
   console.log('::index::redisAgent.ready=<',redisAgent.ready,'>');
 });
 
-/*
-const testMsg = {
-  topic:'rtk-gnss/rtcm/3.0/base64',
-  payload:{
-    base64:'base64'
-  }
-};
-setTimeout(()=>{
-  otmc.broadcastMsg(testMsg);
-},10000);
-*/
+const setupRedisAgent = async () => {
+  console.log('::setupRedisAgent::otmcTeam.did=<',otmcTeam.did,'>');
+  const spaceDid = otmcTeam.did.didDoc_.id;
+  console.log('::setupRedisAgent::spaceDid=<',spaceDid,'>');
+  redisAgent.set('otmc.current.space.id',spaceDid);
+}
+

@@ -143,8 +143,8 @@ export class MqttConnection {
     this.notifyStateEvt_('connecting');
     const options = {
       // Authentication
-      //clientId: `${this.util.randomAddress()}@${this.mqttJwt.payload.clientid}`,
-      clientId: `${this.mqttJwt.payload.clientid}`,
+      clientId: `${this.mqttJwt.payload.clientid}@${this.util.randomAddress()}`,
+      //clientId: `${this.mqttJwt.payload.clientid}`,
       username: this.mqttJwt.payload.username,
       password: this.mqttJwt.jwt,
       protocolVersion:5,

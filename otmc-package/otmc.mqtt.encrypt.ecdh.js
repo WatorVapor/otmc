@@ -418,7 +418,7 @@ export class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::encryptData4TeamSpace::teamSharedKeyPair=<',teamSharedKeyPair,'>');
     }
-    if(!teamSharedKeyPair) {
+    if(Object.keys(teamSharedKeyPair).length === 0) {
       this.loadSharedKeyOfTeamSpace();
       teamSharedKeyPair = this.teamTopSharedKey[did];
     }

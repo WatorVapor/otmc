@@ -663,6 +663,7 @@ export class MqttEncryptECDH {
     }
     if(!nodePublicKey) {
       // request publicKey.
+      this.storeSharedKeySecretOfSpace2Cache_(secretMsg);
       return {nodeKeyMiss:true,nodeId:secretMsg.srcNodeId};
     }
     const sharedSecret = await crypto.subtle.deriveBits(
@@ -1018,6 +1019,9 @@ export class MqttEncryptECDH {
       secretOfTeamSpace: '++autoId,did,secretId,issuedDate,expireDate',
     });
     this.db.version(this.version).stores({
+      secretOfTeamSpaceEncrypted: '++autoId,distNodeId,encrypt,iv,srcNodeId,keyId',
+    });
+    this.db.version(this.version).stores({
       servantVote: '++autoId,did,nodeId,issuedDate,expireDate,nonce',
     });  
     if(isNode) {
@@ -1155,6 +1159,57 @@ export class MqttEncryptECDH {
     if(isNode) {
       await this.wrapper.exportData();
     }
+  }
+  async storeEncryptedCacheSharedKeysOfTeamSpace(mqttMsg) {
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeEncryptedCacheSharedKeysOfTeamSpace::mqttMsg=<',mqttMsg,'>');
+    }
+    const distNodeId = this.auth.address();
+    const encryptedCache = {
+      distNodeId:distNodeId,
+      srcNodeId:mqttMsg.auth_address,
+      encryptedBase64:mqttMsg.payload.encryptedBase64,
+      ivBase64:mqttMsg.payload.ivBase64,
+      keyId:mqttMsg.payload.keyId,
+    };
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeEncryptedCacheSharedKeysOfTeamSpace::encryptedCache=<',encryptedCache,'>');
+    }
+    const filter = {
+      keyId:mqttMsg.payload.keyId,
+      srcNodeId:mqttMsg.payload.srcNodeId,
+      distNodeId:distNodeId,
+    };
+    let hintCached = await this.db.secretOfTeamSpaceEncrypted.where(filter).first();
+    if(hintCached) {
+      return;
+    }
+    const encryptedCacheResult = await this.db.secretOfTeamSpaceEncrypted.put(encryptedCache);
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeEncryptedCacheSharedKeysOfTeamSpace::encryptedCacheResult=<',encryptedCacheResult,'>');
+    }
+    if(isNode) {
+      await this.wrapper.exportData();
+    }
+  }
+  async getEncryptedCacheMsg() {
+    const cachedMsg = await this.db.secretOfTeamSpaceEncrypted.toArray();
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::getEncryptedCacheMsg::cachedMsg=<',cachedMsg,'>');
+    }
+    const cacheMqttMsg = [];
+    for(const msg of cachedMsg) {
+      const mqttMsg = {
+        auth_address:msg.srcNodeId,
+        payload:{
+          encryptedBase64:msg.encryptedBase64,
+          ivBase64:msg.ivBase64,
+          keyId:msg.keyId,
+        }
+      };
+      cacheMqttMsg.push(mqttMsg);
+    }
+    return cacheMqttMsg;
   }
   filterOutTimeIsssed_(storeData,deadLine) {
     const issuedDate = new Date(storeData.issuedDate);

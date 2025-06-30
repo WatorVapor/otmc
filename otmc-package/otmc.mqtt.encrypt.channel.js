@@ -15,7 +15,6 @@ export class MqttEncryptChannel {
       console.log('MqttEncryptChannel::constructor::this.ee=:<',this.ee,'>');
     }
     this.cachedPlainMsg = [];
-    this.cachedEncryptedMsg = [];
   }
   ListenEventEmitter_() {
     if(this.trace0) {
@@ -41,6 +40,7 @@ export class MqttEncryptChannel {
         console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
       }
       self.ecdh.storeRemotePubKey(evt.payload);
+      self.ecdh.loadMemeberPubKey();
     });
     this.ee.on('teamspace/secret/encrypt/ecdh/secret/space',async (evt)=>{
       if(self.trace0) {
@@ -216,6 +216,7 @@ export class MqttEncryptChannel {
       for(const msg of unicastMsg) {
         self.ee.emit('otmc.mqtt.publish',{msg:msg});
       }
+      self.tryDecryptCacheMessage_();
       self.ee.emit('otmc.mqtt.encrypt.channel.refresh',evt);      
     });
   
@@ -235,8 +236,10 @@ export class MqttEncryptChannel {
         console.log('MqttEncryptChannel::ListenEventEmitter_::self.otmc.listenerCount(”otmc:mqtt:encrypt:channel“)=:<',self.otmc.listenerCount('otmc:mqtt:encrypt:channel'),'>');
       }
       if(decryptedMsg.keyMiss) {
-        //this.ee.emit('xstate.event.mqtt.encrypt.servant.vote.check',{});
-        self.cachedEncryptedMsg.push(mqttMsg);
+        const resultCache = await self.ecdh.storeEncryptedCacheSharedKeysOfTeamSpace(mqttMsg);
+        if(self.trace0) {
+          console.log('MqttEncryptChannel::ListenEventEmitter_::resultCache=:<',resultCache,'>');
+        }
 
         try {
           const topic = `teamspace/secret/encrypt/ecdh/sync/sharedKey`;
@@ -349,10 +352,11 @@ export class MqttEncryptChannel {
     return decryptMsg;
   }
   async tryDecryptCacheMessage_() {
+    const cachedMsg = await this.ecdh.getEncryptedCacheMsg();
     if(this.trace0) {
-      console.log('MqttEncryptChannel::tryDecryptCacheMessage_::this.cachedEncryptedMsg=:<',this.cachedEncryptedMsg,'>');
+      console.log('MqttEncryptChannel::tryDecryptCacheMessage_::cachedMsg=:<',cachedMsg,'>');
     }
-    for(const mqttMsg of this.cachedEncryptedMsg) {
+    for(const mqttMsg of cachedMsg) {
       if(this.trace0) {
         console.log('MqttEncryptChannel::tryDecryptCacheMessage_::mqttMsg=:<',mqttMsg,'>');
       }
@@ -361,7 +365,7 @@ export class MqttEncryptChannel {
         console.log('MqttEncryptChannel::tryDecryptCacheMessage_::decryptMsg=:<',decryptMsg,'>');
       }
       if(decryptMsg && decryptMsg.decrypt) {
-        this.cachedEncryptedMsg.splice(this.cachedEncryptedMsg.indexOf(mqttMsg),1);
+        this.ecdh.removeEncryptedCacheMsg(mqttMsg);
       }
     }
   }

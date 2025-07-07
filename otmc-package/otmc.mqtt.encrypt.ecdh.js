@@ -22,6 +22,8 @@ export class MqttEncryptECDH {
   constructor(otmc,auth,base32,util) {
     this.version = '1.0';
     this.trace0 = true;
+    this.trace1 = true;
+    this.trace2 = false;
     this.trace = true;
     this.debug = true;
     this.otmc = otmc;
@@ -90,9 +92,11 @@ export class MqttEncryptECDH {
   }
 
   async loadMemeberPubKey() {
-    if(this.trace0) {
+    if(this.trace2) {
       console.log('MqttEncryptECDH::loadMemeberPubKey::this.otmc=:<',this.otmc,'>');
       console.log('MqttEncryptECDH::loadMemeberPubKey::this.otmc.did=:<',this.otmc.did,'>');
+    }
+    if(this.trace0) {
       console.log('MqttEncryptECDH::loadMemeberPubKey::this.otmc.did.didDoc_=:<',this.otmc.did.didDoc_,'>');
     }
     const did = this.otmc.did.didDoc_.id;
@@ -162,6 +166,9 @@ export class MqttEncryptECDH {
     .and((secret)=>{
       return self.filterOutTimeIsssed_(secret,iConstSharedKeyRegenMiliSec);
     }).toArray();
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::loadSharedKeyOfTeamSpace::teamSharedKeys11=<',teamSharedKeys11,'>');
+    }
     const teamSharedKeys1 = teamSharedKeys11.sort((a, b) => new Date(a.issuedDate) - new Date(b.issuedDate));
     if(this.trace0) {
       console.log('MqttEncryptECDH::loadSharedKeyOfTeamSpace::teamSharedKeys1=<',teamSharedKeys1,'>');
@@ -663,7 +670,7 @@ export class MqttEncryptECDH {
     }
     if(!nodePublicKey) {
       // request publicKey.
-      this.storeSharedKeySecretOfSpace2Cache_(secretMsg);
+      await this.storeSharedKeySecretOfSpace2Cache_(secretMsg);
       return {nodeKeyMiss:true,nodeId:secretMsg.srcNodeId};
     }
     const sharedSecret = await crypto.subtle.deriveBits(
@@ -1193,7 +1200,11 @@ export class MqttEncryptECDH {
     }
   }
   async getEncryptedCacheMsg() {
-    const cachedMsg = await this.db.secretOfTeamSpaceEncrypted.toArray();
+    const cachedMsg = await this.db.secretOfTeamSpaceEncrypted
+    .filter((msg) => {
+      return this.filterOutTimeIsssed_(msg,iConstSharedKeyRegenMiliSec);
+    })
+    .toArray();
     if(this.trace0) {
       console.log('MqttEncryptECDH::getEncryptedCacheMsg::cachedMsg=<',cachedMsg,'>');
     }
@@ -1209,6 +1220,9 @@ export class MqttEncryptECDH {
       };
       cacheMqttMsg.push(mqttMsg);
     }
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::getEncryptedCacheMsg::cacheMqttMsg=<',cacheMqttMsg,'>');
+    }
     return cacheMqttMsg;
   }
   filterOutTimeIsssed_(storeData,deadLine) {
@@ -1219,6 +1233,11 @@ export class MqttEncryptECDH {
       return true;
     } else {
       return false;
+    }
+  }
+  async storeSharedKeySecretOfSpace2Cache_(secretMsg) {
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::storeSharedKeySecretOfSpace2Cache_::secretMsg=<',secretMsg,'>');
     }
   }
 }

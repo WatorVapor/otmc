@@ -17,6 +17,7 @@ export class MqttConnection {
     this.trace0 = false;
     this.trace1 = false;
     this.trace2 = false;
+    this.trace10 = false;
     this.trace = true;
     this.debug = true;
     this.ee = ee;
@@ -168,6 +169,8 @@ export class MqttConnection {
       if(self.trace) {
         console.log('MqttConnection::transformWsUrl::url=<',url,'>');
         console.log('MqttConnection::transformWsUrl::options=<',options,'>');
+      }
+      if(self.trace10) {
         console.log('MqttConnection::transformWsUrl::client=<',client,'>');
       }
       client.options.password = self.mqttJwt.jwt;

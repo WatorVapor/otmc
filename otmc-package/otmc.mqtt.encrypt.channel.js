@@ -240,20 +240,7 @@ export class MqttEncryptChannel {
         if(self.trace0) {
           console.log('MqttEncryptChannel::ListenEventEmitter_::resultCache=:<',resultCache,'>');
         }
-
-        try {
-          const topic = `teamspace/secret/encrypt/ecdh/sync/sharedKey`;
-          if(this.trace0) {
-            console.log('MqttEncryptChannel::ListenEventEmitter_::topic=:<',topic,'>');
-          }
-          const sharedkeyId = mqttMsg.payload.keyId;
-          if(this.trace0) {
-            console.log('MqttEncryptChannel::ListenEventEmitter_::sharedkeyId=:<',sharedkeyId,'>');
-          }
-          this.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:{keyId:sharedkeyId}}});
-        } catch(err) {
-          console.error('MqttEncryptChannel::ListenEventEmitter_::err=:<',err,'>');
-        }
+        self.syncSharedKey4TeamSpace_(mqttMsg.payload.keyId);
       }
       if(decryptedMsg.decrypt) {
         const relayMsg ={
@@ -364,8 +351,14 @@ export class MqttEncryptChannel {
       if(this.trace0) {
         console.log('MqttEncryptChannel::tryDecryptCacheMessage_::decryptMsg=:<',decryptMsg,'>');
       }
-      if(decryptMsg && decryptMsg.decrypt) {
-        this.ecdh.removeEncryptedCacheMsg(mqttMsg);
+      if(decryptMsg) {
+        if(decryptMsg.decrypt) {
+          this.ecdh.removeEncryptedCacheMsg(mqttMsg);
+          this.ee.emit('otmc.mqtt.publish',{msg:{topic:mqttMsg.topic,payload:decryptMsg}});
+        }
+        if(decryptMsg.keyMiss) {
+          this.syncSharedKey4TeamSpace_(mqttMsg.payload.keyId);
+        }
       }
     }
   }
@@ -377,5 +370,19 @@ export class MqttEncryptChannel {
         pubKeyJwk:this.ecdh.myPublicKeyJwk
       }
       this.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:payload}});
+  }
+  syncSharedKey4TeamSpace_(sharedkeyId) {
+    try {
+      const topic = `teamspace/secret/encrypt/ecdh/sync/sharedKey`;
+      if(this.trace0) {
+        console.log('MqttEncryptChannel::syncSharedKey4TeamSpace_::topic=:<',topic,'>');
+      }
+      if(this.trace0) {
+        console.log('MqttEncryptChannel::syncSharedKey4TeamSpace_::sharedkeyId=:<',sharedkeyId,'>');
+      }
+      this.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:{keyId:sharedkeyId}}});
+    } catch(err) {
+      console.error('MqttEncryptChannel::syncSharedKey4TeamSpace_::err=:<',err,'>');
+    }
   }
 }

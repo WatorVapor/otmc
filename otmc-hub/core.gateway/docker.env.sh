@@ -27,7 +27,7 @@ docker run -it
   --memory=256M 
   --cpu-shares=128 
   --name ${DOCKER_MAME} 
-  node:22
+  node:24
 EOF
 
 read -d ''  DOCKER_NODE_BG << EOF
@@ -45,5 +45,5 @@ docker run -d
   --memory=256M 
   --cpu-shares=128 
   --name ${DOCKER_MAME} 
-  node:22
+  node:24
 EOF

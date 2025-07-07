@@ -1,5 +1,6 @@
 const LOG = {
   trace:true,
+  trace10:false,
   debug:true,
 };
 import { createMachine, createActor, assign  }  from 'xstate';
@@ -175,11 +176,11 @@ const mqttConnectionActionTable = {
     ee.emit('mqtt.state.action.connect');
   },
   connected: (context) => {
-    if(LOG.trace) {
+    if(LOG.trace10) {
       console.log('MqttConnectionState::mqttConnectionActionTable::connected:context=:<',context,'>');
     }
     const ee = context.context.ee;
-    if(LOG.trace) {
+    if(LOG.trace10) {
       console.log('MqttConnectionState::mqttConnectionActionTable::connected:ee=:<',ee,'>');
     }
     ee.emit('mqtt.state.action.connected');

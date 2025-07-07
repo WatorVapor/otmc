@@ -15,6 +15,7 @@ export class OtmcMqtt extends EventEmitter {
   constructor(config) {
     super();
     this.trace0 = true;
+    this.trace10 = false;
     this.trace = true;
     this.debug = true;
     if(config) {
@@ -73,7 +74,7 @@ export class OtmcMqtt extends EventEmitter {
     if(this.trace0) {
       console.log('Otmc::broadcastSecretMsg::mqttMsg=:<',mqttMsg,'>');
     }
-    if(this.trace0) {
+    if(this.trace10) {
       console.log('Otmc::broadcastSecretMsg::this.did=:<',this.did,'>');
     }    
     this.eeInternal.emit('otmc.mqtt.encrypt.channel.encrypt.broadcast',mqttMsg);

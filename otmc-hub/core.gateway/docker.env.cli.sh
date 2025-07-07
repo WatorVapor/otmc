@@ -28,5 +28,5 @@ docker run -it
   --memory=256M 
   --cpu-shares=128 
   --name ${DOCKER_MAME_CLI} 
-  node:22
+  node:24
 EOF

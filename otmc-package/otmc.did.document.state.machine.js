@@ -1,5 +1,6 @@
 const LOG = {
   trace:true,
+  trace10:false,
   debug:true,
 };
 import { DidDocumentGraphology } from './otmc.did.document.graphology.js';
@@ -442,6 +443,7 @@ class DidChainStateMachine {
   constructor(docState) {
     this.trace0 = true;
     this.trace1 = true;
+    this.trace10 = false;
     this.trace = true;
     this.debug = true;
     this.value = false;
@@ -471,7 +473,7 @@ class DidChainStateMachine {
     
     const self = this;
     this.actor.subscribe((state) => {
-      if(self.trace0) {
+      if(self.trace10) {
         console.log('DidChainStateMachine::createStateMachine_::state=:<',state,'>');
         console.log('DidChainStateMachine::createStateMachine_::self.stm=:<',self.stm,'>');
       }
@@ -601,8 +603,10 @@ const didDocActionTable = {
   init: (context, evt) => {
     const ee = context.context.ee;
     const chain = context.context.chain;
-    if(LOG.trace) {
+    if(LOG.trace10) {
       console.log('DidChainStateMachine::didDocActionTable::init:context=:<',context,'>');
+    }
+    if(LOG.trace) {
       console.log('DidChainStateMachine::didDocActionTable::init:ee=:<',ee,'>');
       console.log('DidChainStateMachine::didDocActionTable::init:chain=:<',chain,'>');
     }

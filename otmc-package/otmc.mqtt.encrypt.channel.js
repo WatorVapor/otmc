@@ -1,5 +1,6 @@
 import { MqttEncryptECDH } from './otmc.mqtt.encrypt.ecdh.js';
 import { MqttEncrptStateMachine } from './otmc.mqtt.encrypt.state.js';
+import { MqttEncrptRaftState } from './otmc.mqtt.encrypt.raft.js';
 /**
 *
 */
@@ -10,6 +11,7 @@ export class MqttEncryptChannel {
     this.trace = true;
     this.debug = true;
     this.sm = new MqttEncrptStateMachine(this.ee);
+    this.raft = new MqttEncrptRaftState(this.ee);
     this.ListenEventEmitter_();
     if(this.trace0) {
       console.log('MqttEncryptChannel::constructor::this.ee=:<',this.ee,'>');
@@ -33,6 +35,7 @@ export class MqttEncryptChannel {
         self.ecdh = new MqttEncryptECDH(self.otmc,self.auth,self.base32,self.util);
       }
       self.sm.setECDH(self.ecdh);
+      self.ee.emit('otmc.mqtt.encrypt.raft.event',{type:'ELECTION_TIMEOUT'},{});
     });
 
     this.ee.on('teamspace/secret/encrypt/ecdh/pubKey/jwk',async (evt)=>{

@@ -61,6 +61,16 @@ export class MqttConnection {
       }
       self.publish(msgPack.topic,msgPack,evt.option);
     });
+    this.ee.on('otmc.mqtt.publish.wide',(evt)=>{
+      if(self.trace) {
+        console.log('MqttConnection::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      const msgPack = self.otmc.did.packMessageWide(evt.msg);
+      if(self.trace) {
+        console.log('MqttConnection::ListenEventEmitter_::msgPack=:<',msgPack,'>');
+      }
+      self.publish(msgPack.topic,msgPack,evt.option);
+    });
     this.ee.on('otmc.mqtt.encrypt.channel.refresh',(evt)=>{
       if(self.trace) {
         console.log('MqttConnection::ListenEventEmitter_::evt=:<',evt,'>');

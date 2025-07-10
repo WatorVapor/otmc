@@ -13,7 +13,8 @@ const LEVEL_OPT = {
 export class MqttMessager {
   constructor(ee) {
     this.trace0 = false;
-    this.trace = false;
+    this.trace1 = true;
+    this.trace = true;
     this.debug = true;
     this.isRequestingJwt = false;
     this.ee = ee;
@@ -101,12 +102,15 @@ export class MqttMessager {
   }
 
   dispatchMessage_(featureTopic,fullTopic,msgJson) {
-    if(this.trace0) {
+    if(this.trace1) {
       console.log('MqttMessager::dispatchMessage_:featureTopic=<',featureTopic,'>');
       console.log('MqttMessager::dispatchMessage_:fullTopic=<',fullTopic,'>');
       console.log('MqttMessager::dispatchMessage_:msgJson=<',msgJson,'>');
     }
     if(featureTopic.startsWith('teamspace/secret/encrypt/ecdh')) {
+      this.ee.emit(featureTopic,msgJson);
+    }
+    if(featureTopic.startsWith('teamspace/node/cluster')) {
       this.ee.emit(featureTopic,msgJson);
     }
     if(featureTopic.startsWith('encrypt/channel')) {

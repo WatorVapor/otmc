@@ -976,6 +976,31 @@ export class DidDocument {
     }
     return msgSigned;
   }
+
+  packMessageWide(rawMsg) {
+    if(this.trace4) {
+      console.log('DidDocument::packMessageWide::this.otmc=:<',this.otmc,'>');
+    }
+    if(this.trace0) {
+      console.log('DidDocument::packMessageWide::rawMsg=:<',rawMsg,'>');
+    }
+    this.checkEdcrypt_();
+
+    const prefixDidToTopic = this.didDoc_.id.replaceAll(':','/')
+    const packRawMsg = {
+      topic:`${prefixDidToTopic}/${rawMsg.topic}`,
+      payload:rawMsg.payload
+    };
+    if(this.trace0) {
+      console.log('DidDocument::packMessageWide::packRawMsg=:<',packRawMsg,'>');
+    }
+    const msgSigned = this.auth.sign(packRawMsg);
+    if(this.trace0) {
+      console.log('DidDocument::packMessageWide::msgSigned=:<',msgSigned,'>');
+    }
+    return msgSigned;
+  }  
+  
   packBroadcastMessage(rawMsg) {
     if(this.trace0) {
       console.log('DidDocument::packBroadcastMessage::this.otmc=:<',this.otmc,'>');

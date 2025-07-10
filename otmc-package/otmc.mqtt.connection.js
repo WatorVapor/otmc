@@ -95,6 +95,7 @@ export class MqttConnection {
         console.log('MqttConnection::ListenEventEmitter_::evt=:<',evt,'>');
       }
       if(!self.firstConnected) { 
+        self.ee.emit('otmc.mqtt.connected',{first:true});
         setTimeout(() => {
           self.runSubscriber_();
         },1);
@@ -102,7 +103,9 @@ export class MqttConnection {
           self.rollOutCached_();
         },1000);
         self.firstConnected = true;
-      }      
+      } else {
+        self.ee.emit('otmc.mqtt.connected',{first:false});
+      }
     });
   }
 

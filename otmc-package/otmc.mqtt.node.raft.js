@@ -5,7 +5,7 @@ export class MqttNodeRaftState {
     this.trace0 = false;
     this.trace1 = false;
     this.trace10 = true;
-    this.trace = false;
+    this.trace = true;
     this.debug = true;
     this.ee = ee;
     if(this.trace0) {
@@ -13,6 +13,13 @@ export class MqttNodeRaftState {
     }
     this.machine = this.createStateMachine_();
     this.ListenEventEmitter_();
+  }
+  getTerm() {
+    const term = this.actor.getSnapshot().context.term;
+    if(this.trace10) {
+      console.log('MqttNodeRaftState::getTerm::term=:<',term,'>');
+    }
+    return term;
   }
   ListenEventEmitter_() {
     if(this.trace0) {
@@ -33,7 +40,6 @@ export class MqttNodeRaftState {
       id:'raft',
       context: {
         ee:this.ee,
-        ecdh:null,
         term: 0,
         votesReceived: 0
       },

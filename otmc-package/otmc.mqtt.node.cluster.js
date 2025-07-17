@@ -62,11 +62,12 @@ export class MqttNodeCluster {
         },iConstNodeHeartBroadcastIntervalMs);
       }
     });
-    this.ee.on('otmc.mqtt.node.raft.action',(evt)=>{
+    this.ee.on('otmc.mqtt.node.raft.action',(evt,payload)=>{
       if(self.trace0) {
         console.log('MqttNodeCluster::ListenEventEmitter_::evt=:<',evt,'>');
+        console.log('MqttNodeCluster::ListenEventEmitter_::payload=:<',payload,'>');
       }
-      self.dispatchAction_(evt.type);
+      self.dispatchAction_(evt.type,payload);
     });
 
 
@@ -122,18 +123,25 @@ export class MqttNodeCluster {
   }
 
 
-  dispatchAction_(actionType) {
+  dispatchAction_(actionType,payload) {
     if(this.trace0) {
       console.log('MqttNodeCluster::dispatchAction_::actionType=:<',actionType,'>');
+      console.log('MqttNodeCluster::dispatchAction_::payload=:<',payload,'>');
     }
     if(actionType === 'entry_follower') {
-      this.startAsFollower_();
+      this.startAsFollower_(payload);
     }
     if(actionType === 'leave_follower') {
-      this.stopAsFollower_();
+      this.stopAsFollower_(payload);
     }
     if(actionType === 'entry_candidate') {
-      this.startAsCandidate_();
+      this.startAsCandidate_(payload);
+    }
+    if(actionType === 'agree_vote') {
+      this.agreeVoteRequest_(payload);
+    }
+    if(actionType === 'refuse_vote') {
+      this.refuseVoteRequest_(payload);
     }
   }
   startAsFollower_() {
@@ -160,16 +168,17 @@ export class MqttNodeCluster {
       this.ee.emit('otmc.mqtt.node.raft.event',{type:'HEATBEAT_TIMEOUT'},{});
     }
   }
-  startAsCandidate_() {
+  startAsCandidate_(param) {
     if(this.trace0) {
-      console.log('MqttNodeCluster::startAsCandidate_::this.raft=:<',this.raft,'>');     
+      console.log('MqttNodeCluster::startAsCandidate_::param=:<',param,'>');
+      console.log('MqttNodeCluster::startAsCandidate_::this.raft=:<',this.raft,'>');
     }
     const term = this.raft.getTerm();
     const topic = 'teamspace/node/cluster/raft/vote/request';
     const payload = {
       term : term,
       candidateId : this.auth.address(),
-      weight : Math.random(),
+      weight : param.weight,
     }
     if(this.trace0) {
       console.log('MqttNodeCluster::startAsCandidate_::payload=:<',payload,'>');     
@@ -215,33 +224,40 @@ export class MqttNodeCluster {
     }
     for(let vote of this.voteRequestReceivedQue) {
       console.log('MqttNodeCluster::dealVoteRequestWithDelay_::vote=:<',vote,'>');
-      if(vote.term > termLocal) {
-        this.ee.emit('otmc.mqtt.node.raft.event',{type:'DISCOVER_HIGHER_TERM'},{term:this.term});
-      }
-      if(vote.term === termLocal) {
-        this.ee.emit('otmc.mqtt.node.raft.event',{type:'VOTE_GRANTED'},{});
-      }
-      if(vote.term < termLocal) {
-        this.refuseVoteRequest_(vote,`older term,current term=${termLocal}`);
-      }
+      this.ee.emit('otmc.mqtt.node.raft.event',{type:'VOTE_REQUEST'},{vote:vote});
     }
   }
+  agreeVoteRequest_(vote) {
+    console.log('MqttNodeCluster::agreeVoteRequest_::vote=:<',vote,'>');
+    const topic = 'teamspace/node/cluster/raft/vote/reply';
+    const payload = {
+      term : vote.term,
+      candidateId : vote.candidateId,
+      replyFrom : this.auth.address(),
+      voteGranted : true,
+    }
+    if(this.trace0) {
+      console.log('MqttNodeCluster::agreeVoteRequest_::payload=:<',payload,'>');     
+    }
+    this.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:payload}});
+  }  
   refuseVoteRequest_(vote,reason) {
     console.log('MqttNodeCluster::refuseVoteRequest_::vote=:<',vote,'>');
-    console.log('MqttNodeCluster::refuseVoteRequest_::reason=:<',reason,'>');
     const topic = 'teamspace/node/cluster/raft/vote/reply';
     const payload = {
       term : vote.term,
       candidateId : vote.candidateId,
       replyFrom : this.auth.address(),
       voteGranted : false,
-      reason : reason,
+      reason : vote.reason,
     }
     if(this.trace0) {
       console.log('MqttNodeCluster::refuseVoteRequest_::payload=:<',payload,'>');     
     }
     this.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:payload}});
   }
+
+  
   onVoteReplyReceived_(voteReplyMsg) {
     if(this.trace0) {
       console.log('MqttNodeCluster::onVoteReplyReceived_::voteReplyMsg=:<',voteReplyMsg,'>');     

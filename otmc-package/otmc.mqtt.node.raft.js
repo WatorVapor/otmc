@@ -1,4 +1,4 @@
-import { createMachine, createActor }  from 'xstate';
+import { createMachine, createActor ,assign}  from 'xstate';
 
 export class MqttNodeRaftState {
   constructor(ee) {
@@ -41,12 +41,14 @@ export class MqttNodeRaftState {
       context: {
         ee:this.ee,
         term: 0,
+        weight: Math.random(),
         votesReceived: 0
       },
-      states: mqttEncrptRaftStateTable,
+      states: mqttNodeRaftStateTable,
+
     }
     const stmOption = {
-      actions:mqttEncrptRaftActionTable,
+      actions:mqttNodeRaftActionTable,
     }
     if(this.trace) {
       console.log('MqttNodeRaftState::createStateMachine_::stmConfig=:<',stmConfig,'>');
@@ -56,7 +58,9 @@ export class MqttNodeRaftState {
       console.log('MqttNodeRaftState::createStateMachine_::this.stm=:<',this.stm,'>');
     }
     this.actor = createActor(this.stm);
-    
+    if(this.trace10) {
+      console.log('MqttNodeRaftState::createStateMachine_::this.actor=:<',this.actor,'>');
+    }    
     const self = this;
     this.actor.subscribe((state) => {
       if(self.trace10) {
@@ -78,7 +82,7 @@ const LOG = {
 };
 
 
-const mqttEncrptRaftStateTable = {
+const mqttNodeRaftStateTable = {
   init: {
     on: {
       MQTT_CONNECTED: {
@@ -90,6 +94,10 @@ const mqttEncrptRaftStateTable = {
     entry: ['follower_entry'],
     exit: ['follower_leave'],
     on: {
+      VOTE_REQUEST: {
+        target: 'follower',
+        actions: ['vote_request_follower_action'],
+      },
       HEATBEAT_TIMEOUT: {
         target: 'candidate',
         //actions: ['election_timeout_action'],
@@ -111,6 +119,12 @@ const mqttEncrptRaftStateTable = {
     entry: ['candidate_entry'],
     exit: ['candidate_leave'],
     on: {
+      VOTE_REQUEST: {
+        actions: [
+          'vote_request_candidate_action'
+        ],
+        target: 'candidate',
+      },
       VOTE_GRANTED: {
         actions: [
           'vote_granted_action',
@@ -136,66 +150,148 @@ const mqttEncrptRaftStateTable = {
   }
 }
 
-const mqttEncrptRaftActionTable = {
-  follower_entry: async (context, evt) => {
+const mqttNodeRaftActionTable = {
+  follower_entry: (context, evt) => {
+    if(LOG.trace) {
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::follower_entry:context=:<',context,'>');
+    }
     const ee = context.context.ee;
     if(LOG.trace) {
-      console.log('MqttNodeRaftState::mqttEncrptActionTable::follower_entry:context=:<',context,'>');
-      console.log('MqttNodeRaftState::mqttEncrptActionTable::follower_entry:ee=:<',ee,'>');
-      console.log('MqttNodeRaftState::mqttEncrptActionTable::follower_entry:evt=:<',evt,'>');
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::follower_entry:ee=:<',ee,'>');
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::follower_entry:evt=:<',evt,'>');
     }
     ee.emit('otmc.mqtt.node.raft.action',{type:'entry_follower'},{});
   },
-  follower_leave: async (context, evt) => {
+  follower_leave: (context, evt) => {
+    if(LOG.trace) {
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::follower_leave:context=:<',context,'>');
+    }
     const ee = context.context.ee;
     if(LOG.trace) {
-      console.log('MqttNodeRaftState::mqttEncrptActionTable::follower_leave:context=:<',context,'>');
-      console.log('MqttNodeRaftState::mqttEncrptActionTable::follower_leave:ee=:<',ee,'>');
-      console.log('MqttNodeRaftState::mqttEncrptActionTable::follower_leave:evt=:<',evt,'>');
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::follower_leave:ee=:<',ee,'>');
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::follower_leave:evt=:<',evt,'>');
     }
     ee.emit('otmc.mqtt.node.raft.action',{type:'leave_follower'},{});
   },
-  candidate_entry: async (context, evt) => {
+  candidate_entry: (context, evt) => {
+    if(LOG.trace) {
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::candidate_entry:context=:<',context,'>');
+    }
     const ee = context.context.ee;
     if(LOG.trace) {
-      console.log('MqttNodeRaftState::mqttEncrptActionTable::candidate_entry:context=:<',context,'>');
-      console.log('MqttNodeRaftState::mqttEncrptActionTable::candidate_entry:ee=:<',ee,'>');
-      console.log('MqttNodeRaftState::mqttEncrptActionTable::candidate_entry:evt=:<',evt,'>');
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::candidate_entry:ee=:<',ee,'>');
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::candidate_entry:evt=:<',evt,'>');
     }
-    ee.emit('otmc.mqtt.node.raft.action',{type:'entry_candidate'},{});
+    const weight = context.context.weight;
+    if(LOG.trace) {
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::candidate_entry:weight=:<',weight,'>');
+    }
+    ee.emit('otmc.mqtt.node.raft.action',{type:'entry_candidate'},{weight:weight});
 
   },
-  candidate_leave: async (context, evt) => {
+  candidate_leave: (context, evt) => {
+    if(LOG.trace) {
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::candidate_leave:context=:<',context,'>');
+    }
     const ee = context.context.ee;
     if(LOG.trace) {
-      console.log('MqttNodeRaftState::mqttEncrptActionTable::candidate_leave:context=:<',context,'>');
-      console.log('MqttNodeRaftState::mqttEncrptActionTable::candidate_leave:ee=:<',ee,'>');
-      console.log('MqttNodeRaftState::mqttEncrptActionTable::candidate_leave:evt=:<',evt,'>');
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::candidate_leave:ee=:<',ee,'>');
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::candidate_leave:evt=:<',evt,'>');
     }
   },
-  leader_entry: async (context, evt) => {
+  leader_entry: (context, evt) => {
+    if(LOG.trace) {
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::leader_entry:context=:<',context,'>');
+    }
     const ee = context.context.ee;
     if(LOG.trace) {
-      console.log('MqttNodeRaftState::mqttEncrptActionTable::leader_entry:context=:<',context,'>');
-      console.log('MqttNodeRaftState::mqttEncrptActionTable::leader_entry:ee=:<',ee,'>');
-      console.log('MqttNodeRaftState::mqttEncrptActionTable::leader_entry:evt=:<',evt,'>');
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::leader_entry:ee=:<',ee,'>');
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::leader_entry:evt=:<',evt,'>');
     }
   },
-  leader_leave: async (context, evt) => {
+  leader_leave: (context, evt) => {
+    if(LOG.trace) {
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::leader_leave:context=:<',context,'>');
+    }
     const ee = context.context.ee;
     if(LOG.trace) {
-      console.log('MqttNodeRaftState::mqttEncrptActionTable::leader_leave:context=:<',context,'>');
-      console.log('MqttNodeRaftState::mqttEncrptActionTable::leader_leave:ee=:<',ee,'>');
-      console.log('MqttNodeRaftState::mqttEncrptActionTable::leader_leave:evt=:<',evt,'>');
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::leader_leave:ee=:<',ee,'>');
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::leader_leave:evt=:<',evt,'>');
     }
   },
 
-  election_timeout_action: async (context, evt) => {
+  election_timeout_action: (context, evt) => {
+    if(LOG.trace) {
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::election_timeout_action:context=:<',context,'>');
+    }
     const ee = context.context.ee;
     if(LOG.trace) {
-      console.log('MqttNodeRaftState::mqttEncrptActionTable::election_timeout_action:context=:<',context,'>');
-      console.log('MqttNodeRaftState::mqttEncrptActionTable::election_timeout_action:ee=:<',ee,'>');
-      console.log('MqttNodeRaftState::mqttEncrptActionTable::election_timeout_action:evt=:<',evt,'>');
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::election_timeout_action:ee=:<',ee,'>');
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::election_timeout_action:evt=:<',evt,'>');
+    }
+  },
+
+
+  vote_request_follower_action: (context, evt) => {
+    if(LOG.trace) {
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::vote_request_follower_action:context=:<',context,'>');
+    }
+    const ee = context.context.ee;
+    if(LOG.trace) {
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::vote_request_follower_action:ee=:<',ee,'>');
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::vote_request_follower_action:evt=:<',evt,'>');
+    }
+    const termLocal = context.context.term;
+    if(LOG.trace) {
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::vote_request_candidate_action:termLocal=:<',termLocal,'>');
+    }
+    const remoteVote = evt.payload.vote;
+    if(LOG.trace) {
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::vote_request_candidate_action:remoteVote=:<',remoteVote,'>');
+    }
+    if(termLocal > remoteVote.term) {
+      remoteVote.reason = `termLocal ${termLocal} > remoteVote.term ${remoteVote.term}`;
+      ee.emit('otmc.mqtt.node.raft.action',{type:'refuse_vote'},remoteVote);
+    } else {
+      ee.emit('otmc.mqtt.node.raft.action',{type:'agree_vote'},remoteVote);
+    }
+  },
+  vote_request_candidate_action: (context) => {
+    if(LOG.trace) {
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::vote_request_candidate_action:context=:<',context,'>');
+    }
+    const ee = context.context.ee;
+    const evt = context.event;
+    if(LOG.trace) {
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::vote_request_candidate_action:ee=:<',ee,'>');
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::vote_request_candidate_action:evt=:<',evt,'>');
+    }
+    const termLocal = context.context.term;
+    if(LOG.trace) {
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::vote_request_candidate_action:termLocal=:<',termLocal,'>');
+    }
+    const remoteVote = evt.payload.vote;
+    if(LOG.trace) {
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::vote_request_candidate_action:remoteVote=:<',remoteVote,'>');
+    }
+    if(termLocal < remoteVote.term) {
+      ee.emit('otmc.mqtt.node.raft.action',{type:'vote_agreed'},remoteVote);
+    }
+    if(termLocal === remoteVote.term) {
+      const weightLocal = context.context.weight;
+      if(LOG.trace) {
+        console.log('MqttNodeRaftState::mqttNodeRaftActionTable::vote_request_candidate_action:weightLocal=:<',weightLocal,'>');
+      }
+      if(weightLocal > remoteVote.weight) {
+      remoteVote.reason = `weightLocal ${weightLocal} > remoteVote.weight ${remoteVote.weight}`;
+        ee.emit('otmc.mqtt.node.raft.action',{type:'refuse_vote'},remoteVote);
+      } else {
+        ee.emit('otmc.mqtt.node.raft.action',{type:'agree_vote'},remoteVote);
+      }
+    }
+    if(termLocal > remoteVote.term) {
+      remoteVote.reason = `termLocal ${termLocal} > remoteVote.term ${remoteVote.term}`;
+      ee.emit('otmc.mqtt.node.raft.action',{type:'refuse_vote'},remoteVote);
     }
   },
 };

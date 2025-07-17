@@ -142,6 +142,10 @@ const mqttNodeRaftStateTable = {
     entry: ['leader_entry'],
     exit: ['leader_leave'],
     on: {
+      VOTE_REQUEST: {
+        target: 'leader',
+        actions: ['vote_request_leader_action'],
+      },
       DISCOVER_HIGHER_TERM: {
         target: 'follower',
         actions: ['discover_higher_term_action'],
@@ -232,6 +236,7 @@ const mqttNodeRaftActionTable = {
   },
 
 
+  // action of vote request.
   vote_request_follower_action: (context, evt) => {
     if(LOG.trace) {
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::vote_request_follower_action:context=:<',context,'>');
@@ -294,4 +299,21 @@ const mqttNodeRaftActionTable = {
       ee.emit('otmc.mqtt.node.raft.action',{type:'refuse_vote'},remoteVote);
     }
   },
+  vote_request_leader_action: (context, evt) => {
+    if(LOG.trace) {
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::vote_request_leader_action:context=:<',context,'>');
+    }
+    const ee = context.context.ee;
+    if(LOG.trace) {
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::vote_request_leader_action:ee=:<',ee,'>');
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::vote_request_leader_action:evt=:<',evt,'>');
+    }
+    const remoteVote = evt.payload.vote;
+    if(LOG.trace) {
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::vote_request_leader_action:remoteVote=:<',remoteVote,'>');
+    }
+    remoteVote.reason = `leader is here`;
+    ee.emit('otmc.mqtt.node.raft.action',{type:'refuse_vote'},remoteVote);
+  },
+
 };

@@ -98,6 +98,9 @@ const mqttNodeRaftStateTable = {
         target: 'follower',
         actions: ['vote_request_follower_action'],
       },
+      VOTE_REQUEST_REPLY: {
+        target: 'follower_voting',
+      },
       HEATBEAT_TIMEOUT: {
         target: 'candidate',
         //actions: ['election_timeout_action'],
@@ -115,6 +118,8 @@ const mqttNodeRaftStateTable = {
       }
     }
   },
+  follower_voting: {
+  },
   candidate: {
     entry: ['candidate_entry'],
     exit: ['candidate_leave'],
@@ -125,17 +130,29 @@ const mqttNodeRaftStateTable = {
         ],
         target: 'candidate',
       },
+      VOTE_REQUEST_REPLY: {
+        target: 'candidate_voting',
+      },
       VOTE_GRANTED: {
         actions: [
           'vote_granted_action',
         ],
         target: 'leader',
-        cond: (ctx) => ctx.votesReceived + 1 >= 3 
       },
       DISCOVER_HIGHER_TERM: {
         target: 'follower',
         actions: ['discover_higher_term_action'],
       }
+    }
+  },
+  candidate_voting: {
+    on: {
+      VOTE_GRANTED: {
+        actions: [
+          'vote_granted_action',
+        ],
+        target: 'leader',
+      },
     }
   },
   leader: {
@@ -212,6 +229,8 @@ const mqttNodeRaftActionTable = {
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::leader_entry:ee=:<',ee,'>');
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::leader_entry:evt=:<',evt,'>');
     }
+    ee.emit('otmc.mqtt.node.raft.action',{type:'entry_leader'},{});
+
   },
   leader_leave: (context, evt) => {
     if(LOG.trace) {
@@ -222,6 +241,7 @@ const mqttNodeRaftActionTable = {
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::leader_leave:ee=:<',ee,'>');
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::leader_leave:evt=:<',evt,'>');
     }
+    ee.emit('otmc.mqtt.node.raft.action',{type:'leave_leader'},{});
   },
 
   election_timeout_action: (context, evt) => {
@@ -259,6 +279,7 @@ const mqttNodeRaftActionTable = {
       ee.emit('otmc.mqtt.node.raft.action',{type:'refuse_vote'},remoteVote);
     } else {
       ee.emit('otmc.mqtt.node.raft.action',{type:'agree_vote'},remoteVote);
+      ee.emit('otmc.mqtt.node.raft.event',{type:'VOTE_REQUEST_REPLY'},remoteVote);
     }
   },
   vote_request_candidate_action: (context) => {
@@ -292,6 +313,7 @@ const mqttNodeRaftActionTable = {
         ee.emit('otmc.mqtt.node.raft.action',{type:'refuse_vote'},remoteVote);
       } else {
         ee.emit('otmc.mqtt.node.raft.action',{type:'agree_vote'},remoteVote);
+        ee.emit('otmc.mqtt.node.raft.event',{type:'VOTE_REQUEST_REPLY'},remoteVote);
       }
     }
     if(termLocal > remoteVote.term) {

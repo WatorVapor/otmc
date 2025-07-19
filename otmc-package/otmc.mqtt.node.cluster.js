@@ -2,9 +2,12 @@ import { MqttNodeRaftState } from './otmc.mqtt.node.raft.js';
 
 const iConstRaftHeartBroadcastIntervalMs = 5000;
 const iConstRaftHeartReceiverCheckIntervalMs = iConstRaftHeartBroadcastIntervalMs *2;
-const iConstRaftVoteDelayMs = iConstRaftHeartBroadcastIntervalMs/3;
+const iConstRaftHeartSentCheckIntervalMs = iConstRaftHeartBroadcastIntervalMs *2;
+const iConstRaftVoteRequestDelayMs = iConstRaftHeartBroadcastIntervalMs/3;
+const iConstRaftVoteReplyDelayMs = iConstRaftHeartBroadcastIntervalMs/3;
 
 const iConstNodeHeartBroadcastIntervalMs = 5000;
+const iConstRaftVoteAgreeRatio = 0.5;
 
 
 /**
@@ -35,7 +38,8 @@ export class MqttNodeCluster {
       count : 0,
     }
     this.voteRequestReceivedQue = [];
-    this.term = 0;
+    this.voteReplyReceivedQue = [];
+    this.leaderChecker = false;
   }
   ListenEventEmitter_() {
     if(this.trace0) {
@@ -72,6 +76,7 @@ export class MqttNodeCluster {
 
 
 
+    // mqtt messages between nodes in cluster
     this.ee.on('teamspace/node/cluster/node/announce',(evt)=>{
       if(self.trace0) {
         console.log('MqttNodeCluster::ListenEventEmitter_::evt=:<',evt,'>');
@@ -91,9 +96,27 @@ export class MqttNodeCluster {
       }
       self.onVoteReplyReceived_(evt);
     });
+    this.ee.on('teamspace/node/cluster/raft/heartbeat',(evt)=>{
+      if(self.trace0) {
+        console.log('MqttNodeCluster::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      self.onHeartbeatReceived_(evt);
+    });
 
   }
 
+  nodeHeartbeatBroadcast_() {
+    const myNodeid = this.auth.address();
+    const topic = 'teamspace/node/cluster/node/announce';
+    const payload = {
+      id : myNodeid,
+    }
+    if(this.trace0) {
+      console.log('MqttNodeCluster::nodeHeartbeatBroadcast_::payload=:<',payload,'>');     
+    }
+    this.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:payload}});
+    this.nodeAnnounced[myNodeid] = new Date();
+  }
   onNodeAnnounceReceived_(nodeAnnounceMsg) {
     if(this.trace0) {
       console.log('MqttNodeCluster::onNodeAnnounceReceived_::nodeAnnounceMsg=:<',nodeAnnounceMsg,'>');     
@@ -111,16 +134,7 @@ export class MqttNodeCluster {
       console.log('MqttNodeCluster::onNodeAnnounceReceived_::this.nodeAnnounced=:<',this.nodeAnnounced,'>');
     }
   }
-  nodeHeartbeatBroadcast_() {
-    const topic = 'teamspace/node/cluster/node/announce';
-    const payload = {
-      id : this.auth.address(),
-    }
-    if(this.trace0) {
-      console.log('MqttNodeCluster::nodeHeartbeatBroadcast_::payload=:<',payload,'>');     
-    }
-    this.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:payload}});
-  }
+
 
 
   dispatchAction_(actionType,payload) {
@@ -143,11 +157,17 @@ export class MqttNodeCluster {
     if(actionType === 'refuse_vote') {
       this.refuseVoteRequest_(payload);
     }
+    if(actionType === 'entry_leader') {
+      this.startAsLeader_(payload);
+    }
+    if(actionType === 'leave_leader') {
+      this.stopAsLeader_(payload);
+    }
   }
   startAsFollower_() {
     const self = this;
     this.followerChecker = setInterval(()=>{
-      self.checkRaftTimeout_();
+      self.checkRaftHeartBeatTimeout_();
     },iConstRaftHeartReceiverCheckIntervalMs);
   }
   stopAsFollower_() {
@@ -156,13 +176,13 @@ export class MqttNodeCluster {
       this.followerChecker = false;
     }
   }
-  checkRaftTimeout_() {
+  checkRaftHeartBeatTimeout_() {
     if(this.trace0) {
-      console.log('MqttNodeCluster::checkRaftTimeout_::this.heartbeatReceived=:<',this.heartbeatReceived,'>');
+      console.log('MqttNodeCluster::checkRaftHeartBeatTimeout_::this.heartbeatReceived=:<',this.heartbeatReceived,'>');
     }
     const elapsed = new Date() - this.heartbeatReceived.last;
     if(this.trace0) {
-      console.log('MqttNodeCluster::checkRaftTimeout_::elapsed=:<',elapsed,'>');
+      console.log('MqttNodeCluster::checkRaftHeartBeatTimeout_::elapsed=:<',elapsed,'>');
     }
     if(elapsed > iConstRaftHeartReceiverCheckIntervalMs) {
       this.ee.emit('otmc.mqtt.node.raft.event',{type:'HEATBEAT_TIMEOUT'},{});
@@ -187,9 +207,9 @@ export class MqttNodeCluster {
     // add to member vote request queue
     this.voteRequestReceivedQue.push(payload);
     const self = this;
-    this.voteDelayTimer = setTimeout(()=>{
+    this.voteRequestDealDelayTimer = setTimeout(()=>{
       self.dealVoteRequestWithDelay_();
-    },iConstRaftVoteDelayMs);
+    },iConstRaftVoteRequestDelayMs);
   }
   onVoteRequestReceived_(voteMsg) {
     if(this.trace0) {
@@ -204,15 +224,15 @@ export class MqttNodeCluster {
       console.log('MqttNodeCluster::onVoteRequestReceived_::this.voteRequestReceivedQue=:<',this.voteRequestReceivedQue,'>');
     }
     // cancel old vote rollout timer
-    if(this.voteDelayTimer) {
-      clearTimeout(this.voteDelayTimer);
-      this.voteDelayTimer = false;
+    if(this.voteRequestDealDelayTimer) {
+      clearTimeout(this.voteRequestDealDelayTimer);
+      this.voteRequestDealDelayTimer = false;
     }
     // restart new vote rollout timer
     const self = this;
-    this.voteDelayTimer = setTimeout(()=>{
+    this.voteRequestDealDelayTimer = setTimeout(()=>{
       self.dealVoteRequestWithDelay_();
-    },iConstRaftVoteDelayMs);
+    },iConstRaftVoteRequestDelayMs);
   }
   dealVoteRequestWithDelay_() {
     if(this.trace0) {
@@ -240,6 +260,15 @@ export class MqttNodeCluster {
       console.log('MqttNodeCluster::agreeVoteRequest_::payload=:<',payload,'>');     
     }
     this.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:payload}});
+    this.voteReplyReceivedQue.push(payload);
+    const self = this;
+    if(this.voteReplyDealDelayTimer) {
+      clearTimeout(this.voteReplyDealDelayTimer);
+      self.voteReplyDealDelayTimer = false;
+    }
+    this.voteReplyDealDelayTimer = setTimeout(()=>{
+      self.dealVoteReplyWithDelay_();
+    },iConstRaftVoteReplyDelayMs);
   }  
   refuseVoteRequest_(vote,reason) {
     console.log('MqttNodeCluster::refuseVoteRequest_::vote=:<',vote,'>');
@@ -261,6 +290,67 @@ export class MqttNodeCluster {
   onVoteReplyReceived_(voteReplyMsg) {
     if(this.trace0) {
       console.log('MqttNodeCluster::onVoteReplyReceived_::voteReplyMsg=:<',voteReplyMsg,'>');     
+    }
+    this.voteReplyReceivedQue.push(voteReplyMsg.payload);
+    const self = this;
+    if(this.voteReplyDealDelayTimer) {
+      clearTimeout(this.voteReplyDealDelayTimer);
+      self.voteReplyDealDelayTimer = false;
+    }
+    this.voteReplyDealDelayTimer = setTimeout(()=>{
+      self.dealVoteReplyWithDelay_();
+    },iConstRaftVoteReplyDelayMs);
+  }
+
+  dealVoteReplyWithDelay_() {
+    if(this.trace0) {
+      console.log('MqttNodeCluster::dealVoteReplyWithDelay_::this.voteReplyReceivedQue=:<',this.voteReplyReceivedQue,'>');
+    }
+    const grantedCount = this.voteReplyReceivedQue.filter(v => v.voteGranted === true).length;
+    if(this.trace0) {
+      console.log('MqttNodeCluster::dealVoteReplyWithDelay_::grantedCount=:<',grantedCount,'>');
+    }
+    const totalNodes = Object.keys(this.nodeAnnounced).length;
+    if(this.trace0) {
+      console.log('MqttNodeCluster::dealVoteReplyWithDelay_::totalNodes=:<',totalNodes,'>');
+    }
+    const voteAgreeRatio = grantedCount / totalNodes;
+    if(this.trace0) {
+      console.log('MqttNodeCluster::dealVoteReplyWithDelay_::voteAgreeRatio=:<',voteAgreeRatio,'>');
+    }
+    if(voteAgreeRatio > iConstRaftVoteAgreeRatio) {
+      console.log('MqttNodeCluster::dealVoteReplyWithDelay_::voteAgreeRatio>=iConstRaftVoteAgreeRatio,agree vote');
+      this.ee.emit('otmc.mqtt.node.raft.event',{type:'VOTE_GRANTED'},{ratio:voteAgreeRatio});
+    } else {
+    }
+  }
+
+  startAsLeader_() {
+    const self = this;
+    this.leaderChecker = setInterval(()=>{
+      self.sendRaftHeartBeat_();
+    },iConstRaftHeartSentCheckIntervalMs);
+  }
+  sendRaftHeartBeat_() {
+    const self = this;
+    const payload = {
+      term : self.raft.getTerm(),
+      leaderId : self.auth.address(),
+    }
+    if(this.trace0) {
+      console.log('MqttNodeCluster::sendRaftHeartBeat_::payload=:<',payload,'>');     
+    }
+    this.ee.emit('otmc.mqtt.publish',{msg:{topic:'teamspace/node/cluster/raft/heartbeat',payload:payload}});
+  }
+  onHeartbeatReceived_(heartbeatMsg) {
+    if(this.trace0) {
+      console.log('MqttNodeCluster::onHeartbeatReceived_::heartbeatMsg=:<',heartbeatMsg,'>');
+    }
+    this.heartbeatReceived.last = new Date();
+    this.heartbeatReceived.term = heartbeatMsg.payload.term;
+    this.heartbeatReceived.leaderId = heartbeatMsg.payload.leaderId;
+    if(this.trace0) {
+      console.log('MqttNodeCluster::onHeartbeatReceived_::heartbeatReceived=:<',this.heartbeatReceived,'>');
     }
   }
 }

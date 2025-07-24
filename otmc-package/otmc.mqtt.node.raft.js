@@ -21,6 +21,13 @@ export class MqttNodeRaftState {
     }
     return term;
   }
+  getState() {
+    const state = this.actor.getSnapshot().value;
+    if(this.trace10) {
+      console.log('MqttNodeRaftState::getState::state=:<',state,'>');
+    }
+    return state;
+  }
   ListenEventEmitter_() {
     if(this.trace0) {
       console.log('MqttNodeRaftState::ListenEventEmitter_::this.ee=:<',this.ee,'>');
@@ -119,6 +126,12 @@ const mqttNodeRaftStateTable = {
     }
   },
   follower_voting: {
+    on: {
+      LEADER_HEARTBEAT: {
+        target: 'follower',
+        actions: ['leader_heartbeat_action'],
+      },
+    }
   },
   candidate: {
     entry: ['candidate_entry'],
@@ -153,6 +166,10 @@ const mqttNodeRaftStateTable = {
         ],
         target: 'leader',
       },
+      LEADER_HEARTBEAT: {
+        target: 'follower',
+        actions: ['leader_heartbeat_action'],
+      },      
     }
   },
   leader: {
@@ -166,39 +183,45 @@ const mqttNodeRaftStateTable = {
       DISCOVER_HIGHER_TERM: {
         target: 'follower',
         actions: ['discover_higher_term_action'],
-      }
+      },
+      LEADER_HEARTBEAT: {
+        target: 'candidate',
+      },       
     }
   }
 }
 
 const mqttNodeRaftActionTable = {
-  follower_entry: (context, evt) => {
+  follower_entry: (context) => {
     if(LOG.trace) {
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::follower_entry:context=:<',context,'>');
     }
     const ee = context.context.ee;
+    const evt = context.event;
     if(LOG.trace) {
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::follower_entry:ee=:<',ee,'>');
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::follower_entry:evt=:<',evt,'>');
     }
     ee.emit('otmc.mqtt.node.raft.action',{type:'entry_follower'},{});
   },
-  follower_leave: (context, evt) => {
+  follower_leave: (context) => {
     if(LOG.trace) {
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::follower_leave:context=:<',context,'>');
     }
     const ee = context.context.ee;
+    const evt = context.event;
     if(LOG.trace) {
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::follower_leave:ee=:<',ee,'>');
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::follower_leave:evt=:<',evt,'>');
     }
     ee.emit('otmc.mqtt.node.raft.action',{type:'leave_follower'},{});
   },
-  candidate_entry: (context, evt) => {
+  candidate_entry: (context) => {
     if(LOG.trace) {
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::candidate_entry:context=:<',context,'>');
     }
     const ee = context.context.ee;
+    const evt = context.event;
     if(LOG.trace) {
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::candidate_entry:ee=:<',ee,'>');
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::candidate_entry:evt=:<',evt,'>');
@@ -207,24 +230,27 @@ const mqttNodeRaftActionTable = {
     if(LOG.trace) {
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::candidate_entry:weight=:<',weight,'>');
     }
+    context.context.term = context.context.term + 1;
     ee.emit('otmc.mqtt.node.raft.action',{type:'entry_candidate'},{weight:weight});
 
   },
-  candidate_leave: (context, evt) => {
+  candidate_leave: (context) => {
     if(LOG.trace) {
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::candidate_leave:context=:<',context,'>');
     }
     const ee = context.context.ee;
+    const evt = context.event;
     if(LOG.trace) {
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::candidate_leave:ee=:<',ee,'>');
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::candidate_leave:evt=:<',evt,'>');
     }
   },
-  leader_entry: (context, evt) => {
+  leader_entry: (context) => {
     if(LOG.trace) {
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::leader_entry:context=:<',context,'>');
     }
     const ee = context.context.ee;
+    const evt = context.event;
     if(LOG.trace) {
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::leader_entry:ee=:<',ee,'>');
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::leader_entry:evt=:<',evt,'>');
@@ -232,11 +258,12 @@ const mqttNodeRaftActionTable = {
     ee.emit('otmc.mqtt.node.raft.action',{type:'entry_leader'},{});
 
   },
-  leader_leave: (context, evt) => {
+  leader_leave: (context) => {
     if(LOG.trace) {
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::leader_leave:context=:<',context,'>');
     }
     const ee = context.context.ee;
+    const evt = context.event;
     if(LOG.trace) {
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::leader_leave:ee=:<',ee,'>');
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::leader_leave:evt=:<',evt,'>');
@@ -244,11 +271,12 @@ const mqttNodeRaftActionTable = {
     ee.emit('otmc.mqtt.node.raft.action',{type:'leave_leader'},{});
   },
 
-  election_timeout_action: (context, evt) => {
+  election_timeout_action: (context) => {
     if(LOG.trace) {
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::election_timeout_action:context=:<',context,'>');
     }
     const ee = context.context.ee;
+    const evt = context.event;
     if(LOG.trace) {
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::election_timeout_action:ee=:<',ee,'>');
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::election_timeout_action:evt=:<',evt,'>');
@@ -257,11 +285,12 @@ const mqttNodeRaftActionTable = {
 
 
   // action of vote request.
-  vote_request_follower_action: (context, evt) => {
+  vote_request_follower_action: (context) => {
     if(LOG.trace) {
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::vote_request_follower_action:context=:<',context,'>');
     }
     const ee = context.context.ee;
+    const evt = context.event;
     if(LOG.trace) {
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::vote_request_follower_action:ee=:<',ee,'>');
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::vote_request_follower_action:evt=:<',evt,'>');
@@ -321,11 +350,12 @@ const mqttNodeRaftActionTable = {
       ee.emit('otmc.mqtt.node.raft.action',{type:'refuse_vote'},remoteVote);
     }
   },
-  vote_request_leader_action: (context, evt) => {
+  vote_request_leader_action: (context) => {
     if(LOG.trace) {
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::vote_request_leader_action:context=:<',context,'>');
     }
     const ee = context.context.ee;
+    const evt = context.event;
     if(LOG.trace) {
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::vote_request_leader_action:ee=:<',ee,'>');
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::vote_request_leader_action:evt=:<',evt,'>');
@@ -337,5 +367,17 @@ const mqttNodeRaftActionTable = {
     remoteVote.reason = `leader is here`;
     ee.emit('otmc.mqtt.node.raft.action',{type:'refuse_vote'},remoteVote);
   },
+  leader_heartbeat_action: (context) => {
+    if(LOG.trace) {
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::leader_heartbeat_action:context=:<',context,'>');
+    }
+    const ee = context.context.ee;
+    const evt = context.event;
+    if(LOG.trace) {
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::leader_heartbeat_action:ee=:<',ee,'>');
+      console.log('MqttNodeRaftState::mqttNodeRaftActionTable::leader_heartbeat_action:evt=:<',evt,'>');
+    }
+    context.context.term = evt.payload.heartbeat.term;
+  }
 
 };

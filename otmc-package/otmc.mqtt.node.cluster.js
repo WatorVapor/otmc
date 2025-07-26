@@ -117,6 +117,7 @@ export class MqttNodeCluster {
     }
     this.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:payload}});
     this.nodeAnnounced[myNodeid] = new Date();
+    this.checkOfflineNode_();
   }
   onNodeAnnounceReceived_(nodeAnnounceMsg) {
     if(this.trace0) {
@@ -133,6 +134,23 @@ export class MqttNodeCluster {
     this.nodeAnnounced[nodeId] = new Date();
     if(this.trace0) {
       console.log('MqttNodeCluster::onNodeAnnounceReceived_::this.nodeAnnounced=:<',this.nodeAnnounced,'>');
+    }
+  }
+  checkOfflineNode_() {
+    for(const key in this.nodeAnnounced) {
+      if(this.trace0) {
+        console.log('MqttNodeCluster::checkOfflineNode_::key=:<',key,'>');
+      }
+      const elapsed_ms = new Date() - this.nodeAnnounced[key];
+      if(this.trace0) {
+        console.log('MqttNodeCluster::checkOfflineNode_::elapsed_ms=:<',elapsed_ms,'>');
+      }
+      if(elapsed_ms > iConstNodeHeartBroadcastIntervalMs * 2) {
+        delete this.nodeAnnounced[key];
+      }
+    }
+    if(this.trace0) {
+      console.log('MqttNodeCluster::checkOfflineNode_::this.nodeAnnounced=:<',this.nodeAnnounced,'>');
     }
   }
 

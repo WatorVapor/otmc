@@ -107,6 +107,9 @@ export class EdcryptKeyLoader {
     this.eeOut.emit('edcrypt:didKeyList',edKeys);
   }
   async switchKey(keyId) {
+    if(!this.db) {
+      return;
+    }
     try {
       const edKeys = await this.db.edKey.toArray();
       if(this.trace) {

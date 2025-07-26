@@ -9,7 +9,7 @@ const iConstRaftVoteReplyDelayMs = iConstRaftHeartBroadcastIntervalMs/3;
 const iConstNodeHeartBroadcastIntervalMs = 5000;
 const iConstRaftVoteAgreeRatio = 0.5;
 
-
+const iConstRaftVoteDeadCheckIntervalMs = iConstRaftHeartBroadcastIntervalMs * 3;
 /**
 * MqttNodeCluster
 *
@@ -372,5 +372,25 @@ export class MqttNodeCluster {
       console.log('MqttNodeCluster::onHeartbeatReceived_::heartbeatReceived=:<',this.heartbeatReceived,'>');
     }
     this.ee.emit('otmc.mqtt.node.raft.event',{type:'LEADER_HEARTBEAT'},{heartbeat:this.heartbeatReceived});
+  }
+  checkDeadState_() {
+    const state = this.raft.getState();
+    if(this.trace0) {
+      console.log('MqttNodeCluster::checkDeadState_::state=:<',state,'>');
+    }
+    if(state === 'candidate_voting') {
+      let elapsed = 0;
+      if(this.lastDeadCheckTp) {
+        elapsed = new Date() - this.lastDeadCheckTp;
+        if(elapsed < iConstRaftVoteDeadCheckIntervalMs) {
+          return;
+        }
+      } else {
+        this.lastDeadCheckTp = new Date();
+        return;
+      }
+      this.ee.emit('otmc.mqtt.node.raft.event',{type:'VOTE_DEADLOCK'},{elapsed:elapsed});
+      this.lastDeadCheckTp = false;
+    }
   }
 }

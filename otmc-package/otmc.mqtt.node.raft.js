@@ -169,7 +169,10 @@ const mqttNodeRaftStateTable = {
       LEADER_HEARTBEAT: {
         target: 'follower',
         actions: ['leader_heartbeat_action'],
-      },      
+      },
+      VOTE_DEADLOCK: {
+        target: 'follower',
+      },            
     }
   },
   leader: {

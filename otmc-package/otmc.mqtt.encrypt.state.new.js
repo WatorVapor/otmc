@@ -1,6 +1,5 @@
 import { createMachine, createActor }  from 'xstate';
-const kVoteDeadline = 3*1000;
-const kVoteFactor = 0.001;
+
 
 export class MqttEncrptStateMachine {
   constructor(ee) {

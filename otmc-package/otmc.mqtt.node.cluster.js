@@ -6,7 +6,7 @@ const iConstRaftHeartSentCheckIntervalMs = iConstRaftHeartBroadcastIntervalMs *2
 const iConstRaftVoteRequestDelayMs = iConstRaftHeartBroadcastIntervalMs/3;
 const iConstRaftVoteReplyDelayMs = iConstRaftHeartBroadcastIntervalMs/3;
 
-const iConstNodeHeartBroadcastIntervalMs = 5000;
+const iConstNodeAnnounceBroadcastIntervalMs = 5000;
 const iConstRaftVoteAgreeRatio = 0.5;
 
 const iConstRaftVoteDeadCheckIntervalMs = iConstRaftHeartBroadcastIntervalMs * 3;
@@ -20,8 +20,8 @@ const iConstRaftVoteDeadCheckIntervalMs = iConstRaftHeartBroadcastIntervalMs * 3
 export class MqttNodeCluster {
   constructor(eeInternal) {
     this.ee = eeInternal;
-    this.trace0 = true;
-    this.trace1 = true;
+    this.trace0 = false;
+    this.trace1 = false;
     this.trace = true;
     this.debug = true;
     this.raft = new MqttNodeRaftState(this.ee);
@@ -62,9 +62,9 @@ export class MqttNodeCluster {
       if(evt.first) {
         self.ee.emit('otmc.mqtt.node.raft.event',{type:'MQTT_CONNECTED'},{});
         this.nodeAnnounceInterval = setInterval(()=>{
-          self.nodeHeartbeatBroadcast_();
+          self.nodeAnnounceBroadcast_();
           self.checkDeadState_();
-        },iConstNodeHeartBroadcastIntervalMs);
+        },iConstNodeAnnounceBroadcastIntervalMs);
       }
     });
     this.ee.on('otmc.mqtt.node.raft.action',(evt,payload)=>{
@@ -106,14 +106,14 @@ export class MqttNodeCluster {
 
   }
 
-  nodeHeartbeatBroadcast_() {
+  nodeAnnounceBroadcast_() {
     const myNodeid = this.auth.address();
     const topic = 'teamspace/node/cluster/node/announce';
     const payload = {
       id : myNodeid,
     }
     if(this.trace0) {
-      console.log('MqttNodeCluster::nodeHeartbeatBroadcast_::payload=:<',payload,'>');     
+      console.log('MqttNodeCluster::nodeAnnounceBroadcast_::payload=:<',payload,'>');     
     }
     this.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:payload}});
     this.nodeAnnounced[myNodeid] = new Date();
@@ -145,7 +145,7 @@ export class MqttNodeCluster {
       if(this.trace0) {
         console.log('MqttNodeCluster::checkOfflineNode_::elapsed_ms=:<',elapsed_ms,'>');
       }
-      if(elapsed_ms > iConstNodeHeartBroadcastIntervalMs * 2) {
+      if(elapsed_ms > iConstNodeAnnounceBroadcastIntervalMs * 2) {
         delete this.nodeAnnounced[key];
       }
     }
@@ -393,7 +393,7 @@ export class MqttNodeCluster {
   }
   checkDeadState_() {
     const state = this.raft.getState();
-    if(this.trace0) {
+    if(this.trace) {
       console.log('MqttNodeCluster::checkDeadState_::state=:<',state,'>');
     }
     if(state === 'candidate_voting') {

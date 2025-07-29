@@ -1,10 +1,10 @@
-import { createMachine, createActor ,assign}  from 'xstate';
+import { createMachine, createActor }  from 'xstate';
 
 export class MqttNodeRaftState {
   constructor(ee) {
     this.trace0 = false;
     this.trace1 = false;
-    this.trace10 = true;
+    this.trace10 = false;
     this.trace = true;
     this.debug = true;
     this.ee = ee;
@@ -84,7 +84,7 @@ export class MqttNodeRaftState {
 
 
 const LOG = {
-  trace:true,
+  trace:false,
   debug:true,
 };
 
@@ -206,6 +206,7 @@ const mqttNodeRaftActionTable = {
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::follower_entry:evt=:<',evt,'>');
     }
     ee.emit('otmc.mqtt.node.raft.action',{type:'entry_follower'},{});
+    ee.emit('otmc.mqtt.cluster.state.change',{role:'follower'},{});
   },
   follower_leave: (context) => {
     if(LOG.trace) {
@@ -259,7 +260,7 @@ const mqttNodeRaftActionTable = {
       console.log('MqttNodeRaftState::mqttNodeRaftActionTable::leader_entry:evt=:<',evt,'>');
     }
     ee.emit('otmc.mqtt.node.raft.action',{type:'entry_leader'},{});
-
+    ee.emit('otmc.mqtt.cluster.state.change',{role:'leader'},{});
   },
   leader_leave: (context) => {
     if(LOG.trace) {

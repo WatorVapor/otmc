@@ -7,6 +7,7 @@ export class MqttEncrptStateMachine {
     this.trace0 = false;
     this.trace1 = false;
     this.trace = false;
+    this.trace10 = true;
     this.debug = true;
     this.ee = ee;
     if(this.trace0) {
@@ -53,7 +54,12 @@ export class MqttEncrptStateMachine {
       if(self.trace0) {
         console.log('MqttEncrptStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
       }
-      this.actor.send({type:'vote-master-ready'});
+      self.actor.send({type:'vote-master-ready'});
+    });
+    this.ee.on('otmc.mqtt.cluster.state.change',async (evt)=>{
+      if(self.trace10) {
+        console.log('MqttEncrptStateMachine::ListenEventEmitter_::evt=:<',evt,'>');
+      }
     });
   }
   setECDH(ecdh) {

@@ -412,6 +412,12 @@ export class MqttEncryptChannel {
         nodeId:this.auth.address(),
         pubKeyJwk:this.ecdh.myPublicKeyJwk
       }
+      if(this.trace0) {
+        console.log('MqttEncryptChannel::broadCastPubKey_::topic=:<',topic,'>');
+      }
+      if(this.trace0) {
+        console.log('MqttEncryptChannel::broadCastPubKey_::payload=:<',payload,'>');
+      }
       this.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:payload}});
   }
   syncSharedKey4TeamSpace_(sharedkeyId) {

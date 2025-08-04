@@ -9,10 +9,6 @@ const iConstSharedKeyRegenMiliSec = 1000 * 60 * 60;
 //const iConstSharedKeyRegenMiliSec = 1000 * 5;
 const iConstIssueMilliSeconds = 1000 * 60 * 60;
 //const iConstIssueMilliSeconds = 1000 * 5;
-const iConstRevoteMilliSeconds = 1000 * 60 * 60;
-//const iConstRevoteMilliSeconds = 1000 * 6;
-
-
 
 
 const iConstLastTopSharedKey = 5;
@@ -37,7 +33,6 @@ export class MqttEncryptECDH {
     }
     this.teamSharedKeys = {};
     this.teamTopSharedKey = {};
-    this.voteTimeout = iConstRevoteMilliSeconds;
   }
   async loadMyECKey() {
     if(this.trace0) {
@@ -258,7 +253,7 @@ export class MqttEncryptECDH {
         if(this.trace0) {
           console.log('MqttEncryptECDH::calcSharedKeysOfNode::filter=<',filter,'>');
         }
-        let hintSecret = await this.db.secret.where(filter).first();
+        let hintSecret = await this.db.secretOfNode.where(filter).first();
         if(this.trace0) {
           console.log('MqttEncryptECDH::calcSharedKeysOfNode::hintSecret=<',hintSecret,'>');
         }
@@ -276,7 +271,7 @@ export class MqttEncryptECDH {
         if(this.trace0) {
           console.log('MqttEncryptECDH::calcSharedKeysOfNode::secret=<',secret,'>');
         }
-        const secretResult = await this.db.secret.put(secret);
+        const secretResult = await this.db.secretOfNode.put(secret);
         if(this.trace0) {
           console.log('MqttEncryptECDH::calcSharedKeysOfNode::secretResult=<',secretResult,'>');
         }
@@ -754,262 +749,8 @@ export class MqttEncryptECDH {
     }
   }
 
-  async checkServantVoteExpired() {
-    const did = this.otmc.did.didDoc_.id;
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::checkServantVoteExpired::did=<',did,'>');
-    }
-    const self = this;
-
-    const filter1 = {
-      did:did,
-    }
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::checkServantVoteExpired::filter1=:<',filter1,'>');
-    }
-    const servantVotes = await this.db.servantVote.where(filter1).and((vote)=>{
-      return self.filterOutTimeIsssed_(vote,iConstRevoteMilliSeconds);
-    }).toArray();
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::checkServantVoteExpired::servantVotes=<',servantVotes,'>');
-    }
-    const result = {};
-    if(servantVotes.length === 0) {
-      result.reVote = true;
-      result.servant = false;
-    }
-
-    let nonceMax = 0.0;
-    let nodeIdOfMax = ''; 
-    for(const servantVote of servantVotes ) {
-      if(this.trace0) {
-        console.log('MqttEncryptECDH::checkServantVoteExpired::servantVote=<',servantVote,'>');
-      }
-      result.reVote = false;
-      if(servantVote.nonce > nonceMax) {
-        nonceMax = servantVote.nonce;
-        nodeIdOfMax = servantVote.nodeId;
-      }
-    }
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::checkServantVoteExpired::nonceMax=<',nonceMax,'>');
-      console.log('MqttEncryptECDH::checkServantVoteExpired::nodeIdOfMax=<',nodeIdOfMax,'>');
-    }
-    if(nodeIdOfMax === this.auth.address()) {
-      result.servant = true;
-    } else {
-      result.servant = false;
-      // if other servant is down try revote.
-      result.reVote = true;
-    }
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::checkServantVoteExpired::result=<',result,'>');
-    }
-
-    const filter2 = {
-      did:did,
-      nodeId:this.auth.address()
-    }
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::checkServantVoteExpired::filter2=:<',filter2,'>');
-    }
-    let mySerantNonce = await this.db.servantVote.where(filter2).and((vote)=>{
-      return self.filterOutTimeIsssed_(vote,iConstRevoteMilliSeconds)
-    }).first();
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::checkServantVoteExpired::mySerantNonce=:<',mySerantNonce,'>');
-    }
-    if(!mySerantNonce) {
-      const storeVote = {
-        did:did,
-        nodeId:this.auth.address(),
-        issuedDate:(new Date()).toLocaleString(),
-        expireDate:null,
-        nonce:Math.random(),
-      }
-      const storeReult = await this.db.servantVote.put(storeVote);
-      if(this.trace0) {
-        console.log('MqttEncryptECDH::checkServantVoteExpired::storeReult=<',storeReult,'>');
-      }
-      if(isNode) {
-        await this.wrapper.exportData();
-      }  
-    }
-    return result;
-  }
-
-  async getServantVoteInTimeBound() {
-    const did = this.otmc.did.didDoc_.id;
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::getServantVoteInTimeBound::did=<',did,'>');
-    }
-    const self = this;
-    const filter1 = {
-      did:did,
-    }
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::getServantVoteInTimeBound::filter1=:<',filter1,'>');
-    }
-    const servantVotes = await this.db.servantVote.where(filter1).and((vote)=>{
-      return self.filterOutTimeIsssed_(vote,iConstRevoteMilliSeconds);
-    }).toArray();
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::getServantVoteInTimeBound::servantVotes=<',servantVotes,'>');
-    }
-    return servantVotes;
-  }
-
-  async collectServantVoteAtDeadline() {
-    const did = this.otmc.did.didDoc_.id;
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::collectServantVoteAtDeadline::did=<',did,'>');
-    }
-    const self = this;
-    const filter1 = {
-      did:did,
-    }
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::collectServantVoteAtDeadline::filter1=:<',filter1,'>');
-    }
-    const servantVotes = await this.db.servantVote.where(filter1).and((vote)=>{
-      return self.filterOutTimeIsssed_(vote,iConstRevoteMilliSeconds);
-    }).toArray();
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::collectServantVoteAtDeadline::servantVotes=<',servantVotes,'>');
-    }
-    const result = {};
-    let nonceMax = 0.0;
-    let nodeIdOfMax = ''; 
-    for(const servantVote of servantVotes ) {
-      if(this.trace0) {
-        console.log('MqttEncryptECDH::collectServantVoteAtDeadline::servantVote=<',servantVote,'>');
-      }
-      if(servantVote.nonce > nonceMax) {
-        nonceMax = servantVote.nonce;
-        nodeIdOfMax = servantVote.nodeId;
-      }
-    }
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::collectServantVoteAtDeadline::nonceMax=<',nonceMax,'>');
-      console.log('MqttEncryptECDH::collectServantVoteAtDeadline::nodeIdOfMax=<',nodeIdOfMax,'>');
-    }
-    if(nodeIdOfMax === this.auth.address()) {
-      result.servant = true;
-    } else {
-      result.servant = false;
-    }
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::collectServantVoteAtDeadline::result=<',result,'>');
-    }
-    return result;
-  }
 
 
-  async voteServant(did) {
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::voteServant::did=<',did,'>');
-    }
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::voteServant::did=<',did,'>');
-    }
-    const filter = {
-      did:did,
-      nodeId:this.auth.address()
-    }
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::voteServant::filter=<',filter,'>');
-    }
-    const servantVotes1 = await this.db.servantVote.where(filter).toArray();
-    const servantVotes = servantVotes1.sort((a, b) => new Date(a.issuedDate) - new Date(b.issuedDate));
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::voteServant::servantVotes=<',servantVotes,'>');
-    }
-    if(servantVotes && servantVotes.length >0) {
-      const lastVote = servantVotes[servantVotes.length - 1];
-      if(this.trace0) {
-        console.log('MqttEncryptECDH::voteServant::lastVote=<',lastVote,'>');
-      }
-      const issuedDate = new Date(lastVote.issuedDate);
-      const now = new Date();
-      const diff = now - issuedDate;
-      if(diff < iConstRevoteMilliSeconds) {
-        if(this.trace0) {
-          console.log('MqttEncryptECDH::voteServant::lastVote=<',lastVote,'>');
-        }
-        return lastVote;
-      } else {
-        lastVote.nonce = Math.random();
-        lastVote.issuedDate = (new Date()).toLocaleString();
-        if(this.trace0) {
-          console.log('MqttEncryptECDH::voteServant::lastVote=<',lastVote,'>');
-        }
-        const updateReult = await this.db.servantVote.update(lastVote.autoId,lastVote);
-        if(this.trace0) {
-          console.log('MqttEncryptECDH::voteServant::updateReult=<',updateReult,'>');
-        }
-        if(isNode) {
-          await this.wrapper.exportData();
-        }    
-        return lastVote;
-      }
-    }
-    // create a new vote.
-    const storeVote = {
-      did:did,
-      nodeId:this.auth.address(),
-      issuedDate:(new Date()).toLocaleString(),
-      expireDate:null,
-      nonce:Math.random(),
-    }
-    const storeReult = await this.db.servantVote.put(storeVote);
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::voteServant::storeReult=<',storeReult,'>');
-    }
-    if(isNode) {
-      await this.wrapper.exportData();
-    }
-    return storeVote;
-  }
-  async collectRemoteVoteServant(remoteVoteServant) {
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::collectRemoteVoteServant::remoteVoteServant=<',remoteVoteServant,'>');
-    }
-    delete remoteVoteServant.autoId;
-    const filter = {
-      did:remoteVoteServant.did,
-      nodeId:remoteVoteServant.nodeId
-    }
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::collectRemoteVoteServant::filter=<',filter,'>');
-    }
-    const servantVoteHint = await this.db.servantVote.where(filter).first();
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::collectRemoteVoteServant::servantVoteHint=<',servantVoteHint,'>');
-    }
-    if(servantVoteHint) {
-      const updateReult = await this.db.servantVote.update(servantVoteHint.autoId,remoteVoteServant);
-      if(this.trace0) {
-        console.log('MqttEncryptECDH::collectRemoteVoteServant::updateReult=<',updateReult,'>');
-      }      
-    } else {
-      const putReult = await this.db.servantVote.put(remoteVoteServant);
-      if(this.trace0) {
-        console.log('MqttEncryptECDH::collectRemoteVoteServant::putReult=<',putReult,'>');
-      }
-    }
-    if(isNode) {
-      await this.wrapper.exportData();
-    }
-  }
-
-  async updateAnnouncementRemoteServant(remoteVoteServantAnnouncement) {
-    if(this.trace0) {
-      console.log('MqttEncryptECDH::updateAnnouncementRemoteServant::remoteVoteServantAnnouncement=<',remoteVoteServantAnnouncement,'>');
-    }
-    for(const remoteVoteServant of remoteVoteServantAnnouncement) {
-      await this.collectRemoteVoteServant(remoteVoteServant);
-    }
-  }  
 
   initDB_() {
     if(isNode) {
@@ -1020,17 +761,14 @@ export class MqttEncryptECDH {
       ecdh: '++autoId,did,nodeId,createdDate,pubBase64,privBase64',
     });
     this.db.version(this.version).stores({
-      secret: '++autoId,did,myNodeId,remoteNodeId,secretBase64,issuedDate,expireDate',
+      secretOfNode: '++autoId,did,myNodeId,remoteNodeId,secretBase64,issuedDate,expireDate',
     });
     this.db.version(this.version).stores({
       secretOfTeamSpace: '++autoId,did,secretId,issuedDate,expireDate',
     });
     this.db.version(this.version).stores({
-      secretOfTeamSpaceEncrypted: '++autoId,distNodeId,encrypt,iv,srcNodeId,keyId',
-    });
-    this.db.version(this.version).stores({
-      servantVote: '++autoId,did,nodeId,issuedDate,expireDate,nonce',
-    });  
+      cacheEncryptedMsgOfTeamSpace: '++autoId,distNodeId,encrypt,iv,srcNodeId,keyId',
+    }); 
     if(isNode) {
       this.wrapper = new StoreNodeWrapper(this.db,this.config);
       this.wrapper.importData();
@@ -1187,11 +925,11 @@ export class MqttEncryptECDH {
       srcNodeId:mqttMsg.payload.srcNodeId,
       distNodeId:distNodeId,
     };
-    let hintCached = await this.db.secretOfTeamSpaceEncrypted.where(filter).first();
+    let hintCached = await this.db.cacheEncryptedMsgOfTeamSpace.where(filter).first();
     if(hintCached) {
       return;
     }
-    const encryptedCacheResult = await this.db.secretOfTeamSpaceEncrypted.put(encryptedCache);
+    const encryptedCacheResult = await this.db.cacheEncryptedMsgOfTeamSpace.put(encryptedCache);
     if(this.trace0) {
       console.log('MqttEncryptECDH::storeEncryptedCacheSharedKeysOfTeamSpace::encryptedCacheResult=<',encryptedCacheResult,'>');
     }
@@ -1200,7 +938,7 @@ export class MqttEncryptECDH {
     }
   }
   async getEncryptedCacheMsg() {
-    const cachedMsg = await this.db.secretOfTeamSpaceEncrypted
+    const cachedMsg = await this.db.cacheEncryptedMsgOfTeamSpace
     .filter((msg) => {
       return this.filterOutTimeIsssed_(msg,iConstSharedKeyRegenMiliSec);
     })

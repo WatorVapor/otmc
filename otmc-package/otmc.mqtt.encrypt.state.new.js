@@ -158,6 +158,7 @@ const mqttEncrptActionTable = {
       console.log('MqttEncrptStateMachine::mqttEncrptActionTable::role_leader_entry:ecdh=:<',ecdh,'>');
       console.log('MqttEncrptStateMachine::mqttEncrptActionTable::role_leader_entry:evt=:<',evt,'>');
     }
+    ee.emit('mqtt.encrypt.xstate.action',{type:'leader_entry'});
     /*
     await ecdh.loadMyECKey();
     await ecdh.loadMemeberPubKey();
@@ -181,5 +182,6 @@ const mqttEncrptActionTable = {
       console.log('MqttEncrptStateMachine::mqttEncrptActionTable::role_follower_entry:ecdh=:<',ecdh,'>');
       console.log('MqttEncrptStateMachine::mqttEncrptActionTable::role_follower_entry:evt=:<',evt,'>');
     }
+    ee.emit('mqtt.encrypt.xstate.action',{type:'follower_entry'});
   }
 };

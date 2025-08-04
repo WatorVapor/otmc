@@ -1,11 +1,5 @@
 import { MqttJWTAgent } from './otmc.mqtt.jwt.js';
-import { MqttEncryptChannel } from './otmc.mqtt.encrypt.channel.js';
-
-const LEVEL_OPT = {
-  keyEncoding: 'utf8',
-  valueEncoding: 'utf8',
-};
-
+import { MqttEncryptChannel } from './otmc.mqtt.encrypt.channel.new.js';
 
 /**
 *

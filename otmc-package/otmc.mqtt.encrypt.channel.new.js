@@ -1,5 +1,5 @@
 import { MqttEncryptECDH } from './otmc.mqtt.encrypt.ecdh.js';
-import { MqttEncrptStateMachine } from './otmc.mqtt.encrypt.state.js';
+import { MqttEncrptStateMachine } from './otmc.mqtt.encrypt.state.new.js';
 /**
 *
 */
@@ -75,6 +75,7 @@ export class MqttEncryptChannel {
       }
     });
 
+    /*
     this.ee.on('xstate.action.mqtt.publish.ecdh.pubkey',async (evt)=>{
       if(self.trace0) {
         console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
@@ -125,9 +126,20 @@ export class MqttEncryptChannel {
       }
       self.servant = false;
     });
+    */
+    this.ee.on('mqtt.encrypt.xstate.action',async (evt,payload)=>{
+      if(self.trace0) {
+        console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
+        console.log('MqttEncryptChannel::ListenEventEmitter_::payload=:<',payload,'>');
+      }
+      if(evt.type == 'follower_entry') {
+        self.onFollowerEntry_(payload);
+      } else if(evt.type == 'leader_entry') {
+        self.onLeaderEntry_(payload);
+      }
+    });
 
-
-
+    /*
     this.ee.on('teamspace/secret/encrypt/ecdh/servant/vote',async (evt)=>{
       if(self.trace0) {
         console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');      
@@ -166,6 +178,8 @@ export class MqttEncryptChannel {
       }
       await self.ecdh.updateAnnouncementRemoteServant(evt.payload.voteEvidence);
     });
+    */
+
     this.ee.on('teamspace/secret/encrypt/ecdh/sync/sharedKey',async (evt)=>{
       if(self.trace0) {
         console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
@@ -217,7 +231,7 @@ export class MqttEncryptChannel {
         self.ee.emit('otmc.mqtt.publish',{msg:msg});
       }
       self.tryDecryptCacheMessage_();
-      self.ee.emit('otmc.mqtt.encrypt.channel.refresh',evt);      
+      self.ee.emit('otmc.mqtt.encrypt.channel.refresh',evt);
     });
   
     this.ee.on('mqtt.encrypt.channel.decrypt.message',async (evt)=>{
@@ -255,6 +269,35 @@ export class MqttEncryptChannel {
       }
     });
   }
+  async onFollowerEntry_(payload) {
+    if(this.trace0) {
+      console.log('MqttEncryptChannel::onFollowerEntry_::payload=:<',payload,'>');
+    }
+    await this.ecdh.loadMyECKey();
+    await this.ecdh.loadMemeberPubKey();
+    await this.ecdh.calcSharedKeysOfNode();
+    await this.ecdh.loadSharedKeyOfTeamSpace();
+    this.broadCastPubKey_();
+  }
+  async onLeaderEntry_(payload) {
+    if(this.trace0) {
+      console.log('MqttEncryptChannel::onLeaderEntry_::payload=:<',payload,'>');
+    }
+    await this.ecdh.loadMyECKey();
+    await this.ecdh.loadMemeberPubKey();
+    await this.ecdh.calcSharedKeysOfNode();
+    await this.ecdh.loadSharedKeyOfTeamSpace();
+    this.broadCastPubKey_();
+    await this.ecdh.prepareSharedKeysOfTeamSpace();
+    const unicastMsg = await this.ecdh.createUnicastMessage4SharedKeysOfTeamSpace();
+    if(this.trace0) {
+      console.log('MqttEncryptChannel::onLeaderEntry_::unicastMsg=:<',unicastMsg,'>');
+    }
+    for(const msg of unicastMsg) {
+      this.ee.emit('otmc.mqtt.publish',{msg:msg});
+    }
+  }
+
   async encryptMsgPayload4TeamSpace_(mqttMsg) {
     if(this.trace0) {
       console.log('MqttEncryptChannel::encryptMsgPayload4TeamSpace_::mqttMsg=:<',mqttMsg,'>');

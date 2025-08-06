@@ -131,6 +131,10 @@ const mqttNodeRaftStateTable = {
         target: 'follower',
         actions: ['leader_heartbeat_action'],
       },
+      VOTE_REQUEST: {
+        target: 'follower_voting',
+        actions: ['vote_request_follower_action'],
+      },
     }
   },
   candidate: {

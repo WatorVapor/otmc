@@ -15,11 +15,11 @@ const loadLastSavedKeyIdSelection = () => {
   try {
     const didKeySelected = localStorage.getItem(appStoreDidKeySelected);
     if(TEAM.trace) {
-      console.log('loadLastSavedKeyIdSelection::didKeySelected=:<',didKeySelected,'>');
+      console.log('DidTeam::loadLastSavedKeyIdSelection::didKeySelected=:<',didKeySelected,'>');
     }
     return didKeySelected;
   } catch(err) {
-    console.error('loadLastSavedKeyIdSelection::err=:<',err,'>');
+    console.error('DidTeam::loadLastSavedKeyIdSelection::err=:<',err,'>');
   }
   return null;
 }
@@ -40,16 +40,16 @@ const edcryptKeyOption = {
   },
   methods: {
     clickStartMining(evt) {
-      console.log('clickStartMining::this=:<',this,'>');
+      console.log('DidTeam::clickStartMining::this=:<',this,'>');
       this.isMining = true;
       const otmc = this.otmc;
-      console.log('clickStartMining::otmc=:<',otmc,'>');
+      console.log('DidTeam::clickStartMining::otmc=:<',otmc,'>');
       otmc.startMining();
     },
     changeDidKeySelected(evt) {
-      console.log('changeDidKeySelected::this.didKeySelected=:<',this.didKeySelected,'>');
+      console.log('DidTeam::changeDidKeySelected::this.didKeySelected=:<',this.didKeySelected,'>');
       const otmc = this.otmc;
-      console.log('changeDidKeySelected::otmc=:<',otmc,'>');
+      console.log('DidTeam::changeDidKeySelected::otmc=:<',otmc,'>');
       localStorage.setItem(appStoreDidKeySelected,this.didKeySelected);
       otmc.switchDidKey(this.didKeySelected);
     },
@@ -99,33 +99,33 @@ const didTeamOption = {
   },
   methods: {
     clickAddSeedControl(evt) {
-      console.log('clickAddSeedControl::this=:<',this,'>');
+      console.log('DidTeam::clickAddSeedControl::this=:<',this,'>');
       const otmc = this.otmc;
-      console.log('clickAddSeedControl::otmc=:<',otmc,'>');
-      console.log('clickAddSeedControl::this.create.controls=:<',this.create.controls,'>');
+      console.log('DidTeam::clickAddSeedControl::otmc=:<',otmc,'>');
+      console.log('DidTeam::clickAddSeedControl::this.create.controls=:<',this.create.controls,'>');
       let controllers = null;
       try { 
         controllers = JSON.parse(this.create.controls);
-        console.log('clickAddSeedControl::controllers=:<',controllers,'>');
+        console.log('DidTeam::clickAddSeedControl::controllers=:<',controllers,'>');
       } catch(err) {
-        console.log('clickAddSeedControl::err=:<',err,'>');
+        console.log('DidTeam::clickAddSeedControl::err=:<',err,'>');
         controllers = [];
       }
       controllers.push(this.create.control);
       this.create.controls = JSON.stringify(controllers);
     },
     clickCreateDidTeamSeedCtrler(evt) {
-      console.log('clickCreateDidTeamSeedCtrler::this=:<',this,'>');
+      console.log('DidTeam::clickCreateDidTeamSeedCtrler::this=:<',this,'>');
       const otmc = this.otmc;
-      console.log('clickCreateDidTeamSeedCtrler::otmc=:<',otmc,'>');
+      console.log('DidTeam::clickCreateDidTeamSeedCtrler::otmc=:<',otmc,'>');
       let controllers = [];
       try {
         if(this.create.controls) {
           controllers = JSON.parse(this.create.controls);
-          console.log('clickCreateDidTeamSeedCtrler::controllers=:<',controllers,'>');
+          console.log('DidTeam::clickCreateDidTeamSeedCtrler::controllers=:<',controllers,'>');
         }
       } catch(err) {
-        console.error('clickCreateDidTeamSeedCtrler::err=:<',err,'>');
+        console.error('DidTeam::clickCreateDidTeamSeedCtrler::err=:<',err,'>');
         controllers = [];
       }
       controllers.push(this.create.control);
@@ -136,17 +136,17 @@ const didTeamOption = {
       }
     },
     clickCreateDidTeamSeedCtrlee(evt) {
-      console.log('clickCreateDidTeamSeedCtrlee::this=:<',this,'>');
+      console.log('DidTeam::clickCreateDidTeamSeedCtrlee::this=:<',this,'>');
       const otmc = this.otmc;
-      console.log('clickCreateDidTeamSeedCtrlee::otmc=:<',otmc,'>');
+      console.log('DidTeam::clickCreateDidTeamSeedCtrlee::otmc=:<',otmc,'>');
       let controllers = [];
       try {
         if(this.create.controls) {
           controllers = JSON.parse(this.create.controls);
-          console.log('clickCreateDidTeamSeedCtrlee::controllers=:<',controllers,'>');
+          console.log('DidTeam::clickCreateDidTeamSeedCtrlee::controllers=:<',controllers,'>');
         }
       } catch(err) {
-        console.error('clickCreateDidTeamSeedCtrlee::err=:<',err,'>');
+        console.error('DidTeam::clickCreateDidTeamSeedCtrlee::err=:<',err,'>');
         controllers = [];
       }
       controllers.push(this.create.control);
@@ -155,37 +155,37 @@ const didTeamOption = {
       }
     },
     clickSendJoinRequest2Controller(evt) {
-      console.log('clickSendJoinRequest2Controller::this=:<',this,'>');
+      console.log('DidTeam::clickSendJoinRequest2Controller::this=:<',this,'>');
       const otmc = this.otmc;
-      console.log('clickSendJoinRequest2Controller::otmc=:<',otmc,'>');
+      console.log('DidTeam::clickSendJoinRequest2Controller::otmc=:<',otmc,'>');
       otmc.createJoinTeamVCR(true);
     },
     clickSendJoinRequest2TeamMate(evt) {
-      console.log('clickSendJoinRequest2TeamMate::this=:<',this,'>');
+      console.log('DidTeam::clickSendJoinRequest2TeamMate::this=:<',this,'>');
       const otmc = this.otmc;
-      console.log('clickSendJoinRequest2TeamMate::otmc=:<',otmc,'>');
+      console.log('DidTeam::clickSendJoinRequest2TeamMate::otmc=:<',otmc,'>');
       otmc.createJoinTeamVCR(false);
     },
     clickJoinDidTeam(evt) {
-      console.log('clickJoinDidTeam::this=:<',this,'>');
+      console.log('DidTeam::clickJoinDidTeam::this=:<',this,'>');
       const otmc = this.otmc;
-      console.log('clickJoinDidTeam::otmc=:<',otmc,'>');
+      console.log('DidTeam::clickJoinDidTeam::otmc=:<',otmc,'>');
       const didDoc = otmc.joinDidTeamAsAuth(this.join.did);
-      console.log('clickJoinDidTeam::didDoc=:<',didDoc,'>');
+      console.log('DidTeam::clickJoinDidTeam::didDoc=:<',didDoc,'>');
       this.did.doc = JSON.stringify(didDoc,undefined,2);
       this.hasAddress = true;
     },
     clickRequestJoinTeam(evt) {
-      console.log('clickRequestJoinTeam::this=:<',this,'>');
+      console.log('DidTeam::clickRequestJoinTeam::this=:<',this,'>');
       const otmc = this.otmc;
-      console.log('clickRequestJoinTeam::otmc=:<',otmc,'>');
+      console.log('DidTeam::clickRequestJoinTeam::otmc=:<',otmc,'>');
       const didDoc = otmc.requestJoinDidTeam();
-      console.log('clickRequestJoinTeam::didDoc=:<',didDoc,'>');
+      console.log('DidTeam::clickRequestJoinTeam::didDoc=:<',didDoc,'>'); 
     },
     clickCheckEvidenceChain(evt) {
-      console.log('clickCheckEvidenceChain::this=:<',this,'>');
+      console.log('DidTeam::clickCheckEvidenceChain::this=:<',this,'>');
       const otmc = this.otmc;
-      console.log('clickCheckEvidenceChain::otmc=:<',otmc,'>');
+      console.log('DidTeam::clickCheckEvidenceChain::otmc=:<',otmc,'>');
       const didDoc = otmc.checkEvidenceChain();
     },
   }, 
@@ -205,18 +205,18 @@ const teamPropertyOption = {
   },
   methods: {
     changeTeamSpaceName(evt) {
-      console.log('v::this=:<',this,'>');
+      console.log('DidTeam::changeTeamSpaceName::this=:<',this,'>');
       const otmc = this.otmc;
-      console.log('changeTeamSpaceName::otmc=:<',otmc,'>');
+      console.log('DidTeam::changeTeamSpaceName::otmc=:<',otmc,'>');
       const teamProperty = {
         team: this.team,
       };
       otmc.changeTeamProperty(teamProperty);
     },
     changeTeamMemberName(evt) {
-      console.log('v::this=:<',this,'>');
+      console.log('DidTeam::changeTeamMemberName::this=:<',this,'>');
       const otmc = this.otmc;
-      console.log('changeTeamMemberName::otmc=:<',otmc,'>');
+      console.log('DidTeam::changeTeamMemberName::otmc=:<',otmc,'>');
       const teamProperty = {
         member: this.member,
       };
@@ -228,22 +228,22 @@ const teamPropertyOption = {
 const loadDidTeamApps = (evt) => {
   const appEdcryptKey = Vue.createApp(edcryptKeyOption);
   const edcryptKeyVM = appEdcryptKey.mount('#vue-ui-app-edcrypt-key');
-  console.log('loadDidTeamApps::edcryptKeyVM=:<',edcryptKeyVM,'>');
+  console.log('DidTeam::loadDidTeamApps::edcryptKeyVM=:<',edcryptKeyVM,'>');
   const selectedKeyId = loadLastSavedKeyIdSelection();
   edcryptKeyVM.didKeySelected = selectedKeyId;
   
   const appDidTeam = Vue.createApp(didTeamOption);
   const appDidVM = appDidTeam.mount('#vue-ui-app-did-team');
-  console.log('loadDidTeamApps::appDidVM=:<',appDidVM,'>');
+  console.log('DidTeam::loadDidTeamApps::appDidVM=:<',appDidVM,'>');
 
   const appTeamProperty = Vue.createApp(teamPropertyOption);
   const appPropertyVM = appTeamProperty.mount('#vue-ui-app-did-property');
-  console.log('loadDidTeamApps::appPropertyVM=:<',appPropertyVM,'>');
+  console.log('DidTeam::loadDidTeamApps::appPropertyVM=:<',appPropertyVM,'>');
 
   const otmc = new OtmcTeam();
-  console.log('loadDidTeamApps::otmc=:<',otmc,'>');
+  console.log('DidTeam::loadDidTeamApps::otmc=:<',otmc,'>');
   const mqtt = new OtmcMqtt();
-  console.log('loadDidTeamApps::mqtt=:<',mqtt,'>');
+  console.log('DidTeam::loadDidTeamApps::mqtt=:<',mqtt,'>');
 
   otmc.on('edcrypt:didKeyList',(didKeyList)=>{
     onDidKeyRefreshKeyApp(didKeyList,edcryptKeyVM);
@@ -256,11 +256,11 @@ const loadDidTeamApps = (evt) => {
     onAddressRefreshTeamApp(address,appDidVM);
   });
   otmc.on('edcrypt:mining',(mining)=>{
-    console.log('loadDidTeamApps::mining=:<',mining,'>');
+    console.log('DidTeam::loadDidTeamApps::mining=:<',mining,'>');
     edcryptKeyVM.mining = mining;
   });
   otmc.on('did:document',(didDoc)=>{
-    console.log('loadDidTeamApps::didDoc=:<',didDoc,'>');
+    console.log('DidTeam::loadDidTeamApps::didDoc=:<',didDoc,'>');
     if(didDoc) {
       appDidVM.did.id = didDoc.id;
       appDidVM.did.doc = JSON.stringify(didDoc,undefined,2);
@@ -270,15 +270,15 @@ const loadDidTeamApps = (evt) => {
   });
   
   otmc.on('did:team:evidence.auth',(status) => {
-    console.log('loadDidTeamApps::status=:<',status,'>');
+    console.log('DidTeam::loadDidTeamApps::status=:<',status,'>');
     appDidVM.status = status;
   });
   otmc.on('did:team:document.auth.result',(status) => {
-    console.log('loadDidTeamApps::status=:<',status,'>');
+    console.log('DidTeam::loadDidTeamApps::status=:<',status,'>');
     appDidVM.status = status;
   });  
   otmc.on('did:team:property',(property)=>{
-    console.log('loadDidTeamApps::property=:<',property,'>');
+    console.log('DidTeam::loadDidTeamApps::property=:<',property,'>');
     apps.accountProperty = JSON.parse(JSON.stringify(property));
     appPropertyVM.team = property.team;
     appPropertyVM.member = property.member;
@@ -286,20 +286,20 @@ const loadDidTeamApps = (evt) => {
   });
 
   mqtt.on('otmc.mqtt.encrypt.channel.refresh',(evtMqtt) => {
-    console.log('loadDidTeamApps::evtMqtt=:<',evtMqtt,'>');
+    console.log('DidTeam::loadDidTeamApps::evtMqtt=:<',evtMqtt,'>');
     onMqttEncrypteChannelRefresh(mqtt,otmc,appPropertyVM);
   });
 
   mqtt.on('otmc:mqtt:all',(msgMqtt) => {
-    console.log('loadDidTeamApps::msgMqtt=:<',msgMqtt,'>');
+    console.log('DidTeam::loadDidTeamApps::msgMqtt=:<',msgMqtt,'>');
     if(msgMqtt.sTopic.endsWith('secret/team/property/sync')) {
       onRemotePropertySync(msgMqtt.msg,appPropertyVM);
     }
   });
   mqtt.on('otmc:mqtt:encrypt:channel',(msgMqttEC) => {
-    console.log('loadDidTeamApps::msgMqttEC=:<',msgMqttEC,'>');
+    console.log('DidTeam::loadDidTeamApps::msgMqttEC=:<',msgMqttEC,'>'); 
   });
-  console.log('loadDidTeamApps::mqtt=:<',mqtt,'>');
+  console.log('DidTeam::loadDidTeamApps::mqtt=:<',mqtt,'>');
 
 
   edcryptKeyVM.otmc = otmc;
@@ -314,35 +314,35 @@ const loadDidTeamApps = (evt) => {
 }
 
 const onAddressRefreshKeyApp = (address,app) => {
-  console.log('onAddressRefreshKeyApp::address=:<',address,'>');  
-  console.log('onAddressRefreshKeyApp::app=:<',app,'>');
+  console.log('DidTeam::onAddressRefreshKeyApp::address=:<',address,'>');  
+  console.log('DidTeam::onAddressRefreshKeyApp::app=:<',app,'>');
   app.hasAddress = true;
   app.isMining = false;
 };
 
 const onAddressRefreshTeamApp = (address,app) => {
-  console.log('onAddressRefreshTeamApp::address=:<',address,'>');  
-  console.log('onAddressRefreshTeamApp::app=:<',app,'>');
+  console.log('DidTeam::onAddressRefreshTeamApp::address=:<',address,'>');  
+  console.log('DidTeam::onAddressRefreshTeamApp::app=:<',app,'>');
   app.edKeyReady = true;
 };
 
 
 const onDidKeyRefreshKeyApp = (didKeys,app) => {
-  console.log('onDidKeyRefreshKeyApp::didKeys=:<',didKeys,'>');  
-  console.log('onDidKeyRefreshKeyApp::app=:<',app,'>');
+  console.log('DidTeam::onDidKeyRefreshKeyApp::didKeys=:<',didKeys,'>');  
+  console.log('DidTeam::onDidKeyRefreshKeyApp::app=:<',app,'>');
   app.didKeyList = didKeys;
   app.isMining = false;
 };
 
 const onDidKeyRefreshTeamApp = (didKeys,app) => {
-  console.log('onDidKeyRefreshTeamApp::didKeys=:<',didKeys,'>');  
-  console.log('onDidKeyRefreshTeamApp::app=:<',app,'>');
+  console.log('DidTeam::onDidKeyRefreshTeamApp::didKeys=:<',didKeys,'>');  
+  console.log('DidTeam::onDidKeyRefreshTeamApp::app=:<',app,'>');
 };
 
-const onMqttEncrypteChannelRefresh = (mqtt,otmc) => {
-  console.log('onMqttEncrypteChannelRefresh::mqtt=:<',mqtt,'>');
-  console.log('onMqttEncrypteChannelRefresh::otmc=:<',otmc,'>');
-  console.log('onMqttEncrypteChannelRefresh::apps.accountProperty=:<',apps.accountProperty,'>');
+const onMqttEncrypteChannelRefresh = (mqtt,otmc,appPropertyVM) => {
+  console.log('DidTeam::onMqttEncrypteChannelRefresh::mqtt=:<',mqtt,'>');
+  console.log('DidTeam::onMqttEncrypteChannelRefresh::otmc=:<',otmc,'>');
+  console.log('DidTeam::onMqttEncrypteChannelRefresh::apps.accountProperty=:<',apps.accountProperty,'>');
   const syncMsg = { 
     topic:'team/property/sync',
     payload:apps.accountProperty,

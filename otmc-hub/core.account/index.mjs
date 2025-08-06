@@ -85,6 +85,18 @@ const onAccountSyncFromCloud = async (syncMsg) => {
     console.log('core.account::onAccountSyncFromCloud::syncMsg=<',syncMsg,'>');
   }
   try {
+    if(!syncMsg.decryptedMsg) {
+      if(LOG.debug) {
+        console.log('core.account::onAccountSyncFromCloud::syncMsg.decryptedMsg is null');
+      }
+      return;
+    }
+    if(!syncMsg.decryptedMsg.payload) {
+      if(LOG.debug) {
+        console.log('core.account::onAccountSyncFromCloud::syncMsg.decryptedMsg.payload is null');
+      }
+      return;
+    }
     const accountInfo = syncMsg.decryptedMsg.payload;
     if(LOG.trace0) {
       console.log('core.account::onAccountSyncFromCloud::accountInfo=<',accountInfo,'>');

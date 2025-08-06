@@ -258,7 +258,7 @@ export class MqttEncryptECDH {
           console.log('MqttEncryptECDH::calcSharedKeysOfNode::hintSecret=<',hintSecret,'>');
         }
         if(hintSecret) {
-          return;
+          continue;
         }
         const secret = {
           did:did,

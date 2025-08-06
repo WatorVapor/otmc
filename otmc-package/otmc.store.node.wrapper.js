@@ -38,6 +38,17 @@ export class StoreNodeWrapper {
     }
     await this.db.transaction('rw', this.db.tables, async () => {
       for (const [tableName, records] of Object.entries(data.tables)) {
+        if(this.trace) {
+          console.log('StoreNodeWrapper::importData::tableName=:<',tableName,'>');
+        }
+        if(this.debug) {
+          console.log('StoreNodeWrapper::importData::records=:<',records,'>');
+        }
+        if(!this.db[tableName]) {
+          if(this.debug) {
+            console.log('StoreNodeWrapper::importData::this.db=:<',this.db,'>');
+          }
+        }
         await this.db[tableName].clear();
         await this.db[tableName].bulkAdd(records);
       }

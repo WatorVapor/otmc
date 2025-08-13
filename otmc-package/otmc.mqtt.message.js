@@ -1,5 +1,5 @@
 import { MqttJWTAgent } from './otmc.mqtt.jwt.js';
-import { MqttEncryptChannel } from './otmc.mqtt.encrypt.channel.new.js';
+import { MqttEncryptChannel } from './otmc.mqtt.encrypt.channel.js';
 
 /**
 *

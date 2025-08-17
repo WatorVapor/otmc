@@ -15,7 +15,7 @@ services:
           cpus: '1.0'
           memory: 64M
   gateway:
-    image: node:22
+    image: node:24
     environment:
       TZ: Asia/Tokyo
     volumes:

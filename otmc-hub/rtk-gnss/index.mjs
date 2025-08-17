@@ -12,28 +12,57 @@ if(LOG.trace0) {
   console.log('::::RedisPass=<',RedisPass,'>');
 }
 
-const gConf = {};
-try {
-  const configPath = './config.json';
-  const configText = fs.readFileSync(configPath);
-  const config = JSON.parse(configText);
-  if(LOG.trace0) {
-    console.log('::::config=<',config,'>');
-  }
-  gConf.store = config.store;
-  fs.mkdirSync(`${gConf.store}/secretKey`, { recursive: true },);
-} catch ( err ) {
-  console.error('::::err=<',err,'>');
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+if(LOG.trace0) {
+  console.log('rtk-gnss::__dirname=<',__dirname,'>');
+}
+import { RedisPassProxy } from '../core.utils/redisPassProxy.mjs';
+if(LOG.trace0) {
+  console.log('rtk-gnss::RedisPassProxy=<',RedisPassProxy,'>');
 }
 
-const redis = new RedisPass(gConf,()=>{
-  if(LOG.trace0) {
-    console.log('::::redis.ready=<',redis.ready,'>');
-  }
-});
+import { OtmcConfig } from '../core.utils/otmcConfig.mjs';
 if(LOG.trace0) {
-  console.log('::::redis=<',redis,'>');
+  console.log('rtk-gnss::OtmcConfig=<',OtmcConfig,'>');
 }
+const gConf = OtmcConfig.load(__dirname);
+if(LOG.trace0) {
+  console.log('rtk-gnss::gConf=<',gConf,'>');
+}
+
+const onRedisReady = ()=>{
+  if(LOG.trace0) {
+    console.log('rtk-gnss::onRedisReady::redisProxy.ready=<',redisProxy.ready,'>');
+  }
+  createSubscriber();
+  setTimeout(()=>{
+    syncLocal2Clound();
+  },1000);
+}
+
+const redisProxy = new RedisPassProxy(gConf,onRedisReady,);
+if(LOG.trace0) {
+  console.log('rtk-gnss::redisProxy=<',redisProxy,'>');
+}
+
+const createSubscriber = ()=>{
+  if(LOG.trace0) {
+    console.log('rtk-gnss::createSubscriber::redisProxy.ready=<',redisProxy.ready,'>');
+  }
+  redisProxy.setPlainListener(plainCloudMsgListener);  
+}
+
+const plainCloudMsgListener = (topic,msg)=>{
+  if(LOG.trace0) {
+    console.log('rtk-gnss::plainCloudMsgListener::topic=<',topic,'>');
+    console.log('rtk-gnss::plainCloudMsgListener::msg=<',msg,'>');
+  }
+}
+
+
 /*
 SerialPort.list((err, ports)=>{
   console.log('::::ports=<',ports,'>');  
@@ -42,7 +71,7 @@ SerialPort.list((err, ports)=>{
 
 const port = new SerialPort({ path: '/dev/ttyUSB0', baudRate: 115200 });
 if(LOG.trace0) {
-  console.log('::::port=<',port,'>');
+  console.log('rtk-gnss::createSubscriber::port=<',port,'>');
 }
 port.on('data', (data) => {
   onRTCRawData(data);
@@ -63,7 +92,7 @@ const cutBadHead = () => {
     count++;
   }
   if(LOG.trace0) {
-    console.log('::cutBadHead::count=<',count,'>');
+    console.log('rtk-gnss::cutBadHead::count=<',count,'>');
   }
   gRcvRtcmBuf = gRcvRtcmBuf.slice(count);
 }
@@ -71,21 +100,21 @@ const cutBadHead = () => {
 let gRcvRtcmBuf = Buffer.from('');;
 const onRTCRawData = (rawData) => {
   if(LOG.trace0) {
-    console.log('::onRTCRawData::RtcmTransport.MAX_PACKET_SIZE=<',RtcmTransport.MAX_PACKET_SIZE,'>');
-    console.log('::onRTCRawData::rawData=<',rawData,'>');
-    console.log('::onRTCRawData::rawData=<',rawData.toString('utf-8'),'>');
+    console.log('rtk-gnss::onRTCRawData::RtcmTransport.MAX_PACKET_SIZE=<',RtcmTransport.MAX_PACKET_SIZE,'>');
+    console.log('rtk-gnss::onRTCRawData::rawData=<',rawData,'>');
+    console.log('rtk-gnss::onRTCRawData::rawData=<',rawData.toString('utf-8'),'>');
   }
   const arr = [gRcvRtcmBuf, rawData];
   gRcvRtcmBuf = Buffer.concat(arr);
   if(LOG.trace0) {
-    console.log('::onRTCRawData::gRcvRtcmBuf=<',gRcvRtcmBuf,'>');
+    console.log('rtk-gnss::onRTCRawData::gRcvRtcmBuf=<',gRcvRtcmBuf,'>');
   }
   try {
     cutBadHead();
     const [ rtcmMsg, length ]= RtcmTransport.decode(gRcvRtcmBuf);
     if(LOG.trace0) {
-      console.log('::onRTCRawData::rtcmMsg=<',rtcmMsg,'>');
-      console.log('::onRTCRawData::length=<',length,'>');
+      console.log('rtk-gnss::onRTCRawData::rtcmMsg=<',rtcmMsg,'>');
+      console.log('rtk-gnss::onRTCRawData::length=<',length,'>');
     }
     const rtcmFrame = gRcvRtcmBuf.slice(0,length);
     if(rtcmFrame.length > 0) {
@@ -93,46 +122,46 @@ const onRTCRawData = (rawData) => {
     }
     gRcvRtcmBuf = gRcvRtcmBuf.slice(length)
   } catch (err) {
-    //console.log('::onRTCRawData::err=<',err,'>');
+    //console.log('rtk-gnss::onRTCRawData::err=<',err,'>');
   }
 }
 const fConstUnitArpEcef = parseFloat(10000.0);
 const onRtcmOneFrame = (rtcmFrame) => {
   if(LOG.trace0) {
-    console.log('::onRtcmOneFrame::rtcmFrame=<',rtcmFrame,'>');
+    console.log('rtk-gnss::onRtcmOneFrame::rtcmFrame=<',rtcmFrame,'>');
   }
   if(LOG.trace0) {
-    console.log('::onRtcmOneFrame::rtcmFrame.length=<',rtcmFrame.length,'>');
+    console.log('rtk-gnss::onRtcmOneFrame::rtcmFrame.length=<',rtcmFrame.length,'>');
   }
   try {
     const [ rtcmMsg, length ]= RtcmTransport.decode(rtcmFrame);
     if(LOG.trace0) {
-      console.log('::onRtcmOneFrame::rtcmMsg=<',rtcmMsg,'>');
-      console.log('::onRtcmOneFrame::typeof rtcmMsg=<',typeof rtcmMsg,'>');
+      console.log('rtk-gnss::onRtcmOneFrame::rtcmMsg=<',rtcmMsg,'>');
+      console.log('rtk-gnss::onRtcmOneFrame::typeof rtcmMsg=<',typeof rtcmMsg,'>');
     }
     if(LOG.trace0) {
-      console.log('::onRtcmOneFrame::length=<',length,'>');
+      console.log('rtk-gnss::onRtcmOneFrame::length=<',length,'>');
     }
     const rtcmBase64 = rtcmFrame.toString('base64'); 
     if(LOG.trace0) {
-      console.log('::onRtcmOneFrame::rtcmBase64=<',rtcmBase64,'>');
+      console.log('rtk-gnss::onRtcmOneFrame::rtcmBase64=<',rtcmBase64,'>');
     }
-    if(redis.ready) {
+    if(redisProxy.ready) {
       const payload = {
         base64:rtcmBase64
       };
       if(LOG.trace0) {
-        console.log('::onRtcmOneFrame::payload=<',payload,'>');
+        console.log('rtk-gnss::onRtcmOneFrame::payload=<',payload,'>');
       }
-      redis.pubBroadcast('rtk-gnss/rtcm/3/base64',payload);
+      redisProxy.pubBroadcast('rtk-gnss/rtcm/3/base64',payload);
       if(rtcmMsg.gpsIndicator) {
         const ecefX = parseFloat(rtcmMsg.arpEcefX/fConstUnitArpEcef);
         const ecefY = parseFloat(rtcmMsg.arpEcefY/fConstUnitArpEcef);
         const ecefZ = parseFloat(rtcmMsg.arpEcefZ/fConstUnitArpEcef);
         const lla = Projector.unproject(ecefX, ecefY, ecefZ);
         if(LOG.trace0) {
-          console.log('::onRtcmOneFrame::rtcmMsg=<',rtcmMsg,'>');
-          console.log('::onRtcmOneFrame::lla=<',lla,'>');
+          console.log('rtk-gnss::onRtcmOneFrame::rtcmMsg=<',rtcmMsg,'>');
+          console.log('rtk-gnss::onRtcmOneFrame::lla=<',lla,'>');
         }
         /*
         const xyz = Projector.project(lla[0], lla[1], lla[2]);
@@ -147,13 +176,13 @@ const onRtcmOneFrame = (rtcmFrame) => {
           lla:lla
         };
         if(LOG.trace0) {
-          console.log('::onRtcmOneFrame::payload2=<',payload2,'>');
+          console.log('rtk-gnss::onRtcmOneFrame::payload2=<',payload2,'>');
         }
-        redis.pubBroadcast('rtk-gnss/rtcm/3/rtcmMsg',payload2);
+        redisProxy.pubBroadcast('rtk-gnss/rtcm/3/rtcmMsg',payload2);
       }
     }
   } catch (err) {
-    console.log('::onRtcmOneFrame::err=<',err,'>');
+    console.log('rtk-gnss::onRtcmOneFrame::err=<',err,'>');
   }
 };
 

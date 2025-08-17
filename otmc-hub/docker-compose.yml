@@ -19,11 +19,11 @@ services:
     environment:
       TZ: Asia/Tokyo
     volumes:
-      - ./gateway-node:/otmc/otmc-hub/gateway-node
+      - ../otmc-hub:/otmc/otmc-hub
       - ../otmc-package:/otmc/otmc-package
       - /opt/otmc/:/opt/otmc/
       - /dev/shm/:/dev/shm/
-    working_dir: '/otmc/otmc-hub/gateway-node'
+    working_dir: '/otmc/otmc-hub/core.gateway'
     command: node ./index.mjs
     deploy:
       resources:

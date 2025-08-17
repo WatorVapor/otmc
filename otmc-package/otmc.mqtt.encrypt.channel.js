@@ -63,47 +63,6 @@ export class MqttEncryptChannel {
       }
     });
 
-    /*
-    this.ee.on('teamspace/secret/encrypt/ecdh/servant/vote',async (evt)=>{
-      if(self.trace0) {
-        console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');      
-      }
-      const voteResult = await self.ecdh.voteServant(self.otmc.did.didDoc_.id);
-      if(self.trace0) {
-        console.log('MqttEncryptChannel::ListenEventEmitter_::voteResult=:<',voteResult,'>');      
-      }
-      if(voteResult) {
-        const topic = 'teamspace/secret/encrypt/ecdh/servant/voteResult';
-        const payload = {
-          did:self.otmc.did.didDoc_.id,
-          voteResult:voteResult
-        }
-        if(self.trace0) {
-          console.log('MqttEncryptChannel::ListenEventEmitter_::payload=:<',payload,'>');
-        }
-        self.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:payload}});
-      }
-    });
-    this.ee.on('teamspace/secret/encrypt/ecdh/servant/voteResult',async (evt)=>{
-      if(self.trace0) {
-        console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');      
-      }
-      if(self.trace0) {
-        console.log('MqttEncryptChannel::ListenEventEmitter_::self.ecdh=:<',self.ecdh,'>');
-      }
-      const voteCollectResult = await self.ecdh.collectRemoteVoteServant(evt.payload.voteResult);
-      if(self.trace0) {
-        console.log('MqttEncryptChannel::ListenEventEmitter_::voteCollectResult=:<',voteCollectResult,'>');
-      }
-    });
-    this.ee.on('teamspace/secret/encrypt/ecdh/servant/announcement',async (evt)=>{
-      if(self.trace0) {
-        console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
-      }
-      await self.ecdh.updateAnnouncementRemoteServant(evt.payload.voteEvidence);
-    });
-    */
-
     this.ee.on('teamspace/secret/encrypt/ecdh/sync/sharedKey',async (evt)=>{
       if(self.trace0) {
         console.log('MqttEncryptChannel::ListenEventEmitter_::evt=:<',evt,'>');
@@ -188,6 +147,10 @@ export class MqttEncryptChannel {
     await this.ecdh.calcSharedKeysOfNode();
     await this.ecdh.loadSharedKeyOfTeamSpace();
     this.broadCastPubKey_();
+    const syncResult = await this.ecdh.trySyncSharedKeysOfTeamSpace();
+    if(syncResult.noSpaceSecret) {
+      this.broadRequestSpaceSecret_();
+    }
     await this.tryDecryptCacheMessage_();
     this.ee.emit('otmc.mqtt.encrypt.channel.refresh',{});
 
@@ -383,5 +346,18 @@ export class MqttEncryptChannel {
       this.tryDecryptCacheMessage_();
       this.ee.emit('otmc.mqtt.encrypt.channel.refresh',evt2);      
     }
+  }
+  broadRequestSpaceSecret_() {
+    const topic = 'teamspace/secret/encrypt/ecdh/sync/spaceSecret';
+    const payload = {
+      did:this.otmc.did.didDoc_.id,
+      nodeId:this.auth.address(),
+      spaceId:this.otmc.space.spaceId,
+    };
+    if(this.trace0) {
+      console.log('MqttEncryptChannel::broadRequestSpaceSecret_::topic=:<',topic,'>');
+      console.log('MqttEncryptChannel::broadRequestSpaceSecret_::payload=:<',payload,'>');
+    }
+    this.ee.emit('otmc.mqtt.publish',{msg:{topic:topic,payload:payload}});
   }
 }

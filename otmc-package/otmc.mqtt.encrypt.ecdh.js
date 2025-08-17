@@ -172,6 +172,10 @@ export class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::loadSharedKeyOfTeamSpace::teamSharedKeys=<',teamSharedKeys,'>');
     }
+    if(teamSharedKeys.length < 1) {
+      console.log('MqttEncryptECDH::loadSharedKeyOfTeamSpace::teamSharedKeys is empty');
+      return;
+    }
     let topKeyId = null;
     let topKey = null;
     for(const teamKey of teamSharedKeys ) {
@@ -205,7 +209,42 @@ export class MqttEncryptECDH {
     if(this.trace0) {
       console.log('MqttEncryptECDH::loadSharedKeyOfTeamSpace::this.teamTopSharedKey=<',this.teamTopSharedKey,'>');
     }
-  }  
+  }
+  async trySyncSharedKeysOfTeamSpace() {
+    const did = this.otmc.did.didDoc_.id;
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::trySyncSharedKeysOfTeamSpace::did=:<',did,'>');
+    }
+   const filter = {
+      did:did,
+    }
+    const self = this;
+    const teamSharedKeys11 = await this.db.secretOfTeamSpace.where(filter)
+    .and((secret)=>{
+      return self.filterOutTimeIsssed_(secret,iConstSharedKeyRegenMiliSec);
+    }).toArray();
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::trySyncSharedKeysOfTeamSpace::teamSharedKeys11=<',teamSharedKeys11,'>');
+    }
+    const teamSharedKeys1 = teamSharedKeys11.sort((a, b) => new Date(a.issuedDate) - new Date(b.issuedDate));
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::trySyncSharedKeysOfTeamSpace::teamSharedKeys1=<',teamSharedKeys1,'>');
+    }
+    const teamSharedKeys = teamSharedKeys1.toReversed();;
+    if(this.trace0) {
+      console.log('MqttEncryptECDH::trySyncSharedKeysOfTeamSpace::teamSharedKeys=<',teamSharedKeys,'>');
+    }
+    if(teamSharedKeys.length < 1) {
+      return {
+        noSpaceSecret:true,
+      }
+    }
+    else {
+      return {
+        noSpaceSecret:false,
+      }
+    }
+  }
 
 
   async calcSharedKeysOfNode() {
@@ -426,6 +465,7 @@ export class MqttEncryptECDH {
     }
     if(!teamSharedKeyPair) {
       // TODO:
+      console.log('MqttEncryptECDH::encryptData4TeamSpace::teamSharedKeyPair is null');
       return false;
     }
     if(this.trace0) {

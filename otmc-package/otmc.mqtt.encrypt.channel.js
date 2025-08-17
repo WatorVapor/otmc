@@ -352,7 +352,6 @@ export class MqttEncryptChannel {
     const payload = {
       did:this.otmc.did.didDoc_.id,
       nodeId:this.auth.address(),
-      spaceId:this.otmc.space.spaceId,
     };
     if(this.trace0) {
       console.log('MqttEncryptChannel::broadRequestSpaceSecret_::topic=:<',topic,'>');

@@ -30,3 +30,19 @@ services:
         limits:
           cpus: '1.0'
           memory: 256M
+  account:
+    image: node:24
+    environment:
+      TZ: Asia/Tokyo
+    volumes:
+      - ../otmc-hub:/otmc/otmc-hub
+      - ../otmc-package:/otmc/otmc-package
+      - /opt/otmc/:/opt/otmc/
+      - /dev/shm/:/dev/shm/
+    working_dir: '/otmc/otmc-hub/core.account'
+    command: node ./index.mjs
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 256M

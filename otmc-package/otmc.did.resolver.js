@@ -155,4 +155,14 @@ export class DidResolver {
     }
     return resultStore;
   }
+  async getController(did) {
+    if(this.trace) {
+      console.log('DidResolver::getController::did=:<',did,'>');
+    }
+    const ctrlDid = await this.localStore.getController(did);
+    if(this.trace) {
+      console.log('DidResolver::getController::ctrlDid=:<',ctrlDid,'>');
+    }
+    return ctrlDid;
+  }
 }

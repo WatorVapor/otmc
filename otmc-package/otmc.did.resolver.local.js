@@ -191,7 +191,11 @@ export class DidResolverLocalStore {
       console.log('DidResolverLocalStore::bestDidFromStore_::didValuesTop=:<',didValuesTop,'>');
     }
     if(didValuesTop.length === 1) {
-      return this.decodeDidFromStore_(didValuesSorted[0]);
+      const bestDidStore = didValuesTop[0];
+      if(this.trace) {
+        console.log('DidResolverLocalStore::bestDidFromStore_::bestDidStore=:<',bestDidStore,'>');
+      }
+      return this.decodeDidFromStore_(bestDidStore);
     }
     const decodeDidDocs = [];
     for(const didValue of didValuesTop) {
@@ -221,5 +225,12 @@ export class DidResolverLocalStore {
       console.log('DidResolverLocalStore::bestDidFromStore_::reduceDidDoc=:<',reduceDidDoc,'>');
     }
     return reduceDidDoc;
+  }
+  async getController(did) {
+    const ctrlDid = await this.didDocLS.getControll(did);
+    if(this.trace) {
+      console.log('DidResolverLocalStore::getController::ctrlDid=:<',ctrlDid,'>');
+    }
+    return ctrlDid;
   }
 }

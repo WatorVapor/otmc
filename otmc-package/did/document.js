@@ -202,6 +202,62 @@ export class DIDGuestAuthDocument {
   }
 }
 
+export class DIDGuestFillCtrlDocument {
+  static trace = false;
+  static debug = true;
+  constructor(origDidDoc,auth,ctrl) {
+    this.origDidDoc_ = origDidDoc;
+    this.auth_ = auth;
+    this.ctrl_ = [ctrl].flat(Infinity);
+  }
+  address() {
+    return this.origDidDoc_.id;
+  }
+  document() {
+    const didDoc = {
+      '@context':JSON.parse(JSON.stringify(DIDConfig.context)),
+      id:this.origDidDoc_.id,
+      controller:this.ctrl_,
+      version:this.origDidDoc_.version,
+      created:this.origDidDoc_.created,
+      updated:(new Date()).toISOString(),
+      verificationMethod:[
+        {
+          id:`${this.address()}#${this.auth_.address()}`,
+          type: 'ed25519',
+          controller:this.origDidDoc_.id,
+          publicKeyMultibase: this.auth_.pub(),
+        }
+      ],
+      authentication:[
+        `${this.address()}#${this.auth_.address()}`,
+      ],
+      recovery:[ ],
+      capabilityInvocation:[ ],
+      otmc: {},
+      service: [
+        {
+          id:`${this.address()}#${this.auth_.address()}`,
+          type: 'mqtt',
+          serviceEndpoint: this.origDidDoc_.service[0].serviceEndpoint,
+        },
+      ],
+    };
+    const proofs = [];
+    const signedMsg = this.auth_.signWithoutTS(didDoc);
+    const proof = {
+      type:'ed25519',
+      creator:`${this.address()}#${this.auth_.address()}`,
+      signatureValue:signedMsg.auth.sign,
+    };
+    proofs.push(proof);
+    didDoc.proof = proofs;
+    super.didDoc_ = didDoc;
+    return didDoc;
+  }
+}
+
+
 /*
 export class DIDGuestCapabilityDocument {
   static trace = false;

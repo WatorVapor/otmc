@@ -20,6 +20,7 @@ import {
   DIDSeedDocument,
   DIDGuestGuestDocument,
   DIDGuestAuthDocument,
+  DIDGuestFillCtrlDocument,
   DIDExpandDocument,
   DIDAscentDocument,
   DIDMergeDocument
@@ -316,10 +317,14 @@ export class DidDocument {
     }
     this.checkEdcrypt_();
     try {
-      const  didDoc = await this.resolver.resolver(this.auth.address());
+      let  didDoc = await this.resolver.resolver(this.auth.address());
       if(this.trace) {
         console.log('DidDocument::loadDocument::didDoc=:<',didDoc,'>');
       }
+      if(didDoc.controller.length < 1) {
+        didDoc = await this.fillController(didDoc);
+      }
+
       this.eeOut.emit('did:document',didDoc);
       this.didDoc_ = didDoc;
       this.eeInternal.emit('did:document',{didDoc:didDoc});
@@ -354,6 +359,24 @@ export class DidDocument {
     } catch(err) {
       console.error('DidDocument::loadDocument::err=:<',err,'>');
     }
+  }
+  async fillController(didDoc) {
+    if(this.trace) {
+      console.log('DidDocument::fillController::didDoc=:<',didDoc,'>');
+    }
+    const ctrlDid = await this.resolver.getController(didDoc.id);
+    if(this.trace) {
+      console.log('DidDocument::fillController::ctrlDid=:<',ctrlDid,'>');
+    }
+    this.guest = new DIDGuestFillCtrlDocument(didDoc,this.auth,ctrlDid);
+    const documentObj = this.guest.document();
+    if(this.trace) {
+      console.log('DidDocument::fillController::documentObj=:<',documentObj,'>');
+    }
+    this.resolver.storeFickleDid(documentObj);
+    this.eeOut.emit('did:document:fill',documentObj);
+    this.eeInternal.emit('did:document:fill',documentObj);
+    return documentObj;
   }
   createControllerSeed(controls,root) {
     const manifest = DIDManifest.ruleChainGuestClose();
@@ -398,6 +421,7 @@ export class DidDocument {
     }
     this.resolver.storeFickleDid(documentObj);
     this.eeOut.emit('did:document:created',documentObj);
+    this.eeInternal.emit('did:document:join',documentObj);
     return documentObj;
   }
   createJoinAsGuest(id) {

@@ -64,6 +64,14 @@ export class DidResolverSyncWebStore {
         self.trySyncCloudEvidence_();
       },10);
     });
+    this.eeInternal.on('did:document:join',(evt)=>{
+      if(self.trace) {
+        console.log('DidResolverSyncWebStore::ListenEventEmitter_::evt=:<',evt,'>');
+      }
+      setTimeout(()=>{
+        self.trySyncCloudEvidence_();
+      },10);
+    });
   }
   /**
    * Attempts to synchronize cloud evidence by calling the necessary

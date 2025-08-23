@@ -34,20 +34,21 @@ export class EvidenceChainBuilder {
     if(this.trace1) {
       console.log('EvidenceChainBuilder::buildEvidenceChainProof::isGoodDid=<',isGoodDid,'>');
     }
+    const resultBad = {};
     if(!isGoodDid) {
-      return result;
+      return resultBad;
     }
     if(!isGoodDid.prooferAddress) {
-      return result;
+      return resultBad;
     }
     if(isGoodDid.prooferAddress.length < 1) {
-      return result;
+      return resultBad;
     }
-    const result = {
+    const resultGood = {
       proofers:isGoodDid.prooferAddress,
       proofees:evidence.authentication
     }
-    return result;
+    return resultGood;
   }
   judgeEvidenceDidType(evidenceDid,evidenceChain) {
     if(this.trace1) {

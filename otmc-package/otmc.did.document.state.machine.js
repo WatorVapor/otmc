@@ -14,10 +14,11 @@ import { DidStoreTeamJoin } from './otmc.did.store.team.join.js';
 */
 export class DidDocumentStateMachine {
   constructor(eeInternal,eeOut) {
-    this.trace0 = false;
-    this.trace1 = false;
-    this.trace2 = false;
-    this.trace = false;;
+    this.trace0 = true;
+    this.trace1 = true;
+    this.trace2 = true;
+    this.trace3 = true;
+    this.trace = true;;
     this.debug = true;
     this.eeInternal = eeInternal;
     this.eeOut = eeOut;

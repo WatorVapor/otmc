@@ -321,7 +321,7 @@ export class DidDocument {
       if(this.trace) {
         console.log('DidDocument::loadDocument::didDoc=:<',didDoc,'>');
       }
-      if(didDoc.controller.length < 1) {
+      if(didDoc && didDoc.controller && didDoc.controller.length < 1) {
         didDoc = await this.fillController(didDoc);
       }
 

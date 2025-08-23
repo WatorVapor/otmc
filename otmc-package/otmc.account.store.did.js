@@ -13,7 +13,7 @@ export class AccountStoreDid {
     this.debug = true;
     this.db = new Dexie(StoreKey.secret.did.dbName);
     this.db.version(this.version).stores({
-      property: 'did,updated,team.name,member.name,members'
+      property: 'did,updated,team.name,team.identification,member.name,member.identification,members'
     });
   }
   async putProperty(accountStore) {

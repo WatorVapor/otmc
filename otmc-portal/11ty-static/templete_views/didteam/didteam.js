@@ -196,9 +196,11 @@ const teamPropertyOption = {
     return {
       team:{
         name: '',
+        identification: '',
       },
       member:{
         name: '',
+        identification: '',
       },
       members:{},
     };
@@ -213,10 +215,29 @@ const teamPropertyOption = {
       };
       otmc.changeTeamProperty(teamProperty);
     },
+    changeTeamSpaceIdentification(evt) {
+      console.log('DidTeam::changeTeamSpaceIdentification::this=:<',this,'>');
+      const otmc = this.otmc;
+      console.log('DidTeam::changeTeamSpaceIdentification::otmc=:<',otmc,'>');
+      const teamProperty = {
+        team: this.team,
+      };
+      otmc.changeTeamProperty(teamProperty);
+    },
+
     changeTeamMemberName(evt) {
       console.log('DidTeam::changeTeamMemberName::this=:<',this,'>');
       const otmc = this.otmc;
       console.log('DidTeam::changeTeamMemberName::otmc=:<',otmc,'>');
+      const teamProperty = {
+        member: this.member,
+      };
+      otmc.changeTeamProperty(teamProperty);
+    },
+    changeTeamMemberIdentification(evt) {
+      console.log('DidTeam::changeTeamMemberIdentification::this=:<',this,'>');
+      const otmc = this.otmc;
+      console.log('DidTeam::changeTeamMemberIdentification::otmc=:<',otmc,'>');
       const teamProperty = {
         member: this.member,
       };

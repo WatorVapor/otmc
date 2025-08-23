@@ -1,5 +1,3 @@
-import mqtt from "mqtt";
-
 import { DIDManifest } from './manifest.js';
 
 class DIDConfig {
@@ -98,7 +96,7 @@ export class DIDSeedDocument {
 }
 
 export class DIDGuestGuestDocument {
-  static trace = false;
+  static trace = true;
   static debug = true;
   constructor(address,auth) {
     this.address_ = address;
@@ -108,7 +106,10 @@ export class DIDGuestGuestDocument {
     return this.address_;
   }
   document() {
-    const manifest = DIDManifest.chainRuleGuestClose();
+    if(this.trace) {
+      console.log('DIDGuestGuestDocument::document::DIDManifest=:<',DIDManifest,'>');
+    }
+    const manifest = DIDManifest.ruleChainGuestClose();
     const didDoc = {
       '@context':JSON.parse(JSON.stringify(DIDConfig.context)),
       id:this.address(),
@@ -159,7 +160,7 @@ export class DIDGuestGuestDocument {
 
 
 export class DIDGuestAuthDocument {
-  static trace = false;
+  static trace = true;
   static debug = true;
   constructor(address,auth) {
     this.address_ = address;
@@ -169,7 +170,10 @@ export class DIDGuestAuthDocument {
     return this.address_;
   }
   document() {
-    const manifest = DIDManifest.chainRuleGuestClose();
+    if(this.trace) {
+      console.log('DIDGuestAuthDocument::document::DIDManifest=:<',DIDManifest,'>');
+    }
+    const manifest = DIDManifest.ruleChainGuestClose();
     const didDoc = {
       '@context':JSON.parse(JSON.stringify(DIDConfig.context)),
       id:this.address(),

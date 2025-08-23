@@ -20,7 +20,7 @@ import {
   DIDSeedDocument,
   DIDGuestGuestDocument,
   DIDGuestAuthDocument,
-  DIDGuestFillCtrlDocument,
+  DIDGuestFillCtrlProofDocument,
   DIDExpandDocument,
   DIDAscentDocument,
   DIDMergeDocument
@@ -322,7 +322,7 @@ export class DidDocument {
         console.log('DidDocument::loadDocument::didDoc=:<',didDoc,'>');
       }
       if(didDoc && didDoc.controller && didDoc.controller.length < 1) {
-        didDoc = await this.fillController(didDoc);
+        didDoc = await this.fillControllerAndProof(didDoc);
       }
 
       this.eeOut.emit('did:document',didDoc);
@@ -360,18 +360,18 @@ export class DidDocument {
       console.error('DidDocument::loadDocument::err=:<',err,'>');
     }
   }
-  async fillController(didDoc) {
+  async fillControllerAndProof(didDoc) {
     if(this.trace) {
-      console.log('DidDocument::fillController::didDoc=:<',didDoc,'>');
+      console.log('DidDocument::fillControllerAndProof::didDoc=:<',didDoc,'>');
     }
-    const ctrlDid = await this.resolver.getController(didDoc.id);
+    const proofedInfo = await this.docSM.getProofedOfDidDocument(didDoc.id);
     if(this.trace) {
-      console.log('DidDocument::fillController::ctrlDid=:<',ctrlDid,'>');
+      console.log('DidDocument::fillControllerAndProof::proofedInfo=:<',proofedInfo,'>');
     }
-    this.guest = new DIDGuestFillCtrlDocument(didDoc,this.auth,ctrlDid);
+    this.guest = new DIDGuestFillCtrlProofDocument(didDoc,this.auth,proofedInfo);
     const documentObj = this.guest.document();
     if(this.trace) {
-      console.log('DidDocument::fillController::documentObj=:<',documentObj,'>');
+      console.log('DidDocument::fillControllerAndProof::documentObj=:<',documentObj,'>');
     }
     this.resolver.storeFickleDid(documentObj);
     this.eeOut.emit('did:document:fill',documentObj);
@@ -405,12 +405,13 @@ export class DidDocument {
     return documentObj;
   }
   
-  createJoinAsAuth(id) {
+  async createJoinAsAuth(id) {
     if(this.trace) {
       console.log('DidDocument::createJoinAsAuth::id=:<',id,'>');
       console.log('DidDocument::createJoinAsAuth::this.otmc=:<',this.otmc,'>');
     }
     this.checkEdcrypt_();
+
     this.guest = new DIDGuestAuthDocument(id,this.auth);
     if(this.trace) {
       console.log('DidDocument::createJoinAsAuth::this.guest=:<',this.guest,'>');

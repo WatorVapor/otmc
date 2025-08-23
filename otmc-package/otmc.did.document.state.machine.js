@@ -257,6 +257,96 @@ export class DidDocumentStateMachine {
       }
     }
   }
+  async getProofedOfDidDocument(docDid) {
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::getProofedOfDidDocument::docDid=<',docDid,'>');
+    }
+    const spaceEvidence = this.allEvidenceChain[docDid];
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::getProofedOfDidDocument::spaceEvidence=<',spaceEvidence,'>');
+    }
+    const docProofResult = {authList:[]};
+    for(const evidenceDoc of spaceEvidence) {
+      const docResult = await this.caclDidDocumentAndProof_(evidenceDoc);
+      if(this.trace2) {
+        console.log('DidDocumentStateMachine::getProofedOfDidDocument::docResult=<',docResult,'>');
+      }
+      if(docResult && docResult.authList) {
+        docProofResult.authList.push(docResult.authList) ;
+      }
+    }
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::getProofedOfDidDocument::docProofResult=<',docProofResult,'>');
+    }
+    docProofResult.authList = docProofResult.authList.flat(Infinity);
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::getProofedOfDidDocument::docProofResult=<',docProofResult,'>');
+    }
+    docProofResult.authList = [...new Set(docProofResult.authList)];
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::getProofedOfDidDocument::docProofResult=<',docProofResult,'>');
+    }
+    let controllerOfTeam = [];
+    let verificationMethodsOfteam = []
+    for(const evidenceDoc of spaceEvidence) {
+      if(evidenceDoc.controller) {
+        controllerOfTeam.push(evidenceDoc.controller);
+      }
+      if(evidenceDoc.verificationMethod) {
+        verificationMethodsOfteam.push(evidenceDoc.verificationMethod);
+      }
+    }
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::getProofedOfDidDocument::controllerOfTeam=<',controllerOfTeam,'>');
+      console.log('DidDocumentStateMachine::getProofedOfDidDocument::verificationMethodsOfteam=<',verificationMethodsOfteam,'>');
+    }
+    controllerOfTeam = controllerOfTeam.flat(Infinity);
+    controllerOfTeam = [...new Set(controllerOfTeam)];
+    verificationMethodsOfteam = verificationMethodsOfteam.flat(Infinity);
+    verificationMethodsOfteam = verificationMethodsOfteam.filter(
+      (item, index, self) =>
+        index === self.findIndex(obj => obj.id === item.id)
+    );
+
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::getProofedOfDidDocument::controllerOfTeam=<',controllerOfTeam,'>');
+      console.log('DidDocumentStateMachine::getProofedOfDidDocument::verificationMethodsOfteam=<',verificationMethodsOfteam,'>');
+    }
+    docProofResult.controller = controllerOfTeam;
+    docProofResult.verificationMethod = verificationMethodsOfteam;
+    return docProofResult;
+  }
+
+  async caclDidDocumentAndProof_(didDoc) {
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::caclDidDocumentAndProof_::didDoc=<',didDoc,'>');
+    }
+    const seedReachTable = this.graph.getSeedReachTable();
+    const didAddress = didDoc.id;
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::caclDidDocumentAndProof_::didAddress=<',didAddress,'>');
+    }
+    const didType = this.builder.judgeEvidenceDidType(didDoc,this.allEvidenceChain[didDoc.id]);
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::caclDidDocumentAndProof_::didType=<',didType,'>');
+    }
+    let docProofResult = false;
+    if(didType.ctrler){
+      docProofResult = this.builder.collectControllerAuth(didDoc,seedReachTable);
+    }
+    if(didType.ctrlee){
+      const controlleeReachTable = this.graph.buildControlleeReachTable(didDoc);
+      if(this.trace2) {
+        console.log('DidDocumentStateMachine::caclDidDocumentAndProof_::controlleeReachTable=<',controlleeReachTable,'>');
+      }
+      docProofResult = this.builder.collectControlleeAuth(didDoc,controlleeReachTable,seedReachTable);
+    }
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::caclDidDocumentAndProof_::docProofResult=<',docProofResult,'>');
+    }
+    return docProofResult;
+  }
+
 
   async loadEvidenceChainFromStorage_() {
     const evidencesRaw = await this.document.getAnyDidDocument();

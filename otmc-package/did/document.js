@@ -224,13 +224,14 @@ export class DIDGuestAuthDocument {
   }
 }
 
-export class DIDGuestFillCtrlDocument {
+export class DIDGuestFillCtrlProofDocument {
   static trace = false;
   static debug = true;
-  constructor(origDidDoc,auth,ctrl) {
+  constructor(origDidDoc,auth,proofedInfo) {
     this.origDidDoc_ = origDidDoc;
     this.auth_ = auth;
-    this.ctrl_ = [ctrl].flat(Infinity);
+    this.proofedInfo_ = proofedInfo;
+    this.ctrl_ = [proofedInfo.controller].flat(Infinity);
   }
   address() {
     return this.origDidDoc_.id;
@@ -265,6 +266,16 @@ export class DIDGuestFillCtrlDocument {
         },
       ],
     };
+    didDoc.authentication.push(this.proofedInfo_.authList);
+    didDoc.authentication = didDoc.authentication.flat(Infinity);
+    didDoc.authentication = [...new Set(didDoc.authentication)];
+    didDoc.verificationMethod.push(this.proofedInfo_.verificationMethod);
+    didDoc.verificationMethod = didDoc.verificationMethod.flat(Infinity);
+    didDoc.verificationMethod = didDoc.verificationMethod.filter(
+      (item, index, self) =>
+        index === self.findIndex(obj => obj.id === item.id)
+    );
+
     const proofs = [];
     const signedMsg = this.auth_.signWithoutTS(didDoc);
     const proof = {

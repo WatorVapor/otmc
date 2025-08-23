@@ -1,5 +1,7 @@
 import mqtt from "mqtt";
 
+import { DIDManifest } from './manifest.js';
+
 class DIDConfig {
   static method = 'otmc';
   static context = [ 
@@ -106,6 +108,7 @@ export class DIDGuestGuestDocument {
     return this.address_;
   }
   document() {
+    const manifest = DIDManifest.chainRuleGuestClose();
     const didDoc = {
       '@context':JSON.parse(JSON.stringify(DIDConfig.context)),
       id:this.address(),
@@ -124,7 +127,14 @@ export class DIDGuestGuestDocument {
       authentication:[],
       recovery:[ ],
       capabilityInvocation:[ ],
-      otmc: {},
+      otmc: {
+        manifest: {
+          did: manifest.did,
+        },
+        mqtt: {
+          acl: manifest.acl,
+        },
+      },
       service: [
         {
           id:`${this.address()}#${this.auth_.address()}`,
@@ -159,6 +169,7 @@ export class DIDGuestAuthDocument {
     return this.address_;
   }
   document() {
+    const manifest = DIDManifest.chainRuleGuestClose();
     const didDoc = {
       '@context':JSON.parse(JSON.stringify(DIDConfig.context)),
       id:this.address(),
@@ -179,7 +190,14 @@ export class DIDGuestAuthDocument {
       ],
       recovery:[ ],
       capabilityInvocation:[ ],
-      otmc: {},
+      otmc: {
+        manifest: {
+          did: manifest.did,
+        },
+        mqtt: {
+          acl: manifest.acl,
+        },
+      },
       service: [
         {
           id:`${this.address()}#${this.auth_.address()}`,
@@ -234,7 +252,7 @@ export class DIDGuestFillCtrlDocument {
       ],
       recovery:[ ],
       capabilityInvocation:[ ],
-      otmc: {},
+      otmc: this.origDidDoc_.otmc,
       service: [
         {
           id:`${this.address()}#${this.auth_.address()}`,

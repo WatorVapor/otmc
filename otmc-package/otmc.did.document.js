@@ -420,7 +420,7 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::createJoinAsAuth::documentObj=:<',documentObj,'>');
     }
-    this.resolver.storeFickleDid(documentObj);
+    this.resolver.storeBuzzerDid(documentObj);
     this.eeOut.emit('did:document:created',documentObj);
     this.eeInternal.emit('did:document:join',documentObj);
     return documentObj;
@@ -439,7 +439,7 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::createJoinAsGuest::documentObj=:<',documentObj,'>');  
     }
-    this.resolver.storeFickleDid(documentObj);
+    this.resolver.storeBuzzerDid(documentObj);
     this.eeOut.emit('did:document:created',documentObj);
     return documentObj;
   }

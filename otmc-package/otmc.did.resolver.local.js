@@ -68,6 +68,9 @@ export class DidResolverLocalStore {
   async storeFickleDid(storeDid){
     this.didDocLS.putFickle(storeDid);
   }
+  async storeBuzzerDid(storeDid){
+    this.didDocLS.putBuzzer(storeDid);
+  }
   async storeCredentialRequest(did,credReq){
     if(this.trace) {
       console.log('DidResolverLocalStore::storeCredentialRequest::credReq=:<',credReq,'>');

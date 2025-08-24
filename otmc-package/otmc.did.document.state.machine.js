@@ -266,6 +266,7 @@ export class DidDocumentStateMachine {
       console.log('DidDocumentStateMachine::getProofedOfDidDocument::spaceEvidence=<',spaceEvidence,'>');
     }
     const docProofResult = {authList:[]};
+    const proofedSpaceEvidence = [];
     for(const evidenceDoc of spaceEvidence) {
       const docResult = await this.caclDidDocumentAndProof_(evidenceDoc);
       if(this.trace2) {
@@ -273,6 +274,7 @@ export class DidDocumentStateMachine {
       }
       if(docResult && docResult.authList) {
         docProofResult.authList.push(docResult.authList) ;
+        proofedSpaceEvidence.push(evidenceDoc);
       }
     }
     if(this.trace2) {
@@ -288,7 +290,7 @@ export class DidDocumentStateMachine {
     }
     let controllerOfTeam = [];
     let verificationMethodsOfteam = []
-    for(const evidenceDoc of spaceEvidence) {
+    for(const evidenceDoc of proofedSpaceEvidence) {
       if(evidenceDoc.controller) {
         controllerOfTeam.push(evidenceDoc.controller);
       }

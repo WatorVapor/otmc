@@ -26,6 +26,9 @@ export class DidStoreDocument {
       fickle: '++autoId,did,controller,authentication,updated,hashDid,hashCore,b64Did'
     });
     this.db.version(this.version).stores({
+      buzzer: '++autoId,did,controller,authentication,updated,hashDid,hashCore,b64Did'
+    });
+    this.db.version(this.version).stores({
       tentative: '++autoId,did,controller,authentication,updated,hashDid,hashCore,b64Did'
     });
     if(isNode) {
@@ -74,6 +77,38 @@ export class DidStoreDocument {
       await this.wrapper.exportData();
     }
   }
+  /**
+   * Asynchronously puts a buzzer DID store document into the database.
+   * If a document with the same DID and hashDid already exists, it will not be added again.
+   *
+   * @param {Object} didStore - The DID store document to be added.
+   * @param {string} didStore.did - The DID of the store document.
+   * @param {string} didStore.hashDid - The hash of the DID of the store document.
+   * @returns {Promise<void>} A promise that resolves when the operation is complete.
+   */
+  async putBuzzer(didStore) {
+    if(this.trace) {
+      console.log('DidStoreDocument::putBuzzer::didStore=:<',didStore,'>');
+    }
+    const filter = {
+      did: didStore.did,
+      hashDid: didStore.hashDid
+    };
+    if(this.trace) {
+      console.log('DidStoreDocument::putBuzzer::filter=:<',filter,'>');
+    }
+    const storeObject = await this.db.buzzer.where(filter).first();
+    if(this.trace) {
+      console.log('DidStoreDocument::putBuzzer::storeObject=:<',storeObject,'>');
+    }
+    if(!storeObject) {  
+      await this.db.buzzer.put(didStore);
+    }
+    if(isNode) {
+      await this.wrapper.exportData();
+    }
+  }
+
   /**
    * Asynchronously puts a tentative DID store document into the database.
    * If a document with the same DID and hashDid already exists, it will not be added again.
@@ -159,6 +194,23 @@ export class DidStoreDocument {
     const storeValuesJson = await this.getAllByDidAddress_(didAddress,this.db.fickle);
     if(this.trace) {
       console.log('DidStoreDocument::getAllFickle::storeValuesJson=:<',storeValuesJson,'>');
+    }
+    return storeValuesJson;
+  }
+  /**
+   * Retrieves all buzzer values associated with a given address.
+   *
+   * @param {string} address - The address to retrieve buzzer values for.
+   * @returns {Promise<Object>} A promise that resolves to the JSON object containing all buzzer values.
+   */
+  async getAllBuzzer(address) {
+    const didAddress = `did:otmc:${address}`;
+    if(this.trace) {
+      console.log('DidStoreDocument::getAllBuzzer::didAddress=:<',didAddress,'>');
+    }
+    const storeValuesJson = await this.getAllByDidAddress_(didAddress,this.db.buzzer);
+    if(this.trace) {
+      console.log('DidStoreDocument::getAllBuzzer::storeValuesJson=:<',storeValuesJson,'>');
     }
     return storeValuesJson;
   }

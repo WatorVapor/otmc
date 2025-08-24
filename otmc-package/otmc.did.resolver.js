@@ -103,6 +103,22 @@ export class DidResolver {
     this.localStore.storeFickleDid(storeDoc);
   }
 
+  async storeBuzzerDid(documentObj){
+    const documentStr = JSON.stringify(documentObj);
+    const coreDocObj = JSON.parse(documentStr);
+    delete coreDocObj.proof;
+    const coreDocStr = JSON.stringify(coreDocObj);
+    const storeDoc = {
+      did:documentObj.id,
+      controller:documentObj.controller,
+      authentication:documentObj.authentication,
+      updated:documentObj.updated,
+      hashDid:this.util.calcAddress(documentStr),
+      hashCore:this.util.calcAddress(coreDocStr),
+      b64Did:this.util.encodeBase64Str(documentStr)
+    }
+    this.localStore.storeBuzzerDid(storeDoc);
+  }
 
   async storeCredentialRequest(credReqObj,reqDid){
     if(this.trace) {

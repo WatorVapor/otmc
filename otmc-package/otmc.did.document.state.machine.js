@@ -268,14 +268,20 @@ export class DidDocumentStateMachine {
     const docProofResult = {authList:[]};
     const proofedSpaceEvidence = [];
     for(const evidenceDoc of spaceEvidence) {
+      if(this.trace2) {
+        console.log('DidDocumentStateMachine::getProofedOfDidDocument::evidenceDoc=<',evidenceDoc,'>');
+      }
       const docResult = await this.caclDidDocumentAndProof_(evidenceDoc);
       if(this.trace2) {
         console.log('DidDocumentStateMachine::getProofedOfDidDocument::docResult=<',docResult,'>');
       }
-      if(docResult && docResult.authList) {
+      if(docResult && docResult.authList && docResult.authList.length > 0) {
         docProofResult.authList.push(docResult.authList) ;
         proofedSpaceEvidence.push(evidenceDoc);
       }
+    }
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::getProofedOfDidDocument::proofedSpaceEvidence=<',proofedSpaceEvidence,'>');
     }
     if(this.trace2) {
       console.log('DidDocumentStateMachine::getProofedOfDidDocument::docProofResult=<',docProofResult,'>');

@@ -50,6 +50,23 @@ export class DidResolverLocalStore {
     if(didMemberValuesJsonFickle.length > 0) {
       return this.bestDidFromStore_(didMemberValuesJsonFickle);
     }
+
+    const didValuesJsonBuzzer = await this.didDocLS.getAllBuzzer(keyAddress);
+    if(this.trace) {
+      console.log('DidResolverLocalStore::resolver::didValuesJsonBuzzer=:<',didValuesJsonBuzzer,'>');
+    }
+    if(didValuesJsonBuzzer.length > 0) {
+      return this.bestDidFromStore_(didValuesJsonBuzzer);
+    }
+
+    const didMemberValuesJsonBuzzer = await this.didDocLS.getMemberAllBuzzer(keyAddress);
+    if(this.trace) {
+      console.log('DidResolverLocalStore::resolver::didMemberValuesJsonBuzzer=:<',didMemberValuesJsonBuzzer,'>');
+    }
+    if(didMemberValuesJsonBuzzer.length > 0) {
+      return this.bestDidFromStore_(didMemberValuesJsonBuzzer);
+    }
+
     return null;
   }
   async getDidDocumentAll(keyAddress){

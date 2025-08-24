@@ -258,6 +258,20 @@ export class DidStoreDocument {
     }
     return storeValuesJson;
   }
+  /**
+   * Retrieves all buzzer member data for a given address.
+   *
+   * @param {string} address - The address to retrieve member data for.
+   * @returns {Promise<Object>} A promise that resolves to the JSON object containing all buzzer member data.
+   */
+  async getMemberAllBuzzer(address) {
+    const storeValuesJson = await this.getAllAuthMember_(address,this.db.buzzer);
+    if(this.trace) {
+      console.log('DidStoreDocument::getMemberAllBuzzer::storeValuesJson=:<',storeValuesJson,'>');
+    }
+    return storeValuesJson;
+  }
+
   
   /**
    * Retrieves the unique controllers for a given DID.
@@ -426,8 +440,9 @@ export class DidStoreDocument {
    */
   async getAnyDidDocument () {
     const storeValuesJson = [];
-     storeValuesJson.push(await this.db.stable.toArray());
+    storeValuesJson.push(await this.db.stable.toArray());
     storeValuesJson.push(await this.db.fickle.toArray());
+    storeValuesJson.push(await this.db.buzzer.toArray());
     storeValuesJson.push(await this.db.tentative.toArray());
     if(this.trace) {
       console.log('DidStoreDocument::getAnyDidDocument::storeValuesJson=:<',storeValuesJson,'>');

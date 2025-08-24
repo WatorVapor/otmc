@@ -373,9 +373,9 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::fillControllerAndProof::documentObj=:<',documentObj,'>');
     }
-    this.resolver.storeFickleDid(documentObj);
-    this.eeOut.emit('did:document:fill',documentObj);
-    this.eeInternal.emit('did:document:fill',documentObj);
+    //this.resolver.storeFickleDid(documentObj);
+    //this.eeOut.emit('did:document:fill',documentObj);
+    //this.eeInternal.emit('did:document:fill',documentObj);
     return documentObj;
   }
   createControllerSeed(controls,root) {

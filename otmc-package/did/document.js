@@ -67,7 +67,7 @@ export class DIDSeedDocument {
         mqtt: {
           acl: this.manifest_.acl,
         },
-        revision:'1.0',
+        revision:1.0,
       },
       service: [
         {
@@ -135,6 +135,7 @@ export class DIDGuestGuestDocument {
         mqtt: {
           acl: manifest.acl,
         },
+        revision:1.0,
       },
       service: [
         {
@@ -201,7 +202,8 @@ export class DIDGuestAuthDocument {
         mqtt: {
           acl: manifest.acl,
         },
-      },
+        revision:1.0,
+     },
       service: [
         {
           id:`${this.address()}#${this.auth_.address()}`,

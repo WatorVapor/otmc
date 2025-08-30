@@ -296,6 +296,7 @@ export class DidDocumentStateMachine {
     }
     let controllerOfTeam = [];
     let verificationMethodsOfteam = []
+    let otmcOfteam = []
     for(const evidenceDoc of proofedSpaceEvidence) {
       if(evidenceDoc.controller) {
         controllerOfTeam.push(evidenceDoc.controller);
@@ -303,10 +304,14 @@ export class DidDocumentStateMachine {
       if(evidenceDoc.verificationMethod) {
         verificationMethodsOfteam.push(evidenceDoc.verificationMethod);
       }
+      if(evidenceDoc.otmc) {
+        otmcOfteam.push(evidenceDoc.otmc);
+      }
     }
     if(this.trace2) {
       console.log('DidDocumentStateMachine::getProofedOfDidDocument::controllerOfTeam=<',controllerOfTeam,'>');
       console.log('DidDocumentStateMachine::getProofedOfDidDocument::verificationMethodsOfteam=<',verificationMethodsOfteam,'>');
+      console.log('DidDocumentStateMachine::getProofedOfDidDocument::otmcOfteam=<',otmcOfteam,'>');
     }
     controllerOfTeam = controllerOfTeam.flat(Infinity);
     controllerOfTeam = [...new Set(controllerOfTeam)];
@@ -315,13 +320,17 @@ export class DidDocumentStateMachine {
       (item, index, self) =>
         index === self.findIndex(obj => obj.id === item.id)
     );
-
+    const sortedOtmcOfteam = otmcOfteam.sort((a, b) => b.revision - a.revision);
+    if(this.trace2) {
+      console.log('DidDocumentStateMachine::getProofedOfDidDocument::sortedOtmcOfteam=<',sortedOtmcOfteam,'>');
+    }
     if(this.trace2) {
       console.log('DidDocumentStateMachine::getProofedOfDidDocument::controllerOfTeam=<',controllerOfTeam,'>');
       console.log('DidDocumentStateMachine::getProofedOfDidDocument::verificationMethodsOfteam=<',verificationMethodsOfteam,'>');
     }
     docProofResult.controller = controllerOfTeam;
     docProofResult.verificationMethod = verificationMethodsOfteam;
+    docProofResult.otmc = sortedOtmcOfteam[0];
     return docProofResult;
   }
 

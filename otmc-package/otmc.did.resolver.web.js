@@ -343,7 +343,8 @@ export class DidResolverSyncWebStore {
       updated:remoteDid.updated,
       hashDid:calcHash,
       hashCore:this.util.calcAddress(coreDocStr),
-      b64Did:this.util.encodeBase64Str(documentStr)
+      b64Did:this.util.encodeBase64Str(documentStr),
+      didDocument:remoteDid
     }
     if(this.trace) {
       console.log('DidResolverSyncWebStore::onCloudDidSyncDocument_::storeDoc=:<',storeDoc,'>');
@@ -503,6 +504,7 @@ export class DidResolverSyncWebStore {
         control:control,
         hashCR:remoteHash,
         b64JoinCR:this.util.encodeBase64Str(joinRemoteStr),
+        JoinCR:remoteJoin
       }
       if(this.trace) {
         console.log('DidResolverSyncWebStore::onCloudDidSyncJoinCR_::storeJoin=:<',storeJoin,'>');
@@ -637,6 +639,7 @@ export class DidResolverSyncWebStore {
         hashCR:remoteJoin.hashCR,
         hashVC:remoteJoin.hashVC,
         b64JoinVC:remoteJoin.b64JoinVC,
+        JoinVC:JSON.parse(this.util.decodeBase64Str(remoteJoin.b64JoinVC)),
       }
       if(this.trace) {
         console.log('DidResolverSyncWebStore::onCloudDidResponsedJoinVC_::storeJoin=:<',storeJoin,'>');

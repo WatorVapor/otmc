@@ -82,7 +82,8 @@ export class DidResolver {
       updated:documentObj.updated,
       hashDid:this.util.calcAddress(documentStr),
       hashCore:this.util.calcAddress(coreDocStr),
-      b64Did:this.util.encodeBase64Str(documentStr)
+      b64Did:this.util.encodeBase64Str(documentStr),
+      didDocument:documentObj
     }
     this.localStore.storeStableDid(storeDoc);
   }
@@ -98,7 +99,8 @@ export class DidResolver {
       updated:documentObj.updated,
       hashDid:this.util.calcAddress(documentStr),
       hashCore:this.util.calcAddress(coreDocStr),
-      b64Did:this.util.encodeBase64Str(documentStr)
+      b64Did:this.util.encodeBase64Str(documentStr),
+      didDocument:documentObj
     }
     this.localStore.storeFickleDid(storeDoc);
   }
@@ -115,7 +117,8 @@ export class DidResolver {
       updated:documentObj.updated,
       hashDid:this.util.calcAddress(documentStr),
       hashCore:this.util.calcAddress(coreDocStr),
-      b64Did:this.util.encodeBase64Str(documentStr)
+      b64Did:this.util.encodeBase64Str(documentStr),
+      didDocument:documentObj
     }
     this.localStore.storeBuzzerDid(storeDoc);
   }

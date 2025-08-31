@@ -20,16 +20,16 @@ export class DidStoreDocument {
     }
     this.db = new Dexie(StoreKey.open.did.document.dbName);
     this.db.version(this.version).stores({
-      stable: '++autoId,did,controller,authentication,updated,hashDid,hashCore,b64Did'
+      stable: '++autoId,did,controller,authentication,updated,hashDid,hashCore,b64Did,didDocument'
     });
     this.db.version(this.version).stores({
-      fickle: '++autoId,did,controller,authentication,updated,hashDid,hashCore,b64Did'
+      fickle: '++autoId,did,controller,authentication,updated,hashDid,hashCore,b64Did,didDocument'
     });
     this.db.version(this.version).stores({
-      buzzer: '++autoId,did,controller,authentication,updated,hashDid,hashCore,b64Did'
+      buzzer: '++autoId,did,controller,authentication,updated,hashDid,hashCore,b64Did,didDocument'
     });
     this.db.version(this.version).stores({
-      tentative: '++autoId,did,controller,authentication,updated,hashDid,hashCore,b64Did'
+      tentative: '++autoId,did,controller,authentication,updated,hashDid,hashCore,b64Did,didDocument'
     });
     if(isNode) {
       this.wrapper = new StoreNodeWrapper(this.db,this.config);
@@ -320,6 +320,7 @@ export class DidStoreDocument {
     const storeValuesJson = [];
     storeValuesJson.push(await this.db.stable.toArray());
     storeValuesJson.push(await this.db.fickle.toArray());
+    storeValuesJson.push(await this.db.buzzer.toArray());
     if(this.trace) {
       console.log('DidStoreDocument::getConcernDidAddress::storeValuesJson=:<',storeValuesJson,'>');
     }

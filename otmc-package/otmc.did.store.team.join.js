@@ -130,19 +130,19 @@ export class DidStoreTeamJoin {
     }
     this.db = new Dexie(StoreKey.open.did.join.dbName);
     this.db.version(this.version).stores({
-      inProgress: '++autoId,did,control,hashCR,b64JoinCR'
+      inProgressCR: '++autoId,did,control,hashCR,b64JoinCR,JoinCR'
     });
     this.db.version(this.version).stores({
-      done: '++autoId,did,control,hashCR,b64JoinCR'
+      doneCR: '++autoId,did,control,hashCR,b64JoinCR,JoinCR'
     });
     this.db.version(this.version).stores({
-      tentative: '++autoId,did,control,hashCR,b64JoinCR'
+      tentativeCR: '++autoId,did,control,hashCR,b64JoinCR,JoinCR'
     });
     this.db.version(this.version).stores({
-      verified: '++autoId,did,control,hashCR,hashVC,b64JoinVC'
+      verified: '++autoId,did,control,hashCR,hashVC,b64JoinVC,JoinVC'
     });
     this.db.version(this.version).stores({
-      vcTentative: '++autoId,did,control,hashCR,hashVC,b64JoinVC'
+      tentativeVC: '++autoId,did,control,hashCR,hashVC,b64JoinVC,JoinVC'
     });
     if(this.trace) {
       console.log('DidStoreTeamJoin::constructor::this.db=:<',this.db,'>');
@@ -181,14 +181,14 @@ export class DidStoreTeamJoin {
       did: credReqStore.did,
       hashCR: credReqStore.hashCR
     };
-    const storedObject = await this.db.inProgress.where(filter).first();
+    const storedObject = await this.db.inProgressCR.where(filter).first();
     if(this.trace) {
       console.log('DidStoreTeamJoin::putCredReq::storedObject=:<',storedObject,'>');
     }
     if(storedObject) {
       return;
     } else {
-      await this.db.inProgress.put(credReqStore);
+      await this.db.inProgressCR.put(credReqStore);
     }
     if(isNode) {
       await this.wrapper.exportData();
@@ -211,14 +211,14 @@ export class DidStoreTeamJoin {
       did: credReqStore.did,
       hashCR: credReqStore.hashCR
     };
-    const storedObject = await this.db.tentative.where(filter).first();
+    const storedObject = await this.db.tentativeCR.where(filter).first();
     if(this.trace) {
       console.log('DidStoreTeamJoin::putTentativeCredReq::storedObject=:<',storedObject,'>');
     }
     if(storedObject) {
       return;
     } else {
-      await this.db.tentative.put(credReqStore);
+      await this.db.tentativeCR.put(credReqStore);
     }
     if(isNode) {
       await this.wrapper.exportData();
@@ -234,14 +234,14 @@ export class DidStoreTeamJoin {
       hashVC: vcStore.hashVC,
       hashCR: vcStore.hashCR
     };
-    const storedObject = await this.db.vcTentative.where(filter).first();
+    const storedObject = await this.db.tentativeVC.where(filter).first();
     if(this.trace) {
       console.log('DidStoreTeamJoin::putTentativeVC::storedObject=:<',storedObject,'>');
     }
     if(storedObject) {
       return;
     } else {
-      await this.db.vcTentative.put(vcStore);
+      await this.db.tentativeVC.put(vcStore);
     }
     if(isNode) {
       await this.wrapper.exportData();
@@ -282,7 +282,7 @@ export class DidStoreTeamJoin {
    *                            where the keys are the hashCR values and the values are the parsed origCredReq values.
    */
   async getInProgressOfAddress(didAddress) {
-    const asign2Me = await this.db.inProgress.where('control').equals(didAddress).toArray();
+    const asign2Me = await this.db.inProgressCR.where('control').equals(didAddress).toArray();
     if(this.trace) {
       console.log('DidStoreTeamJoin::getInProgressOfAddress::asign2Me=:<',asign2Me,'>');
     }
@@ -298,7 +298,7 @@ export class DidStoreTeamJoin {
    * @throws {SyntaxError} If parsing origCredReq fails.
    */
   async getInProgressAny() {
-    const asign2Any = await this.db.inProgress.toArray();
+    const asign2Any = await this.db.inProgressCR.toArray();
     if(this.trace) {
       console.log('DidStoreTeamJoin::getInProgressAny::asign2Any=:<',asign2Any,'>');
     }
@@ -329,7 +329,7 @@ export class DidStoreTeamJoin {
    * @throws {Error} - Throws an error if the store request cannot be found or if JSON parsing fails.
    */
   async getJoinCredRequest(storeHash) {
-    const storeRequest = await this.db.inProgress.where('hashCR').equals(storeHash).first();
+    const storeRequest = await this.db.inProgressCR.where('hashCR').equals(storeHash).first();
     if(this.trace) {
       console.log('DidStoreTeamJoin::getJoinCredRequest::storeRequest=:<',storeRequest,'>');
     }
@@ -368,7 +368,7 @@ export class DidStoreTeamJoin {
   }
   
   async getJoinTentativeVCAll() {
-    const tentativeObjects = await this.db.vcTentative.toArray();
+    const tentativeObjects = await this.db.tentativeVC.toArray();
     if(this.trace) {
       console.log('DidStoreTeamJoin::getJoinTentativeVCAll::tentativeObjects=:<',tentativeObjects,'>');
     }
@@ -382,12 +382,12 @@ export class DidStoreTeamJoin {
    * @returns {Promise<void>} - A promise that resolves when the operation is complete.
    */
   async moveJoinCredRequest2Done(storeHash) {
-    const storeRequest = await this.db.inProgress.where('hashCR').equals(storeHash).first();
+    const storeRequest = await this.db.inProgressCR.where('hashCR').equals(storeHash).first();
     if(this.trace) {
       console.log('DidStoreTeamJoin::moveJoinCredRequest2Done::storeRequest=:<',storeRequest,'>');
     }
-    await this.db.done.put(storeRequest);
-    await this.db.inProgress.where('hashCR').equals(storeHash).delete();
+    await this.db.doneCR.put(storeRequest);
+    await this.db.inProgressCR.where('hashCR').equals(storeHash).delete();
     if(isNode) {
       await this.wrapper.exportData();
     }
@@ -403,7 +403,7 @@ export class DidStoreTeamJoin {
       console.log('DidStoreTeamJoin::getHashListOfJoinCR::didAddress=:<',didAddress,'>');
     }
     const hashList = [];
-    const store1Objects = await this.db.inProgress.where('did').equals(didAddress).toArray();
+    const store1Objects = await this.db.inProgressCR.where('did').equals(didAddress).toArray();
     if(this.trace) {
       console.log('DidStoreTeamJoin::getHashListOfJoinCR::store1Objects=:<',store1Objects,'>');
     }
@@ -413,7 +413,7 @@ export class DidStoreTeamJoin {
       }
       hashList.push(storeObject.hashCR);
     }
-    const store2Objects = await this.db.done.where('did').equals(didAddress).toArray();
+    const store2Objects = await this.db.doneCR.where('did').equals(didAddress).toArray();
     if(this.trace) {
       console.log('DidStoreTeamJoin::getHashListOfJoinCR::store2Objects=:<',store2Objects,'>');
     }
@@ -423,7 +423,7 @@ export class DidStoreTeamJoin {
       }
       hashList.push(storeObject.hashCR);
     }
-    const store4Objects = await this.db.tentative.where('did').equals(didAddress).toArray();
+    const store4Objects = await this.db.tentativeCR.where('did').equals(didAddress).toArray();
     if(this.trace) {
       console.log('DidStoreTeamJoin::getHashListOfJoinCR::store4Objects=:<',store4Objects,'>');
     }
@@ -454,14 +454,14 @@ export class DidStoreTeamJoin {
       did: didAddress,
       hashCR: hashRC
     };
-    let storeObject = await this.db.inProgress.where(filter).first();
+    let storeObject = await this.db.inProgressCR.where(filter).first();
     if(this.trace) {
       console.log('DidStoreTeamJoin::getJoinRequestByAddreAndHash::storeObject=:<',storeObject,'>');
     }
     if(storeObject) {
       return storeObject;
     }
-    storeObject = await this.db.done.where(filter).first();
+    storeObject = await this.db.doneCR.where(filter).first();
     if(this.trace) {
       console.log('DidStoreTeamJoin::getJoinRequestByAddreAndHash::storeObject=:<',storeObject,'>');
     }
@@ -540,7 +540,7 @@ export class DidStoreTeamJoin {
    * @returns {Promise<void>} A promise that resolves when the operation is complete.
    */
   async moveTentativeCR2Workspace() {
-    const tentativeObjects = await this.db.tentative.toArray();
+    const tentativeObjects = await this.db.tentativeCR.toArray();
     if(this.trace) {
       console.log('DidStoreTeamJoin::moveTentativeCR2Workspace::tentativeObjects=:<',tentativeObjects,'>');
     }
@@ -552,14 +552,14 @@ export class DidStoreTeamJoin {
         did: tentativeObject.did,
         hashCR: tentativeObject.hashRC
       };  
-      let hintObject = await this.db.done.where(filter).first();
+      let hintObject = await this.db.doneCR.where(filter).first();
       if(this.trace) {
         console.log('DidStoreTeamJoin::moveTentativeCR2Workspace::hintObject=:<',hintObject,'>');
       }
       if(hintObject) {
         continue;
       }
-      hintObject = await this.db.inProgress.where(filter).first();
+      hintObject = await this.db.inProgressCR.where(filter).first();
       if(this.trace) {
         console.log('DidStoreTeamJoin::moveTentativeCR2Workspace::hintObject=:<',hintObject,'>');
       }
@@ -606,7 +606,7 @@ export class DidStoreTeamJoin {
     if(this.trace) {
       console.log('DidStoreTeamJoin::moveTentativeVC2Workspace::filter=:<',filter,'>');
     }
-    const hintObject = await this.db.vcTentative.where(filter).first();
+    const hintObject = await this.db.tentativeVC.where(filter).first();
     if(this.trace) {
       console.log('DidStoreTeamJoin::moveTentativeVC2Workspace::hintObject=:<',hintObject,'>');
     }
@@ -616,7 +616,7 @@ export class DidStoreTeamJoin {
     const saveObject = JSON.parse(JSON.stringify(hintObject));
     delete saveObject.autoId;
     await this.putVerifiableCredential(saveObject);
-    const result = await this.db.vcTentative.where(filter).delete();
+    const result = await this.db.tentativeVC.where(filter).delete();
     if(this.trace) {
       console.log('DidStoreTeamJoin::moveTentativeVC2Workspace::result=:<',result,'>');
     }

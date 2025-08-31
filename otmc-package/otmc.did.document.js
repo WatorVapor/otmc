@@ -324,6 +324,9 @@ export class DidDocument {
       if(didDoc && didDoc.controller && didDoc.controller.length < 1) {
         didDoc = await this.fillControllerAndProof(didDoc);
       }
+      if(this.trace) {
+        console.log('DidDocument::loadDocument::didDoc=:<',didDoc,'>');
+      }
 
       this.eeOut.emit('did:document',didDoc);
       this.didDoc_ = didDoc;
@@ -367,6 +370,10 @@ export class DidDocument {
     const proofedInfo = await this.docSM.getProofedOfDidDocument(didDoc.id);
     if(this.trace) {
       console.log('DidDocument::fillControllerAndProof::proofedInfo=:<',proofedInfo,'>');
+    }
+    if(proofedInfo.controller.length < 1 || proofedInfo.verificationMethod.length < 1) {
+      console.error('DidDocument::fillControllerAndProof::proofedInfo=:<',proofedInfo,'>');
+      return didDoc;
     }
     this.guest = new DIDGuestFillCtrlProofDocument(didDoc,this.auth,proofedInfo);
     const documentObj = this.guest.document();

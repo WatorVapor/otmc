@@ -572,7 +572,7 @@ export class DidStoreTeamJoin {
       if(this.trace) {
         console.log('DidStoreTeamJoin::moveTentativeCR2Workspace::tentativeObject=:<',tentativeObject,'>');
       }
-      await this.db.tentative
+      await this.db.tentativeCR
       .where('hashCR').equals(tentativeObject.hashCR)
       .delete();
     }

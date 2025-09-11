@@ -73,6 +73,7 @@ export class DidDocument {
     this.status = {};
     this.evidenceCapability = {};
     this.allEvidenceChain = {};
+    this.account = new AccountStoreDid();
   }
   
   async createModule_() {
@@ -106,6 +107,16 @@ export class DidDocument {
       console.log('DidDocument::ListenEventEmitter_::this.eeInternal=:<',this.eeInternal,'>');
     }
     const self = this;
+    this.eeInternal.on('otmc.mqtt.read.all.account.info',async (payload)=>{
+      if(self.trace) {
+        console.log('DidDocument::ListenEventEmitter_::payload=:<',payload,'>');
+      }
+      const accountStores = await self.account.getAllProperty();
+      if(self.trace) {
+        console.log('DidDocument::ListenEventEmitter_::accountStores=:<',accountStores,'>');
+      }
+      this.eeOut.emit('did:team:all:property',accountStores);
+    });
     this.eeInternal.on('did.module.load',(authKey)=>{
       if(self.trace) {
         console.log('DidDocument::ListenEventEmitter_::authKey=:<',authKey,'>');
@@ -129,7 +140,6 @@ export class DidDocument {
       };
       self.eeInternal.emit('sys.authKey.ready',evt);
       self.createModule_();
-      self.account = new AccountStoreDid();
     });
     this.eeInternal.on('did.edcrypt.recoveryKey',(recoveryKey)=>{
       if(self.trace) {

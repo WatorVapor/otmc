@@ -26,7 +26,7 @@ export class OtmcMqtt extends EventEmitter {
     }
     this.eeInternal = new EventEmitter();
     if(this.trace) {
-      console.log('OtmcTeam::constructor::this.eeInternal=:<',this.eeInternal,'>');
+      console.log('OtmcMqtt::constructor::this.eeInternal=:<',this.eeInternal,'>');
     }
     this.worker = new WebWorkerLoader(this.eeInternal);
     this.edCryptKey = new EdcryptKeyLoader(this.eeInternal,this);
@@ -53,60 +53,63 @@ export class OtmcMqtt extends EventEmitter {
     }
     this.eeInternal.emit('edCryptKey.loader.switchKey',data);
   }
+  readAllAccountInfo() {
+    this.eeInternal.emit('otmc.mqtt.read.all.account.info',{});
+  }
   publishMsg(mqttMsg){
     if(this.trace0) {
-      console.log('Otmc::publishMsg::mqttMsg=:<',mqttMsg,'>');
+      console.log('OtmcMqtt::publishMsg::mqttMsg=:<',mqttMsg,'>');
     }
     const msgPack = this.did.packMessage(mqttMsg);
     if(this.trace0) {
-      console.log('Otmc::publishMsg::msgPack=:<',msgPack,'>');
+      console.log('OtmcMqtt::publishMsg::msgPack=:<',msgPack,'>');
     }
     this.mqtt.publish(msgPack.topic,msgPack,this.mqttOption);
   }
   publishSecretMsg(mqttMsg){
     if(this.trace0) {
-      console.log('Otmc::publishSecretMsg::mqttMsg=:<',mqttMsg,'>');
+      console.log('OtmcMqtt::publishSecretMsg::mqttMsg=:<',mqttMsg,'>');
     }
     if(this.trace0) {
-      console.log('Otmc::publishSecretMsg::this.did=:<',this.did,'>');
+      console.log('OtmcMqtt::publishSecretMsg::this.did=:<',this.did,'>');
     }    
     this.eeInternal.emit('otmc.mqtt.encrypt.channel.encrypt',mqttMsg);
   }
   broadcastSecretMsg(mqttMsg){
     if(this.trace0) {
-      console.log('Otmc::broadcastSecretMsg::mqttMsg=:<',mqttMsg,'>');
+      console.log('OtmcMqtt::broadcastSecretMsg::mqttMsg=:<',mqttMsg,'>');
     }
     if(this.trace10) {
-      console.log('Otmc::broadcastSecretMsg::this.did=:<',this.did,'>');
+      console.log('OtmcMqtt::broadcastSecretMsg::this.did=:<',this.did,'>');
     }    
     this.eeInternal.emit('otmc.mqtt.encrypt.channel.encrypt.broadcast',mqttMsg);
   }
   unicastSecretMsg(mqttMsg){
     if(this.trace0) {
-      console.log('Otmc::unicastSecretMsg::mqttMsg=:<',mqttMsg,'>');
+      console.log('OtmcMqtt::unicastSecretMsg::mqttMsg=:<',mqttMsg,'>');
     }
     if(this.trace0) {
-      console.log('Otmc::unicastSecretMsg::this.did=:<',this.did,'>');
+      console.log('OtmcMqtt::unicastSecretMsg::this.did=:<',this.did,'>');
     }    
     this.eeInternal.emit('otmc.mqtt.encrypt.channel.encrypt.unicast',mqttMsg);
   }  
   broadcastMsg(mqttMsg){
     if(this.trace0) {
-      console.log('Otmc::publishMsg::mqttMsg=:<',mqttMsg,'>');
+      console.log('OtmcMqtt::publishMsg::mqttMsg=:<',mqttMsg,'>');
     }
     const msgPack = this.did.packBroadcastMessage(mqttMsg);
     if(this.trace0) {
-      console.log('Otmc::publishMsg::msgPack=:<',msgPack,'>');
+      console.log('OtmcMqtt::publishMsg::msgPack=:<',msgPack,'>');
     }
     this.mqtt.publish(msgPack.topic,msgPack,this.mqttOption);
   }
   unicastMsg(mqttMsg){
     if(this.trace0) {
-      console.log('Otmc::publishMsg::mqttMsg=:<',mqttMsg,'>');
+      console.log('OtmcMqtt::publishMsg::mqttMsg=:<',mqttMsg,'>');
     }
     const msgPack = this.did.packUnicastMessage(mqttMsg);
     if(this.trace0) {
-      console.log('Otmc::publishMsg::msgPack=:<',msgPack,'>');
+      console.log('OtmcMqtt::publishMsg::msgPack=:<',msgPack,'>');
     }
     this.mqtt.publish(msgPack.topic,msgPack,this.mqttOption);
   }

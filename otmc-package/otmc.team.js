@@ -45,6 +45,9 @@ export class OtmcTeam extends EventEmitter {
   listKeys() {
     this.eeInternal.emit('edCryptKey.loader.listKey',{});
   }
+  readAllAccountInfo() {
+    this.eeInternal.emit('otmc.mqtt.read.all.account.info',{});
+  }
   startMining() {
     const data = {
       mine:{

@@ -37,9 +37,21 @@ export class AccountStoreDid {
 
   async getProperty(didAddress) {
     if(this.trace) {
-      console.log('AccountStoreDid::getAllProperty::didAddress=:<',didAddress,'>');
+      console.log('AccountStoreDid::getProperty::didAddress=:<',didAddress,'>');
     }
     const storeObjects = await this.db.property.where('did').equals(didAddress).first();
     return storeObjects;
   }
+  
+  async getAllProperty() {
+    if(this.trace) {
+      console.log('AccountStoreDid::getAllProperty::');
+    }
+    const storeObjects = await this.db.property.toArray();
+    if(this.trace) {
+      console.log('AccountStoreDid::getAllProperty::storeObjects=:<',storeObjects,'>');
+    }
+    return storeObjects;
+  }
+
 }

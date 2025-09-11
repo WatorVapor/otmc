@@ -10,6 +10,6 @@
   "description": "",
   "dependencies": {
     "fake-indexeddb": "^6.0.1",
-    "redis": "^5.1.0"
+    "redis": "^5.8.2"
   }
 }

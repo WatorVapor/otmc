@@ -38,9 +38,11 @@ const onRedisReady = ()=>{
     console.log('rtk-gnss::onRedisReady::redisProxy.ready=<',redisProxy.ready,'>');
   }
   createSubscriber();
+  /*
   setTimeout(()=>{
     syncLocal2Clound();
   },1000);
+  */
 }
 
 const redisProxy = new RedisPassProxy(gConf,onRedisReady,);

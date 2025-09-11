@@ -53,7 +53,8 @@ export class DidDocument {
     this.trace1 = true;
     this.trace2 = true;
     this.trace3 = false;
-    this.trace = true;;
+    this.trace = true;
+    this.trace10 = false;
     this.debug = true;
     this.eeInternal = eeInternal;
     this.eeOut = eeOut;
@@ -1034,8 +1035,10 @@ export class DidDocument {
   }  
   
   packBroadcastMessage(rawMsg) {
-    if(this.trace0) {
+    if(this.trace10) {
       console.log('DidDocument::packBroadcastMessage::this.otmc=:<',this.otmc,'>');
+    }
+    if(this.trace0) {
       console.log('DidDocument::packBroadcastMessage::rawMsg=:<',rawMsg,'>');
     }
     this.checkEdcrypt_();

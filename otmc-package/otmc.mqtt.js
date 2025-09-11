@@ -100,4 +100,14 @@ export class OtmcMqtt extends EventEmitter {
     }
     this.mqtt.publish(msgPack.topic,msgPack,this.mqttOption);
   }
+  unicastMsg(mqttMsg){
+    if(this.trace0) {
+      console.log('Otmc::publishMsg::mqttMsg=:<',mqttMsg,'>');
+    }
+    const msgPack = this.did.packUnicastMessage(mqttMsg);
+    if(this.trace0) {
+      console.log('Otmc::publishMsg::msgPack=:<',msgPack,'>');
+    }
+    this.mqtt.publish(msgPack.topic,msgPack,this.mqttOption);
+  }
 }

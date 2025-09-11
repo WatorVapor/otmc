@@ -1,8 +1,10 @@
 import { createClient } from 'redis';
 export class RedisPassAgent {
   constructor(config,otmcTeam,otmcMqtt,readyCB) {
-    this.trace0 = false;
+    this.trace0 = true;
     this.trace = true;
+    this.trace10 = false;
+
     this.debug = true;
     this.otmcTeam = otmcTeam;
     this.otmcMqtt = otmcMqtt;
@@ -162,12 +164,44 @@ export class RedisPassAgent {
       console.log('RedisPassAgent::onEdgePlainBroadcast_::topic=<',topic,'>');
       console.log('RedisPassAgent::onEdgePlainBroadcast_::message=<',message,'>');
     }
+    const otmcTopic = topic.replace('/omtc/edge/2/cloud/broadcast/plain/','');
+    if(this.trace0) {
+      console.log('RedisPassAgent::onEdgePlainBroadcast_::otmcTopic=<',otmcTopic,'>');
+    }
+    const otmcMsg = JSON.parse(message);
+    if(this.trace0) {
+      console.log('RedisPassAgent::onEdgePlainBroadcast_::otmcMsg=<',otmcMsg,'>');
+    }
+    const syncMsg = { 
+      topic:otmcTopic,
+      payload:otmcMsg,
+    };
+    if(this.trace0) {
+      console.log('RedisPassAgent::onEdgePlainBroadcast_::syncMsg=<',syncMsg,'>');
+    }
+    this.otmcMqtt.broadcastMsg(syncMsg);
   }
   onEdgePlainUnicast_(topic,message) {
     if(this.trace0) {
       console.log('RedisPassAgent::onEdgePlainUnicast_::topic=<',topic,'>');
       console.log('RedisPassAgent::onEdgePlainUnicast_::message=<',message,'>');
     }
+    const otmcTopic = topic.replace('/omtc/edge/2/cloud/unicast/plain/','');
+    if(this.trace0) {
+      console.log('RedisPassAgent::onEdgePlainUnicast_::otmcTopic=<',otmcTopic,'>');
+    }
+    const otmcMsg = JSON.parse(message);
+    if(this.trace0) {
+      console.log('RedisPassAgent::onEdgePlainUnicast_::otmcMsg=<',otmcMsg,'>');
+    }
+    const syncMsg = { 
+      topic:otmcTopic,
+      payload:otmcMsg,
+    };
+    if(this.trace0) {
+      console.log('RedisPassAgent::onEdgePlainUnicast_::syncMsg=<',syncMsg,'>');
+    }
+    this.otmcMqtt.unicastMsg(syncMsg);
   }
   onEdgeEncyptBroadcast_(topic,message) {
     if(this.trace0) {

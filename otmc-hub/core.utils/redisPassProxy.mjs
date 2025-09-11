@@ -4,6 +4,8 @@ export class RedisPassProxy {
     this.trace0 = true;
     this.trace1 = true;
     this.trace = true;
+    this.trace10 = false;
+
     this.debug = true;
     this.redisUnxiPath = `${config.store}/redis/redis.otmc.hub.sock`;
     this.readyCB_ = readyCB;
@@ -28,11 +30,14 @@ export class RedisPassProxy {
       console.log('RedisPassProxy::pubBroadcast::topic=<',topic,'>');
       console.log('RedisPassProxy::pubBroadcast::payload=<',payload,'>');
     }
+    if(!payload) {
+      payload = {}
+    }
     const topicOut = `/omtc/edge/2/cloud/broadcast/plain/${topic}`;
     if(this.trace0) {
       console.log('RedisPassProxy::pubBroadcast::topicOut=<',topicOut,'>');
     }
-    if(this.trace0) {
+    if(this.trace10) {
       console.log('RedisPassProxy::pubBroadcast::this.publisher=<',this.publisher,'>');
     }
     await this.publisher.publish(topicOut,JSON.stringify(payload),(err)=>{
@@ -45,6 +50,9 @@ export class RedisPassProxy {
     if(this.trace0) {
       console.log('RedisPassProxy::pubUnicast::topic=<',topic,'>');
       console.log('RedisPassProxy::pubUnicast::payload=<',payload,'>');
+    }
+    if(!payload) {
+      payload = {}
     }
     const topicOut = `/omtc/edge/2/cloud/unicast/plain/${topic}`;
     if(this.trace0) {
@@ -61,6 +69,9 @@ export class RedisPassProxy {
     if(this.trace0) {
       console.log('RedisPassProxy::pubBroadcastEncypt::topic=<',topic,'>');
       console.log('RedisPassProxy::pubBroadcastEncypt::payload=<',payload,'>');
+    }
+    if(!payload) {
+      payload = {}
     }
     const topicOut = `/omtc/edge/2/cloud/broadcast/encypt/${topic}`;
     if(this.trace0) {
@@ -79,6 +90,9 @@ export class RedisPassProxy {
     if(this.trace0) {
       console.log('RedisPassProxy::pubUnicastEncypt::topic=<',topic,'>');
       console.log('RedisPassProxy::pubUnicastEncypt::payload=<',payload,'>');
+    }
+    if(!payload) {
+      payload = {}
     }
     const topicOut = `/omtc/edge/2/cloud/unicast/encypt/${topic}`;
     if(this.trace0) {

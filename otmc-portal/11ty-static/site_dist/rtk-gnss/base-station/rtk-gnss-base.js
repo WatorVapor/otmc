@@ -37,6 +37,14 @@ const loadRtkGnssApps = (evt) => {
     if(LOG.trace) {
       console.log('RTK-GNSS-STATION::loadRtkGnssApps::propertyList=:<',propertyList,'>');
     }
+    // filter propertyList
+    const propertyRtkBaseList = propertyList.filter((property) => {
+      return property.team.identification.startsWith('RTK_BS_');
+    });
+    if(LOG.trace) {
+      console.log('RTK-GNSS-STATION::loadRtkGnssApps::propertyRtkBaseList=:<',propertyRtkBaseList,'>');
+    }
+    appRtkVM.accountList = propertyRtkBaseList;
   });
 
   otmc.on('otmc:mqtt:app',(appMsg) => {
@@ -59,56 +67,16 @@ const loadRtkGnssApps = (evt) => {
 const rtkGNSSOption = {
   data() {
     return {
+      accountList:[]
     };
   },
   methods: {
-    clickSelectUSBSerialRtkDevice(evt) {
+    changeDidSelected(evt) {
       if(LOG.trace0) {
-        console.log('RTK-GNSS-STATION::clickSelectUSBSerialRtkDevice::this=:<',this,'>');
-      }
-      const otmc = this.otmc;
-      if(LOG.trace0) {
-        console.log('RTK-GNSS-STATION::clickSelectUSBSerialRtkDevice::otmc=:<',otmc,'>');
-      }
-      createUSBSerialRtkDevice(otmc);
-    },
-    clickSelectBluetoothRtkDevice(evt) {
-      if(LOG.trace0) {
-        console.log('RTK-GNSS-STATION::clickSelectBluetoothRtkDevice::this=:<',this,'>');
-      }
-      const otmc = this.otmc;
-      if(LOG.trace0) {
-        console.log('RTK-GNSS-STATION::clickSelectBluetoothRtkDevice::otmc=:<',otmc,'>');
+        console.log('RTK-GNSS-STATION::changeDidSelected::this=:<',this,'>');
       }
     },
   }, 
-}
-const createUSBSerialRtkDevice = async (otmc) => {
-  const filter = {};
-  try {
-    const device = await navigator.serial.requestPort();
-    if(LOG.trace0) {
-      console.log('RTK-GNSS-STATION::createUSBSerialRtkDevice::device=:<',device,'>');
-    }
-    await device.open({ baudRate: 115200 });
-    const writer = device.writable.getWriter()
-    if(LOG.trace0) {
-      console.log('RTK-GNSS-STATION::createUSBSerialRtkDevice::writer=:<',writer,'>');
-    }
-    const reader = device.readable.getReader();
-    if(LOG.trace0) {
-      console.log('RTK-GNSS-STATION::createUSBSerialRtkDevice::reader=:<',reader,'>');
-    }
-    apps.device = {
-      writer:writer,
-      reader:reader
-    };
-    setInterval(() =>{
-      readSerialRtkDevice(reader)
-    } ,200);
-  } catch (err) {
-    console.error('RTK-GNSS-STATION::createUSBSerialRtkDevice::err=:<',err,'>');
-  }  
 }
 
 const onOTMCAppData = (appMsg) => {

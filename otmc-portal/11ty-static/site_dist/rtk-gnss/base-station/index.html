@@ -146,8 +146,15 @@
           <script src="https://cdn.jsdelivr.net/npm/gps@0.6.1/gps.min.js" integrity="sha256-aP5ZLTc1l1e/GuhJwYW63UokuP2gHI7L9UB+utU8aA4=" crossorigin="anonymous"></script>
           <div class="container text-center mt-3">
             <div class="row justify-content-center">
-              <div class="col-8">
-                <div id="vue-ui-app-rtk-space"></div>
+              <div class="col-8" id="vue-ui-app-rtk-space">
+                <div class="input-group mb-1">
+                  <span class="input-group-text w-50">RTK Base Statation Team Auth Keys</span>
+                  <span class="input-group-text w-50">
+              <select class="form-select" v-model="didSelected" @change="changeDidSelected()">
+                <option v-for="account in accountList" :selected="didSelected === account.did">{{account.did}}</option>
+              </select>
+            </span>
+                </div>
               </div>
             </div>
             <hr />

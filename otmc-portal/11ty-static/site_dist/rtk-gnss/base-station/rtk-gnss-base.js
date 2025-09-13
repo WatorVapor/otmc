@@ -9,6 +9,23 @@ import { OtmcMqtt } from 'otmcMqtt';
 Cesium.Ion.defaultAccessToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJjMWM0MTFlOC04OTljLTQyZDEtOGRkYS00M2EyMWY1MDRhY2UiLCJpZCI6MTAxNzk1LCJpYXQiOjE2NTgyNzk5ODF9.wS71k-QxR6CLoJ5l3VuJeb07sE3qOkkSgy2MbmuLFWg`;
 
 
+const appStoreDidSelected = 'otmc/rtk/did/selected';
+
+const loadLastSavedDidSelection = () => {
+  try {
+    const didSelected = localStorage.getItem(appStoreDidSelected);
+    if(LOG.trace) {
+      console.log('DidTeam::loadLastSavedKeyIdSelection::didSelected=:<',didSelected,'>');
+    }
+    return didSelected;
+  } catch(err) {
+    console.error('DidTeam::loadLastSavedKeyIdSelection::err=:<',err,'>');
+  }
+  return null;
+}
+
+
+
 document.addEventListener('DOMContentLoaded', async (evt) => {
   loadRtkGnssApps(evt);
   createMapView(35.81373336666667,139.72861126666666);
@@ -21,6 +38,11 @@ const loadRtkGnssApps = (evt) => {
   if(LOG.trace0) {
     console.log('RTK-GNSS-STATION::loadRtkGnssApps::appRtkVM=:<',appRtkVM,'>');
   }
+  const didSelected = loadLastSavedDidSelection();
+  if(LOG.trace) {
+    console.log('RTK-GNSS-STATION::loadRtkGnssApps::didSelected=:<',didSelected,'>');
+  }
+  appRtkVM.didSelected = didSelected;
 
   const otmc = new OtmcMqtt();
   if(LOG.trace) {
@@ -41,6 +63,18 @@ const loadRtkGnssApps = (evt) => {
     const propertyRtkBaseList = propertyList.filter((property) => {
       return property.team.identification.startsWith('RTK_BS_');
     });
+    if(LOG.trace) {
+      console.log('RTK-GNSS-STATION::loadRtkGnssApps::propertyRtkBaseList=:<',propertyRtkBaseList,'>');
+    }
+    for(const account of propertyRtkBaseList) {
+      account.selected = false;
+      if(account.did === appRtkVM.didSelected) {
+        account.selected = true;
+      }
+    }
+    if(propertyRtkBaseList.length === 1) {
+      propertyRtkBaseList[0].selected = true;
+    }
     if(LOG.trace) {
       console.log('RTK-GNSS-STATION::loadRtkGnssApps::propertyRtkBaseList=:<',propertyRtkBaseList,'>');
     }
@@ -67,7 +101,8 @@ const loadRtkGnssApps = (evt) => {
 const rtkGNSSOption = {
   data() {
     return {
-      accountList:[]
+      accountList:[],
+      didSelected:'',
     };
   },
   methods: {
@@ -75,6 +110,8 @@ const rtkGNSSOption = {
       if(LOG.trace0) {
         console.log('RTK-GNSS-STATION::changeDidSelected::this=:<',this,'>');
       }
+      localStorage.setItem(appStoreDidSelected,this.didSelected);
+      otmc.switchDid(this.didSelected);
     },
   }, 
 }

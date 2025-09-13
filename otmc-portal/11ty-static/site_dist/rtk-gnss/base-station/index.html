@@ -151,7 +151,7 @@
                   <span class="input-group-text w-50">RTK Base Statation Team Auth Keys</span>
                   <span class="input-group-text w-50">
               <select class="form-select" v-model="didSelected" @change="changeDidSelected()">
-                <option v-for="account in accountList" :selected="didSelected === account.did">{{account.did}}</option>
+                <option v-for="account in accountList" :selected="account.selected">{{account.did}}</option>
               </select>
             </span>
                 </div>

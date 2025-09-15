@@ -115,8 +115,15 @@ export class DidDocument {
       if(self.trace) {
         console.log('DidDocument::ListenEventEmitter_::accountStores=:<',accountStores,'>');
       }
-      this.eeOut.emit('did:team:all:property',accountStores);
+      self.eeOut.emit('did:team:all:property',accountStores);
     });
+    this.eeInternal.on('otmc.document.switchTeam',(payload)=>{
+      if(self.trace) {
+        console.log('DidDocument::ListenEventEmitter_::payload=:<',payload,'>');
+      }
+      self.switchDidTeam(payload.teamId);
+    });
+
     this.eeInternal.on('did.module.load',(authKey)=>{
       if(self.trace) {
         console.log('DidDocument::ListenEventEmitter_::authKey=:<',authKey,'>');
@@ -267,6 +274,18 @@ export class DidDocument {
       self.addMyProofDidDocument(evt);
     });
   
+  }
+
+  async switchDidTeam(teamId) {
+    if(this.trace) {
+      console.log('DidDocument::switchDidTeam::teamId=:<',teamId,'>');
+    }
+    const keyAddress = teamId.replace('did:otmc:','');
+    const allDidDoc = await this.resolver.getDidDocumentAll(keyAddress);
+    if(this.trace) {
+      console.log('DidDocument::switchDidTeam::allDidDoc=:<',allDidDoc,'>');
+    }
+
   }
 
   syncDidDocument_(){

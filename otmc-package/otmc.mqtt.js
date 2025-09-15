@@ -47,6 +47,12 @@ export class OtmcMqtt extends EventEmitter {
       nl:true
     };
   }
+  switchDidTeam(didTeam) {
+    const data = {
+      teamId:didTeam
+    }
+    this.eeInternal.emit('otmc.document.switchTeam',data);
+  }
   switchDidKey(didKey) {
     const data = {
       keyId:didKey

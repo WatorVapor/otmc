@@ -53,6 +53,7 @@ const loadRtkGnssApps = (evt) => {
     if(LOG.trace) {
       console.log('RTK-GNSS-STATION::loadRtkGnssApps::didKeyList=:<',didKeyList,'>');
     }
+    otmc.switchDidTeam(didSelected);
   });
 
   otmc.on('did:team:all:property',(propertyList)=>{

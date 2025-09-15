@@ -67,7 +67,7 @@ export class DidDocument {
     };
     this.docState = new DidDocStateMachine(this.eeInternal);
     this.rtState = new DidRuntimeStateMachine(this.eeInternal);
-    this.resolver = new DidResolver(this.eeInternal);
+    this.resolver = new DidResolver(this.eeInternal,this);
     this.docSM = new DidDocumentStateMachine(this.eeInternal,this.eeOut);
     this.evidenceAuth = {};
     this.status = {};
@@ -285,7 +285,41 @@ export class DidDocument {
     if(this.trace) {
       console.log('DidDocument::switchDidTeam::allDidDoc=:<',allDidDoc,'>');
     }
-
+    let authenticatedKeyids = [];
+    for(const didDoc of allDidDoc) {
+      if(this.trace) {
+        console.log('DidDocument::switchDidTeam::didDoc=:<',didDoc,'>');
+      }
+      authenticatedKeyids.push(didDoc.authentication);
+    }
+    if(this.trace) {
+      console.log('DidDocument::switchDidTeam::authenticatedKeyids=:<',authenticatedKeyids,'>');
+    }
+    authenticatedKeyids = authenticatedKeyids.flat();
+    if(this.trace) {
+      console.log('DidDocument::switchDidTeam::authenticatedKeyids=:<',authenticatedKeyids,'>');
+    }
+    authenticatedKeyids = [...new Set([...authenticatedKeyids])];
+    if(this.trace) {
+      console.log('DidDocument::switchDidTeam::authenticatedKeyids=:<',authenticatedKeyids,'>');
+    }
+    let keyids = [];
+    for(const authkeyid of authenticatedKeyids) {
+      if(this.trace) {
+        console.log('DidDocument::switchDidTeam::authkeyid=:<',authkeyid,'>');
+      }
+      if(authkeyid.startsWith(teamId)) {
+        const keyid = authkeyid.replace(`${teamId}#`,'');
+        if(this.trace) {
+          console.log('DidDocument::switchDidTeam::keyid=:<',keyid,'>');
+        }
+        keyids.push(keyid);
+      }
+    }
+    if(this.trace) {
+      console.log('DidDocument::switchDidTeam::keyids=:<',keyids,'>');
+    }
+    this.eeOut.emit('did:team:switch.did.authKey.RC',keyids);
   }
 
   syncDidDocument_(){

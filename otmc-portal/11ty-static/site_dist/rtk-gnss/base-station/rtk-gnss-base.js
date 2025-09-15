@@ -43,6 +43,7 @@ const loadRtkGnssApps = (evt) => {
     console.log('RTK-GNSS-STATION::loadRtkGnssApps::didSelected=:<',didSelected,'>');
   }
   appRtkVM.didSelected = didSelected;
+  apps.didSelected = didSelected;
 
   const otmc = new OtmcMqtt();
   if(LOG.trace) {
@@ -53,7 +54,21 @@ const loadRtkGnssApps = (evt) => {
     if(LOG.trace) {
       console.log('RTK-GNSS-STATION::loadRtkGnssApps::didKeyList=:<',didKeyList,'>');
     }
+    apps.didKeyList = didKeyList;
     otmc.switchDidTeam(didSelected);
+  });
+  otmc.on('did:team:switch.did.authKey.RC',(keyidRCs)=>{
+    if(LOG.trace) {
+      console.log('RTK-GNSS-STATION::loadRtkGnssApps::keyidRCs=:<',keyidRCs,'>');
+    }
+    apps.keyidRCs = keyidRCs;
+    const keyidSelected = doDidAuthKeyMatch(apps);
+    if(LOG.trace) {
+      console.log('RTK-GNSS-STATION::loadRtkGnssApps::keyidSelected=:<',keyidSelected,'>');
+    }
+    if(keyidSelected) {
+      otmc.switchDidKey(keyidSelected);
+    }
   });
 
   otmc.on('did:team:all:property',(propertyList)=>{
@@ -362,3 +377,40 @@ const createMapView = async (lat,lon) => {
   apps.billboards = apps.mapView.scene.primitives.add(new Cesium.BillboardCollection());
 }
 
+
+const doDidAuthKeyMatch = (apps) => {
+  if(LOG.trace) {
+    console.log('RTK-GNSS-STATION::doDidAuthKeyMatch::apps=:<',apps,'>');
+  }
+  const keysOfMine = [];
+  for(const keyidRC of apps.keyidRCs) {
+      if(LOG.trace) {
+        console.log('RTK-GNSS-STATION::doDidAuthKeyMatch::keyidRC=:<',keyidRC,'>');
+      }
+      for(const didKey of apps.didKeyList) {
+        if(LOG.trace) {
+          console.log('RTK-GNSS-STATION::doDidAuthKeyMatch::didKey=:<',didKey,'>');
+        }
+        if(keyidRC === didKey.auth.idOfKey) {
+          keysOfMine.push(keyidRC);
+        }
+    }
+  }
+  if(LOG.trace) {
+    console.log('RTK-GNSS-STATION::doDidAuthKeyMatch::keysOfMine=:<',keysOfMine,'>');
+  }
+  if(keysOfMine.length > 1) {
+    for(const keyidRC of keysOfMine) {
+      if(LOG.trace) {
+        console.log('RTK-GNSS-STATION::doDidAuthKeyMatch::keyidRC=:<',keyidRC,'>');
+      }
+      if(apps.didSelected.endswith(keyidRC)) {
+        return keyidRC;
+      }
+    }
+  }
+  if(keysOfMine.length === 1) {
+    return keysOfMine[0];
+  }
+  return null;
+}

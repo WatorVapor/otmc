@@ -2,16 +2,18 @@ import { DidStoreDocument } from './otmc.did.store.document.js';
 import { DidStoreTeamJoin } from './otmc.did.store.team.join.js';
 
 export class DidResolverLocalStore {
-  constructor(wrapper) {
+  constructor(otmc) {
     this.trace = true;
     this.debug = true;
-    this.auth = wrapper.auth;
-    this.otmc = wrapper.otmc;
-    this.base32 = wrapper.base32;
-    this.util = wrapper.util;
-
+    this.otmc = otmc;
     this.didDocLS = new DidStoreDocument(this.otmc.config);
     this.joinStoreLS = new DidStoreTeamJoin(this.otmc.config);
+  }
+  setWrapper(wrapper) {
+    this.auth = wrapper.auth;
+    this.base32 = wrapper.base32;
+    this.util = wrapper.util;
+    this.otmc = wrapper.otmc;
   }
 
   async resolver(keyAddress){

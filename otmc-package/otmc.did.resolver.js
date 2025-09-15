@@ -10,11 +10,13 @@ const LEVEL_OPT = {
 *
 */
 export class DidResolver {
-  constructor(eeInternal) {
+  constructor(eeInternal,otmc) {
     this.trace = true;
     this.debug = true;
     this.eeInternal = eeInternal;
+    this.otmc = otmc;
     this.ListenEventEmitter_();
+    this.localStore = new DidResolverLocalStore(this.eeInternal,this.otmc);
   }
   ListenEventEmitter_() {
     if(this.trace) {
@@ -29,7 +31,7 @@ export class DidResolver {
       self.otmc = evt.otmc;
       self.base32 = evt.base32;
       self.util = evt.util;
-      self.localStore = new DidResolverLocalStore(evt);
+      self.localStore.setWrapper(evt);
     });
     this.eeInternal.on('webwoker.resolver.worker',(evt)=>{
       if(self.trace) {

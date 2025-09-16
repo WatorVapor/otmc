@@ -9,6 +9,7 @@ export class MqttMessager {
     this.trace0 = false;
     this.trace1 = true;
     this.trace = true;
+    this.trace10 = false;
     this.debug = true;
     this.isRequestingJwt = false;
     this.ee = ee;
@@ -96,7 +97,7 @@ export class MqttMessager {
   }
 
   dispatchMessage_(featureTopic,fullTopic,msgJson) {
-    if(this.trace1) {
+    if(this.trace10) {
       console.log('MqttMessager::dispatchMessage_:featureTopic=<',featureTopic,'>');
       console.log('MqttMessager::dispatchMessage_:fullTopic=<',fullTopic,'>');
       console.log('MqttMessager::dispatchMessage_:msgJson=<',msgJson,'>');
@@ -111,14 +112,13 @@ export class MqttMessager {
       this.ee.emit('mqtt.encrypt.channel.decrypt.message',{msg:msgJson,sTopic:featureTopic});
       return;
     }
-    if(this.trace0) {
+    if(this.trace10) {
       console.log('MqttMessager::dispatchMessage_::this.otmc.listenerCount(”otmc:mqtt:all“)=:<',this.otmc.listenerCount('otmc:mqtt:all'),'>');
       console.log('MqttMessager::dispatchMessage_::this.otmc.listenerCount(”otmc:mqtt:encrypt:channel“)=:<',this.otmc.listenerCount('otmc:mqtt:encrypt:channel'),'>');
     }
     const resultEmit = this.otmc.emit('otmc:mqtt:all',{msg:msgJson,sTopic:featureTopic});
-    if(this.trace0) {
+    if(this.trace10) {
       console.log('MqttMessager::dispatchMessage_:resultEmit=<',resultEmit,'>');
     }
-
   }
 }

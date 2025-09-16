@@ -1,6 +1,7 @@
 const LOG = {
   trace:true,
   trace0:false,
+  trace10:false,
   debug:false,
 };
 import * as Vue from 'vue';
@@ -101,8 +102,17 @@ const loadRtkGnssApps = (evt) => {
     if(LOG.trace) {
       console.log('RTK-GNSS-STATION::loadRtkGnssApps::appMsg=:<',appMsg,'>');
     }
-    onOTMCAppData(appMsg);
   });
+
+  otmc.on('otmc:mqtt:all',(msgMqtt) => {
+    if(LOG.trace10) {
+      console.log('RTK-GNSS-STATION::loadRtkGnssApps::msgMqtt=:<',msgMqtt,'>');
+    }
+    if(msgMqtt.sTopic.includes('rtk-gnss/rtcm/3/')) {
+      onOTMCAppData(msgMqtt.msg,appRtkVM);
+    }
+  });
+
   setTimeout(()=>{
     otmc.readAllAccountInfo();
   },100);
@@ -178,21 +188,21 @@ const transferRtcm = (rtcmMsg) => {
 }
 
 const analyzeRtcm = (rtcmMsg) => {
-  if(LOG.trace0) {
+  if(LOG.trace10) {
     console.log('RTK-GNSS-STATION::analyzeRtcm::rtcmMsg=:<',rtcmMsg,'>');
   }
   if(typeof rtcmMsg === 'string') {
     rtcmMsg = JSON.parse(rtcmMsg);
   }
-  if(LOG.trace0) {
+  if(LOG.trace) {
     console.log('RTK-GNSS-STATION::analyzeRtcm::rtcmMsg=:<',rtcmMsg,'>');
   }
-  if(rtcmMsg.lla) {
-    const lla = rtcmMsg.lla;
+  if(rtcmMsg.refStation && rtcmMsg.refStation.lla) {
+    const lla = rtcmMsg.refStation.lla;
     if(LOG.trace0) {
       console.log('RTK-GNSS-STATION::analyzeRtcm::lla=:<',lla,'>');
     }
-    onArpLla(lla[0],lla[1],lla[2]);
+    onRefStationArpLla(lla[0],lla[1],lla[2]);
   }
 }
 
@@ -312,11 +322,11 @@ const onGGAData = (ggaData) => {
 
 const fConstArpHeightOffset = 5.0
 
-const onArpLla = (latArp,lonArp,altArp) => {
+const onRefStationArpLla = (latArp,lonArp,altArp) => {
   if(LOG.trace) {
-    console.log('RTK-GNSS-STATION::onArpLla::latArp=:<',latArp,'>');
-    console.log('RTK-GNSS-STATION::onArpLla::lonArp=:<',lonArp,'>');
-    console.log('RTK-GNSS-STATION::onArpLla::altArp=:<',altArp,'>');
+    console.log('RTK-GNSS-STATION::onRefStationArpLla::latArp=:<',latArp,'>');
+    console.log('RTK-GNSS-STATION::onRefStationArpLla::lonArp=:<',lonArp,'>');
+    console.log('RTK-GNSS-STATION::onRefStationArpLla::altArp=:<',altArp,'>');
   }
   if(apps.mapView && apps.anchorLabels) {
     const entity = {
@@ -326,7 +336,7 @@ const onArpLla = (latArp,lonArp,altArp) => {
     };
     apps.anchorLabels.add(entity);
     if(LOG.trace0) {
-      console.log('RTK-GNSS-STATION::onArpLla::apps.anchorLabels=:<',apps.anchorLabels,'>');
+      console.log('RTK-GNSS-STATION::onRefStationArpLla::apps.anchorLabels=:<',apps.anchorLabels,'>');
     }
   }
   if(apps.mapView && apps.billboards) {
@@ -337,7 +347,7 @@ const onArpLla = (latArp,lonArp,altArp) => {
     };
     apps.billboards.add(entity);
     if(LOG.trace0) {
-      console.log('RTK-GNSS-STATION::onArpLla::apps.billboards=:<',apps.billboards,'>');
+      console.log('RTK-GNSS-STATION::onRefStationArpLla::apps.billboards=:<',apps.billboards,'>');
     }
   }
 }

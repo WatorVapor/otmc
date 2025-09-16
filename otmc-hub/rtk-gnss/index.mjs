@@ -156,7 +156,7 @@ const onRtcmOneFrame = (rtcmFrame) => {
         console.log('rtk-gnss::onRtcmOneFrame::payload=<',payload,'>');
       }
       redisProxy.pubBroadcast('rtk-gnss/rtcm/3/base64',payload);
-      if(rtcmMsg.gpsIndicator) {
+      if(rtcmMsg.gpsIndicator || rtcmMsg.glonassIndicator || rtcmMsg.galileoIndicator || rtcmMsg.beidouIndicator) {
         const ecefX = parseFloat(rtcmMsg.arpEcefX/fConstUnitArpEcef);
         const ecefY = parseFloat(rtcmMsg.arpEcefY/fConstUnitArpEcef);
         const ecefZ = parseFloat(rtcmMsg.arpEcefZ/fConstUnitArpEcef);
@@ -175,7 +175,9 @@ const onRtcmOneFrame = (rtcmFrame) => {
         */
         const payload2 = {
           rtcmMsg:rtcmMsg,
-          lla:lla
+          refStation:{
+            lla:lla
+          }
         };
         if(LOG.trace0) {
           console.log('rtk-gnss::onRtcmOneFrame::payload2=<',payload2,'>');

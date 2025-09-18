@@ -1,11 +1,27 @@
 const LOG = {
+  trace0:false,
   trace:true,
   debug:false,
 };
 import * as Vue from 'vue';
-import { Otmc } from 'otmc';
+import { OtmcMqtt } from 'otmcMqtt';
 
 Cesium.Ion.defaultAccessToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJjMWM0MTFlOC04OTljLTQyZDEtOGRkYS00M2EyMWY1MDRhY2UiLCJpZCI6MTAxNzk1LCJpYXQiOjE2NTgyNzk5ODF9.wS71k-QxR6CLoJ5l3VuJeb07sE3qOkkSgy2MbmuLFWg`;
+
+const appStoreDidSelected = 'otmc/rtk/did/selected/rover';
+
+const loadLastSavedDidSelection = () => {
+  try {
+    const didSelected = localStorage.getItem(appStoreDidSelected);
+    if(LOG.trace) {
+      console.log('DidTeam::loadLastSavedKeyIdSelection::didSelected=:<',didSelected,'>');
+    }
+    return didSelected;
+  } catch(err) {
+    console.error('DidTeam::loadLastSavedKeyIdSelection::err=:<',err,'>');
+  }
+  return null;
+}
 
 
 document.addEventListener('DOMContentLoaded', async (evt) => {
@@ -21,7 +37,7 @@ const loadRtkGnssApps = (evt) => {
     console.log('RTK-GNSS::loadRtkGnssApps::appRtkVM=:<',appRtkVM,'>');
   }
 
-  const otmc = new Otmc();
+  const otmc = new OtmcMqtt();
   if(LOG.trace0) {
     console.log('RTK-GNSS::loadRtkGnssApps::otmc=:<',otmc,'>');
   }
@@ -67,16 +83,16 @@ const createUSBSerialRtkDevice = async (otmc) => {
   try {
     const device = await navigator.serial.requestPort();
     if(LOG.trace0) {
-      console.log('createUSBSerialRtkDevice::device=:<',device,'>');
+      console.log('RTK-GNSS::createUSBSerialRtkDevice::device=:<',device,'>');
     }
     await device.open({ baudRate: 115200 });
     const writer = device.writable.getWriter()
     if(LOG.trace0) {
-      console.log('createUSBSerialRtkDevice::writer=:<',writer,'>');
+      console.log('RTK-GNSS::createUSBSerialRtkDevice::writer=:<',writer,'>');
     }
     const reader = device.readable.getReader();
     if(LOG.trace0) {
-      console.log('createUSBSerialRtkDevice::reader=:<',reader,'>');
+      console.log('RTK-GNSS::createUSBSerialRtkDevice::reader=:<',reader,'>');
     }
     apps.device = {
       writer:writer,
@@ -86,7 +102,7 @@ const createUSBSerialRtkDevice = async (otmc) => {
       readSerialRtkDevice(reader)
     } ,200);
   } catch (err) {
-    console.error('createUSBSerialRtkDevice::err=:<',err,'>');
+    console.error('RTK-GNSS::createUSBSerialRtkDevice::err=:<',err,'>');
   }  
 }
 

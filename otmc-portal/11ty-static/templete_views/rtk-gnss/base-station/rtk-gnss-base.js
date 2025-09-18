@@ -10,7 +10,7 @@ import { OtmcMqtt } from 'otmcMqtt';
 Cesium.Ion.defaultAccessToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJjMWM0MTFlOC04OTljLTQyZDEtOGRkYS00M2EyMWY1MDRhY2UiLCJpZCI6MTAxNzk1LCJpYXQiOjE2NTgyNzk5ODF9.wS71k-QxR6CLoJ5l3VuJeb07sE3qOkkSgy2MbmuLFWg`;
 
 
-const appStoreDidSelected = 'otmc/rtk/did/selected';
+const appStoreDidSelected = 'otmc/rtk/did/selected/station';
 
 const loadLastSavedDidSelection = () => {
   try {

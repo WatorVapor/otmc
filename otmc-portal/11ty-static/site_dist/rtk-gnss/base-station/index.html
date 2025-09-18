@@ -148,7 +148,7 @@
             <div class="row justify-content-center">
               <div class="col-8" id="vue-ui-app-rtk-space">
                 <div class="input-group mb-1">
-                  <span class="input-group-text w-50">RTK Base Statation Team Auth Keys</span>
+                  <span class="input-group-text w-50">RTK Base Statation Team Address</span>
                   <span class="input-group-text w-50">
               <select class="form-select" v-model="didSelected" @change="changeDidSelected()">
                 <option v-for="account in accountList" :selected="account.selected">{{account.did}}</option>
@@ -168,8 +168,8 @@
             window.otmc ||= {}
             window.otmc.SideMenuItems = [{
                 href: '/rtk-gnss/',
-                title: 'Navigator',
-                id: 'menu-item-id-rtk-gnss-navi',
+                title: 'rtk-rover',
+                id: 'menu-item-id-rtk-gnss-rover',
                 icons: ['fa-solid fa-compass'],
                 subMenu: []
               },

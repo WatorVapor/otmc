@@ -1,6 +1,7 @@
 const LOG = {
   trace0:false,
   trace:true,
+  trace10:true,
   debug:false,
 };
 import * as Vue from 'vue';
@@ -102,6 +103,17 @@ const loadRtkGnssApps = (evt) => {
     }
     onOTMCAppData(appMsg);
   });
+  otmc.on('otmc:mqtt:all',(msgMqtt) => {
+    if(LOG.trace10) {
+      console.log('RTK-GNSS-ROVER::loadRtkGnssApps::msgMqtt=:<',msgMqtt,'>');
+    }
+    if(msgMqtt.sTopic.includes('/rtk-gnss/rtcm/3/')) {
+      if(LOG.trace10) {
+        console.log('RTK-GNSS-ROVER::loadRtkGnssApps::msgMqtt=:<',msgMqtt,'>');
+      }
+      onOTMCAppData(msgMqtt.msg,appRtkVM);
+    }
+  });
 
   appRtkVM.otmc = otmc;
   apps.rtk = appRtkVM;
@@ -176,19 +188,19 @@ const createUSBSerialRtkDevice = async (otmc) => {
 }
 
 const onOTMCAppData = (appMsg) => {
-  if(LOG.trace0) {
+  if(LOG.trace10) {
     console.log('RTK-GNSS-ROVER::onOTMCAppData::appMsg=:<',appMsg,'>');
   }
   if(appMsg.topic && appMsg.topic.endsWith('rtk-gnss/rtcm/3/base64')) {
     const payload = appMsg.payload;
-    if(LOG.trace0) {
+    if(LOG.trace10) {
       console.log('RTK-GNSS-ROVER::onOTMCAppData::payload=:<',payload,'>');
     }
     transferRtcm(payload)
   }
   if(appMsg.topic && appMsg.topic.endsWith('rtk-gnss/rtcm/3/rtcmMsg')) {
     const payload = appMsg.payload;
-    if(LOG.trace0) {
+    if(LOG.trace10) {
       console.log('RTK-GNSS-ROVER::onOTMCAppData::payload=:<',payload,'>');
     }
     analyzeRtcm(payload)

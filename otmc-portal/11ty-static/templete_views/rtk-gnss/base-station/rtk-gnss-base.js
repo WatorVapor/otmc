@@ -146,13 +146,6 @@ const onOTMCAppData = (appMsg) => {
   if(LOG.trace0) {
     console.log('RTK-GNSS-STATION::onOTMCAppData::appMsg=:<',appMsg,'>');
   }
-  if(appMsg.topic && appMsg.topic.endsWith('rtk-gnss/rtcm/3/base64')) {
-    const payload = appMsg.payload;
-    if(LOG.trace0) {
-      console.log('RTK-GNSS-STATION::onOTMCAppData::payload=:<',payload,'>');
-    }
-    transferRtcm(payload)
-  }
   if(appMsg.topic && appMsg.topic.endsWith('rtk-gnss/rtcm/3/rtcmMsg')) {
     const payload = appMsg.payload;
     if(LOG.trace0) {
@@ -162,30 +155,6 @@ const onOTMCAppData = (appMsg) => {
   }
 }
 
-const transferRtcm = (rtcmMsg) => {
-  if(LOG.trace0) {
-    console.log('RTK-GNSS-STATION::transferRtcm::rtcmMsg=:<',rtcmMsg,'>');
-  }
-  if(typeof rtcmMsg === 'string') {
-    rtcmMsg = JSON.parse(rtcmMsg);
-  }
-  if(LOG.trace0) {
-    console.log('RTK-GNSS-STATION::transferRtcm::rtcmMsg=:<',rtcmMsg,'>');
-  }
-  if(rtcmMsg.base64) {
-    const byteRtcm = base64ToUint8Array(rtcmMsg.base64);
-    if(LOG.trace0) {
-      console.log('RTK-GNSS-STATION::transferRtcm::byteRtcm=:<',byteRtcm,'>');
-      console.log('RTK-GNSS-STATION::transferRtcm::apps.device=:<',apps.device,'>');
-    }
-    if(apps.device && apps.device.writer) {
-      if(LOG.trace0) {
-        console.log('RTK-GNSS-STATION::transferRtcm::apps.device.writer=:<',apps.device.writer,'>');
-      }
-      apps.device.writer.write(byteRtcm);
-    }
-  }
-}
 
 const analyzeRtcm = (rtcmMsg) => {
   if(LOG.trace10) {
@@ -206,119 +175,6 @@ const analyzeRtcm = (rtcmMsg) => {
   }
 }
 
-
-const base64ToUint8Array = (base64Str) => {
-  const raw = atob(base64Str);
-  return Uint8Array.from(Array.prototype.map.call(raw, (x) => { 
-    return x.charCodeAt(0); 
-  })); 
-}
-
-const decoder = new TextDecoder();
-let gRemainText = '';
-const readSerialRtkDevice = async (reader) => {
-  if(LOG.trace0) {
-    console.log('RTK-GNSS-STATION::readSerialRtkDevice::reader=:<',reader,'>');
-  }
-  const { value, done } = await reader.read();
-  if(LOG.trace0) {
-    console.log('RTK-GNSS-STATION::readSerialRtkDevice::value=:<',value,'>');
-  }
-  if(LOG.trace0) {
-    console.log('RTK-GNSS-STATION::readSerialRtkDevice::done=:<',done,'>');
-  }
-  const textGnss = decoder.decode(value);
-  if(LOG.trace0) {
-    console.log('RTK-GNSS-STATION::readSerialRtkDevice::textGnss=:<',textGnss,'>');
-  }
-  const totalTextGnss = gRemainText + textGnss;
-  if(LOG.trace0) {
-    console.log('RTK-GNSS-STATION::readSerialRtkDevice::totalTextGnss=:<',totalTextGnss,'>');
-  }
-  const lastNL = totalTextGnss.lastIndexOf('\r\n');
-  let toParseTextGnss = totalTextGnss.slice(0);
-  if(lastNL > 0) {
-    gRemainText = totalTextGnss.slice(lastNL);
-    toParseTextGnss = totalTextGnss.slice(0,lastNL);
-  }
-  if(lastNL === -1) {
-    return;
-  }
-  if(LOG.trace0) {
-    console.log('RTK-GNSS-STATION::readSerialRtkDevice::lastNL=:<',lastNL,'>');
-    console.log('RTK-GNSS-STATION::readSerialRtkDevice::toParseTextGnss=:<',toParseTextGnss,'>');
-    console.log('RTK-GNSS-STATION::readSerialRtkDevice::gRemainText=:<',gRemainText,'>');
-    console.log('RTK-GNSS-STATION::readSerialRtkDevice::GPS=:<',GPS,'>');
-  }
-
-  if(toParseTextGnss) {
-    const textGnssLines = toParseTextGnss.split('\r\n');
-    if(LOG.trace0) {
-      console.log('RTK-GNSS-STATION::readSerialRtkDevice::textGnssLines=:<',textGnssLines,'>');
-    }
-    for(const textGnssLine of textGnssLines) {
-      if(textGnssLine.startsWith('$')) {
-        gGps.update(textGnssLine);
-      }
-    }
-  }
-}
-
-const gGps = new GPS();
-gGps.on('data', (parsed) => {
-  onGPSData(parsed);
-});
-
-const onGPSData = (gpsData) => {
-  if(LOG.trace0) {
-    console.log('RTK-GNSS-STATION::onGPSData::gpsData=:<',gpsData,'>');
-  }
-  if(gpsData.type === 'GGA') {
-    onGGAData(gpsData);
-  }
-  if(gpsData.type === 'GSA') {
-    if(LOG.trace0) {
-      console.log('RTK-GNSS-STATION::onGPSData::gpsData=:<',gpsData,'>');
-    }
-    onGSAData(gpsData);
-  }
-  if(gpsData.type === 'GSV') {
-    if(LOG.trace0) {
-      console.log('RTK-GNSS-STATION::onGPSData::gpsData=:<',gpsData,'>');
-    }
-    onGSVData(gpsData);
-  }
-}
-
-
-
-const fConstGgaHeightOffset = 35.0
-
-let prevPosition = false;
-const onGGAData = (ggaData) => {
-  if(LOG.trace) {
-    console.log('RTK-GNSS-STATION::onGGAData::ggaData=:<',ggaData,'>');
-  }
-  if(apps.mapView && apps.mapPoints) {
-    const entity = {
-      position: Cesium.Cartesian3.fromDegrees(ggaData.lon,ggaData.lat,ggaData.alt + fConstGgaHeightOffset),
-      color : Cesium.Color.RED,
-    };
-    apps.mapPoints.add(entity);
-    if(LOG.trace0) {
-      console.log('RTK-GNSS-STATION::onGGAData::apps.mapPoints=:<',apps.mapPoints,'>');
-    }
-  }
-  if(prevPosition) {
-    const now = Cesium.Cartesian3.fromDegrees(ggaData.lon,ggaData.lat,ggaData.alt);
-    const prev = Cesium.Cartesian3.fromDegrees(prevPosition.lon,prevPosition.lat,prevPosition.alt);
-    const distance = Cesium.Cartesian3.distance(now,prev);
-    if(LOG.trace0) {
-      console.log('RTK-GNSS-STATION::onGGAData::distance=:<',distance,'>');
-    }
-  }
-  prevPosition = ggaData;
-}
 
 const fConstArpHeightOffset = 5.0
 
@@ -355,18 +211,6 @@ const onRefStationArpLla = (latArp,lonArp,altArp) => {
 
 //https://raw.githubusercontent.com/FortAwesome/Font-Awesome/6.x/svgs/solid/tower-cell.svg
 
-
-const onGSAData = (gsaData) => {
-  if(LOG.trace0) {
-    console.log('RTK-GNSS-STATION::onGSAData::gsaData=:<',gsaData,'>');
-  }
-}
-
-const onGSVData = (gsvData) => {
-  if(LOG.trace0) {
-    console.log('RTK-GNSS-STATION::onGSVData::gsvData=:<',gsvData,'>');
-  }
-}
 
 const createMapView = async (lat,lon) => {
   const options = {

@@ -2,7 +2,7 @@ const LOG = {
   trace0:false,
   trace:true,
   trace10:true,
-  debug:false,
+  debug:true,
 };
 import * as Vue from 'vue';
 import { OtmcMqtt } from 'otmcMqtt';
@@ -242,12 +242,12 @@ const analyzeRtcm = (rtcmMsg) => {
   if(LOG.trace0) {
     console.log('RTK-GNSS-ROVER::analyzeRtcm::rtcmMsg=:<',rtcmMsg,'>');
   }
-  if(rtcmMsg.lla) {
-    const lla = rtcmMsg.lla;
+  if(rtcmMsg.refStation && rtcmMsg.refStation.lla) {
+    const lla = rtcmMsg.refStation.lla;
     if(LOG.trace0) {
-      console.log('RTK-GNSS-ROVER::analyzeRtcm::lla=:<',lla,'>');
+      console.log('RTK-GNSS-STATION::analyzeRtcm::lla=:<',lla,'>');
     }
-    onArpLla(lla[0],lla[1],lla[2]);
+    onRefStationArpLla(lla[0],lla[1],lla[2]);
   }
 }
 
@@ -304,7 +304,11 @@ const readSerialRtkDevice = async (reader) => {
     }
     for(const textGnssLine of textGnssLines) {
       if(textGnssLine.startsWith('$')) {
-        gGps.update(textGnssLine);
+        try {
+          gGps.update(textGnssLine);
+        } catch (err) {
+          console.error('RTK-GNSS-ROVER::readSerialRtkDevice::err=:<',err,'>');
+        }
       }
     }
   }
@@ -368,11 +372,11 @@ const onGGAData = (ggaData) => {
 
 const fConstArpHeightOffset = 5.0
 
-const onArpLla = (latArp,lonArp,altArp) => {
+const onRefStationArpLla = (latArp,lonArp,altArp) => {
   if(LOG.trace0) {
-    console.log('RTK-GNSS-ROVER::onArpLla::latArp=:<',latArp,'>');
-    console.log('RTK-GNSS-ROVER::onArpLla::lonArp=:<',lonArp,'>');
-    console.log('RTK-GNSS-ROVER::onArpLla::altArp=:<',altArp,'>');
+    console.log('RTK-GNSS-ROVER::onRefStationArpLla::latArp=:<',latArp,'>');
+    console.log('RTK-GNSS-ROVER::onRefStationArpLla::lonArp=:<',lonArp,'>');
+    console.log('RTK-GNSS-ROVER::onRefStationArpLla::altArp=:<',altArp,'>');
   }
   if(apps.mapView && apps.anchorLabels) {
     const entity = {
@@ -382,7 +386,7 @@ const onArpLla = (latArp,lonArp,altArp) => {
     };
     apps.anchorLabels.add(entity);
     if(LOG.trace0) {
-      console.log('RTK-GNSS-ROVER::onArpLla::apps.anchorLabels=:<',apps.anchorLabels,'>');
+      console.log('RTK-GNSS-ROVER::onRefStationArpLla::apps.anchorLabels=:<',apps.anchorLabels,'>');
     }
   }
   if(apps.mapView && apps.billboards) {
@@ -393,7 +397,7 @@ const onArpLla = (latArp,lonArp,altArp) => {
     };
     apps.billboards.add(entity);
     if(LOG.trace0) {
-      console.log('RTK-GNSS-ROVER::onArpLla::apps.billboards=:<',apps.billboards,'>');
+      console.log('RTK-GNSS-ROVER::onRefStationArpLla::apps.billboards=:<',apps.billboards,'>');
     }
   }
 }

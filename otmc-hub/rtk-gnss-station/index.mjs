@@ -1,6 +1,7 @@
 const LOG = {
   trace0:false,
   trace:true,
+  trace10:true,
   debug:true,
 };
 import fs from 'fs';
@@ -120,15 +121,19 @@ const onRTCRawData = (rawData) => {
     }
     const rtcmFrame = gRcvRtcmBuf.slice(0,length);
     if(rtcmFrame.length > 0) {
-      onRtcmOneFrame(rtcmFrame);
+      onRtcmOneFrame(rtcmFrame,rtcmMsg);
+      gRcvRtcmBuf = gRcvRtcmBuf.slice(length)
     }
-    gRcvRtcmBuf = gRcvRtcmBuf.slice(length)
   } catch (err) {
     //console.log('rtk-gnss::onRTCRawData::err=<',err,'>');
   }
 }
 const fConstUnitArpEcef = parseFloat(10000.0);
-const onRtcmOneFrame = (rtcmFrame) => {
+const onRtcmOneFrame = (rtcmFrame,rtcmMsg) => {
+  if(LOG.trace10) {
+    console.log('rtk-gnss::onRtcmOneFrame::rtcmMsg=<',rtcmMsg,'>');
+    console.log('rtk-gnss::onRtcmOneFrame::rtcmMsg.messageType=<',rtcmMsg.messageType,'>');
+  }
   if(LOG.trace0) {
     console.log('rtk-gnss::onRtcmOneFrame::rtcmFrame=<',rtcmFrame,'>');
   }
@@ -136,27 +141,20 @@ const onRtcmOneFrame = (rtcmFrame) => {
     console.log('rtk-gnss::onRtcmOneFrame::rtcmFrame.length=<',rtcmFrame.length,'>');
   }
   try {
-    const [ rtcmMsg, length ]= RtcmTransport.decode(rtcmFrame);
-    if(LOG.trace0) {
-      console.log('rtk-gnss::onRtcmOneFrame::rtcmMsg=<',rtcmMsg,'>');
-      console.log('rtk-gnss::onRtcmOneFrame::typeof rtcmMsg=<',typeof rtcmMsg,'>');
-    }
-    if(LOG.trace0) {
-      console.log('rtk-gnss::onRtcmOneFrame::length=<',length,'>');
-    }
     const rtcmBase64 = rtcmFrame.toString('base64'); 
     if(LOG.trace0) {
       console.log('rtk-gnss::onRtcmOneFrame::rtcmBase64=<',rtcmBase64,'>');
     }
     if(redisProxy.ready) {
       const payload = {
-        base64:rtcmBase64
+        base64:rtcmBase64,
+        messageType:rtcmMsg.messageType
       };
       if(LOG.trace0) {
         console.log('rtk-gnss::onRtcmOneFrame::payload=<',payload,'>');
       }
       redisProxy.pubBroadcast('rtk-gnss/rtcm/3/base64',payload);
-      if(rtcmMsg.gpsIndicator || rtcmMsg.glonassIndicator || rtcmMsg.galileoIndicator || rtcmMsg.beidouIndicator) {
+      if(rtcmMsg.messageType === 1005) {
         const ecefX = parseFloat(rtcmMsg.arpEcefX/fConstUnitArpEcef);
         const ecefY = parseFloat(rtcmMsg.arpEcefY/fConstUnitArpEcef);
         const ecefZ = parseFloat(rtcmMsg.arpEcefZ/fConstUnitArpEcef);

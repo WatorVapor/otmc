@@ -1,8 +1,8 @@
 import { createClient } from 'redis';
 export class RedisPassProxy {
   constructor(config,readyCB) {
-    this.trace0 = true;
-    this.trace1 = true;
+    this.trace0 = false;
+    this.trace1 = false;
     this.trace = true;
     this.trace10 = false;
 

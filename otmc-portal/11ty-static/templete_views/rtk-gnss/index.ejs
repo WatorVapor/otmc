@@ -2,9 +2,16 @@
 title: 'Didteam'
 layout: didteam.sidebar.ejs
 ---
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cesium@1.118.2/Build/Cesium/Widgets/widgets.css" integrity="sha256-PHR+x1QmmXdc0J5qTHOkzhfvwtFcno4VTHb5gvtqHGs=" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/cesium@1.118.2/Build/Cesium/Cesium.js" integrity="sha256-4Ud9pAoN5U5zqaA50QYJscYRyJuI0TOWSKubeAFrT/o=" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/gps@0.6.1/gps.min.js" integrity="sha256-aP5ZLTc1l1e/GuhJwYW63UokuP2gHI7L9UB+utU8aA4=" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cesium@1.133.1/Build/Cesium/Widgets/widgets.css" integrity="sha256-cCxa3z0W7H8cA8xft+y4I69sWfoZJ4n7LIWax6EfSgw=" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/cesium@1.133.1/Build/Cesium/Cesium.js" integrity="sha256-AVVH6RuVKMnrXNE67wx6YIpYK3gY3CBjL0bk1EHYn3M=" crossorigin="anonymous"></script>
+    <script type="importmap">
+    {
+      "imports": {
+        "GPS": "https://cdn.jsdelivr.net/npm/gps@0.8.1/+esm"
+      }
+    }
+    </script>
     <div class="container text-center mt-3" id="vue-ui-app-rtk-input-device">
       <div class="row justify-content-center">
         <div class="col-8" id="vue-ui-app-rtk-space">

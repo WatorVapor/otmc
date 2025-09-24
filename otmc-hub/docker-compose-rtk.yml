@@ -1,6 +1,7 @@
 services:
   rtk-base-station:
     image: node:24
+    privileged: true
     environment:
       TZ: Asia/Tokyo
     volumes:

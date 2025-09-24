@@ -1,5 +1,5 @@
 services:
-  rtk-base-station:
+  rtk-bs:
     image: node:24
     privileged: true
     environment:
@@ -9,7 +9,7 @@ services:
       - ../otmc-package:/otmc/otmc-package
       - /opt/otmc/:/opt/otmc/
       - /dev/shm/:/dev/shm/
-    working_dir: '/otmc/otmc-hub/rtk-gnss-rover'
+    working_dir: '/otmc/otmc-hub/rtk-gnss-station'
     command: node ./index.mjs
     deploy:
       resources:

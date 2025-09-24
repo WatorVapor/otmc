@@ -106,11 +106,11 @@ const loadRtkGnssApps = (evt) => {
     onOTMCAppData(appMsg);
   });
   otmc.on('otmc:mqtt:all',(msgMqtt) => {
-    if(LOG.trace10) {
+    if(LOG.trace0) {
       console.log('RTK-GNSS-ROVER::loadRtkGnssApps::msgMqtt=:<',msgMqtt,'>');
     }
     if(msgMqtt.sTopic.includes('/rtk-gnss/rtcm/3/')) {
-      if(LOG.trace10) {
+      if(LOG.trace0) {
         console.log('RTK-GNSS-ROVER::loadRtkGnssApps::msgMqtt=:<',msgMqtt,'>');
       }
       onOTMCAppData(msgMqtt.msg,appRtkVM);
@@ -165,16 +165,16 @@ const createUSBSerialRtkDevice = async (otmc) => {
   const filter = {};
   try {
     const device = await navigator.serial.requestPort();
-    if(LOG.trace0) {
+    if(LOG.trace10) {
       console.log('RTK-GNSS-ROVER::createUSBSerialRtkDevice::device=:<',device,'>');
     }
     await device.open({ baudRate: 115200 });
     const writer = device.writable.getWriter()
-    if(LOG.trace0) {
+    if(LOG.trace10) {
       console.log('RTK-GNSS-ROVER::createUSBSerialRtkDevice::writer=:<',writer,'>');
     }
     const reader = device.readable.getReader();
-    if(LOG.trace0) {
+    if(LOG.trace10) {
       console.log('RTK-GNSS-ROVER::createUSBSerialRtkDevice::reader=:<',reader,'>');
     }
     apps.device = {
@@ -190,23 +190,39 @@ const createUSBSerialRtkDevice = async (otmc) => {
 }
 
 const onOTMCAppData = (appMsg) => {
-  if(LOG.trace10) {
+  if(LOG.trace0) {
     console.log('RTK-GNSS-ROVER::onOTMCAppData::appMsg=:<',appMsg,'>');
   }
   if(appMsg.topic && appMsg.topic.endsWith('rtk-gnss/rtcm/3/base64')) {
     const payload = appMsg.payload;
-    if(LOG.trace10) {
+    if(LOG.trace0) {
       console.log('RTK-GNSS-ROVER::onOTMCAppData::payload=:<',payload,'>');
     }
     transferRtcm(payload)
   }
   if(appMsg.topic && appMsg.topic.endsWith('rtk-gnss/rtcm/3/rtcmMsg')) {
     const payload = appMsg.payload;
-    if(LOG.trace10) {
+    if(LOG.trace0) {
       console.log('RTK-GNSS-ROVER::onOTMCAppData::payload=:<',payload,'>');
     }
     analyzeRtcm(payload)
   }
+}
+
+const isRtcmRoverWritable = (rtcmMsg) => {
+  if(LOG.trace0) {
+    console.log('RTK-GNSS-ROVER::isRtcmRoverWritable::rtcmMsg=:<',rtcmMsg,'>');
+  }
+  if(!rtcmMsg.base64) {
+    return false;
+  }
+  if(rtcmMsg.messageType >= 1005 || rtcmMsg.messageType <= 1006) {
+    return true;
+  }
+  if(rtcmMsg.messageType >= 1071 || rtcmMsg.messageType <= 1137) {
+    return true;
+  }
+  return false;
 }
 
 const transferRtcm = async (rtcmMsg) => {
@@ -219,22 +235,22 @@ const transferRtcm = async (rtcmMsg) => {
   if(LOG.trace0) {
     console.log('RTK-GNSS-ROVER::transferRtcm::rtcmMsg=:<',rtcmMsg,'>');
   }
-  if(rtcmMsg.base64) {
+  if(isRtcmRoverWritable(rtcmMsg)) {
     const byteRtcm = base64ToUint8Array(rtcmMsg.base64);
     if(LOG.trace0) {
       console.log('RTK-GNSS-ROVER::transferRtcm::byteRtcm=:<',byteRtcm,'>');
       console.log('RTK-GNSS-ROVER::transferRtcm::apps.device=:<',apps.device,'>');
     }
     if(apps.device && apps.device.writer) {
-      if(LOG.trace10) {
+      if(LOG.trace0) {
         console.log('RTK-GNSS-ROVER::transferRtcm::apps.device.writer=:<',apps.device.writer,'>');
       }
       const ready = await apps.device.writer.ready;
-      if(LOG.trace10) {
+      if(LOG.trace0) {
         console.log('RTK-GNSS-ROVER::transferRtcm::ready=:<',ready,'>');
       }
       const result = await apps.device.writer.write(byteRtcm);
-      if(LOG.trace10) {
+      if(LOG.trace0) {
         console.log('RTK-GNSS-ROVER::transferRtcm::result=:<',result,'>');
       }
     }
@@ -330,6 +346,7 @@ gGpsParser.on('data', (parsed) => {
 const onGPSData = (gpsData) => {
   if(LOG.trace10) {
     console.log('RTK-GNSS-ROVER::onGPSData::gpsData=:<',gpsData,'>');
+    console.log('RTK-GNSS-ROVER::onGPSData::gpsData.type=:<',gpsData.type,'>');
   }
   if(gpsData.type === 'GGA') {
     onGGAData(gpsData);
@@ -357,6 +374,12 @@ const onGPSData = (gpsData) => {
       console.log('RTK-GNSS-ROVER::onGPSData::gpsData=:<',gpsData,'>');
     }
     onGRSData(gpsData);
+  }
+  if(gpsData.type === 'RMC') {
+    if(LOG.trace0) {
+      console.log('RTK-GNSS-ROVER::onGPSData::gpsData=:<',gpsData,'>');
+    }
+    onRMCData(gpsData);
   }
 }
 
@@ -445,6 +468,11 @@ const onGSTData = (gstData) => {
 const onGRSData = (grsData) => {
   if(LOG.trace10) {
     console.log('RTK-GNSS-ROVER::onGRSData::grsData=:<',grsData,'>');
+  }
+}
+const onRMCData = (rmcData) => {
+  if(LOG.trace10) {
+    console.log('RTK-GNSS-ROVER::onRMCData::rmcData=:<',rmcData,'>');
   }
 }
 

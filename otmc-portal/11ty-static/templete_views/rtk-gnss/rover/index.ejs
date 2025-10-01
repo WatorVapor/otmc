@@ -1,0 +1,53 @@
+---
+title: 'Didteam'
+layout: didteam.sidebar.ejs
+---
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cesium@1.133.1/Build/Cesium/Widgets/widgets.css" integrity="sha256-cCxa3z0W7H8cA8xft+y4I69sWfoZJ4n7LIWax6EfSgw=" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/cesium@1.133.1/Build/Cesium/Cesium.js" integrity="sha256-AVVH6RuVKMnrXNE67wx6YIpYK3gY3CBjL0bk1EHYn3M=" crossorigin="anonymous"></script>
+    <script type="importmap">
+    {
+      "imports": {
+        "GPS": "https://cdn.jsdelivr.net/npm/gps@0.8.1/+esm"
+      }
+    }
+    </script>
+    <div class="container text-center mt-3" id="vue-ui-app-rtk-input-device">
+      <div class="row justify-content-center">
+        <div class="col-8" id="vue-ui-app-rtk-space">
+          <div class="input-group mb-1">
+            <span class="input-group-text w-50">RTK Rover Team Address</span>
+            <span class="input-group-text w-50">
+              <select class="form-select" v-model="didSelected" @change="changeDidSelected()">
+                <option v-for="account in accountList" :selected="account.selected">{{account.did}}</option>
+              </select>
+            </span>
+          </div>
+        </div>
+      </div>
+      <hr/>
+      <div class="row justify-content-center">
+        <div class="col-4">
+          <p class="d-inline-flex gap-1">
+            <a class="btn btn-primary" role="button" @click="clickSelectUSBSerialRtkDevice()">
+              Select USB cable RTK Module.
+            </a>
+          </p>
+        </div>
+        <div class="col-4">
+          <p class="d-inline-flex gap-1">
+            <a class="btn btn-primary" role="button" @click="clickSelectBluetoothRtkDevice()">
+              Select Bluetooth RTK Module.
+            </a>
+          </p>
+        </div>
+      </div>
+      <hr/>
+
+      <div class="col-8">
+        <div id="view_map" class="w-auto" style="height:600px;"></div>
+      </div>
+    </div>
+    <script src="./rtk-gnss-rover.js" type="module"></script>
+
+    <%- include(`../_sidebar.ejs`) %>

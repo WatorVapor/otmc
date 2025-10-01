@@ -1,0 +1,535 @@
+const LOG = {
+  trace0:false,
+  trace:true,
+  trace10:true,
+  debug:true,
+};
+import * as Vue from 'vue';
+import { OtmcMqtt } from 'otmcMqtt';
+import { GPS }  from 'GPS';
+
+
+Cesium.Ion.defaultAccessToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJjMWM0MTFlOC04OTljLTQyZDEtOGRkYS00M2EyMWY1MDRhY2UiLCJpZCI6MTAxNzk1LCJpYXQiOjE2NTgyNzk5ODF9.wS71k-QxR6CLoJ5l3VuJeb07sE3qOkkSgy2MbmuLFWg`;
+
+const appStoreDidSelected = 'otmc/rtk/did/selected/rover';
+
+const loadLastSavedDidSelection = () => {
+  try {
+    const didSelected = localStorage.getItem(appStoreDidSelected);
+    if(LOG.trace) {
+      console.log('RTK-GNSS-ROVER::loadLastSavedDidSelection::didSelected=:<',didSelected,'>');
+    }
+    return didSelected;
+  } catch(err) {
+    console.error('RTK-GNSS-ROVER::loadLastSavedDidSelection::err=:<',err,'>');
+  }
+  return null;
+}
+
+
+document.addEventListener('DOMContentLoaded', async (evt) => {
+  loadRtkGnssApps(evt);
+  createMapView(35.81373336666667,139.72861126666666);
+});
+const apps = {};
+
+const loadRtkGnssApps = (evt) => {
+  const appRtk = Vue.createApp(rtkGNSSOption);
+  const appRtkVM = appRtk.mount('#vue-ui-app-rtk-input-device');
+  if(LOG.trace0) {
+    console.log('RTK-GNSS-ROVER::loadRtkGnssApps::appRtkVM=:<',appRtkVM,'>');
+  }
+  const didSelected = loadLastSavedDidSelection();
+  if(LOG.trace) {
+    console.log('RTK-GNSS-ROVER::loadRtkGnssApps::didSelected=:<',didSelected,'>');
+  }
+  appRtkVM.didSelected = didSelected;
+  apps.didSelected = didSelected;
+
+  const otmc = new OtmcMqtt();
+
+
+  otmc.on('edcrypt:didKeyList',(didKeyList)=>{
+    if(LOG.trace) {
+      console.log('RTK-GNSS-ROVER::loadRtkGnssApps::didKeyList=:<',didKeyList,'>');
+    }
+    apps.didKeyList = didKeyList;
+    otmc.switchDidTeam(didSelected);
+  });
+  otmc.on('did:team:switch.did.authKey.RC',(keyidRCs)=>{
+    if(LOG.trace) {
+      console.log('RTK-GNSS-ROVER::loadRtkGnssApps::keyidRCs=:<',keyidRCs,'>');
+    }
+    apps.keyidRCs = keyidRCs;
+    const keyidSelected = doDidAuthKeyMatch(apps);
+    if(LOG.trace) {
+      console.log('RTK-GNSS-ROVER::loadRtkGnssApps::keyidSelected=:<',keyidSelected,'>');
+    }
+    if(keyidSelected) {
+      otmc.switchDidKey(keyidSelected);
+    }
+  });
+
+  otmc.on('did:team:all:property',(propertyList)=>{
+    if(LOG.trace) {
+      console.log('RTK-GNSS-ROVER::loadRtkGnssApps::propertyList=:<',propertyList,'>');
+    }
+    // filter propertyList
+    const propertyRtkRoverList = propertyList.filter((property) => {
+      return property.team.identification.startsWith('RTK_BS');
+    });
+    if(LOG.trace) {
+      console.log('RTK-GNSS-ROVER::loadRtkGnssApps::propertyRtkRoverList=:<',propertyRtkRoverList,'>');
+    }
+    for(const account of propertyRtkRoverList) {
+      account.selected = false;
+      if(account.did === appRtkVM.didSelected) {
+        account.selected = true;
+      }
+    }
+    if(propertyRtkRoverList.length === 1) {
+      propertyRtkRoverList[0].selected = true;
+    }
+    if(LOG.trace) {
+      console.log('RTK-GNSS-ROVER::loadRtkGnssApps::propertyRtkRoverList=:<',propertyRtkRoverList,'>');
+    }
+    appRtkVM.accountList = propertyRtkRoverList;
+  });
+
+  if(LOG.trace0) {
+    console.log('RTK-GNSS-ROVER::loadRtkGnssApps::otmc=:<',otmc,'>');
+  }
+  otmc.on('otmc:mqtt:app',(appMsg) => {
+    if(LOG.trace0) {
+      console.log('RTK-GNSS-ROVER::loadRtkGnssApps::appMsg=:<',appMsg,'>');
+    }
+    onOTMCAppData(appMsg);
+  });
+  otmc.on('otmc:mqtt:all',(msgMqtt) => {
+    if(LOG.trace0) {
+      console.log('RTK-GNSS-ROVER::loadRtkGnssApps::msgMqtt=:<',msgMqtt,'>');
+    }
+    if(msgMqtt.sTopic.includes('/rtk-gnss/rtcm/3/')) {
+      if(LOG.trace0) {
+        console.log('RTK-GNSS-ROVER::loadRtkGnssApps::msgMqtt=:<',msgMqtt,'>');
+      }
+      onOTMCAppData(msgMqtt.msg,appRtkVM);
+    }
+  });
+
+  appRtkVM.otmc = otmc;
+  apps.rtk = appRtkVM;
+  setTimeout(()=>{
+    otmc.readAllAccountInfo();
+  },100);
+
+}
+
+const rtkGNSSOption = {
+  data() {
+    return {
+      accountList:[],
+      didSelected:'',
+    };
+  },
+  methods: {
+    changeDidSelected(evt) {
+      if(LOG.trace0) {
+        console.log('RTK-GNSS-ROVER::changeDidSelected::this=:<',this,'>');
+      }
+      localStorage.setItem(appStoreDidSelected,this.didSelected);
+      otmc.switchDid(this.didSelected);
+    },
+    clickSelectUSBSerialRtkDevice(evt) {
+      if(LOG.trace0) {
+        console.log('RTK-GNSS-ROVER::clickSelectUSBSerialRtkDevice::this=:<',this,'>');
+      }
+      const otmc = this.otmc;
+      if(LOG.trace0) {
+        console.log('RTK-GNSS-ROVER::clickSelectUSBSerialRtkDevice::otmc=:<',otmc,'>');
+      }
+      createUSBSerialRtkDevice(otmc);
+    },
+    clickSelectBluetoothRtkDevice(evt) {
+      if(LOG.trace0) {
+        console.log('RTK-GNSS-ROVER::clickSelectBluetoothRtkDevice::this=:<',this,'>');
+      }
+      const otmc = this.otmc;
+      if(LOG.trace0) {
+        console.log('RTK-GNSS-ROVER::clickSelectBluetoothRtkDevice::otmc=:<',otmc,'>');
+      }
+    },
+  }, 
+}
+const createUSBSerialRtkDevice = async (otmc) => {
+  const filter = {};
+  try {
+    const device = await navigator.serial.requestPort();
+    if(LOG.trace10) {
+      console.log('RTK-GNSS-ROVER::createUSBSerialRtkDevice::device=:<',device,'>');
+    }
+    await device.open({ baudRate: 115200 });
+    const writer = device.writable.getWriter()
+    if(LOG.trace10) {
+      console.log('RTK-GNSS-ROVER::createUSBSerialRtkDevice::writer=:<',writer,'>');
+    }
+    const reader = device.readable.getReader();
+    if(LOG.trace10) {
+      console.log('RTK-GNSS-ROVER::createUSBSerialRtkDevice::reader=:<',reader,'>');
+    }
+    apps.device = {
+      writer:writer,
+      reader:reader
+    };
+    setInterval(() =>{
+      readSerialRtkDevice(reader)
+    } ,1000);
+  } catch (err) {
+    console.error('RTK-GNSS-ROVER::createUSBSerialRtkDevice::err=:<',err,'>');
+  }  
+}
+
+const onOTMCAppData = (appMsg) => {
+  if(LOG.trace0) {
+    console.log('RTK-GNSS-ROVER::onOTMCAppData::appMsg=:<',appMsg,'>');
+  }
+  if(appMsg.topic && appMsg.topic.endsWith('rtk-gnss/rtcm/3/base64')) {
+    const payload = appMsg.payload;
+    if(LOG.trace0) {
+      console.log('RTK-GNSS-ROVER::onOTMCAppData::payload=:<',payload,'>');
+    }
+    transferRtcm(payload)
+  }
+  if(appMsg.topic && appMsg.topic.endsWith('rtk-gnss/rtcm/3/rtcmMsg')) {
+    const payload = appMsg.payload;
+    if(LOG.trace0) {
+      console.log('RTK-GNSS-ROVER::onOTMCAppData::payload=:<',payload,'>');
+    }
+    analyzeRtcm(payload)
+  }
+}
+
+const isRtcmRoverWritable = (rtcmMsg) => {
+  if(LOG.trace0) {
+    console.log('RTK-GNSS-ROVER::isRtcmRoverWritable::rtcmMsg=:<',rtcmMsg,'>');
+  }
+  if(!rtcmMsg.base64) {
+    return false;
+  }
+  if(rtcmMsg.messageType >= 1005 || rtcmMsg.messageType <= 1006) {
+    return true;
+  }
+  if(rtcmMsg.messageType >= 1071 || rtcmMsg.messageType <= 1137) {
+    return true;
+  }
+  return false;
+}
+
+const transferRtcm = async (rtcmMsg) => {
+  if(LOG.trace0) {
+    console.log('RTK-GNSS-ROVER::transferRtcm::rtcmMsg=:<',rtcmMsg,'>');
+  }
+  if(typeof rtcmMsg === 'string') {
+    rtcmMsg = JSON.parse(rtcmMsg);
+  }
+  if(LOG.trace0) {
+    console.log('RTK-GNSS-ROVER::transferRtcm::rtcmMsg=:<',rtcmMsg,'>');
+  }
+  if(isRtcmRoverWritable(rtcmMsg)) {
+    const byteRtcm = base64ToUint8Array(rtcmMsg.base64);
+    if(LOG.trace0) {
+      console.log('RTK-GNSS-ROVER::transferRtcm::byteRtcm=:<',byteRtcm,'>');
+      console.log('RTK-GNSS-ROVER::transferRtcm::apps.device=:<',apps.device,'>');
+    }
+    if(apps.device && apps.device.writer) {
+      if(LOG.trace0) {
+        console.log('RTK-GNSS-ROVER::transferRtcm::apps.device.writer=:<',apps.device.writer,'>');
+      }
+      const ready = await apps.device.writer.ready;
+      if(LOG.trace0) {
+        console.log('RTK-GNSS-ROVER::transferRtcm::ready=:<',ready,'>');
+      }
+      const result = await apps.device.writer.write(byteRtcm);
+      if(LOG.trace0) {
+        console.log('RTK-GNSS-ROVER::transferRtcm::result=:<',result,'>');
+      }
+    }
+  }
+}
+
+const analyzeRtcm = (rtcmMsg) => {
+  if(LOG.trace0) {
+    console.log('RTK-GNSS-ROVER::analyzeRtcm::rtcmMsg=:<',rtcmMsg,'>');
+  }
+  if(typeof rtcmMsg === 'string') {
+    rtcmMsg = JSON.parse(rtcmMsg);
+  }
+  if(LOG.trace0) {
+    console.log('RTK-GNSS-ROVER::analyzeRtcm::rtcmMsg=:<',rtcmMsg,'>');
+  }
+  if(rtcmMsg.refStation && rtcmMsg.refStation.lla) {
+    const lla = rtcmMsg.refStation.lla;
+    if(LOG.trace0) {
+      console.log('RTK-GNSS-STATION::analyzeRtcm::lla=:<',lla,'>');
+    }
+    onRefStationArpLla(lla[0],lla[1],lla[2]);
+  }
+}
+
+
+const base64ToUint8Array = (base64Str) => {
+  const raw = atob(base64Str);
+  return Uint8Array.from(Array.prototype.map.call(raw, (x) => { 
+    return x.charCodeAt(0); 
+  })); 
+}
+
+const decoder = new TextDecoder();
+let gRemainText = '';
+const readSerialRtkDevice = async (reader) => {
+  if(LOG.trace0) {
+    console.log('RTK-GNSS-ROVER::readSerialRtkDevice::reader=:<',reader,'>');
+  }
+  const { value, done } = await reader.read();
+  if(LOG.trace0) {
+    console.log('RTK-GNSS-ROVER::readSerialRtkDevice::value=:<',value,'>');
+  }
+  if(LOG.trace0) {
+    console.log('RTK-GNSS-ROVER::readSerialRtkDevice::done=:<',done,'>');
+  }
+  const textGnss = decoder.decode(value);
+  if(LOG.trace0) {
+    console.log('RTK-GNSS-ROVER::readSerialRtkDevice::textGnss=:<',textGnss,'>');
+  }
+  const totalTextGnss = gRemainText + textGnss;
+  if(LOG.trace0) {
+    console.log('RTK-GNSS-ROVER::readSerialRtkDevice::totalTextGnss=:<',totalTextGnss,'>');
+  }
+  const lastNL = totalTextGnss.lastIndexOf('\r\n');
+  let toParseTextGnss = totalTextGnss.slice(0);
+  if(lastNL > 0) {
+    gRemainText = totalTextGnss.slice(lastNL);
+    toParseTextGnss = totalTextGnss.slice(0,lastNL);
+  }
+  if(lastNL === -1) {
+    return;
+  }
+  if(LOG.trace0) {
+    console.log('RTK-GNSS-ROVER::readSerialRtkDevice::lastNL=:<',lastNL,'>');
+    console.log('RTK-GNSS-ROVER::readSerialRtkDevice::toParseTextGnss=:<',toParseTextGnss,'>');
+    console.log('RTK-GNSS-ROVER::readSerialRtkDevice::gRemainText=:<',gRemainText,'>');
+    console.log('RTK-GNSS-ROVER::readSerialRtkDevice::gGpsParser=:<',gGpsParser,'>');
+  }
+
+  if(toParseTextGnss) {
+    const textGnssLines = toParseTextGnss.split('\r\n');
+    if(LOG.trace0) {
+      console.log('RTK-GNSS-ROVER::readSerialRtkDevice::textGnssLines=:<',textGnssLines,'>');
+    }
+    for(const textGnssLine of textGnssLines) {
+      if(textGnssLine.startsWith('$')) {
+        try {
+          gGpsParser.update(textGnssLine);
+        } catch (err) {
+          console.error('RTK-GNSS-ROVER::readSerialRtkDevice::err=:<',err,'>');
+        }
+      }
+    }
+  }
+}
+
+const gGpsParser = new GPS();
+gGpsParser.on('data', (parsed) => {
+  onGPSData(parsed);
+});
+
+const onGPSData = (gpsData) => {
+  if(LOG.trace10) {
+    console.log('RTK-GNSS-ROVER::onGPSData::gpsData=:<',gpsData,'>');
+    console.log('RTK-GNSS-ROVER::onGPSData::gpsData.type=:<',gpsData.type,'>');
+  }
+  if(gpsData.type === 'GGA') {
+    onGGAData(gpsData);
+  }
+  if(gpsData.type === 'GSA') {
+    if(LOG.trace0) {
+      console.log('RTK-GNSS-ROVER::onGPSData::gpsData=:<',gpsData,'>');
+    }
+    onGSAData(gpsData);
+  }
+  if(gpsData.type === 'GSV') {
+    if(LOG.trace0) {
+      console.log('RTK-GNSS-ROVER::onGPSData::gpsData=:<',gpsData,'>');
+    }
+    onGSVData(gpsData);
+  }
+  if(gpsData.type === 'GST') {
+    if(LOG.trace0) {
+      console.log('RTK-GNSS-ROVER::onGPSData::gpsData=:<',gpsData,'>');
+    }
+    onGSTData(gpsData);
+  }
+  if(gpsData.type === 'GRS') {
+    if(LOG.trace0) {
+      console.log('RTK-GNSS-ROVER::onGPSData::gpsData=:<',gpsData,'>');
+    }
+    onGRSData(gpsData);
+  }
+  if(gpsData.type === 'RMC') {
+    if(LOG.trace0) {
+      console.log('RTK-GNSS-ROVER::onGPSData::gpsData=:<',gpsData,'>');
+    }
+    onRMCData(gpsData);
+  }
+}
+
+
+
+const fConstGgaHeightOffset = 35.0
+
+let prevPosition = false;
+const onGGAData = (ggaData) => {
+  if(LOG.trace10) {
+    console.log('RTK-GNSS-ROVER::onGGAData::ggaData=:<',ggaData,'>');
+  }
+  if(apps.mapView && apps.mapPoints) {
+    const entity = {
+      position: Cesium.Cartesian3.fromDegrees(ggaData.lon,ggaData.lat,ggaData.alt + fConstGgaHeightOffset),
+      color : Cesium.Color.RED,
+    };
+    apps.mapPoints.add(entity);
+    if(LOG.trace0) {
+      console.log('RTK-GNSS-ROVER::onGGAData::apps.mapPoints=:<',apps.mapPoints,'>');
+    }
+  }
+  if(prevPosition) {
+    const now = Cesium.Cartesian3.fromDegrees(ggaData.lon,ggaData.lat,ggaData.alt);
+    const prev = Cesium.Cartesian3.fromDegrees(prevPosition.lon,prevPosition.lat,prevPosition.alt);
+    const distance = Cesium.Cartesian3.distance(now,prev);
+    if(LOG.trace0) {
+      console.log('RTK-GNSS-ROVER::onGGAData::distance=:<',distance,'>');
+    }
+  }
+  prevPosition = ggaData;
+}
+
+const fConstArpHeightOffset = 5.0
+
+const onRefStationArpLla = (latArp,lonArp,altArp) => {
+  if(LOG.trace0) {
+    console.log('RTK-GNSS-ROVER::onRefStationArpLla::latArp=:<',latArp,'>');
+    console.log('RTK-GNSS-ROVER::onRefStationArpLla::lonArp=:<',lonArp,'>');
+    console.log('RTK-GNSS-ROVER::onRefStationArpLla::altArp=:<',altArp,'>');
+  }
+  if(apps.mapView && apps.anchorLabels) {
+    const entity = {
+      position: Cesium.Cartesian3.fromDegrees(lonArp,latArp,altArp + fConstArpHeightOffset),
+      text  : `${lonArp.toFixed(4)}\n${latArp.toFixed(4)}`,
+      fillColor : Cesium.Color.GREEN,
+    };
+    apps.anchorLabels.add(entity);
+    if(LOG.trace0) {
+      console.log('RTK-GNSS-ROVER::onRefStationArpLla::apps.anchorLabels=:<',apps.anchorLabels,'>');
+    }
+  }
+  if(apps.mapView && apps.billboards) {
+    const entity = {
+      position: Cesium.Cartesian3.fromDegrees(lonArp,latArp,altArp + fConstArpHeightOffset),
+      image : 'https://raw.githubusercontent.com/FortAwesome/Font-Awesome/6.x/svgs/solid/tower-cell.svg',
+      scale : 0.25,
+    };
+    apps.billboards.add(entity);
+    if(LOG.trace0) {
+      console.log('RTK-GNSS-ROVER::onRefStationArpLla::apps.billboards=:<',apps.billboards,'>');
+    }
+  }
+}
+
+
+//https://raw.githubusercontent.com/FortAwesome/Font-Awesome/6.x/svgs/solid/tower-cell.svg
+
+
+const onGSAData = (gsaData) => {
+  if(LOG.trace10) {
+    console.log('RTK-GNSS-ROVER::onGSAData::gsaData=:<',gsaData,'>');
+  }
+}
+
+const onGSVData = (gsvData) => {
+  if(LOG.trace10) {
+    console.log('RTK-GNSS-ROVER::onGSVData::gsvData=:<',gsvData,'>');
+  }
+}
+const onGSTData = (gstData) => {
+  if(LOG.trace10) {
+    console.log('RTK-GNSS-ROVER::onGSTData::gstData=:<',gstData,'>');
+  }
+}
+const onGRSData = (grsData) => {
+  if(LOG.trace10) {
+    console.log('RTK-GNSS-ROVER::onGRSData::grsData=:<',grsData,'>');
+  }
+}
+const onRMCData = (rmcData) => {
+  if(LOG.trace10) {
+    console.log('RTK-GNSS-ROVER::onRMCData::rmcData=:<',rmcData,'>');
+  }
+}
+
+
+const createMapView = async (lat,lon) => {
+  const options = {
+    terrain: Cesium.Terrain.fromWorldTerrain(),
+  };
+  apps.mapView = new Cesium.Viewer('view_map', options);
+  apps.mapView.camera.flyTo({
+    destination : Cesium.Cartesian3.fromDegrees(lon,lat,100),
+    orientation : {
+      heading : Cesium.Math.toRadians(0.0),
+      pitch : Cesium.Math.toRadians(-90.0),
+    }
+  });
+  //const buildingTileset = await Cesium.createOsmBuildingsAsync();
+  //apps.mapView.scene.primitives.add(buildingTileset);
+  apps.mapPoints = apps.mapView.scene.primitives.add(new Cesium.PointPrimitiveCollection());
+  apps.anchorLabels = apps.mapView.scene.primitives.add(new Cesium.LabelCollection());
+  apps.billboards = apps.mapView.scene.primitives.add(new Cesium.BillboardCollection());
+}
+
+
+const doDidAuthKeyMatch = (apps) => {
+  if(LOG.trace) {
+    console.log('RTK-GNSS-ROVER::doDidAuthKeyMatch::apps=:<',apps,'>');
+  }
+  const keysOfMine = [];
+  for(const keyidRC of apps.keyidRCs) {
+      if(LOG.trace) {
+        console.log('RTK-GNSS-ROVER::doDidAuthKeyMatch::keyidRC=:<',keyidRC,'>');
+      }
+      for(const didKey of apps.didKeyList) {
+        if(LOG.trace) {
+          console.log('RTK-GNSS-ROVER::doDidAuthKeyMatch::didKey=:<',didKey,'>');
+        }
+        if(keyidRC === didKey.auth.idOfKey) {
+          keysOfMine.push(keyidRC);
+        }
+    }
+  }
+  if(LOG.trace) {
+    console.log('RTK-GNSS-ROVER::doDidAuthKeyMatch::keysOfMine=:<',keysOfMine,'>');
+  }
+  if(keysOfMine.length > 1) {
+    for(const keyidRC of keysOfMine) {
+      if(LOG.trace) {
+        console.log('RTK-GNSS-ROVER::doDidAuthKeyMatch::keyidRC=:<',keyidRC,'>');
+      }
+      if(apps.didSelected.endsWith(keyidRC)) {
+        return keyidRC;
+      }
+    }
+  }
+  if(keysOfMine.length === 1) {
+    return keysOfMine[0];
+  }
+  return null;
+}

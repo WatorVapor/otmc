@@ -1,11 +1,15 @@
+const multiLang = {
+  trace:true,
+  debug:true,
+};
+
 import * as Vue from 'vue';
 document.addEventListener('TopMenuBarLoaded', (evt) => {
   createMultiLanguage_();
 });
-const multiLang = {
-  trace:false,
-  debug:true,
-};
+document.addEventListener('DOMContentLoaded', (evt) => {
+  //createMultiLanguage_();
+});
 
 const appLangList = [];
 const createMultiLanguage_ = async () => {
@@ -14,54 +18,58 @@ const createMultiLanguage_ = async () => {
     lang = 'cn';
   }
   if(multiLang.trace) {
-    console.log('::location=<',location,'>');
-    console.log('::lang=<',lang,'>');
+    console.log('multiLang::location=<',location,'>');
+    console.log('multiLang::lang=<',lang,'>');
   }
   const langURL = `${location.pathname}lang_${lang}.js`;
   if(multiLang.trace) {
-    console.log('::langURL=<',langURL,'>');
+    console.log('multiLang::langURL=<',langURL,'>');
   }
-  const langPromise = import(langURL);
-  const langModule = await langPromise;
-  if(multiLang.trace) {
-    console.log('::langModule.data=<',langModule.data,'>');
-  }
-  const langCommonURL = `${constAppPrefix}/layout/lang_${lang}.js`;
-  if(multiLang.trace) {
-    console.log('::langCommonURL=<',langCommonURL,'>');
-  }
-  const langCommonPromise = import(langCommonURL);
-  const langCommonModule = await langCommonPromise;
-  if(multiLang.trace) {
-    console.log('::langCommonModule.data=<',langCommonModule.data,'>');
-  }
-  const allData = {...langModule.data, ...langCommonModule.data}
-  if(multiLang.trace) {
-    console.log('::allData=<',allData,'>');
-  }
-  const langElem = document.querySelectorAll('.vue-lang');
-  if(multiLang.trace) {
-    console.log('createMultiLanguage_::langElem=<',langElem,'>');
-  }
-  langElem.forEach((el, i) => {
+  try {
+    const langPromise = import(langURL);
+    const langModule = await langPromise;
     if(multiLang.trace) {
-      console.log('createMultiLanguage_::el=<',el,'>');
-      console.log('createMultiLanguage_::allData=<',allData,'>');
+      console.log('multiLang::langModule.data=<',langModule.data,'>');
     }
-    const app = Vue.createApp({
-      data() {
-        return allData;
-      },
-      delimiters:['{%', '%}']
-    });
-    const vm = app.mount(el);
-    appLangList.push(vm);
-  });  
+    const langCommonURL = `${constAppPrefix}/layout/lang_${lang}.js`;
+    if(multiLang.trace) {
+      console.log('multiLang::langCommonURL=<',langCommonURL,'>');
+    }
+    const langCommonPromise = import(langCommonURL);
+    const langCommonModule = await langCommonPromise;
+    if(multiLang.trace) {
+      console.log('multiLang::langCommonModule.data=<',langCommonModule.data,'>');
+    }
+    const allData = {...langModule.data, ...langCommonModule.data}
+    if(multiLang.trace) {
+      console.log('multiLang::allData=<',allData,'>');
+    }
+    const langElem = document.querySelectorAll('.vue-lang');
+    if(multiLang.trace) {
+      console.log('multiLang::langElem=<',langElem,'>');
+    }
+    langElem.forEach((el, i) => {
+      if(multiLang.trace) {
+        console.log('multiLang::el=<',el,'>');
+        console.log('multiLang::allData=<',allData,'>');
+      }
+      const app = Vue.createApp({
+        data() {
+          return allData;
+        },
+        delimiters:['{%', '%}']
+      });
+      const vm = app.mount(el);
+      appLangList.push(vm);
+    });  
+  } catch (error) {
+    console.log('multiLang::error=<',error,'>');
+  }
 }
 
 window.updateMultiLanguage = () => {
   if(multiLang.trace) {
-    console.log('updateMultiLanguage::=<','','>');
+    console.log('multiLang::updateMultiLanguage=<','','>');
   }
   createMultiLanguage_();
 }

@@ -3,8 +3,133 @@ title: 'Didteam'
 layout: didteam.sidebar.ejs
 ---
 
+<!--
     <div class="container text-center mt-3">
-      <iframe src="./ai_gen_index/" style="width:100%; height:100vh;"></iframe>
+      <iframe class="vue-lang" src="./ai_gen_index-en/" style="width:100%; height:100vh;"></iframe>
     </div>
+-->
+
+  <main class="container my-4">
+    <div class="hero p-4 mb-4">
+      <div class="d-flex flex-column flex-lg-row align-items-start gap-3">
+        <div class="flex-grow-1">
+          <h1 class="h3 mb-2">RTK-GNSS AI 生成 — 中文索引页</h1>
+          <p class="mb-0 text-muted">本页面为原站（<code>https://otmc.wator.xyz/rtk-gnss/ai_gen_index-cn/</code>）的 Bootstrap 版本样式化静态模板，尽量保持原页面的布局与信息层次。若需把真实内容注入本模板，建议通过服务端抓取或代理（以避免 CORS 限制）。</p>
+        </div>
+        <div class="text-end">
+          <a href="#" class="btn btn-outline-primary btn-sm">切换版本</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-lg-8 main-content">
+        <!-- 主内容区：文章摘要与卡片列表 -->
+        <section id="features" class="mb-4">
+          <h2 class="h5 mb-3">快速入口</h2>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="card h-100">
+                <div class="card-img-placeholder">地图 / 示例图</div>
+                <div class="card-body">
+                  <h5 class="card-title">AI 生成示例</h5>
+                  <p class="card-text text-muted">展示如何使用 AI 协助生成 RTK-GNSS 相关的文档、配置与示例。</p>
+                  <a href="#" class="stretched-link"></a>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="card h-100">
+                <div class="card-img-placeholder">数据可视化</div>
+                <div class="card-body">
+                  <h5 class="card-title">实时数据流</h5>
+                  <p class="card-text text-muted">RTCM / NTRIP 流与解析示例，包含客户端接入说明与常见问题。</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-12">
+              <div class="card">
+                <div class="card-body">
+                  <h5 class="card-title">详细说明</h5>
+                  <p class="card-text">这里放置长期文档、教程、以及 AI 生成流程说明。为保持原站布局，这里可以分成多个折叠面板或锚点跳转。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="docs" class="mb-4">
+          <h2 class="h5 mb-3">文档与资源</h2>
+          <div class="list-group">
+            <a class="list-group-item list-group-item-action" href="#">快速上手</a>
+            <a class="list-group-item list-group-item-action" href="#">API 参考</a>
+            <a class="list-group-item list-group-item-action" href="#">示例代码</a>
+            <a class="list-group-item list-group-item-action" href="#">常见问题</a>
+          </div>
+        </section>
+
+        <section class="mb-4">
+          <h2 class="h5 mb-3">文章与更新</h2>
+          <article class="mb-3">
+            <h3 class="h6">如何用 AI 自动生成 RTK 配置</h3>
+            <p class="text-muted mb-1">摘要：介绍从原始 OBS 日志或 GNSS 流生成配置与报告的流程。</p>
+            <a href="#" class="link-primary">阅读更多</a>
+          </article>
+
+          <article>
+            <h3 class="h6">NTRIP 与 RTCM 解析深度解读</h3>
+            <p class="text-muted mb-1">摘要：在浏览器端处理 RTCM/RTK 数据流的方法，以及注意事项。</p>
+            <a href="#" class="link-primary">阅读更多</a>
+          </article>
+        </section>
+
+      </div>
+
+      <aside class="col-lg-4 sidebar">
+        <div class="position-sticky" style="top:1rem">
+          <div class="card mb-3">
+            <div class="card-body">
+              <h5 class="card-title">快速导航</h5>
+              <div class="list-group list-group-flush">
+                <a class="list-group-item" href="#features">功能</a>
+                <a class="list-group-item" href="#docs">文档</a>
+                <a class="list-group-item" href="#contact">联系我们</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-body">
+              <h6 class="card-subtitle mb-2 text-muted">站点动作</h6>
+              <p class="mb-2">尝试将原站内容注入：客户端请求通常受 CORS 限制。建议通过后端代理或构建时抓取来注入真实 HTML。</p>
+              <button id="tryFetch" class="btn btn-sm btn-outline-secondary">尝试在客户端加载原站（可能失败）</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-body">
+              <h6 class="card-subtitle mb-2 text-muted">联系我们</h6>
+              <p class="mb-0">需要我把页面替换为你站点的真实内容，或调整样式/图片？告诉我你想要的细节。</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="mt-4 border-top pt-3">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          &copy; <span id="year"></span> RTK-GNSS • 基于 Bootstrap 的静态模板
+        </div>
+        <div>
+          <a href="#" class="text-muted me-3">隐私</a>
+          <a href="#" class="text-muted">关于</a>
+        </div>
+      </div>
+    </footer>
+  </main>
+
 
     <%- include(`./_sidebar.ejs`) %>

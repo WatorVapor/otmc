@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="ja">
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>OTMC — RTK GNSS（概要）</title>
+    <meta name="description" content="OTMC RTK GNSS の概要とクイックスタートガイド：ローバーと基地局。" />
+    <style>
+      :root {
+        --bg: #0f1720;
+        --card: #0b1220;
+        --muted: #9aa6b2;
+        --accent: #2dd4bf;
+        --glass: rgba(255, 255, 255, 0.03)
+      }
+
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        font-family: Inter, Segoe UI, Roboto, Arial, sans-serif;
+        background: linear-gradient(180deg, #071024 0%, #041824 100%);
+        color: #e6eef6
+      }
+
+      .container {
+        max-width: 980px;
+        margin: 40px auto;
+        padding: 24px
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 28px
+      }
+
+      p.lead {
+        color: var(--muted);
+        margin: 6px 0 0
+      }
+
+      nav a {
+        color: var(--accent);
+        text-decoration: none;
+        margin-left: 12px
+      }
+
+      .card {
+        background: var(--card);
+        border-radius: 12px;
+        padding: 18px;
+        margin-top: 18px;
+        box-shadow: 0 6px 18px rgba(2, 6, 23, 0.6)
+      }
+
+      pre {
+        background: linear-gradient(90deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+        padding: 12px;
+        border-radius: 8px;
+        overflow: auto;
+        color: #d8f0ef
+      }
+
+      code {
+        font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 16px
+      }
+
+      .tag {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: var(--glass);
+        color: var(--muted);
+        font-size: 13px
+      }
+
+      footer {
+        margin-top: 28px;
+        color: var(--muted);
+        font-size: 13px
+      }
+
+      .button {
+        display: inline-block;
+        padding: 8px 12px;
+        border-radius: 8px;
+        background: var(--accent);
+        color: #022;
+        cursor: pointer;
+        text-decoration: none
+      }
+
+      @media (max-width:900px) {
+        .grid {
+          grid-template-columns: 1fr
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <header>
+        <div>
+          <h1>OTMC — RTK GNSS</h1>
+          <p class="lead">RTK ローバーと基地局の概要とクイックスタートガイド（日本語）。</p>
+        </div>
+        <div>
+          <span class="tag">日本語</span>
+          <nav aria-label="lang">
+            <a href="/rtk-gnss/">中文</a>
+            <a href="/rtk-gnss/ai_gen_index-en/">English</a>
+          </nav>
+        </div>
+      </header>
+
+      <main class="grid">
+        <section>
+          <article class="card">
+            <h2>プロジェクト概要</h2>
+            <p>RTK GNSS（Real-Time Kinematic）は、搬送波位相測位と基準局からの補正データを組み合わせることで、センチメートル級の測位精度を実現します。OTMC のページは、移動局（ローバー）と固定局（基地局）の設定と利用方法を紹介します。</p>
+
+            <h3>ページ構成</h3>
+            <ul>
+              <li><strong>RTK ローバー</strong> — GNSS 受信機を USB / Bluetooth 経由で接続し、シリアル設定を行うクライアントページ。</li>
+              <li><strong>基地局</strong> — 固定局の登録と設定、NTRIP / RTCM 配信設定、チーム情報の入力。</li>
+            </ul>
+
+            <h3>テンプレート変数</h3>
+            <p>このサイトはアカウント / チーム情報をテンプレート変数でレンダリングします。HTML 内での例：</p>
+            <pre><code>アカウント: {{account.name}}  
+チーム DID: {{account.did}}</code></pre>
+
+            <h3>推奨機能</h3>
+            <ul>
+              <li>リアルタイム状態表示（衛星数、測位方式、基線長など）</li>
+              <li>NTRIP クライアント／サーバー制御とテストツール</li>
+              <li>ログ、OTA ファームウェア、チームアクセス管理</li>
+            </ul>
+          </article>
+
+          <article class="card" style="margin-top:16px">
+            <h2>クイックスタート — ローバー</h2>
+            <ol>
+              <li>RTCM または NMEA RTK 出力に対応した GNSS 受信機を準備。</li>
+              <li>USB または Bluetooth でホスト機器（例: Raspberry Pi, PC）に接続。</li>
+              <li>/rtk-gnss/ ページを開き、モジュールを選択してシリアル設定を行う。</li>
+              <li>必要に応じて基地局や NTRIP サーバーから補正データを取得。</li>
+            </ol>
+
+            <h4>ローカルテストコマンド</h4>
+            <pre><code># シリアルデバイス一覧（Linux）
+ls /dev/serial/by-id/
+
+# シリアル → TCP ブリッジ（socat 例）
+socat -d -d PTY,raw,echo=0,link=/tmp/rtk-usb TCP:localhost:5200
+
+# RTKLIB str2str でシリアルを NTRIP に転送
+str2str -in serial:///dev/ttyUSB0:57600#rtcm3 -out ntrip://user:pass@caster:2101/mountpoint</code></pre>
+          </article>
+
+          <article class="card" style="margin-top:16px">
+            <h2>クイックスタート — 基地局</h2>
+            <ol>
+              <li>既知の固定点に高精度 GNSS 受信機を設置し、安定した電源を確保。</li>
+              <li>RTCM 補正メッセージを出力するように受信機を設定。</li>
+              <li>NTRIP サーバーまたは TCP/UDP で補正データを配信。</li>
+              <li>基地局ページでチーム、アドレス、DID などを登録し、ネットワーク到達性を確認。</li>
+            </ol>
+
+            <p><strong>セキュリティのヒント:</strong> 公開ネットワークで NTRIP や RTCM ストリームを配信する場合は、TLS、mTLS、VPN を利用してください。</p>
+          </article>
+
+          <article class="card" style="margin-top:16px">
+            <h2>設定例</h2>
+            <pre><code># NTRIP サーバー URL 形式
+ntrip://username:password@caster.example.com:2101/mountpoint
+
+# シリアル設定例
+/dev/ttyUSB0, 57600 ボー、8N1
+
+# 基地局メタデータ例 (JSON)
+{
+  "id": "base-001",
+  "lat": 35.6586,
+  "lon": 139.7454,
+  "height": 45.3,
+  "did": "{{account.did}}"
+}</code></pre>
+          </article>
+
+        </section>
+
+        <aside>
+          <div class="card">
+            <h3>クイックリンク</h3>
+            <ul>
+              <li><a href="/rtk-gnss/">RTK ローバー ページ</a></li>
+              <li><a href="/rtk-gnss/base-station/">基地局 ページ</a></li>
+              <li><a href="#commands">コマンドと例</a></li>
+            </ul>
+          </div>
+
+          <div class="card" style="margin-top:12px">
+            <h3>連絡先 & ライセンス</h3>
+            <p class="muted" style="color:var(--muted)">このテンプレートはデモ用です。実運用ではチーム情報に置き換え、適切なライセンス表記を行ってください。</p>
+          </div>
+
+          <div class="card" style="margin-top:12px">
+            <h3>ダウンロード</h3>
+            <p style="color:var(--muted)">この HTML ファイルをホスティング用にダウンロードできます:</p>
+            <button id="downloadBtn" class="button">HTML ダウンロード</button>
+          </div>
+        </aside>
+      </main>
+
+      <footer>
+        <p><code>/rtk-gnss/ai_gen_index/</code> の日本語版です。公開前にテンプレート変数を置き換えてください。</p>
+      </footer>
+    </div>
+
+    <script>
+      document.getElementById('downloadBtn').addEventListener('click', function() {
+        const html = `<!doctype html>\n${document.documentElement.outerHTML}`;
+        const blob = new Blob([html], {
+          type: 'text/html'
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'rtk-gnss-ai_gen_index-ja.html';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      });
+    </script>
+  </body>
+
+</html>

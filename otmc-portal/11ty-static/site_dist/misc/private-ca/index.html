@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="zh">
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=0.5, maximum-scale=0.5,minimum-scale=0.5">
+    <title>Otmc Didteam</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" integrity="sha256-oxqX0LQclbvrsJt8IymkxnISn4Np2Wy2rY9jjoQlDEg=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css" integrity="sha256-4rTIfo5GQTi/7UJqoyUJQKzxW8VN/YBH31+Cy+vTZj4=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icon-css@4.1.7/css/flag-icons.min.css" integrity="sha256-8qup5VqQKcE2cLILwBU2zpXUkT+eW5tI1ZLzJjh/TdY=" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/es-module-shims@2.6.2/dist/es-module-shims.js" integrity="sha256-KX2cq0C834YCgTDngiDdfPtUAv3JV6+S7JsNqi7N4r8=" crossorigin="anonymous"></script>
+  </head>
+
+  <body>
+    <script type="importmap">
+      {
+        "imports": {
+          "otmc": "/assets/js/otmc.js",
+          "otmcTeam": "/assets/js/otmc.team.js",
+          "otmcMqtt": "/assets/js/otmc.mqtt.js",
+          "####otmc": "https://cdn.jsdelivr.net/npm/otmc-client@1.0.10/otmc.js",
+          "####otmcTeam": "https://cdn.jsdelivr.net/npm/otmc-client@1.0.10/otmc.team.js",
+          "####otmcMqtt": "https://cdn.jsdelivr.net/npm/otmc-client@1.0.10/otmc.mqtt.js",
+          "tweetnacl-es6": "https://cdn.jsdelivr.net/npm/tweetnacl-es6@1.0.3/nacl-fast-es.min.js",
+          "@scure/base": "https://cdn.jsdelivr.net/npm/@scure/base@1.2.4/+esm",
+          "hash-wasm": "https://cdn.jsdelivr.net/npm/hash-wasm@4.12.0/+esm",
+          "mqtt": "https://cdn.jsdelivr.net/npm/mqtt@5.14.1/+esm",
+          "@popperjs/core": "https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/esm/popper.min.js",
+          "bootstrap": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.esm.min.js",
+          "eventemitter3": "https://cdn.jsdelivr.net/npm/eventemitter3@5.0.1/dist/eventemitter3.esm.min.js",
+          "xstate": "https://cdn.jsdelivr.net/npm/xstate@5.22.0/+esm",
+          "graphology": "https://cdn.jsdelivr.net/npm/graphology@0.26.0/+esm",
+          "graphology-shortest-path": "https://cdn.jsdelivr.net/npm/graphology-shortest-path@2.1.0/+esm",
+          "dexie": "https://cdn.jsdelivr.net/npm/dexie@4.2.0/+esm",
+          "three": "https://cdn.jsdelivr.net/npm/three@0.175.0/build/three.module.min.js",
+          "json-diff": "https://cdn.jsdelivr.net/npm/json-diff@1.0.6/+esm",
+          "vue": "https://cdn.jsdelivr.net/npm/vue@3.5.21/dist/vue.esm-browser.prod.js",
+          "fake-indexeddb": "/assets/js/otm.dummy.browser.fake-indexeddb.js",
+          "node:worker_threads": "/assets/js/otm.dummy.browser.worker.js",
+          "fs": "/assets/js/otm.dummy.browser.fs.js",
+          "path": "/assets/js/otm.dummy.browser.path.js",
+          "url": "/assets/js/otm.dummy.browser.url.js"
+        }
+      }
+    </script>
+    <script type="module">
+      const LOG = {
+        trace: false,
+        debug: true
+      };
+      import * as bootstrap from 'bootstrap';
+      if (LOG.trace) {
+        console.log('::bootstrap=<', bootstrap, '>');
+      }
+      setTimeout(() => {
+        enableTooltips();
+      }, 100);
+      setTimeout(() => {
+        enableTooltips();
+      }, 3000);
+      const enableTooltips = () => {
+        const collapseElementList = document.querySelectorAll('.collapse');
+        const collapseList = [...collapseElementList].map(collapseEl => new bootstrap.Collapse(collapseEl));
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+      }
+    </script>
+    <script type="text/javascript" src="/layout/const.js"></script>
+    <header class="navbar navbar-expand navbar-dark bd-navbar bg-dark fixed-top sticky-top ">
+      <nav class="container" aria-label="Main navigation">
+        <a class="navbar-brand text-primary btn-lg" href="/" role="button">
+          <i class="fa-solid fa-house"></i>
+        </a>
+
+        <div class="collapse navbar-collapse d-flex justify-content-center" id="vue-ui-navbar-top-app">
+          <ul class="navbar-nav">
+            <li class="nav-item active border rounded-pill" v-for="(app,index) in apps">
+              <a class="nav-link text-primary" v-bind:href="'/' + app.href" role="button">
+                <i v-if="app.icon1" :class="app.icon1"></i>
+                <i v-if="app.icon2" :class="app.icon2"></i>
+                <i v-if="app.icon3" :class="app.icon3"></i>
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div class="collapse navbar-collapse d-flex justify-content-end">
+          <ul class="navbar-nav">
+            <li class="nav-item dropdown ml-5" id="vue-ui-navbar-top-lang">
+
+              <button class="nav-link dropdown-toggle btn-lg" role="button" href="#" data-bs-toggle="dropdown" data-bs-target="#navbarLanguageDropdown" aria-expanded="true">
+                <i class="fa-solid fa-globe"></i>
+              </button>
+              <ul class="dropdown-menu z-index-n2" id="navbarLanguageDropdown">
+                <li class="nav-item">
+                  <a class="dropdown-item" @click="onClickChangeLang('cn')"><span class="flag-icon flag-icon-background flag-icon-cn"></span>中文</a>
+                </li>
+                <li>
+                  <hr class="dropdown-divider">
+                </li>
+                <li class="nav-item">
+                  <a class="dropdown-item" @click="onClickChangeLang('ja')"><span class="flag-icon flag-icon-background flag-icon-jp"></span>日本語</a>
+                </li>
+                <li>
+                  <hr class="dropdown-divider">
+                </li>
+                <li class="nav-item">
+                  <a class="dropdown-item" @click="onClickChangeLang('en')"><span class="flag-icon flag-icon-background flag-icon-us"></span>English</a>
+                </li>
+              </ul>
+            </li>
+            <li class="nav-item dropdown ml-5" id="vue-ui-navbar-top-team">
+              <a class="nav-link text-success btn-lg" role="button" href="/didteam/">
+                <i class="fa-solid fa-user-gear"></i>
+                {{ accout.name }}
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+    <div class="container-fluid">
+      <div class="row flex-nowrap">
+        <div class="col-2 px-sm-2 px-0 bg-dark" id="vue-ui-sidebar">
+          <div class="d-flex flex-column align-items-center align-items-sm-start px-3 pt-2 text-white min-vh-100">
+            <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start" id="menu">
+              <li data-bs-toggle="collapse" class="nav-link px-0 align-middle" v-for="menu in menuTree">
+                <a :href="menu.href" class="nav-link px-0 align-middle">
+                  <span class="me-2" v-for="icon in menu.icons">
+                    <i :class="icon" ></i>
+                  </span>
+                  <span class="me-1 d-sm-inline">{{menu.title}}</span>
+                </a>
+                <ul class="collapse show nav flex-column ms-1" id="submenu1" data-bs-parent="#menu" v-if="menu.subMenu.length > 0">
+                  <li class="w-100" v-for="subMenu in menu.subMenu">
+                    <a href="#" class="nav-link px-0"> <span class="d-sm-inline">{{subMenu.title}}</span> 1 </a>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-10">
+
+
+          <script>
+            window.otmc ||= {}
+            window.otmc.SideMenuItems = [{
+              href: '/rtk-gnss/',
+              title: 'rtk-top',
+              id: 'menu-item-id-rtk-gnss-top',
+              icons: ['fa-solid fa-house'],
+              subMenu: []
+            }, ];
+          </script>
+
+
+        </div>
+      </div>
+    </div>
+
+
+    <script type="module" src="/layout/navbar.js"></script>
+    <script type="module" src="/layout/sidebar.js"></script>
+    <script type="module" src="/layout/lang.js"></script>
+  </body>
+
+</html>

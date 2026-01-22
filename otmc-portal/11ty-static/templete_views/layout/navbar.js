@@ -14,6 +14,12 @@ const appsData = [
     icon2:'fa-solid fa-tower-broadcast',
     icon3:'fa-regular fa-compass',
   },
+  {
+    href:'misc/private-ca/',
+    icon1:'fa-solid fa-satellite',
+    icon2:'fa-solid fa-tower-broadcast',
+    icon3:'fa-regular fa-compass',
+  },
 ];
 const appOption = {
   data() {
